@@ -10,7 +10,7 @@ from stix.core import stix_logger
 logger = stix_logger.get_logger()
 
 ASW_VERSION=180
-
+HTTP_PREFIX='https://pub023.cs.technik.fhnw.ch'
 parser_config = {
     "pipeline": {
         "mongodb": {

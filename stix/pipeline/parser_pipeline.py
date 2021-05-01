@@ -41,7 +41,7 @@ mongodb_config=config.get_config('pipeline.mongodb')
 MDB=mongo_db.MongoDB(mongodb_config['host'], mongodb_config['port'], 
             mongodb_config['user'], mongodb_config['password'])
 
-HOST='https://pub023.cs.technik.fhnw.ch'
+HOST=config.HTTP_PREFIX
 def get_now():
     return datetime.now().isoformat()
 def create_notification(raw_filename, TM5_headers, summary, num_flares):
