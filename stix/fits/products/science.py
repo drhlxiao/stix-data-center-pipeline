@@ -10,6 +10,7 @@ from astropy.io import fits
 from astropy.table.operations import unique, vstack
 from astropy.table.table import QTable
 from astropy.time.core import Time
+from stix.core import config
 
 from stix.fits.calibration.integer_compression import decompress
 from stix.core.stix_datetime import scet_to_datetime
@@ -350,7 +351,7 @@ class XrayL1(Product):
         tmp['e_high'] = np.array(packets['NIXD0017'], np.ubyte)
         tmp['num_data_elements'] = np.array(packets['NIX00259'])
         unique_energies_low = np.unique(tmp['e_low'])
-        unique_energies_high = np.unique(tmp['e_high'])
+        unique_energies_high = np.unique(tmp['e_high']) 
 
         # counts = np.array(eng_packets['NIX00260'], np.uint32)
 
@@ -398,10 +399,13 @@ class XrayL1(Product):
         dl_energies = np.array([[ENERGY_CHANNELS[lch]['e_lower'], ENERGY_CHANNELS[hch]['e_upper']]
             for lch, hch in zip(unique_energies_low, unique_energies_high)]).reshape(-1)
         dl_energies = np.unique(dl_energies)
+        
         sci_energies = np.hstack([[ENERGY_CHANNELS[ch]['e_lower'] for ch in range(32)],
                                   ENERGY_CHANNELS[31]['e_upper']])
 
         # If there is any onboard summing of energy channels rebin back to standard sci channels
+        print("current asw")
+        print(config.ASW_VERSION)
         print(unique_energies_low)
         print(unique_energies_high)
         if (unique_energies_high - unique_energies_low).sum() > 0:

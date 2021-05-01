@@ -9,26 +9,58 @@ from dateutil import parser as dtparser
 from stix.core import stix_logger
 logger = stix_logger.get_logger()
 
-parser_config = {}
+ASW_VERSION=180
 
-
-def import_config(namespace, path, filename):
-    fname = os.path.join(path, filename)
-    with open(fname) as f:
-        data = json.load(f)
-        parser_config[namespace] = data
-
-
-def load_config(path='./config'):
-    parser_config = {}
-    if not os.path.exists(path):
-        path= os.path.join(os.path.dirname(__file__),'../../config') 
-
-    fname=os.path.join(path, 'index.json')
-    with open(fname) as f:
-        data = json.load(f)
-        for namespace, filename in data.items():
-            import_config(namespace, path, filename)
+parser_config = {
+    "pipeline": {
+        "mongodb": {
+            "host": "localhost",
+            "user": "",
+            "password": "",
+            "port": 27017
+        },
+        "daemon": {
+            "data_source": {
+                "GU": ["/home/xiaohl/data/*.ascii"],
+                "PFM": [
+                    "/data/gfts/solmoc/from_moc/*.xml",
+                    "/data/gfts/solmoc/from_edds/tm/*.xml",
+                    "/data/gfts/solmoc/from_edds/tc/*.xml",
+                    "/data/gfts/solmoc/from_moc/*ascii"
+                ]
+            },
+            "log_path": "/data/log/",
+            "notification": {
+                "file": "/data/log/stix_message.log"
+            },
+            "fits_path": "/data/fits",
+            "flare_lc_snapshot_path": "/data/flare_lc",
+            "calibration_report_path": "/data/calibration/",
+            "level1_products_path": "/data/level1/",
+            "ngnix_cache": "/data/nginx/stix_cache/*",
+            "goes_lc_path": "/data/goes/"
+        },
+        "asw_version": 180
+    },
+    "ASW":{"179": {
+        "filename": "/data/pub/data/idb/idb.sqlite",
+        "version": "2.26.33",
+        "aswVersion": 179,
+    }, 
+    "180":{
+        "filename": "/data/pub/data/idb/idb_v2.26.35.sqlite",
+        "version": "2.26.34",
+        "validityPeriod": ["2020-12-28T00:00:00", "2020-12-28T00:00:00"]
+    } 
+    },
+    "spice": [{
+        "data": [
+            "/data/pub/data/spice/latest/kernels/lsk/naif0012.tls",
+            "/data/pub/data/spice/latest/kernels/sclk/solo_ANC_soc-sclk_*.tsc"
+        ],
+        "validityPeriod": ["2020-05-28T00:00:00", "2031-12-28T00:00:00"]
+    }],
+}
 
 
 def config(key):
@@ -53,20 +85,10 @@ def get_config(key=None):
     return parser_config.get(key, '')
 
 
-def get_idb(utc=None):
-    if not utc:
-        try:
-            return parser_config['idb'][0]['filename']
-        except Exception as e:
-            logger.error(str(e))
-        return ''
-    for item in parser_config['idb']:
-        dt = dtparser.parse(utc)
-        if dt > dtparser.parse(
-                item['validity_period'][0]) and dt <= dtparser.parse(
-                    item['validity_period'][1]):
-            return item['filename']
-    return ''
+def get_idb(asw_version=None):
+    if not asw_version:
+        asw_version=ASW_VERSION
+    return parser_config["ASW"][str(asw_version)]["filename"]
 
 
 def get_spice(utc=None):
@@ -79,13 +101,12 @@ def get_spice(utc=None):
     for item in parser_config['spice']:
         dt = dtparser.parse(utc)
         if dt > dtparser.parse(
-                item['validity_period'][0]) and dt <= dtparser.parse(
-                    item['validity_period'][1]):
+                item['validityPeriod'][0]) and dt <= dtparser.parse(
+                    item['validityPeriod'][1]):
             return item['data']
     return []
 
 
-load_config()
 #print(config)
 #print(get_config('pipeline.mongodb.host'))
 #print(get_idb('2020-10-01T00:00:00'))

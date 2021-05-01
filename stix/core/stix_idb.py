@@ -64,7 +64,7 @@ class _IDB(object):
 
         self.filename = filename
         if self.filename == "":
-            self.filename = config.get_idb(utc)
+            self.filename = config.get_idb()
             print('loading idb from')
 
             print(self.filename)
