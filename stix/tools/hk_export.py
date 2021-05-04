@@ -20,7 +20,7 @@ def request_hk_packets(start_utc, end_utc):
     csv_filename=csv_filename.replace(':','')
     fcsv=open(csv_filename,'w')
     header_name='Packet ID, UTC,'+','.join(HK.values())+'\n'
-    fcsv.write(
+    fcsv.write(header_name)
     print('request data...')
     i=0
     indexes=[]
