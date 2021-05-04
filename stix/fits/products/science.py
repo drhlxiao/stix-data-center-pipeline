@@ -408,7 +408,8 @@ class XrayL1(Product):
         #print(unique_energies_low)
         #print(unique_energies_high)
         if (unique_energies_high - unique_energies_low).sum() > 0:
-            print('Onboard summing rebinned ')
+            # there is a bug here
+            #print('Onboard summing rebinned ')
             rebinned_counts = np.zeros((*counts.shape[:-1], 32))
             rebinned_counts_var = np.zeros((*counts_var.shape[:-1], 32))
             e_ch_start = 0
