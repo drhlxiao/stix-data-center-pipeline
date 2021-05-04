@@ -19,18 +19,31 @@ def request_hk_packets(start_utc, end_utc):
     csv_filename=f'stix_hk_{start_utc}_{end_utc}.csv'
     csv_filename=csv_filename.replace(':','')
     fcsv=open(csv_filename,'w')
-    fcsv.write(','.join(HK.values())+'\n')
+    header_name='Packet ID, UTC,'+','.join(HK.values())+'\n'
+    fcsv.write(
     print('request data...')
     i=0
+    indexes=[]
     for pkt in cur:
         header=pkt['header']
         parameters=pkt['parameters']
         if header['unix_time']==last_time:
             continue
+        if i==0:
+            for name in names:
+                for j, p in enumerate(parameters):
+                    if p[0]==name:
+                        indexes.append(j)
+                        break
+
+
+
         last_time=header['unix_time']
-        line=','.join([str(parameters[name][2]) for name in names])
+        _id=pkt['_id']
+        line=f'{_id},{header["UTC"]},'
+        line+=','.join([str(parameters[ix][2]) for ix in indexes])
+        lint+='\n'
         fcsv.write(line)
-        fcsv.write('\n')
         i+=1
         if i%1000==0:
             print(i)
