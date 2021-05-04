@@ -42,7 +42,7 @@ def request_hk_packets(start_utc, end_utc):
         _id=pkt['_id']
         line=f'{_id},{header["UTC"]},'
         line+=','.join([str(parameters[ix][2]) for ix in indexes])
-        lint+='\n'
+        line+='\n'
         fcsv.write(line)
         i+=1
         if i%1000==0:
