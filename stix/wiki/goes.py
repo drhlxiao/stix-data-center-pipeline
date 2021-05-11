@@ -65,8 +65,9 @@ def plot_goes(folder,_id, flare_id, start_utc, end_utc, overwrite=False):
     plt.legend(loc='upper right')
     plt.title('GOES x-ray flux')
     fname=os.path.join(folder, f'flare_{_id}_{flare_id}_goes.png')
+    print(fname)
     plt.savefig(fname, dpi=100)
-    mdb.update_flare_joint_obs(_id, key, [filename])
+    mdb.update_flare_joint_obs(_id, key, [fname])
     return True
 if __name__=='__main__':
     plot_goes('.',0,'2021-05-05T00:00:00','2021-05-05T01:10:00')
