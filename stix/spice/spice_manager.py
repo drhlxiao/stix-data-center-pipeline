@@ -36,7 +36,10 @@ class SpiceManager:
                     MDB.insert_spice_kernel(fname)
         for kernel in MDB.get_spice_kernels():
             fname=os.path.join(kernel['path'],kernel['filename'])
-            spiceypy.furnsh(fname)
+            try:
+                spiceypy.furnsh(fname)
+            except spiceypy.utils.exceptions.SpiceNOSUCHFILE:
+                print(f'Failed to load {fname}')
             #if 'sclk' in fname or 'lsk' in fname:
             #only import sclk and lsk module for data parser
             if 'sclk' in fname:

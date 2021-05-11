@@ -14,21 +14,26 @@ URL=HOST+"/wiki/api.php"
 
 def format_page(flare):
     peak_utc=flare['peak_utc']
-    emph=solo.get_solo_ephemeris(peak_utc,peak_utc)
-    tdiff=emph.get('light_time_diff','NA')+' s'
-    sun_solo_r=emph.get('sun_solo_r','NA')+' AU'
     uid=str(flare['peak_counts']).replace('.','')
     #unique_id, anti-bots
     now=datetime.now().strftime('%c')
+    try:
+        emph=solo.get_solo_ephemeris(peak_utc,peak_utc)
+        tdiff=f"{emph['light_time_diff'][0]} s"
+        angle=f"{emp['earth_sun_solo_angle'][0]} deg"
+    except:
+        tdiff='N/A'
+        angle='N/A'
     
 
     title=f"STIX_Flare:_{flare['flare_id']}"
     content=(f'''[[Category:STIX_Flares]]\n'''
             f'''<!-- The session below was created by the STIX data center pipeline bot at {now}. \n '''
-            f'''  Please contact hualin.xiao@fhnw.ch if you wish to contribute code to the bot. --> '''
+            f'''  Please contact hualin.xiao@fhnw.ch if you wish to contribute code to the bot. -->\n'''
             f'''==Solar Orbiter observations==\n=== STIX ===\n'''
             f"* Flare ID: {flare['flare_id']}\n"
             f"* Light travel time difference: {tdiff}\n"
+            f"* Earth-Sun-SC angle: {angle}\n"
     f"* Flare Peak UTC: {flare['peak_utc']}\n"
     f'* STIX QL light curves\n'
     f'<img src="{HOST}/request/image/flare?id={flare_id}&type=stixlc&uid={uid}&p=0"></img>\n'
@@ -41,9 +46,7 @@ def format_page(flare):
     f'<img src="{HOST}/request/image/flare?id={flare_id}&type=goes&uid={uid}&p=0"></img>\n'
     f'==AIA==\n'
     f'<img src="{HOST}/request/image/flare?id={flare_id}&type=aia&uid={uid}&p=0"></img>\n'
-    f'<!-- end of first section --->\n')
-
-    )
+    f'<!-- end of section --->\n')
     return title, content
 
 def create_page(title, content):
@@ -108,15 +111,36 @@ def create_page(title, content):
     R = S.post(URL, data=PARAMS_3)
     DATA = R.json()
     print(DATA)
-def create_flare_wiki(_id):
+def create_wiki_for_flare(_id):
     fdb=mdb.get_collection('flares_tbc')
     doc=fdb.find_one({'_id':_id, 'hidden':False})
-    print(doc)
-    if doc:
+    if not doc:
+        print(f'Flare {_id} not file in db!')
+        return
+    title,content=format_page(doc)
+    print(content)
+    create_page(title, content)
+def create_wiki_for_file(file_id):
+    fdb=mdb.get_collection('flares_tbc')
+    flares=fdb.find({'run_id':file_id, 'hidden':False})
+    if not flares:
+        print(f'Flare {file_id} not file in db!')
+        return
+    for doc in flares:
+        print(f'create wiki for {doc["_id"]}')
         title,content=format_page(doc)
         print(content)
         create_page(title, content)
+
 if __name__=='__main__':
     if len(sys.argv)==2:
         flare_id=int(sys.argv[1])
-        create_flare_wiki(flare_id)
+        create_wiki_for_flare(flare_id)
+    elif len(sys.argv)==3:
+        start_flare_id=int(sys.argv[1])
+        end_flare_id=int(sys.argv[2])
+        for i in range(start_flare_id, end_flare_id+1):
+            create_wiki_for_flare(flare_id)
+    else:
+        print('usage:\nmain <flare index> \n main <start_file_index> <end_flare_index>')
+        print('flare id not provided')

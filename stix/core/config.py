@@ -53,6 +53,7 @@ parser_config = {
         "validityPeriod": ["2020-12-28T00:00:00", "2020-12-28T00:00:00"]
     } 
     },
+    'joint_obs':'/data/flares/',
     "spice": [{
         "data": [
             "/data/pub/data/spice/latest/kernels/lsk/naif0012.tls",
