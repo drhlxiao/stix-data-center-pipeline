@@ -17,7 +17,7 @@ from scipy import signal
 import numpy as np
 from stix.core import stix_datatypes as sdt
 from stix.core import mongo_db as db
-from stix.core import stix_datetime
+from stix.spice import stix_datetime
 
 mdb = db.MongoDB()
 

@@ -56,7 +56,11 @@ parser_config = {
     "spice": [{
         "data": [
             "/data/pub/data/spice/latest/kernels/lsk/naif0012.tls",
-            "/data/pub/data/spice/latest/kernels/sclk/solo_ANC_soc-sclk_*.tsc"
+            "/data/pub/data/spice/latest/kernels/sclk/solo_ANC_soc-sclk_*.tsc",
+            '/data/pub/data/spice/latest/kernels/ck/solo_ANC_soc-*.bc',
+            '/data/pub/data/spice/latest/kernels/spk/solo_ANC_soc-orbit_*.bsp',
+            '/data/pub/data/spice/heliopy/*'
+
         ],
         "validityPeriod": ["2020-05-28T00:00:00", "2031-12-28T00:00:00"]
     }],

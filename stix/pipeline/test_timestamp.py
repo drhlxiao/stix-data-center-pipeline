@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.append('.')
 from stix.core import mongo_db 
-from stix.core import stix_datetime 
+from stix.spice import stix_datetime 
 from stix.pipeline import parser_pipeline as pp
 mdb = mongo_db.MongoDB()
 MAX_ALLOWED_DIFF=0.5

@@ -5,7 +5,7 @@
 
 import sys
 from pprint import pprint
-from stix.core import stix_datetime
+from stix.spice import stix_datetime
 from datetime import datetime
 import json
 

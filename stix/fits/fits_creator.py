@@ -9,7 +9,7 @@ from pathlib import Path
 from stix.core import stix_datatypes as sdt
 from stix.fits.io.processors import FitsL1Processor
 from stix.fits.io import hk_fits_writer as hkw
-from stix.core.stix_datetime import datetime_to_scet
+from stix.spice.stix_datetime import datetime_to_scet
 from stix.fits.products.housekeeping import MiniReport, MaxiReport
 from stix.fits.products.quicklook import LightCurve, Background, Spectra, Variance, \
     FlareFlagAndLocation, CalibrationSpectra, TMManagementAndFlareList

@@ -14,7 +14,7 @@ import glob
 import time
 from datetime import datetime
 from stix.core import config
-from stix.core import stix_datetime
+from stix.spice import stix_datetime
 from stix.core import mongo_db 
 from stix.core import stix_logger, stix_idb, stix_parser
 from stix.fits import fits_creator

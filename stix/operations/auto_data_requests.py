@@ -4,7 +4,7 @@ import os
 import math
 from datetime import datetime
 from stix.core import stix_datatypes as sdt
-from stix.core import stix_datetime
+from stix.spice import stix_datetime
 from stix.core import mongo_db as db
 from stix.core import stix_logger
 from stix.core import config

@@ -9,7 +9,7 @@
 import sys
 import numpy as np
 from stix.core import stix_datatypes as sdt
-from stix.core import stix_datetime
+from stix.spice import stix_datetime
 from stix.core import stix_logger
 logger = stix_logger.get_logger()
 DATA_REQUEST_REPORT_SPIDS = [54114, 54115, 54116, 54117, 54143, 54125]

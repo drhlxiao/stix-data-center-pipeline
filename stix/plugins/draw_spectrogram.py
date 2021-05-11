@@ -7,7 +7,7 @@ from pprint import pprint
 import numpy as np
 from matplotlib import pyplot as plt
 from stix.core import stix_datatypes as sdt
-from stix.core import stix_datetime
+from stix.spice import stix_datetime
 
 SPID = 54143
 

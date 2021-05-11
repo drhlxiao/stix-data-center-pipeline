@@ -1,7 +1,7 @@
 # a script used to generate a list of differencess between OBT and UNIX epochs 
 # the list is used by web data browsers and Starlet
 
-from stix.core import stix_datetime
+from stix.spice import stix_datetime
 from datetime import datetime
 now=datetime.now()
 import pprint

@@ -13,7 +13,7 @@ from astropy.time.core import Time
 from stix.core import config
 
 from stix.fits.calibration.integer_compression import decompress
-from stix.core.stix_datetime import scet_to_datetime
+from stix.spice.stix_datetime import scet_to_datetime
 from stix.fits.products.common import _get_pixel_mask, _get_detector_mask, _get_compression_scheme
 from stix.fits.products.quicklook import get_energies_from_mask, ENERGY_CHANNELS
 

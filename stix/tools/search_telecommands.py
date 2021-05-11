@@ -1,7 +1,7 @@
 import sys
 sys.path.append('.')
 from pprint import pprint
-from stix.core import stix_datetime as sdt
+from stix.spice import stix_datetime as sdt
 
 import pymongo
 connect = pymongo.MongoClient()

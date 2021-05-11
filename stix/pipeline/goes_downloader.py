@@ -59,7 +59,7 @@ def save_geos(data, filename=None):
         'stop_unix':end_unix
         }
     print(doc)
-    _id=collection_goes.insert(doc)
+    _id=collection_goes.save(doc)
     #print('inserted {}.'.format(_id))
     connect.close()
 

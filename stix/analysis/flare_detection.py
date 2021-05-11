@@ -18,7 +18,7 @@ import matplotlib
 from matplotlib import pyplot as plt
 from stix.core import stix_datatypes as sdt
 from stix.core import mongo_db as db
-from stix.core import stix_datetime
+from stix.spice import stix_datetime
 from stix.core import stix_logger
 logger = stix_logger.get_logger()
 matplotlib.use('Agg')
@@ -143,27 +143,11 @@ def make_lightcurve_snapshot(data, docs, snapshot_path):
         plt.text(xmin, 0.9*peak_counts, 'Start', color='C3')
         plt.text(0.8*xmax, 0.9*peak_counts, 'End', color='C3')
         baseline=docs['baseline']
-
         plt.hlines(docs['properties']['width_heights'][i],
                    xmin=xmin,
                    xmax=xmax,
                    linewidth=2,
                    color='C2')
-
-        #plt.hlines(min_height,
-        #           t_since_t0[0],
-        #           t_since_t0[-1],
-        #           linestyle='dotted',
-        #           color='red',
-        #           label="threshold")
-        #plt.hlines(baseline,
-        #           t_since_t0[0],
-        #           t_since_t0[-1],
-        #           linestyle='dotted',
-        #           color='blue',
-        #           label="baseline")
-
-
 
         plt.xlabel(f'T - T0 (s),  T0: {T0}')
         plt.ylabel('Counts / 4 s')
@@ -293,6 +277,8 @@ def search(run_id,
         'is_major': majors,
         'run_id': run_id
     }
+
+
 
     mdb.save_flare_candidate_info(doc)
     doc['properties'] = properties

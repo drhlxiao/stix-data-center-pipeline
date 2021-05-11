@@ -52,6 +52,8 @@ class MongoDB(object):
             self.collection_data_requests = self.db['bsd']
             self.collection_fits = self.db['fits']
             self.collection_events = self.db['events']
+            self.col_goes= self.db['goes']
+            self.col_flare_tbc= self.db['flare_tbc']
             self.collection_flares_tbc = self.db['flares_tbc']
             self.collection_qllc_statistics= self.db['qllc_statistics']
             self.collection_notifications= self.db['notifications']
@@ -93,8 +95,17 @@ class MongoDB(object):
             cursor = self.collection_raw_files.find_one({'_id': int(run_id)})
             return cursor
         return None
-
-    
+    def get_goes_x_ray_flux_file_list(self,start_unix,stop_unix):
+        runs=[]
+        if self.col_goes:
+            #query_string = {'$or':[{'start_unix':{'$gte': start_unix,  '$lt': stop_unix}},
+            #    {'stop_unix': {  '$gte': start_unix, '$lt': stop_unix  }  }]}
+            query_string = {
+                    'start_unix':{'$lt': stop_unix}, 
+                    'stop_unix': {'$gt': start_unix  }  
+                    }
+            runs=self.col_goes.find(query_string).sort('_id',1)
+        return runs 
 
     def get_LC_pkt_by_tw(self, start_unix_time, span):
         if not self.collection_ql:
@@ -370,12 +381,30 @@ class MongoDB(object):
         result['inserted_ids']=inserted_ids
 
     def set_tbc_flare_lc_filename(self, _id, lc_filename):
-
         doc = self.collection_flares_tbc.find_one({'_id': _id})
         if doc:
             doc['lc_path'] = os.path.dirname(lc_filename)
             doc['lc_filename'] = os.path.basename(lc_filename)
             self.collection_flares_tbc.replace_one({'_id': _id}, doc)
+    def get_flare_joint_obs(self,_id, key):
+        doc = self.collection_flares_tbc.find_one({'_id': _id})
+        if doc:
+            if 'joint_obs' not in doc:
+                return None
+            return doc['joint_obs'].get(key,None) 
+        return None
+
+    def update_flare_joint_obs(self, _id, key, value):
+        doc = self.collection_flares_tbc.find_one({'_id': _id})
+        if doc:
+            if 'joint_obs' not in doc:
+                doc['joint_obs']={}
+            doc['joint_obs'][key] = value
+            self.collection_flares_tbc.replace_one({'_id': _id}, doc)
+
+
+
+
 
     def get_quicklook_packets(self,
                               packet_type,

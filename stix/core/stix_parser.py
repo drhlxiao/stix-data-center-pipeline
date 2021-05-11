@@ -25,7 +25,7 @@ from stix.core import stix_writer
 from stix.core import stix_context
 from stix.core.stix_datatypes import Parameter
 from stix.core import stix_decompressor
-from stix.core import stix_datetime
+from stix.spice import stix_datetime
 
 CONTEXT_UNPACK_FORMAT = ['B', '>H', 'BBB', '>I']
 UNSIGNED_UNPACK_FORMAT = ['B', '>H', 'BBB', '>I', 'BBBBB', '>IH']

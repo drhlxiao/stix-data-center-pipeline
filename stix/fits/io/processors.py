@@ -9,7 +9,7 @@ from astropy.io import fits
 from astropy.table.operations import unique
 from astropy.table.table import QTable
 
-from stix.core.stix_datetime import datetime_to_scet
+from stix.spice.stix_datetime import datetime_to_scet
 
 from stix.core.stix_logger import get_logger
 logger = get_logger(__name__)
