@@ -19,7 +19,6 @@ def plot_goes(folder,_id, flare_id, start_utc, end_utc, overwrite=False):
         print(f'GOES LC for Flare {flare_id} was not created!')
         return 
 
-    data=LCMinifier.request_by_tw(start_utc, end_utc)
     flux = {}
     start_times={}
     try:

@@ -134,13 +134,13 @@ def create_wiki_for_file(file_id):
 
 if __name__=='__main__':
     if len(sys.argv)==2:
-        flare_id=int(sys.argv[1])
-        create_wiki_for_flare(flare_id)
+        fid=int(sys.argv[1])
+        create_wiki_for_file(fid)
     elif len(sys.argv)==3:
         start_flare_id=int(sys.argv[1])
         end_flare_id=int(sys.argv[2])
         for i in range(start_flare_id, end_flare_id+1):
-            create_wiki_for_flare(flare_id)
+            create_wiki_for_file(fid)
     else:
-        print('usage:\nmain <flare index> \n main <start_file_index> <end_flare_index>')
-        print('flare id not provided')
+        print('usage:\nmain <file id> \n main <start file_id> <end file_id>')
+        print('file id not provided')

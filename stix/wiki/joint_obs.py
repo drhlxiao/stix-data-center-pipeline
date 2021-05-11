@@ -22,13 +22,13 @@ def process_flares_for_file(file_id):
         start_utc=stix_datetime.unix2utc(start_unix)
         end_utc=stix_datetime.unix2utc(end_unix)
         flare_id=doc['flare_id']
-        _id=doc['flare_id']
+        _id=doc['_id']
+        print(_id)
         print('generate location')
         emph=plot_orbit.plot_solo_location(folder,_id, flare_id,peak_utc,  overwrite=False)
         print('processing aia')
         aia.plot_aia(folder,_id, flare_id, peak_utc,  wavelen=131, overwrite=False)
         print('processing goes')
-        aia.plot_aia(folder,_id, flare_id, peak_utc,  wavelen=131, overwrite=False)
         goes.plot_goes(folder,_id, flare_id, start_utc, end_utc, overwrite=False)
         try:
             light_time=emph['light_time_diff'][0]

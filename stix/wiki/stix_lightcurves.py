@@ -123,7 +123,7 @@ def plot_stix_lc(folder, _id, flare_id, start_utc, end_utc,  overwrite=True, T0_
         t0=stix_datetime.utc2unix(T0_utc)
         t_since_t0 = data['time']- t0
 
-    if light_time>0:
+    if light_time!=0:
         start_utc= f'{start_utc} + {light_time} s'
 
     fig = plt.figure()
