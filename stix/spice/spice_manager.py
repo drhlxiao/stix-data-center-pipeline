@@ -36,12 +36,12 @@ class SpiceManager:
                     MDB.insert_spice_kernel(fname)
         for kernel in MDB.get_spice_kernels():
             fname=os.path.join(kernel['path'],kernel['filename'])
-            if 'sclk' in fname or 'lsk' in fname:
-                #only import sclk and lsk module for data parser
-                spiceypy.furnsh(fname)
-                if 'sclk' in fname:
-                    self.last_sclk_file=fname
-        print(self.last_sclk_file)
+            spiceypy.furnsh(fname)
+            #if 'sclk' in fname or 'lsk' in fname:
+            #only import sclk and lsk module for data parser
+            if 'sclk' in fname:
+                self.last_sclk_file=fname
+        #print(self.last_sclk_file)
 
         
 

@@ -8,8 +8,7 @@ from astropy import constants as const
 from stix.spice import helio as hsp
 from stix.spice import stix_datetime
 
-from spice.spice_manager import SpiceManager
-spice_manager = SpiceManager.get_instance()
+from stix.spice.spice_manager import spice as spice_manager
 solo_spice_min_datetime = stix_datetime.utc2datetime('2020-02-10T05:00:00Z')
 
 
