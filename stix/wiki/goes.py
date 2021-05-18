@@ -7,13 +7,14 @@ import numpy as np
 from matplotlib import pyplot as plt
 from stix.core import mongo_db as db
 from stix.spice import stix_datetime
+import matplotlib.ticker as mticker
 mdb = db.MongoDB()
 energy_map= {
             '0.1-0.8nm': 'GOES low',
             '0.05-0.4nm': 'GOES high'
 }
 
-def plot_goes(folder,_id, flare_id, start_utc, end_utc, overwrite=False):
+def plot_goes(folder,_id, flare_id, start_utc, end_utc, peak_utc=None, overwrite=False):
     key='goes'
     if  mdb.get_flare_joint_obs(_id, key) and overwrite == False:
         print(f'GOES LC for Flare {flare_id} was not created!')
@@ -21,6 +22,7 @@ def plot_goes(folder,_id, flare_id, start_utc, end_utc, overwrite=False):
 
     flux = {}
     start_times={}
+    num=0
     try:
         start = stix_datetime.utc2unix(start_utc)
         end = stix_datetime.utc2unix(end_utc)
@@ -38,6 +40,7 @@ def plot_goes(folder,_id, flare_id, start_utc, end_utc, overwrite=False):
                     break
                 if unix<last_time:
                     continue
+                num+=1
 
                 last_time=unix
 
@@ -52,22 +55,41 @@ def plot_goes(folder,_id, flare_id, start_utc, end_utc, overwrite=False):
     except Exception as e:
         print(e)
         return False
-    fig=plt.figure()
+    if num==0:
+        return
+    fig, ax = plt.subplots()
     t0_utc=''
+    if peak_utc:
+        t0_utc=peak_utc
     for key,val in flux.items():
-        t0_utc=start_times[key]
+        if not t0_utc:
+            t0_utc=start_times[key]
         t0_unix=stix_datetime.utc2unix(t0_utc)
         t=np.array(val[0])-t0_unix
-        plt.plot(t,val[1],label=energy_map.get(key,'unknown'))
-    plt.xlabel(f'Start time: {t0_utc}' )
-    plt.ylabel(r'Flux (W/m$^2$)')
-    plt.yscale('log')
-    plt.legend(loc='upper right')
-    plt.title('GOES x-ray flux')
+        ax.plot(t,val[1],label=energy_map.get(key,'unknown'))
+    ax.set_xlabel(f'Start time: {t0_utc}' )
+    ax.set_ylabel(r'Watts m$^{-2}$')
+    ax.set_yscale('log')
+    labels = ['A', 'B', 'C', 'M', 'X']
+    ax.set_title('GOES x-ray flux')
+    ax.set_ylim(1e-9, 1e-2)
+    ax2 = ax.twinx()
+    ax2.set_yscale("log")
+    ax2.set_ylim(1e-9, 1e-2)
+    labels = ['A', 'B', 'C', 'M', 'X']
+    centers = np.logspace(-7.5, -3.5, len(labels))
+    ax2.yaxis.set_minor_locator(mticker.FixedLocator(centers))
+    ax2.set_yticklabels(labels, minor=True)
+    ax2.set_yticklabels([])
+
+    ax.yaxis.grid(True, 'major')
+    ax.xaxis.grid(False, 'major')
+    ax.legend(loc='upper right')
     fname=os.path.join(folder, f'flare_{_id}_{flare_id}_goes.png')
     print(fname)
+    fig.tight_layout()
     plt.savefig(fname, dpi=100)
-    mdb.update_flare_joint_obs(_id, key, [fname])
+    mdb.update_flare_joint_obs(_id, 'goes', [fname])
     return True
 if __name__=='__main__':
-    plot_goes('.',0,'2021-05-05T00:00:00','2021-05-05T01:10:00')
+    plot_goes('.',0,'2021-05-05T00:00:00','2021-05-05T01:10:00', '2021-05-05T01:05:00')

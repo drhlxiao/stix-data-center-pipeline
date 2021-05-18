@@ -10,6 +10,7 @@ from sunpy.map import Map
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 from stix.spice import stix_datetime
+import tempfile
 
 from stix.core import mongo_db as db
 mdb = db.MongoDB()
@@ -24,7 +25,9 @@ def plot_aia(folder,_id, flare_id ,utc_start,  wavelen=131, overwrite=False):
                                           60).strftime('%Y-%m-%dT%H:%M:%S')
     sdo_query = Fido.search(a.Time(utc_start, utc_end), a.Instrument('AIA'),
                             a.Wavelength(wavelen* u.angstrom))
-    sdo_res = Fido.fetch(sdo_query[0], progress=False, path=folder)
+    temp_folder=tempfile.gettempdir()
+    sdo_res = Fido.fetch(sdo_query[0], progress=False, path=temp_folder)
+    print(sdo_res)
     if not sdo_res:
         print('data not available')
         return ''
@@ -33,6 +36,8 @@ def plot_aia(folder,_id, flare_id ,utc_start,  wavelen=131, overwrite=False):
         fig = plt.figure(figsize=(6, 6), dpi=100)
         ax = fig.add_subplot(projection=sdo)
         sdo.plot(clip_interval=[1, 100] * u.percent, axes=ax)
+        plt.colorbar()
+        sdo.draw_limb()
         fname=os.path.join(folder, f'AIA_{wavelen}_{_id}_{flare_id}.png')
         plt.savefig(fname, dpi=100)
         mdb.update_flare_joint_obs(_id, key, [fname])

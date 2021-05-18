@@ -1,7 +1,11 @@
 import requests 
+import wget
+import tempfile
 from dateutil import parser as dtparser
 from datetime import timedelta
 from datetime import datetime
+from tqdm import tqdm
+from sunpy.map import Map
 import re
 
 prefix='https://wwwbis.sidc.be/EUI/data/L1'
@@ -41,7 +45,6 @@ def get_eui_fits_list(start, end):
 
 
 
-#request data directly for esa archive
 def query_esa_tap_server(start_utc, end_utc, instrument='EUI', level='L1'):
     sdt=utc2datetime(start_utc)
     edt=utc2datetime(end_utc)
@@ -56,14 +59,21 @@ def query_esa_tap_server(start_utc, end_utc, instrument='EUI', level='L1'):
             'PAGE_SIZE': 500}
     x = requests.post(esa_url, data = data)
     return x.json()
-def request_solo_payload_data(instrument):
-    data=[]
-    levels={'eui':'L1',
-                'epd':'L2',
-                }
-    payloads={'eui':'EUI',
-                'epd':'EPD'}
-    data=tap.query_esa_tap_server(start, end, payloads[instrument], levels[instrument])
-    return data
+
+def get_url(row):
+    return f'https://soar.esac.esa.int/soar-sl-tap/data?retrieval_type=LAST_PRODUCT&data_item_oid={row[0]}&product_type=SCIENCE&data_retrieval_origin=UI'
+def plot_eui(folder, start_utc, end_utc, peak_utc, instrument='EUI'):
+    resp=query_esa_tap_server(start_utc, end_utc, instrument=instrument)
+    if not resp['data']:
+        return None
+    peak_ut=utc2datetime(peak_utc).timestamp()
+    cloz_dict={ abs(utc2datetime(row[3]).timestamp()-peak_ut ):row  for row in resp['data']}
+    url=get_url(cloz_dict[min(cloz_dict.keys())])
+    temp_folder=tempfile.gettempdir()
+    filename=wget.download(url,out=temp_folder)
+    print(filename)
 
 
+if __name__=='__main__':
+    plot_eui('.', '2021-03-01T00:00:00','2021-03-02T00:10:00','2021-03-01T00:05:00',
+            'EUI')

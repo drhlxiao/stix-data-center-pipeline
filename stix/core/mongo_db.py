@@ -389,6 +389,8 @@ class MongoDB(object):
     def get_flare_joint_obs(self,_id, key):
         doc = self.collection_flares_tbc.find_one({'_id': _id})
         if doc:
+            if key=='wiki':
+                return doc.get('wiki',None)
             if 'joint_obs' not in doc:
                 return None
             return doc['joint_obs'].get(key,None) 
@@ -397,10 +399,14 @@ class MongoDB(object):
     def update_flare_joint_obs(self, _id, key, value):
         doc = self.collection_flares_tbc.find_one({'_id': _id})
         if doc:
-            if 'joint_obs' not in doc:
-                doc['joint_obs']={}
-            doc['joint_obs'][key] = value
+            if key!='wiki':
+                if 'joint_obs' not in doc:
+                    doc['joint_obs']={}
+                doc['joint_obs'][key] = value
+            else:
+                doc['wiki']=value
             self.collection_flares_tbc.replace_one({'_id': _id}, doc)
+
 
 
 

@@ -18,7 +18,7 @@ from stix.core import config
 from stix.spice import stix_datetime
 from stix.core import stix_logger
 from stix.core import index_builder as idxb
-from stix.core import spice_manager as spm
+from stix.spice import spice_manager as spm
 
 logger = stix_logger.get_logger()
 MONGODB_CONFIG = config.get_config()['pipeline']['mongodb']

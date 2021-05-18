@@ -14,10 +14,10 @@ mdb = db.MongoDB()
 
 def plot_solo_location(folder,_id, flare_id ,peak_utc,  overwrite=False):
     key='loc'
+    data=solo.get_solo_ephemeris(peak_utc, peak_utc)
     if  mdb.get_flare_joint_obs(_id, key) and overwrite == False:
         print(f'Location for Flare {flare_id} was not created !')
-        return 
-    data=solo.get_solo_ephemeris(peak_utc, peak_utc)
+        return data
     if not data or 'error' in data:
         print(f'data not available. Location for Flare {flare_id} was not created !')
         return None
