@@ -16,7 +16,8 @@ sections={ #instrument, section title, section level
         'eui':('EUI',3),
             'epd':('EPD',3),
             'goes':("GOES X-ray flux",2),
-            'aia':('AIA',2),
+            'aia':('SDO AIA',2),
+            'radio':('Radio',2)
         }
 
 class WikiCreator(object):
@@ -91,34 +92,62 @@ class WikiCreator(object):
         #unique_id, anti-bots
         now=datetime.now().strftime('%c')
         flare_id=flare['flare_id']
+        goes_class_major='Unknown' 
+        goes_class='Unknown'
+        if 'goes' in  flare:
+            goes_class=flare['goes'].get('class','Unknown') 
+            if goes_class != 'Unknown':
+                goes_class_major=goes_class[0]
+
         try:
             emph=solo.get_solo_ephemeris(peak_utc,peak_utc)
-            tdiff=f"{emph['light_time_diff'][0]} s"
-            angle=f"{emph['earth_sun_solo_angle'][0]} deg"
+            tdiff=f"{emph['light_time_diff'][0]:.03f} s"
+            angle=f"{emph['earth_sun_solo_angle'][0]:.03f} deg"
+            sol_sc_dist=f"{emph['sun_solo_r'][0]:.03f} au"
+            elevation=f"{emph['elevation'][0]:.03f} deg"
+            sun_d=f"{emph['sun_angular_diameter'][0]*60:.03f} arcsec "
         except Exception as e:
             print(e)
+            sol_sc_dist='N/A'
+            elevation='N/A'
             tdiff='N/A'
             angle='N/A'
+            sun_d='N/A'
         title=f"STIX_Flare:_{flare['flare_id']}"
         old_content=self.get_page(title)
         fields=[]
         if 'id="STIX"' not in old_content:
             header=(f'''[[Category:STIX_Flares]]\n'''
+                    f'''[[Category:GOES Class {goes_class}]]\n'''
+                    f'''[[Category:{goes_class_major} Class Flares]]\n'''
                 f'''<!-- The session below was created by the data center wiki bot at {now}. \n '''
                 f'''  Please contact hualin.xiao@fhnw.ch if you wish to contribute code to the bot. -->\n'''
                 f'''==Solar Orbiter observations==\n===STIX===\n'''
-                f"* Flare ID: {flare['flare_id']}\n"
-                f"* Light travel time difference: {tdiff}\n"
-                f"* Earth-Sun-SC angle: {angle}\n"
-                f"* Flare Peak UTC: {flare['peak_utc']}\n"
+                "* Flare Info \n"
+                f"** Flare ID: {flare['flare_id']}\n"
+                f"** GOES Class: {goes_class}\n"
+                f"** Light travel time difference: {tdiff}\n"
+                f"** Earth-Sun-SC angle: {angle}\n"
+                f"** Sun-SC distance: {sol_sc_dist}\n"
+                f"** SC elevation : {elevation}\n"
+                f"** Sun angular diameter (looking from S/C): {sun_d}\n"
+                f"** Flare Peak UTC: {flare['peak_utc']}\n"
                 f'* STIX QL light curves\n'
                 f'<img src="{HOST}/request/image/flare?id={flare_id}&type=stixlc&uid={uid}&p=0"></img>\n'
-                f'<img src="{HOST}/request/image/flare?id={flare_id}&type=loc&uid={uid}&p=0"></img>\n''')
+                f'<img src="{HOST}/request/image/flare?id={flare_id}&type=loc&uid={uid}&p=0"></img>\n'''
+                f'* STIX energy spectra\n'
+                f'<img src="{HOST}/request/image/flare?id={flare_id}&type=stixspec&uid={uid}&p=0"></img>\n'
+                f'* Flare location\n'
+                f'<img src="{HOST}/request/image/flare?id={flare_id}&type=stixloc&uid={uid}&p=0"></img>\n'
+                f'* STIX image\n'
+                f'<img src="{HOST}/request/image/flare?id={flare_id}&type=stiximg&uid={uid}&p=0"></img>\n')
             fields.append(header)
 
         for instr in sections:
+
             section_name=sections[instr][0]
-            if f'id="{section_name}"' in old_content:
+            div_id=section_name.replace(' ','_')
+            if f'id="{div_id}"' in old_content:
                 continue
             wiki_level='='*sections[instr][1]
             fields.append(f'{wiki_level}{section_name}{wiki_level}')

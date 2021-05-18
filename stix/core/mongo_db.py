@@ -395,6 +395,11 @@ class MongoDB(object):
                 return None
             return doc['joint_obs'].get(key,None) 
         return None
+    def update_flare_field(self,_id, key, value):
+        doc = self.collection_flares_tbc.find_one({'_id': _id})
+        if doc:
+            doc[key]=value
+            self.collection_flares_tbc.replace_one({'_id': _id}, doc)
 
     def update_flare_joint_obs(self, _id, key, value):
         doc = self.collection_flares_tbc.find_one({'_id': _id})

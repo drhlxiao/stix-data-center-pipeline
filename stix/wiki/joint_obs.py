@@ -36,6 +36,11 @@ def process_flares_for_file(file_id, overwrite=OVERWRITE):
         emph=plot_orbit.plot_solo_location(folder,_id, flare_id,peak_utc,  overwrite=overwrite)
         print('processing aia')
         try:
+            goes.plot_goes(folder,_id, flare_id,to_earth_utc(start_utc,light_time), 
+                to_earth_utc(end_utc,light_time), to_earth_utc(peak_utc,light_time), overwrite=overwrite)
+        except Exception as e:
+            print(e)
+        try:
             wiki_creator.wiki_bot.touch_wiki_for_flare(_id)
         except Exception as e:
             print(e)
@@ -56,9 +61,6 @@ def process_flares_for_file(file_id, overwrite=OVERWRITE):
         except Exception as e:
             print(e)
             
-        print('processing goes')
-        goes.plot_goes(folder,_id, flare_id,to_earth_utc(start_utc,light_time), 
-                to_earth_utc(end_utc,light_time), to_earth_utc(peak_utc,light_time), overwrite=overwrite)
 
 if __name__=='__main__':
     if len(sys.argv)==2:

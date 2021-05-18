@@ -13,6 +13,20 @@ energy_map= {
             '0.1-0.8nm': 'GOES low',
             '0.05-0.4nm': 'GOES high'
 }
+def get_class(x):
+    if x<1e-7:
+        return 'A'
+    elif x<1e-6:
+        return 'B'+str(int(x/1e-7))
+    elif x<1e-5:
+        return 'C'+str(int(x/1e-6))
+    elif x<1e-4:
+        return 'M'+str(int(x/1e-5))
+    else:
+        return 'X'+str(int(x/1e-4))
+
+
+
 
 def plot_goes(folder,_id, flare_id, start_utc, end_utc, peak_utc=None, overwrite=False):
     key='goes'
@@ -53,12 +67,13 @@ def plot_goes(folder,_id, flare_id, start_utc, end_utc, peak_utc=None, overwrite
                     start_times[d['energy']]=d['time_tag']
 
     except Exception as e:
-        print(e)
+        print("ERROR:", e)
         return False
     if num==0:
         return
     fig, ax = plt.subplots()
     t0_utc=''
+    max_flux=0
     if peak_utc:
         t0_utc=peak_utc
     for key,val in flux.items():
@@ -66,6 +81,8 @@ def plot_goes(folder,_id, flare_id, start_utc, end_utc, peak_utc=None, overwrite
             t0_utc=start_times[key]
         t0_unix=stix_datetime.utc2unix(t0_utc)
         t=np.array(val[0])-t0_unix
+        if key=='0.1-0.8nm':
+            max_flux=np.max(val[1])
         ax.plot(t,val[1],label=energy_map.get(key,'unknown'))
     ax.set_xlabel(f'Start time: {t0_utc}' )
     ax.set_ylabel(r'Watts m$^{-2}$')
@@ -90,6 +107,8 @@ def plot_goes(folder,_id, flare_id, start_utc, end_utc, peak_utc=None, overwrite
     fig.tight_layout()
     plt.savefig(fname, dpi=100)
     mdb.update_flare_joint_obs(_id, 'goes', [fname])
+    mdb.update_flare_field(_id, 'goes', {'flux': max_flux, 'class':get_class(max_flux)})
+    print(_id, {'flux': max_flux, 'class':get_class(max_flux)})
     return True
 if __name__=='__main__':
     plot_goes('.',0,'2021-05-05T00:00:00','2021-05-05T01:10:00', '2021-05-05T01:05:00')
