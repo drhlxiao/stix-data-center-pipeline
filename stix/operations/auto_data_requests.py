@@ -35,7 +35,7 @@ def create_request(flare_entry_id, run_id, flare_id,start_utc, duration):
     bsd_form.insert_one(data)
     print('Created a request for Flare {flare_id}, ID:{current_id}')
 
-def create_template(flare_id,start_utc, duration):
+def create_template(flare_id,start_utc, duration, left_margin=0, right_margin=0):
 
     T = float(duration) 
     M = 32
@@ -46,11 +46,15 @@ def create_template(flare_id,start_utc, duration):
     data_volume=0
     if level == 1:
         data_volume = 1.1 * T * (M * P * (E + 4) + 16)
+    if left_margin!=0:
+        start_utc=stix_datetime.unix2utc(stix_datetime.utc2unix(start_utc)+left_margin)
+
+    duration=int(duration-left_margin+right_margin)
 
     return {
     "data_volume" : str(math.floor(data_volume)),
-    "execution_date" : "",
-    "author" : "Robot",
+    "execution_date" : '',
+    "author" : "Hualin",
     "email" : "stix-obs@fhnw.ch",
     "subject" : str(flare_id),
     "purpose" : "Flare",
@@ -63,12 +67,12 @@ def create_template(flare_id,start_utc, duration):
     "emin" : "0",
     "emax" : "21",
     "eunit" : "1",
-    "description" : f"flare {flare_id}, created by Robot",
+    "description" : f"flare {flare_id}, Created by robot",
     "volume" : str(int(data_volume)),
     "unique_ids" : []
         }
-def create_data_request_templates(file_id):
-    flares=flare_collection.find({'run_id':int(file_id), 'hidden':False})
+def create_data_request_templates(file_ids):
+    flares=flare_collection.find({'run_id':{'$in': file_ids}, 'hidden':False})
     for flare in flares:
         flare_id=flare['flare_id']
         start_unix=flare['start_unix']

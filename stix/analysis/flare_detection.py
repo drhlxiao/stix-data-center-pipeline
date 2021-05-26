@@ -88,9 +88,8 @@ def get_lightcurve_data(file_id, rebin=30):
     if not lightcurves:
         return None
     time=np.array(unix_time)
-    lc=np.array(lightcurves[0])
 
-    return {'time': np.array(unix_time), 'lc': np.array(lightcurves[0])}
+    return {'time': np.array(unix_time), 'lcs': {x: np.array(lightcurves[x]) for x in lightcurves}}
 
 
 def make_lightcurve_snapshot(data, docs, snapshot_path):
@@ -121,7 +120,7 @@ def make_lightcurve_snapshot(data, docs, snapshot_path):
                          & (data['time'] < end_unix + margin))
         unix_ts = data['time'][where]
         t_since_t0 = unix_ts - docs['peak_unix_time'][i]
-        lc = data['lc'][where]
+        lc = data['lcs'][0][where]
         peak_counts = docs['peak_counts'][i]
         
 
@@ -194,15 +193,18 @@ def search(run_id,
         return 0
 
     unix_time = data['time']
-    lightcurve = data['lc']
+    lightcurve = data['lcs'][0]
+    print(data['lcs'][0].shape)
+    print(unix_time.shape)
     med = np.median(lightcurve)
     prominence = 2 * np.sqrt(med)
     noise_rms=np.sqrt(med)
     baseline=med
 
     height = med + 3 * np.sqrt(med)
-    stat = mdb.get_nearest_qllc_statistics(unix_time[0], 500)
+    stat = mdb.get_nearest_qllc_statistics(unix_time[0], max_limit=500)
     if stat:
+        #only use the lowest lightcurve
         if stat['std'][0] < 2 * math.sqrt(
                 stat['median'][0]):  #valid background
             height = stat['median'][0] + 2 * stat['std'][0]
@@ -245,6 +247,28 @@ def search(run_id,
     total_counts = [
         int(np.sum(lightcurve[r[0]:r[1]])) for r in range_indexs
     ]
+    LC_statistics=[]
+    if stat:
+        for ipeak in range(xpeaks.size):
+            flare_stats={}
+            upper_bin=0
+            for ilc in range(0,5): #calculate statistics for all light curves
+                flare_stat={}
+                flare_stat['bkg_median']= stat['median'][ilc] 
+                flare_stat['bkg_sigma']= stat['std'][ilc]
+                r=range_indexs[ipeak]
+                lc_cnts=data['lcs'][ilc][r[0]:r[1]]
+                flare_stat['signal_median']= int(np.median(lc_cnts))
+                flare_stat['signal_max']= int(np.max(lc_cnts))
+                flare_stat['signal_min']= int(np.min(lc_cnts))
+                num_2sigma=int(np.sum(lc_cnts> stat['median'][ilc]+2*stat['std'][ilc]))
+                flare_stat['num_peaks_above_2sigma']=num_2sigma
+                if num_2sigma>0:
+                    upper_bin=ilc
+                flare_stat['num_peaks_above_3sigma']=int(np.sum(lc_cnts> stat['median'][ilc]+3*stat['std'][ilc]))
+                flare_stats['lc'+str(ilc)]=flare_stat
+            flare_stats['upper_ilc']=upper_bin
+            LC_statistics.append(flare_stats)
     seconds_per_bin=4
     durations=np.array([(r[1]-r[0])*seconds_per_bin for r in range_indexs])
     cps=total_counts/durations
@@ -275,6 +299,7 @@ def search(run_id,
         'start_unix': unix_time[properties['left_ips'].astype(int)].tolist(),
         'end_unix': unix_time[properties['right_ips'].astype(int)].tolist(),
         'is_major': majors,
+        'LC_statistics':LC_statistics,
         'run_id': run_id
     }
 
@@ -289,7 +314,7 @@ def search(run_id,
 
 def search_in_many(fid_start, fid_end, img_path='/data/flare_lc'):
     for i in range(fid_start, fid_end + 1):
-        print(f'deleting files {i}')
+        print(f'deleting flares of Files {i}')
         mdb.delete_flare_candidates_for_file(i)
     for i in range(fid_start, fid_end + 1):
         search(i, snapshot_path=img_path)

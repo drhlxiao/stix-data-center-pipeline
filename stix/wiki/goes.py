@@ -10,20 +10,20 @@ from stix.spice import stix_datetime
 import matplotlib.ticker as mticker
 mdb = db.MongoDB()
 energy_map= {
-            '0.1-0.8nm': 'GOES low',
-            '0.05-0.4nm': 'GOES high'
+            '0.1-0.8nm': 'GOES low', #1.5 keV - 12 keV
+            '0.05-0.4nm': 'GOES high' # 3 - 25
 }
 def get_class(x):
     if x<1e-7:
         return 'A'
     elif x<1e-6:
-        return 'B'+str(int(x/1e-7))
+        return f'B{x/1e-7:.1f}'
     elif x<1e-5:
-        return 'C'+str(int(x/1e-6))
+        return f'C{x/1e-6:.1f}'
     elif x<1e-4:
-        return 'M'+str(int(x/1e-5))
+        return f'M{x/1e-5:.1f}'
     else:
-        return 'X'+str(int(x/1e-4))
+        return f'X{x/1e-4:.1ff}'
 
 
 
@@ -83,6 +83,8 @@ def plot_goes(folder,_id, flare_id, start_utc, end_utc, peak_utc=None, overwrite
         t=np.array(val[0])-t0_unix
         if key=='0.1-0.8nm':
             max_flux=np.max(val[1])
+            imax=np.array(val[1]).argmax()
+            goes_peak_unix_time=v[0][imax]
         ax.plot(t,val[1],label=energy_map.get(key,'unknown'))
     ax.set_xlabel(f'Start time: {t0_utc}' )
     ax.set_ylabel(r'Watts m$^{-2}$')
@@ -107,7 +109,8 @@ def plot_goes(folder,_id, flare_id, start_utc, end_utc, peak_utc=None, overwrite
     fig.tight_layout()
     plt.savefig(fname, dpi=100)
     mdb.update_flare_joint_obs(_id, 'goes', [fname])
-    mdb.update_flare_field(_id, 'goes', {'flux': max_flux, 'class':get_class(max_flux)})
+    goes_peak_utc=stix_datetime.unix2utc(goes_peak_utc)
+    mdb.update_flare_field(_id, 'goes', {'flux': max_flux, 'class':get_class(max_flux), 'goes_peak_unix_time': goes_peak_unix_time, 'goes_peak_utc':goes_peak_utc})
     print(_id, {'flux': max_flux, 'class':get_class(max_flux)})
     return True
 if __name__=='__main__':

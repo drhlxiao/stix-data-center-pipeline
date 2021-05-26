@@ -15,7 +15,7 @@ from sunpy.net import attrs as a
 # In order to download the required data, we use `sunpy.net.Fido`, a downloader client.
 # We define two search variables: a timerange and the instrument.
 
-timerange = a.Time('2021/04/24 11:06', '2021/04/24 12:07')
+timerange = a.Time('2020/04/24 11:06', '2021/04/24 12:07')
 instrument = a.Instrument.lasco
 detector = a.Detector.c2
 result = Fido.search(timerange, instrument, detector)
@@ -30,7 +30,7 @@ print(result)
 # don't provide a path it will download the file into the sunpy data directory.
 # The output provides the path of the downloaded files.
 
-downloaded_files = Fido.fetch(result)
+downloaded_files = Fido.fetch(result[0])
 print(downloaded_files)
 
 ###############################################################################

@@ -23,6 +23,8 @@ def format_datetime(dt):
     else:
         return '1970-01-01T00:00:00.000Z'
 
+def now():
+    return datetime.utcnow()
 
 def get_now(dtype='unix'):
     utc_iso = datetime.utcnow().isoformat() + 'Z'

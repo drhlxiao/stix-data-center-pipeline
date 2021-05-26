@@ -33,19 +33,30 @@ def process_flares_for_file(file_id, overwrite=OVERWRITE):
         _id=doc['_id']
         print(_id)
         print('generate location')
-        emph=plot_orbit.plot_solo_location(folder,_id, flare_id,peak_utc,  overwrite=overwrite)
+        eph=plot_orbit.plot_solo_location(folder,_id, flare_id,peak_utc,  overwrite=overwrite)
+        if eph:
+            mdb.update_flare_field(_id, 'ephemeris',
+                    {
+                        'x':eph['x'][0],
+                        'y':eph['y'][0],
+                        'z':eph['z'][0],
+                        'lt_diff':eph['light_time_diff'][0],
+                        'earth_sun_solo_angle':eph['earth_sun_solo_angle'][0],
+                        'sun_solo_r':eph['sun_solo_r'][0]
+                })
         print('processing aia')
         try:
             goes.plot_goes(folder,_id, flare_id,to_earth_utc(start_utc,light_time), 
                 to_earth_utc(end_utc,light_time), to_earth_utc(peak_utc,light_time), overwrite=overwrite)
         except Exception as e:
             print(e)
+        #return
         try:
             wiki_creator.wiki_bot.touch_wiki_for_flare(_id)
         except Exception as e:
             print(e)
         try:
-            light_time=emph['light_time_diff'][0]
+            light_time=eph['light_time_diff'][0]
         except Exception as e:
             print(e)
             light_time=0
@@ -56,7 +67,7 @@ def process_flares_for_file(file_id, overwrite=OVERWRITE):
         except Exception as e:
             print(e)
         try:
-            sun_angular_diameter_arcmin=emph.get('sun_angular_diameter_arcmin',60)
+            sun_angular_diameter_arcmin=eph.get('sun_angular_diameter_arcmin',60)
             solo_eui.plot_eui(folder,_id, flare_id, start_utc, end_utc, sun_angular_diameter_arcmin, overwrite)
         except Exception as e:
             print(e)

@@ -9,8 +9,6 @@ connect = pymongo.MongoClient()
 db = connect["stix"]
 bsd_req= db['bsd_req_forms']
 
-
-
 def update_request(doc, new_id):
     T=float(doc['duration'])
     emax=float(doc['emax'])
@@ -32,7 +30,7 @@ def update_request(doc, new_id):
     "unique_ids" : []
         })
     print(doc)
-    #bsd_req.save(doc)
+    bsd_req.save(doc)
     return  data_volume
 
 
@@ -48,16 +46,34 @@ docs=bsd_req.find(query_string).sort('_id',1)
 new_id=max_id+1
 total_volume=0
 num_req=0
+existing=0
 for  doc in docs:
     try:
         ut=sdt.utc2unix(doc['start_utc'])
     except KeyError:
         print(doc)
         continue
-    if  ut>start_unix and ut<end_unix:
-        total_volume+=update_request(doc, new_id)
-        new_id+=1
-        num_req+=1
+    if  ut<start_unix or ut>end_unix:
+        continue
+
+    query_string={'request_type':'Spectrogram','hidden':False,
+            'time_bin':'1',
+            'start_unix':{'$lte':ut},
+            'end_unix':{'$gte':ut+float(doc['duration'])},
+                
+            '_id':{'$lte':828}}
+    l4docs=bsd_req.find(query_string)
+    skip=False
+    for l4doc in l4docs:
+        print('No need to request data for ',doc['_id'],',existing',l4doc['_id'])
+        skip=True
+    if skip:
+        continue
+
+
+    total_volume+=update_request(doc, new_id)
+    new_id+=1
+    num_req+=1
 
 
 print('Total requests:',num_req)
