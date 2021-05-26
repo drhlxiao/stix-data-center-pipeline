@@ -47,7 +47,7 @@ def create_l4_groups(flare_docs):
     for gp in groups:
         start_unix=gp[0]['start_unix']
         end_unix=gp[-1]['end_unix']
-        flare_ids=[d['_id'] for d in gp]
+        flare_ids=[d['flare_id'] for d in gp]
         start_utc=stix_datetime.unix2utc(start_unix)
         duration=end_unix-start_unix
         emax=13
