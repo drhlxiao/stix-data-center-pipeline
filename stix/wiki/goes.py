@@ -84,7 +84,7 @@ def plot_goes(folder,_id, flare_id, start_utc, end_utc, peak_utc=None, overwrite
         if key=='0.1-0.8nm':
             max_flux=np.max(val[1])
             imax=np.array(val[1]).argmax()
-            goes_peak_unix_time=v[0][imax]
+            goes_peak_unix_time=val[0][imax]
         ax.plot(t,val[1],label=energy_map.get(key,'unknown'))
     ax.set_xlabel(f'Start time: {t0_utc}' )
     ax.set_ylabel(r'Watts m$^{-2}$')
@@ -109,7 +109,7 @@ def plot_goes(folder,_id, flare_id, start_utc, end_utc, peak_utc=None, overwrite
     fig.tight_layout()
     plt.savefig(fname, dpi=100)
     mdb.update_flare_joint_obs(_id, 'goes', [fname])
-    goes_peak_utc=stix_datetime.unix2utc(goes_peak_utc)
+    goes_peak_utc=stix_datetime.unix2utc(goes_peak_unix_time)
     mdb.update_flare_field(_id, 'goes', {'flux': max_flux, 'class':get_class(max_flux), 'goes_peak_unix_time': goes_peak_unix_time, 'goes_peak_utc':goes_peak_utc})
     print(_id, {'flux': max_flux, 'class':get_class(max_flux)})
     return True

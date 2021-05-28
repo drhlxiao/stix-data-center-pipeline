@@ -59,6 +59,8 @@ parser_config = {
             "/data/pub/data/spice/latest/kernels/lsk/naif0012.tls",
             "/data/pub/data/spice/latest/kernels/sclk/solo_ANC_soc-sclk_*.tsc",
             '/data/pub/data/spice/latest/kernels/ck/solo_ANC_soc-*.bc',
+            '/data/pub/data/spice/latest/kernels/mk/solo_*flown-mk_*.tm',
+            '/data/pub/data/spice/latest/kernels/fk/solo_ANC*.tf',
             '/data/pub/data/spice/latest/kernels/spk/solo_ANC_soc-orbit_*.bsp',
             '/data/pub/data/spice/heliopy/*'
 

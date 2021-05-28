@@ -1,3 +1,7 @@
+#!/usr/bin/python3
+# @author       : Hualin Xiao
+# @date         : May. 11, 2021
+
 import sys
 sys.path.append('.')
 import os
@@ -6,7 +10,7 @@ from stix.pipeline import parser_pipeline as pd
 from stix.pipeline import goes_downloader as gd
 
 PARSER_SLEEP_TIME=60
-GOES_TIME_LOOP=24*3600
+GOES_TIME_LOOP=8*3600
 def parser_loop():
     pd.main()
     threading.Timer(PARSER_SLEEP_TIME,
@@ -14,6 +18,7 @@ def parser_loop():
 
 def goes_loop():
     gd.main()
+    print('goes running')
     threading.Timer(GOES_TIME_LOOP,
             goes_loop).start()
 

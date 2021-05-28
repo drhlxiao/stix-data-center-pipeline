@@ -12,13 +12,13 @@ S = requests.Session()
 HOST= "https://pub023.cs.technik.fhnw.ch"
 URL=HOST+"/wiki/api.php"
 threshold=600
-sections={ #instrument, section title, section level
-        'eui':('EUI',3),
-            'epd':('EPD',3),
-            'goes':("GOES X-ray flux",2),
-            'aia':('SDO AIA',2),
-            'radio':('Radio',2)
-        }
+sections=[ #instrument, section title, section level
+        ['EUI',3, ['eui']],
+            ['EPD',3, ['epd']],
+            ["GOES X-ray flux",2, ['goes']],
+            ['SDO AIA',2, ['aia131','aia1600']],
+            ['Radio',2, ['radio']]
+        ]
 
 class WikiCreator(object):
     def __init__(self):
@@ -144,14 +144,14 @@ class WikiCreator(object):
             fields.append(header)
 
         for instr in sections:
-
-            section_name=sections[instr][0]
+            section_name=instr[0]
             div_id=section_name.replace(' ','_')
             if f'id="{div_id}"' in old_content:
                 continue
-            wiki_level='='*sections[instr][1]
+            wiki_level='='*instr[1]
             fields.append(f'{wiki_level}{section_name}{wiki_level}')
-            fields.append(f'<img src="{HOST}/request/image/flare?id={flare_id}&type={instr}&uid={uid}&p=0"></img>')
+            for ins in instr[2]:
+                fields.append(f'<img src="{HOST}/request/image/flare?id={flare_id}&type={ins}&uid={uid}&p=0"></img>')
         if fields:
             content='\n'.join(fields)+'\n'
             return title, content

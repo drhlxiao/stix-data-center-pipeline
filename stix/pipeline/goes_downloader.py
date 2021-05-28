@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
+# @author       : Hualin Xiao
+# @date         : May. 11, 2021
 
 """ goes x-ray flux grabber
     workflow:
@@ -68,6 +70,7 @@ def main():
     url='http://services.swpc.noaa.gov/json/goes/primary/xrays-7-day.json'
     r = requests.get(url)
     data=r.json()
+    print('downloading goes light curve')
     save_geos(data, None)
 
 def import_data(filename):

@@ -5,7 +5,7 @@ from datetime import datetime
 from stix.core import mongo_db as db
 from stix.spice import stix_datetime
 from stix.core import config
-from stix.wiki import plot_orbit,aia,solo_eui, stix_lightcurves, goes, wiki_creator
+from stix.wiki import plot_orbit,aia,solo_eui, stix_lightcurves, goes, wiki_creator, aia_solo_view
 mdb = db.MongoDB()
 margin=1200
 threshold=600
@@ -14,11 +14,12 @@ def to_earth_utc(utc, tdiff):
     return stix_datetime.unix2utc(stix_datetime.utc2unix(utc)+tdiff)
 
 def process_flares_for_file(file_id, overwrite=OVERWRITE):
+    print(f'processing for file {file_id}')
     fdb=mdb.get_collection('flares_tbc')
     flares=fdb.find({'run_id':file_id, 'hidden':False})
     folder=config.get_config('joint_obs')
     if not flares:
-        print(f'Flare {file_id} not file in db!')
+        print(f'Flare not found in  {file_id} !')
         return
     for doc in flares:
         start_unix=doc['start_unix']-margin
@@ -26,6 +27,7 @@ def process_flares_for_file(file_id, overwrite=OVERWRITE):
         peak_utc=doc['peak_utc']
         peak_counts=doc['peak_counts']
         if peak_counts<=threshold:
+            print(f"Ignored flares {doc['_id']}, peak counts < {threshold}")
             continue
         start_utc=stix_datetime.unix2utc(start_unix)
         end_utc=stix_datetime.unix2utc(end_unix)
@@ -44,17 +46,6 @@ def process_flares_for_file(file_id, overwrite=OVERWRITE):
                         'earth_sun_solo_angle':eph['earth_sun_solo_angle'][0],
                         'sun_solo_r':eph['sun_solo_r'][0]
                 })
-        print('processing aia')
-        try:
-            goes.plot_goes(folder,_id, flare_id,to_earth_utc(start_utc,light_time), 
-                to_earth_utc(end_utc,light_time), to_earth_utc(peak_utc,light_time), overwrite=overwrite)
-        except Exception as e:
-            print(e)
-        #return
-        try:
-            wiki_creator.wiki_bot.touch_wiki_for_flare(_id)
-        except Exception as e:
-            print(e)
         try:
             light_time=eph['light_time_diff'][0]
         except Exception as e:
@@ -62,14 +53,37 @@ def process_flares_for_file(file_id, overwrite=OVERWRITE):
             light_time=0
         stix_lightcurves.plot_stix_lc(folder, _id, flare_id, start_utc, end_utc,  overwrite=overwrite, T0_utc=peak_utc, light_time=light_time)
 
+        earth_start_utc=to_earth_utc(start_utc,light_time) 
+        earth_end_utc=to_earth_utc(end_utc,light_time) 
+        earth_peak_utc=to_earth_utc(peak_utc,light_time) 
         try:
-            aia.plot_aia(folder,_id, flare_id, to_earth_utc(peak_utc,light_time),  131, overwrite)
+            goes.plot_goes(folder,_id, flare_id,earth_start_utc,earth_end_utc, earth_peak_utc, overwrite=overwrite)
         except Exception as e:
+            raise
+            print("error when creating goes LC")
+            print(e)
+        #return
+
+        try:
+            aia.plot_aia(folder,_id, flare_id, earth_peak_utc,  131, overwrite)
+        except Exception as e:
+            print("error when creating AIA 131 image")
+            print(e)
+        try:
+            aia_solo_view.plot(folder,_id, flare_id, earth_peak_utc,  1600, overwrite)
+        except Exception as e:
+            print("error when creating AIA 1600 image")
             print(e)
         try:
             sun_angular_diameter_arcmin=eph.get('sun_angular_diameter_arcmin',60)
             solo_eui.plot_eui(folder,_id, flare_id, start_utc, end_utc, sun_angular_diameter_arcmin, overwrite)
         except Exception as e:
+            print("error when creating EUI image")
+            print(e)
+        try:
+            wiki_creator.wiki_bot.touch_wiki_for_flare(_id)
+        except Exception as e:
+            print("error when creating wiki")
             print(e)
             
 

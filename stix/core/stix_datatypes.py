@@ -7,10 +7,14 @@
 import os
 import pprint
 import copy
-from stix.core import stix_idb
 from stix.core import stix_logger
-STIX_IDB = stix_idb.stix_idb()
+STIX_IDB = None
 logger = stix_logger.get_logger()
+
+def load_IDB():
+    #many modules rely on this module not idb
+    from stix.core import stix_idb
+    STIX_IDB = stix_idb.stix_idb()
 
 
 def copy_object(x, deep_copy):
@@ -118,6 +122,8 @@ class Parameter(object):
         elif key == 'raw_int':
             return self.get_raw_int()
         elif key == 'desc':
+            if STIX_IDB is None:
+                load_IDB()
             return STIX_IDB.get_parameter_description(self._name)
         elif key == 'param':
             return self.as_tuple()

@@ -16,7 +16,7 @@ from stix.core import mongo_db as db
 mdb = db.MongoDB()
 
 def plot_aia(folder,_id, flare_id ,utc_start,  wavelen=131, overwrite=False):
-    key='aia'
+    key='aia131'
     if  mdb.get_flare_joint_obs(_id, key) and overwrite == False:
         print(f'GOES LC for Flare {flare_id} is not created!')
         return 
@@ -27,22 +27,20 @@ def plot_aia(folder,_id, flare_id ,utc_start,  wavelen=131, overwrite=False):
                             a.Wavelength(wavelen* u.angstrom))
     temp_folder=tempfile.gettempdir()
     sdo_res = Fido.fetch(sdo_query[0], progress=False, path=temp_folder)
-    print(sdo_res)
     if not sdo_res:
         print('data not available')
         return ''
-    if sdo_res:
-        sdo = Map(sdo_res[0])
-        fig = plt.figure(figsize=(6, 6), dpi=100)
-        ax = fig.add_subplot(projection=sdo)
-        sdo.plot(clip_interval=[1, 100] * u.percent, axes=ax)
-        plt.colorbar()
-        sdo.draw_limb()
-        fname=os.path.join(folder, f'AIA_{wavelen}_{_id}_{flare_id}.png')
-        plt.savefig(fname, dpi=100)
-        mdb.update_flare_joint_obs(_id, key, [fname])
+    sdo = Map(sdo_res[0])
+    fig = plt.figure(figsize=(6, 6), dpi=100)
+    ax = fig.add_subplot(projection=sdo)
+    sdo.plot(clip_interval=[1, 100] * u.percent, axes=ax)
+    plt.colorbar()
+    sdo.draw_limb()
+    fname=os.path.join(folder, f'AIA_{wavelen}_{_id}_{flare_id}.png')
+    plt.savefig(fname, dpi=100)
+    mdb.update_flare_joint_obs(_id, key, [fname])
 
-        return fname
+    return fname
 
 if __name__=='__main__':
     plot_aia('.',0,0,'2021-04-01T00:00:00', True)
