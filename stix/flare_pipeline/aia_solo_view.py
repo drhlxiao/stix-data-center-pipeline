@@ -292,7 +292,7 @@ def plot(folder,_id, flare_id ,time_at_peak, wavelen=1600,  overwrite=False):
     '''
     key='aia1600'
     if  mdb.get_flare_joint_obs(_id, key) and overwrite == False:
-        print(f'GOES LC for Flare {flare_id} is not created!')
+        print(f'AIA 1600 image for Flare {flare_id} was not created as it exists already!')
         return 
 
     time_start = Time(time_at_peak)-6*u.s
@@ -303,8 +303,8 @@ def plot(folder,_id, flare_id ,time_at_peak, wavelen=1600,  overwrite=False):
         return ''
     solo_map = as_seen_by_SOLO(aia_map)
     str_title = 'AIA '+str(solo_map.meta['wavelnth'])+             r' $\AA$'+' as seen by Solar Orbiter \n  '+solo_map.meta['date-obs']
-    plt.figure(figsize=(8, 7), dpi=100, facecolor='white')
-    fig = plt.figure(figsize=(7, 7), dpi=100, facecolor='white')
+    #plt.figure(figsize=(8, 7), dpi=100, facecolor='white')
+    fig = plt.figure(figsize=(6, 6), dpi=100, facecolor='white')
     ax = fig.add_subplot(111, projection=solo_map)
     plt.suptitle(str_title)
     solo_map.plot(vmin=0, vmax=np.nanmax(solo_map.data)/10., 

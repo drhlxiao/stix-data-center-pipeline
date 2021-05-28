@@ -20,6 +20,7 @@ from stix.core import stix_datatypes as sdt
 from stix.core import mongo_db as db
 from stix.spice import stix_datetime
 from stix.core import stix_logger
+from stix.analysis import ql_analyzer as qla
 logger = stix_logger.get_logger()
 matplotlib.use('Agg')
 
@@ -44,52 +45,13 @@ def smooth(y, N=15):
     return y_smooth
 
 
-def get_lightcurve_data(file_id, rebin=30):
+def get_lightcurve_data(file_id):
     packets = mdb.select_packets_by_run(file_id, SPID)
     if not packets:
         info(f'No QL LC packets found for run {file_id}')
         return None
-    lightcurves = {}
-    unix_time = []
-    for pkt in packets:
-        packet = sdt.Packet(pkt)
-        if not packet.isa(SPID):
-            continue
-        #fig = None
+    return qla.LightCurveAnalyzer.parse(packets)
 
-        scet_coarse = packet[1].raw
-        scet_fine = packet[2].raw
-        start_scet = scet_coarse + scet_fine / 65536.
-
-        int_duration = (packet[3].raw + 1) * 0.1
-
-        detector_mask = packet[4].raw
-        pixel_mask = packet[6].raw
-
-        num_lc = packet[17].raw
-
-        compression_s = packet[8].raw
-        compression_k = packet[9].raw
-        compression_m = packet[10].raw
-
-        num_lc_points = packet.get('NIX00270/NIX00271')[0]
-        lc = packet.get('NIX00270/NIX00271/*.eng')[0]
-        rcr = packet.get('NIX00275/*.raw')
-        UTC = packet['header']['UTC']
-        for i in range(len(lc)):
-            if i not in lightcurves:
-                lightcurves[i] = []
-            lightcurves[i].extend(lc[i])
-        unix_time.extend([
-            stix_datetime.scet2unix(start_scet + x * int_duration)
-            for x in range(num_lc_points[0])
-        ])
-
-    if not lightcurves:
-        return None
-    time=np.array(unix_time)
-
-    return {'time': np.array(unix_time), 'lcs': {x: np.array(lightcurves[x]) for x in lightcurves}}
 
 
 def make_lightcurve_snapshot(data, docs, snapshot_path):

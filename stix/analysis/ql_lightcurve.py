@@ -1,19 +1,14 @@
 import os
-
 import sys
 
 import numpy as np
-from matplotlib.backends.backend_pdf import PdfPages
-from matplotlib import pyplot as plt
 from datetime import datetime
-
 from stix.core import stix_datatypes as sdt
-import pprint
 
 SPID = 54118
 
 
-class Plugin:
+class LightCurveAnalyzer(object):
     def __init__(self, packets=[], current_row=0):
         self.packets = packets
         self.current_row = current_row

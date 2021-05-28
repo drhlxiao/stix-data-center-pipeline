@@ -11,6 +11,7 @@ from pprint import pprint
 from stix.core import mongo_db as db
 from stix.core import stix_datatypes as sdt
 from stix.spice import stix_datetime
+from stix.analysis import ql_analyzer as qla
 
 
 mdb = db.MongoDB()
@@ -54,56 +55,8 @@ class LCMinifier(object):
         packets=mdb.get_LC_pkt_by_tw(
                 start_unix,
                 duration)
-        return LCMinifier.minify(packets)
+        return qla.LightCurveAnalyzer.parse(packets)
 
-    @staticmethod
-    def minify(packets):
-        hashes=[]
-        lightcurves = {}
-        unix_time = []
-        energy_bins=[]
-        last_time=0
-        for pkt in packets:
-            packet = sdt.Packet(pkt)
-
-            scet_coarse = packet[1].raw
-            scet_fine = packet[2].raw
-            start_scet = scet_coarse + scet_fine / 65536.
-
-            if start_scet<=last_time:
-                continue
-            last_time=start_scet
-
-            int_duration = (packet[3].raw + 1) * 0.1
-
-            detector_mask = packet[4].raw
-            pixel_mask = packet[6].raw
-
-            num_lc = packet[17].raw
-
-            energy_bin_mask= packet[16].raw
-            energy_bins=get_energy_bins(energy_bin_mask)
-            compression_s = packet[8].raw
-            compression_k = packet[9].raw
-            compression_m = packet[10].raw
-
-            num_lc_points = packet.get('NIX00270/NIX00271')[0]
-            lc = packet.get('NIX00270/NIX00271/*.eng')[0]
-            rcr = packet.get('NIX00275/*.raw')
-            UTC = packet['header']['UTC']
-            for i in range(len(lc)):
-                if i not in lightcurves:
-                    lightcurves[i] = []
-                lightcurves[i].extend(lc[i])
-            unix_time.extend([
-                stix_datetime.scet2unix(start_scet + x * int_duration)
-                for x in range(num_lc_points[0])
-            ])
-
-        if not lightcurves:
-            return None
-        time=np.array(unix_time)
-        return {'time': np.array(unix_time), 'lc': lightcurves, 'energy_bins':energy_bins,'num':len(unix_time)}
 
 
 def plot_stix_lc(folder, _id, flare_id, start_utc, end_utc,  overwrite=True, T0_utc=None, light_time=0):
@@ -127,8 +80,8 @@ def plot_stix_lc(folder, _id, flare_id, start_utc, end_utc,  overwrite=True, T0_
         start_utc= f'{start_utc} + {light_time:.02f} s'
 
     fig = plt.figure()
-    for i,lc in data['lc'].items():
-        plt.plot(t_since_t0, lc, label=data['energy_bins'][i])
+    for i,lc in data['lcs'].items():
+        plt.plot(t_since_t0, lc, label=data['energy_bins']['names'][i])
 
     plt.xlabel(f'Start: {start_utc}')
     plt.ylabel('Counts / 4 s')
