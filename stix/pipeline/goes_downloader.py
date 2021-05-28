@@ -68,9 +68,10 @@ def save_geos(data, filename=None):
 
 def main():
     url='http://services.swpc.noaa.gov/json/goes/primary/xrays-7-day.json'
+    print('downloading goes light curve')
     r = requests.get(url)
     data=r.json()
-    print('downloading goes light curve')
+    print('save goes')
     save_geos(data, None)
 
 def import_data(filename):
