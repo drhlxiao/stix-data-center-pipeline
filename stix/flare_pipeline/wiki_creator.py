@@ -5,6 +5,7 @@ sys.path.append('.')
 import time
 import requests
 from datetime import datetime
+from dateutil import parser as dtparser
 from stix.core import mongo_db as db
 from stix.spice import solo
 mdb = db.MongoDB()
@@ -12,14 +13,6 @@ S = requests.Session()
 HOST= "https://pub023.cs.technik.fhnw.ch"
 URL=HOST+"/wiki/api.php"
 threshold=600
-sections=[ #instrument, section title, section level
-        ['EUI',3, ['eui']],
-            ['EPD',3, ['epd']],
-            ["GOES X-ray flux",2, ['goes']],
-            ['SDO AIA',2, ['aia131','aia1600']],
-            ['Radio',2, ['radio']]
-        ]
-
 class WikiCreator(object):
     def __init__(self):
         self.CSRF_TOKEN=''
@@ -90,6 +83,7 @@ class WikiCreator(object):
         peak_utc=flare['peak_utc']
         uid=str(flare['peak_counts']).replace('.','')
         #unique_id, anti-bots
+        print('Flare id: ', flare['_id'])
         now=datetime.now().strftime('%c')
         flare_id=flare['flare_id']
         goes_class_major='Unknown' 
@@ -106,7 +100,9 @@ class WikiCreator(object):
             sol_sc_dist=f"{emph['sun_solo_r'][0]:.03f} au"
             elevation=f"{emph['elevation'][0]:.03f} deg"
             sun_d=f"{emph['sun_angular_diameter'][0]*60:.03f} arcsec "
+            light_time=emph['light_time_diff'][0]
         except Exception as e:
+            light_time=0
             print(e)
             sol_sc_dist='N/A'
             elevation='N/A'
@@ -122,40 +118,28 @@ class WikiCreator(object):
                     f'''[[Category:{goes_class_major} Class Flares]]\n'''
                 f'''<!-- The session below was created by the data center wiki bot at {now}. \n '''
                 f'''  Please contact hualin.xiao@fhnw.ch if you wish to contribute code to the bot. -->\n'''
-                f'''==Solar Orbiter observations==\n===STIX===\n'''
-                "* Flare Info \n"
+                "== Flare Info == \n"
                 f"** Flare ID: {flare['flare_id']}\n"
                 f"** GOES Class: {goes_class}\n"
                 f"** Light travel time difference: {tdiff}\n"
                 f"** Earth-Sun-SC angle: {angle}\n"
                 f"** Sun-SC distance: {sol_sc_dist}\n"
                 f"** SC elevation : {elevation}\n"
-                f"** Sun angular diameter (looking from S/C): {sun_d}\n"
-                f"** Flare Peak UTC: {flare['peak_utc']}\n"
-                f'* STIX QL light curves\n'
-                f'<img src="{HOST}/request/image/flare?id={flare_id}&type=stixlc&uid={uid}&p=0"></img>\n'
-                f'<img src="{HOST}/request/image/flare?id={flare_id}&type=loc&uid={uid}&p=0"></img>\n'''
-                f'* STIX energy spectra\n'
-                f'<img src="{HOST}/request/image/flare?id={flare_id}&type=stixspec&uid={uid}&p=0"></img>\n'
-                f'* Flare location\n'
-                f'<img src="{HOST}/request/image/flare?id={flare_id}&type=stixloc&uid={uid}&p=0"></img>\n'
-                f'* STIX image\n'
-                f'<img src="{HOST}/request/image/flare?id={flare_id}&type=stiximg&uid={uid}&p=0"></img>\n')
+                f"** Sun angular diameter (viewing from Solar Orbiter): {sun_d}\n"
+                f"** Flare peak UTC: {flare['peak_utc']}\n")
             fields.append(header)
+        fields.append('== STIX observation ==')
+        fields.append(f'<div data-flareId="{flare_id}" data-lt="{light_time}"  data-uid="{uid}" data-peakUTC="{peak_utc}" id="stix-obs"></div>')
+        utc_dt=dtparser.parse(peak_utc)
+        date=utc_dt.strftime('%Y%m%d')
+        year=utc_dt.year
+        fields.append('== Simultaneous observations ==')
+        fields.append(f'<div data-year="{year}" data-date="{date}" data-flareId="{flare_id}" data-lt="{light_time}"  data-uid="{uid}" data-peakUTC="{peak_utc}"  id="sim-obs"></div>')
 
-        for instr in sections:
-            section_name=instr[0]
-            div_id=section_name.replace(' ','_')
-            if f'id="{div_id}"' in old_content:
-                continue
-            wiki_level='='*instr[1]
-            fields.append(f'{wiki_level}{section_name}{wiki_level}')
-            for ins in instr[2]:
-                fields.append(f'<img src="{HOST}/request/image/flare?id={flare_id}&type={ins}&uid={uid}&p=0"></img>')
-        if fields:
-            content='\n'.join(fields)+'\n'
-            return title, content
-        return None, None
+
+        content='\n'.join(fields)+'\n'
+        
+        return title, content
 
     def create_page(self, title, content):
         if title is None or content is None:
@@ -164,6 +148,7 @@ class WikiCreator(object):
             print("can not create page because CSRF token not ready")
         print("inserting:", title)
         print(content)
+        time.sleep(10)
         # Step 4: POST request to edit a page
         PARAMS_3 = {
             "action": "edit",
@@ -181,7 +166,6 @@ class WikiCreator(object):
         print(DATA)
         PARAMS_3['captchaid']=DATA['edit']['captcha']['id']
         PARAMS_3['captchaword']='stix'
-        time.sleep(2)
         R = S.post(URL, data=PARAMS_3)
         DATA = R.json()
         print(DATA)
@@ -192,7 +176,6 @@ class WikiCreator(object):
             print(f'Flare {_id} not file in db!')
             return
         title,content=self.format_page(doc)
-        print(content)
         self.create_page(title, content)
         mdb.update_flare_joint_obs(_id, 'wiki', True)
 

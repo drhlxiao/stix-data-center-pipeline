@@ -33,29 +33,24 @@ def get_energy_bins(emask):
             names.append('')
     return names
 
-class LCMinifier(object):
-    def __init__(self):
-        pass
+def get_lightcurve_data(start_utc, end_utc, sort_field='header.unix_time'):
 
-    @staticmethod
-    def request_by_tw(start_utc, end_utc, sort_field='header.unix_time'):
+    """Request 
 
-        """Request 
+    Args:
+        start_unix ([type]): [description]
+        duration ([type]): data selection duration
+        packet_type ([type]): 
+            {'lc':54118,'bkg':54119, 'qlspec':54120, 'var':54121, 'flare':54122}
 
-        Args:
-            start_unix ([type]): [description]
-            duration ([type]): data selection duration
-            packet_type ([type]): 
-                {'lc':54118,'bkg':54119, 'qlspec':54120, 'var':54121, 'flare':54122}
-
-            sort_field (str, optional): [description]. Defaults to 'header.unix_time'.
-        """
-        start_unix=stix_datetime.utc2unix(start_utc)
-        duration=stix_datetime.utc2unix(end_utc)-start_unix
-        packets=mdb.get_LC_pkt_by_tw(
-                start_unix,
-                duration)
-        return qla.LightCurveAnalyzer.parse(packets)
+        sort_field (str, optional): [description]. Defaults to 'header.unix_time'.
+    """
+    start_unix=stix_datetime.utc2unix(start_utc)
+    duration=stix_datetime.utc2unix(end_utc)-start_unix
+    packets=mdb.get_LC_pkt_by_tw(
+            start_unix,
+            duration)
+    return qla.LightCurveAnalyzer.parse(packets)
 
 
 
@@ -64,7 +59,7 @@ def plot_stix_lc(folder, _id, flare_id, start_utc, end_utc,  overwrite=True, T0_
     if  mdb.get_flare_joint_obs(_id, key) and overwrite == False:
         print(f'Flare {flare_id} STIX LCs were not created!')
         return 
-    data=LCMinifier.request_by_tw(start_utc, end_utc)
+    data=get_lightcurve_data(start_utc, end_utc)
     if data['num']==0:
         print('No LC data')
         return

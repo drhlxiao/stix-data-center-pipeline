@@ -61,6 +61,14 @@ def utc2unix(utc):
         return utc
     else:
         return 0
+def utc2datetime(utc):
+    if not utc.endswith('Z'):
+        utc += 'Z'
+    try:
+        return dtparser.parse(utc)
+    except:
+        return None
+
 
 
 def unix2datetime(timestamp):
