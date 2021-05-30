@@ -31,7 +31,7 @@ def plot_aia(folder,_id, flare_id ,utc_start,  wavelen=131, overwrite=False):
         print('data not available')
         return ''
     sdo = Map(sdo_res[0])
-    fig = plt.figure(figsize=(6, 6), dpi=100)
+    fig = plt.figure(figsize=(6, 6), dpi=100, facecolor='white')
     ax = fig.add_subplot(projection=sdo)
     sdo.plot(clip_interval=[1, 100] * u.percent, axes=ax)
     plt.colorbar()

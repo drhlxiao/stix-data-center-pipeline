@@ -4,6 +4,8 @@ sys.path.append('.')
 import os
 import json
 import numpy as np
+import matplotlib.dates as mdates
+from datetime import datetime
 from matplotlib import pyplot as plt
 from stix.core import mongo_db as db
 from stix.spice import stix_datetime
@@ -72,21 +74,21 @@ def plot_goes(folder,_id, flare_id, start_utc, end_utc, peak_utc=None, overwrite
     if num==0:
         return
     fig, ax = plt.subplots()
-    t0_utc=''
     max_flux=0
-    if peak_utc:
-        t0_utc=peak_utc
+    t0_utc=None
     for key,val in flux.items():
         if not t0_utc:
             t0_utc=start_times[key]
-        t0_unix=stix_datetime.utc2unix(t0_utc)
-        t=np.array(val[0])-t0_unix
+        #t0_unix=stix_datetime.utc2unix(t0_utc)
+        #t=np.array(val[0])-t0_unix
+        t=[datetime.fromtimestamp(x) for x in val[0]]
         if key=='0.1-0.8nm':
             max_flux=np.max(val[1])
             imax=np.array(val[1]).argmax()
             goes_peak_unix_time=val[0][imax]
         ax.plot(t,val[1],label=energy_map.get(key,'unknown'))
-    ax.set_xlabel(f'Start time: {t0_utc}' )
+
+    goes_peak_utc=stix_datetime.unix2utc(goes_peak_unix_time)
     ax.set_ylabel(r'Watts m$^{-2}$')
     ax.set_yscale('log')
     labels = ['A', 'B', 'C', 'M', 'X']
@@ -104,14 +106,20 @@ def plot_goes(folder,_id, flare_id, start_utc, end_utc, peak_utc=None, overwrite
     ax.yaxis.grid(True, 'major')
     ax.xaxis.grid(False, 'major')
     ax.legend(loc='upper right')
+    # beautify the x-labels
+
+    locator = mdates.AutoDateLocator(minticks=3, maxticks=7)
+    formatter = mdates.ConciseDateFormatter(locator)
+    ax.xaxis.set_major_locator(locator)
+    ax.xaxis.set_major_formatter(formatter)
+
     fname=os.path.join(folder, f'flare_{_id}_{flare_id}_goes.png')
     print(fname)
     fig.tight_layout()
     plt.savefig(fname, dpi=100)
     mdb.update_flare_joint_obs(_id, 'goes', [fname])
-    goes_peak_utc=stix_datetime.unix2utc(goes_peak_unix_time)
     mdb.update_flare_field(_id, 'goes', {'flux': max_flux, 'class':get_class(max_flux), 'goes_peak_unix_time': goes_peak_unix_time, 'goes_peak_utc':goes_peak_utc})
     print(_id, {'flux': max_flux, 'class':get_class(max_flux)})
     return True
 if __name__=='__main__':
-    plot_goes('.',0,'2021-05-05T00:00:00','2021-05-05T01:10:00', '2021-05-05T01:05:00')
+    plot_goes('.',0,2,'2021-05-05T00:00:00','2021-05-05T01:10:00', '2021-05-05T02:05:00', True)

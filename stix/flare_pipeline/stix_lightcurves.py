@@ -7,6 +7,8 @@ import os
 import numpy as np
 import math
 from matplotlib import pyplot as plt
+import matplotlib.dates as mdates
+from datetime import datetime
 from pprint import pprint
 from stix.core import mongo_db as db
 from stix.core import stix_datatypes as sdt
@@ -54,7 +56,7 @@ def get_lightcurve_data(start_utc, end_utc, sort_field='header.unix_time'):
 
 
 
-def plot_stix_lc(folder, _id, flare_id, start_utc, end_utc,  overwrite=True, T0_utc=None, light_time=0):
+def plot_stix_lc(folder, _id, flare_id, start_utc, end_utc,  overwrite=True, peak_utc=None, light_time=0):
     key='stixlc'
     if  mdb.get_flare_joint_obs(_id, key) and overwrite == False:
         print(f'Flare {flare_id} STIX LCs were not created!')
@@ -63,22 +65,18 @@ def plot_stix_lc(folder, _id, flare_id, start_utc, end_utc,  overwrite=True, T0_
     if data['num']==0:
         print('No LC data')
         return
-    if not T0_utc:
-        t_since_t0 = data['time']- data['time'][0]
-        start_utc=stix_datetime.unix2utc(data['time'][0])
-    else:
-        start_utc=T0_utc
-        t0=stix_datetime.utc2unix(T0_utc)
-        t_since_t0 = data['time']- t0
+    earth_dt = [datetime.fromtimestamp(x+light_time) for x in  data['time']]
 
-    if light_time!=0:
-        start_utc= f'{start_utc} + {light_time:.02f} s'
-
-    fig = plt.figure()
+    fig, ax = plt.subplots()
     for i,lc in data['lcs'].items():
-        plt.plot(t_since_t0, lc, label=data['energy_bins']['names'][i])
+        plt.plot(earth_dt, lc, label=data['energy_bins']['names'][i])
 
-    plt.xlabel(f'Start: {start_utc}')
+    locator = mdates.AutoDateLocator(minticks=3, maxticks=7)
+    formatter = mdates.ConciseDateFormatter(locator)
+    ax.xaxis.set_major_locator(locator)
+    ax.xaxis.set_major_formatter(formatter)
+
+    plt.xlabel(f'S/C UTC + {light_time:.02f} s')
     plt.ylabel('Counts / 4 s')
     title=f'STIX QL LCs (Flare #{flare_id})'
     plt.title(title)

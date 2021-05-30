@@ -5,11 +5,12 @@ from datetime import datetime
 from stix.core import mongo_db as db
 from stix.spice import stix_datetime
 from stix.core import config
-from stix.wiki import plot_orbit,aia,solo_eui, stix_lightcurves, goes, wiki_creator, aia_solo_view
+from stix.flare_pipeline import plot_orbit,aia,solo_eui, stix_lightcurves, goes, wiki_creator, aia_solo_view
 mdb = db.MongoDB()
 margin=1200
 threshold=600
 OVERWRITE=False
+
 def to_earth_utc(utc, tdiff):
     return stix_datetime.unix2utc(stix_datetime.utc2unix(utc)+tdiff)
 
@@ -51,7 +52,7 @@ def process_flares_for_file(file_id, overwrite=OVERWRITE):
         except Exception as e:
             print(e)
             light_time=0
-        stix_lightcurves.plot_stix_lc(folder, _id, flare_id, start_utc, end_utc,  overwrite=overwrite, T0_utc=peak_utc, light_time=light_time)
+        stix_lightcurves.plot_stix_lc(folder, _id, flare_id, start_utc, end_utc,  overwrite=overwrite, peak_utc=peak_utc, light_time=light_time)
 
         earth_start_utc=to_earth_utc(start_utc,light_time) 
         earth_end_utc=to_earth_utc(end_utc,light_time) 
@@ -62,7 +63,6 @@ def process_flares_for_file(file_id, overwrite=OVERWRITE):
             raise
             print("error when creating goes LC")
             print(e)
-        #return
 
         try:
             aia.plot_aia(folder,_id, flare_id, earth_peak_utc,  131, overwrite)
