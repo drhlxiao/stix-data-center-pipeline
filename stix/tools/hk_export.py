@@ -9,6 +9,10 @@ db = stix['packets']
 
 HK = {
     'NIXD0027': 'HK_DPU_3V3_C',
+    'NIX00072': 'Med value of trig acc',
+    'NIX00073': 'Max value of trig acc',
+    }
+'''
     'NIXD0024': 'HK_PSU_TEMP_T',
     'NIXD0025': 'HK_DPU_PCB_T',
     'NIXD0023': 'Instrument mode',
@@ -19,7 +23,6 @@ HK = {
     'NIXD0032': 'HK_DPU_SPW1_V',
     'NIXD0036': 'HK_REF_2V5_V'}
     
-'''
     'NIXD0026': 'HK_DPU_FPGA_T',
 
 
@@ -110,16 +113,16 @@ def request_hk_packets(start_utc, end_utc):
     fcsv = open(csv_filename, 'w')
     print('request data...')
     i = 0
-    row=0
+    irow=0
     indexes = []
     for pkt in cur:
         header = pkt['header']
         parameters = pkt['parameters']
         if header['unix_time'] <= last_time:
             continue
-        row+=1
-        if row%4==0:
-            continue
+        irow+=1
+        #if irow%4==0:
+        #    continue
         if i == 0:
             hn = []
             for name in names:
@@ -140,14 +143,10 @@ def request_hk_packets(start_utc, end_utc):
         line.extend([str(parameters[ix[0]][ix[1]]) for ix in indexes])
         row=','.join(line)+'\n'
         fcsv.write(row)
-        i += 1
-        if i % 1000 == 0:
-            print(i, header['UTC'])
-            return
-
+        i+=1
 
     print('Done.')
 
 
-request_hk_packets('2020-05-20T00:00:00', '2021-01-01T00:00:00')
+#request_hk_packets('2020-05-20T00:00:00', '2021-01-01T00:00:00')
 request_hk_packets('2021-01-01T00:00:00', '2021-05-04T00:00:00')

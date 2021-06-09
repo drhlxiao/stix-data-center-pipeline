@@ -39,7 +39,8 @@ class SpiceManager:
             try:
                 spiceypy.furnsh(fname)
             except spiceypy.utils.exceptions.SpiceNOSUCHFILE:
-                print(f'Failed to load {fname}')
+                #print(f'Failed to load {fname}')
+                pass
             #if 'sclk' in fname or 'lsk' in fname:
             #only import sclk and lsk module for data parser
             if 'sclk' in fname:

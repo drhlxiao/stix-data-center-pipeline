@@ -7,6 +7,7 @@ import astropy.units as u
 from astropy import constants as const
 from stix.spice import helio as hsp
 from stix.spice import stix_datetime
+from stix.utils import bson
 
 from stix.spice.spice_manager import spice as spice_manager
 solo_spice_min_datetime = stix_datetime.utc2datetime('2020-02-10T05:00:00Z')
@@ -30,7 +31,7 @@ def get_solo_ephemeris(start_utc,
                        end_utc,
                        observer='SUN',
                        frame='GSE',
-                       num_steps=200):
+                       num_steps=200, return_json=False):
     '''
       calculate solo orbiter orbit using spice kernel data
       Args:
@@ -106,8 +107,9 @@ def get_solo_ephemeris(start_utc,
             'elevation': elevation,
         }
     except Exception as e:
-        print(e)
         result = {'error': str(e)}
+    if return_json:
+        return bson.dict_to_json(result)
     return result
 
 

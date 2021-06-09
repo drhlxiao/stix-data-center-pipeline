@@ -1,7 +1,7 @@
 import pymongo
 connect = pymongo.MongoClient()
 db = connect["stix"]
-fdb= db['flares_tbc']
+fdb= db['flares']
 cursor=fdb.find()
 num=0
 for f in  cursor:

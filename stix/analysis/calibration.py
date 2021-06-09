@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-A program to perform energy calibration. 
+Calculation of energy calibration factors. 
 This script relies on pyroot
-It can downloaded from http://root.cern.ch
+It can be downloaded from http://root.cern.ch
 As the pre-compiled version doesn't support python3, one needs to download the source code and compile on your local PC according to steps as below:
 1. cmake 
 cmake ../source   -Dpython3=ON -DPYTHON_EXECUTABLE=/usr/bin/python3 
 -DPYTHON_INCLUDE_DIR=/usr/include/python3.8 -DPYTHON_LIBRARY=/usr/lib/x86_64-linux-gnu/libpython3.8.so -DCMAKE_INSTALL_PREFIX=/opt/root6_python3/
 2. make 
 3. make install
-
 """
 
 import os
@@ -44,6 +43,7 @@ ELUT_ENERGIES = [
 
 PHOTO_PEAKS_POS = [30.85, 35.13, 81]
 #PHOTO_PEAKS_POS=[30.85, 35.05, 81]
+PRINT_TO_PDF=False
 
 mdb = db.MongoDB()
 gROOT.SetBatch(True)
@@ -315,7 +315,8 @@ def analyze(calibration_id, output_dir=DEFAULT_OUTPUT_DIR):
 
     canvas = TCanvas("c", "canvas", 1200, 500)
     pdf = '{}.pdf'.format(fname_out)
-    canvas.Print(pdf + '[')
+    if PRINT_TO_PDF:
+        canvas.Print(pdf + '[')
     # make cover
     cover = TCanvas()
     t1 = TPaveText(.1, .6, .9, .9)
@@ -331,7 +332,8 @@ def analyze(calibration_id, output_dir=DEFAULT_OUTPUT_DIR):
     now = f'Created at {datetime.now().isoformat()}'
     t2ptxt.AddText(now)
     t2ptxt.Draw()
-    cover.Print(pdf)
+    if PRINT_TO_PDF:
+        cover.Print(pdf)
 
     canvas.Divide(3, 2)
     last_plots = None
@@ -373,7 +375,8 @@ def analyze(calibration_id, output_dir=DEFAULT_OUTPUT_DIR):
             canvas.cd(6)
             if plots[2]:
                 plots[2].Draw("AP")
-            canvas.Print(pdf)
+            if PRINT_TO_PDF:
+                canvas.Print(pdf)
             last_plots = []
         else:
             last_plots = plots
@@ -441,7 +444,8 @@ def analyze(calibration_id, output_dir=DEFAULT_OUTPUT_DIR):
                                                       pixel), ' Energy (keV) ',
                 'Counts')
             g_cali2.Draw("ALP")
-            cc.Print(pdf)
+            if PRINT_TO_PDF:
+                cc.Print(pdf)
 
     sub_sum_spec = {}
 
@@ -491,16 +495,16 @@ def analyze(calibration_id, output_dir=DEFAULT_OUTPUT_DIR):
     g_slope.Draw('AL')
     c2.cd(4)
     g_offset.Draw('AL')
-    c2.Print(pdf)
-    canvas.Print(pdf + ']')
+    if PRINT_TO_PDF:
+        c2.Print(pdf)
+        canvas.Print(pdf + ']')
 
     hist_slope.Write("hist_slope")
     hist_offset.Write("hist_offset")
     g_slope.Write("g_slope")
     g_offset.Write("g_offset")
-    #png_filename=os.path.splitext(pdf)[0]+'png'
-
-    print('done.\nFile {} generated'.format(pdf))
+    if PRINT_TO_PDF:
+        print('done.\nFile {} generated'.format(pdf))
 
     f.Close()
 

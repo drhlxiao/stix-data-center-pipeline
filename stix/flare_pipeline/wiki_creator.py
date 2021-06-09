@@ -170,7 +170,7 @@ class WikiCreator(object):
         DATA = R.json()
         print(DATA)
     def touch_wiki_for_flare(self, _id):
-        fdb=mdb.get_collection('flares_tbc')
+        fdb=mdb.get_collection('flares')
         doc=fdb.find_one({'_id':_id, 'hidden':False})
         if not doc:
             print(f'Flare {_id} not file in db!')
@@ -180,7 +180,7 @@ class WikiCreator(object):
         mdb.update_flare_joint_obs(_id, 'wiki', True)
 
     def touch_wiki_for_file(self,file_id):
-        fdb=mdb.get_collection('flares_tbc')
+        fdb=mdb.get_collection('flares')
         flares=fdb.find({'run_id':file_id, 'hidden':False})
         if not flares:
             print(f'Flare {file_id} not file in db!')

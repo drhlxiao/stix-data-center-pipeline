@@ -107,12 +107,10 @@ def plot_goes(folder,_id, flare_id, start_utc, end_utc, peak_utc=None, overwrite
     ax.xaxis.grid(False, 'major')
     ax.legend(loc='upper right')
     # beautify the x-labels
-
     locator = mdates.AutoDateLocator(minticks=3, maxticks=7)
     formatter = mdates.ConciseDateFormatter(locator)
     ax.xaxis.set_major_locator(locator)
     ax.xaxis.set_major_formatter(formatter)
-
     fname=os.path.join(folder, f'flare_{_id}_{flare_id}_goes.png')
     print(fname)
     fig.tight_layout()

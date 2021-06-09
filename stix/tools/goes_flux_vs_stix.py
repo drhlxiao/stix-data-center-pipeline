@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 
 connect = pymongo.MongoClient(port=9000)
 db = connect["stix"]
-fdb= db['flares_tbc']
+fdb= db['flares']
 rows=fdb.find({'goes.flux':{'$gt':0}})
 x=[]
 y=[]

@@ -40,13 +40,14 @@ parser_config = {
             "ngnix_cache": "/data/nginx/stix_cache/*",
             "goes_lc_path": "/data/goes/"
         },
-        "asw_version": 180
+        "asw_version": 179
     },
-    "ASW":{"179": {
+    "ASW":{"179": 
+        {
         "filename": "/data/pub/data/idb/idb.sqlite",
         "version": "2.26.33",
         "aswVersion": 179,
-    }, 
+        }, 
     "181":{
         "filename": "/data/pub/data/idb/idb_v2.26.35.sqlite",
         "version": "2.26.34",

@@ -20,6 +20,7 @@ from stix.core import stix_datatypes as sdt
 from stix.core import mongo_db as db
 from stix.spice import stix_datetime
 from stix.core import stix_logger
+from stix.spice import solo
 from stix.analysis import ql_analyzer as qla
 logger = stix_logger.get_logger()
 matplotlib.use('Agg')
@@ -37,7 +38,20 @@ def info(msg):
         return
     logger.info(msg)
 
-
+def merge_intervals(x):
+  #sort the intervals by its first value
+  x.sort(key = lambda x: x[0])
+  m = []
+  m.append(x[0])
+  overlaps=lambda a,b:  b[0] > a[0] and b[0] < a[1]
+  for i in range(1, len(x)):
+    pm= m.pop()
+    if overlaps(pm, x[i]):
+      m.append((pm[0], max(pm[1], x[i][1])))
+    else:
+      m.append(pm)
+      m.append(x[i])
+  return m
 def smooth(y, N=15):
 
     y_padded = np.pad(y, (N//2, N-1-N//2), mode='edge')
@@ -117,7 +131,7 @@ def make_lightcurve_snapshot(data, docs, snapshot_path):
         fig.tight_layout()
         #print(filename)
         plt.savefig(filename, dpi=100)
-        mdb.set_tbc_flare_lc_filename(_id, filename)
+        mdb.set_flare_lc_filename(_id, filename)
         plt.close()
         plt.clf()
 
@@ -146,9 +160,9 @@ def search(run_id,
 
     data = get_lightcurve_data(run_id)
 
-    print(f'deleting file {run_id}')
+    print(f'Deleting flares in file #{run_id}')
 
-    mdb.delete_flare_candidates_for_file(run_id)
+    mdb.delete_flares_of_file(run_id)
 
     if not data:
         info(f'No QL LC packets found for file {run_id}')
@@ -156,8 +170,6 @@ def search(run_id,
 
     unix_time = data['time']
     lightcurve = data['lcs'][0]
-    print(data['lcs'][0].shape)
-    print(unix_time.shape)
     med = np.median(lightcurve)
     prominence = 2 * np.sqrt(med)
     noise_rms=np.sqrt(med)
@@ -199,6 +211,7 @@ def search(run_id,
     peak_values = properties['peak_heights']
     peak_unix_times = unix_time[xpeaks]
     peaks_utc = [stix_datetime.unix2utc(x) for x in peak_unix_times]
+    ephemeris=[solo.get_solo_ephemeris(x, x, return_json=True) for x in peaks_utc]
     flare_ids=[stix_datetime.unix2datetime(x).strftime("%y%m%d%H%M")
             for x in peak_unix_times]
 
@@ -243,6 +256,7 @@ def search(run_id,
         total_signal_counts.append(sig_cnts)
     
     doc = {
+
         'num_peaks': xpeaks.size,
         'peak_unix_time': peak_unix_times.tolist(),
         'peak_counts': peak_values.tolist(),
@@ -262,12 +276,13 @@ def search(run_id,
         'end_unix': unix_time[properties['right_ips'].astype(int)].tolist(),
         'is_major': majors,
         'LC_statistics':LC_statistics,
+        'ephemeris': ephemeris,
         'run_id': run_id
     }
 
 
 
-    mdb.save_flare_candidate_info(doc)
+    mdb.save_flare_info(doc)
     doc['properties'] = properties
     data['lc_smoothed']=lc_smoothed
     make_lightcurve_snapshot(data, doc, snapshot_path)
@@ -277,7 +292,7 @@ def search(run_id,
 def search_in_many(fid_start, fid_end, img_path='/data/flare_lc'):
     for i in range(fid_start, fid_end + 1):
         print(f'deleting flares of Files {i}')
-        mdb.delete_flare_candidates_for_file(i)
+        mdb.delete_flares_of_file(i)
     for i in range(fid_start, fid_end + 1):
         search(i, snapshot_path=img_path)
 

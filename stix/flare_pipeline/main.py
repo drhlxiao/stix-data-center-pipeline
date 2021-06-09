@@ -16,7 +16,7 @@ def to_earth_utc(utc, tdiff):
 
 def process_flares_for_file(file_id, overwrite=OVERWRITE):
     print(f'processing for file {file_id}')
-    fdb=mdb.get_collection('flares_tbc')
+    fdb=mdb.get_collection('flares')
     flares=fdb.find({'run_id':file_id, 'hidden':False})
     folder=config.get_config('joint_obs')
     if not flares:

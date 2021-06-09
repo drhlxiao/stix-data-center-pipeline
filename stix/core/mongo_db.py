@@ -53,8 +53,8 @@ class MongoDB(object):
             self.collection_fits = self.db['fits']
             self.collection_events = self.db['events']
             self.col_goes= self.db['goes']
-            self.col_flare_tbc= self.db['flare_tbc']
-            self.collection_flares_tbc = self.db['flares_tbc']
+            #self.col_flare_tbc= self.db['flare_tbc']
+            self.collection_flares = self.db['flares']
             self.collection_qllc_statistics= self.db['qllc_statistics']
             self.collection_notifications= self.db['notifications']
             self.collection_spice= self.db['spice']
@@ -210,8 +210,8 @@ class MongoDB(object):
         if self.collection_data_requests:
             cursor = self.collection_data_requests.delete_many(
                 {'run_id': run_id})
-        if self.collection_flares_tbc:
-            cursor = self.collection_flares_tbc.delete_many(
+        if self.collection_flares:
+            cursor = self.collection_flares.delete_many(
                 {'run_id': run_id})
         if self.collection_fits:
             fits_docs=self.collection_fits.find({'file_id':run_id})
@@ -312,14 +312,14 @@ class MongoDB(object):
         except IndexError:
             return 0
 
-    def get_next_flare_candidate_id(self):
+    def get_next_flare_id(self):
         try:
-            return self.collection_flares_tbc.find().sort(
+            return self.collection_flares.find().sort(
                 '_id', -1).limit(1)[0]['_id'] + 1
         except IndexError:
             return 0
 
-    def save_flare_candidate_info(self, result):
+    def save_flare_info(self, result):
         """
             write flare info into database
         """
@@ -329,14 +329,14 @@ class MongoDB(object):
             return None
 
         try:
-            cursor = self.collection_flares_tbc.delete_many(
+            cursor = self.collection_flares.delete_many(
                 {'run_id': int(result['run_id'])})
             #delete
         except Exception as e:
             pass
 
-        if self.collection_flares_tbc:
-            first_id = self.get_next_flare_candidate_id()
+        if self.collection_flares:
+            first_id = self.get_next_flare_id()
         new_inserted_flares = []
 
         num_inserted = 0
@@ -349,7 +349,7 @@ class MongoDB(object):
             peak_unix = float(result['peak_unix_time'][i])
             time_window = 300
             hidden = False
-            exists = self.collection_flares_tbc.find_one({
+            exists = self.collection_flares.find_one({
                 'peak_unix_time': {
                     '$gt': peak_unix - time_window,
                     '$lt': peak_unix + time_window
@@ -376,18 +376,18 @@ class MongoDB(object):
             new_inserted_flares.append(doc)
 
             inserted_ids[i]=doc['_id']
-            self.collection_flares_tbc.save(doc)
+            self.collection_flares.save(doc)
         #return new_inserted_flares
         result['inserted_ids']=inserted_ids
 
-    def set_tbc_flare_lc_filename(self, _id, lc_filename):
-        doc = self.collection_flares_tbc.find_one({'_id': _id})
+    def set_flare_lc_filename(self, _id, lc_filename):
+        doc = self.collection_flares.find_one({'_id': _id})
         if doc:
             doc['lc_path'] = os.path.dirname(lc_filename)
             doc['lc_filename'] = os.path.basename(lc_filename)
-            self.collection_flares_tbc.replace_one({'_id': _id}, doc)
+            self.collection_flares.replace_one({'_id': _id}, doc)
     def get_flare_joint_obs(self,_id, key):
-        doc = self.collection_flares_tbc.find_one({'_id': _id})
+        doc = self.collection_flares.find_one({'_id': _id})
         if doc:
             if key=='wiki':
                 return doc.get('wiki',None)
@@ -396,13 +396,13 @@ class MongoDB(object):
             return doc['joint_obs'].get(key,None) 
         return None
     def update_flare_field(self,_id, key, value):
-        doc = self.collection_flares_tbc.find_one({'_id': _id})
+        doc = self.collection_flares.find_one({'_id': _id})
         if doc:
             doc[key]=value
-            self.collection_flares_tbc.replace_one({'_id': _id}, doc)
+            self.collection_flares.replace_one({'_id': _id}, doc)
 
     def update_flare_joint_obs(self, _id, key, value):
-        doc = self.collection_flares_tbc.find_one({'_id': _id})
+        doc = self.collection_flares.find_one({'_id': _id})
         if doc:
             if key!='wiki':
                 if 'joint_obs' not in doc:
@@ -410,7 +410,7 @@ class MongoDB(object):
                 doc['joint_obs'][key] = value
             else:
                 doc['wiki']=value
-            self.collection_flares_tbc.replace_one({'_id': _id}, doc)
+            self.collection_flares.replace_one({'_id': _id}, doc)
 
 
 
@@ -460,20 +460,20 @@ class MongoDB(object):
                 'header.SPID', {'run_id': int(file_id)}) if x
         ]
 
-    def delete_flare_candidates_for_file(self,run_id):
-        if self.collection_flares_tbc:
-            self.collection_flares_tbc.delete_many({'run_id': int(run_id)})
+    def delete_flares_of_file(self,run_id):
+        if self.collection_flares:
+            self.collection_flares.delete_many({'run_id': int(run_id)})
 
 
 
-    def search_flares_tbc_by_tw(self,
+    def search_flares_by_tw(self,
                                 start_unix,
                                 duration,
                                 num=MAX_NUM_RETURN_RECORDS,
                                 threshold=0):
         #flares to be confirmed
         results = []
-        if self.collection_flares_tbc:
+        if self.collection_flares:
             query_string = {
                 'peak_unix_time': {
                     '$gte': start_unix,
@@ -483,7 +483,7 @@ class MongoDB(object):
                     '$gte': threshold
                 }
             }
-            results = self.collection_flares_tbc.find(query_string).sort(
+            results = self.collection_flares.find(query_string).sort(
                 'peak_unix_time', -1).limit(num)
         return results
     def insert_qllc_statistics(self, doc):
