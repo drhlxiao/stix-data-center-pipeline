@@ -20,7 +20,7 @@ from stix.fits import fits_creator
 from  stix.analysis import calibration
 from  stix.analysis import background_estimation as bkg
 from  stix.analysis import flare_detection
-from  stix.analysis import sci_packets_merger
+from  stix.analysis import sci_packets_analyzer
 from stix.core import spice_manager as spm
 logger = stix_logger.get_logger()
 
