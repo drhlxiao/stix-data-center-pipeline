@@ -1,3 +1,5 @@
+#Author Hualin Xiao (hualin.xiao@fhnw.ch)
+# Joint observation main 
 import sys
 sys.path.append('.')
 import requests

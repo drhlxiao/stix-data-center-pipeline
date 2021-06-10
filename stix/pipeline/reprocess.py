@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- encoding: utf-8 -*-
-# @title        : parser_pipeline.py
-# @description  : STIX packet parser pipeline. It detects new files in the specified folder, 
-#                 parses the packets and stores the decoded packets in the MongoDB
+# @title        : reprocess_file.py
+# @description  : reprocess file using the latest spice kernel data
 # @author       : Hualin Xiao
 # @date         : Feb. 11, 2020
 #
@@ -172,11 +171,6 @@ def main(start_file, end_file, min_dt, force=False):
             sci_packets_merger.process(_id)
         except Exception as e:
             print(str(e))
-
-        
-    
-
-
 
 if __name__ == '__main__':
     if len(sys.argv) >= 2:

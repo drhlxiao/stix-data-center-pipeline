@@ -79,8 +79,6 @@ def plot_goes(folder,_id, flare_id, start_utc, end_utc, peak_utc=None, overwrite
     for key,val in flux.items():
         if not t0_utc:
             t0_utc=start_times[key]
-        #t0_unix=stix_datetime.utc2unix(t0_utc)
-        #t=np.array(val[0])-t0_unix
         t=[datetime.fromtimestamp(x) for x in val[0]]
         if key=='0.1-0.8nm':
             max_flux=np.max(val[1])

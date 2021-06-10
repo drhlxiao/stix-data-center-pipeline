@@ -364,6 +364,7 @@ class StixBulkL4Analyzer(object):
         return report
 
     def merge(self, cursor):
+        last_timestamp=None
         for pkt in cursor:
             packet = sdt.Packet(pkt)
             self.request_id = packet[3].raw
@@ -381,7 +382,8 @@ class StixBulkL4Analyzer(object):
                 counts_idx = 2
             children = packet[13].children
             group = {}
-            last_timestamp = T0
+            if last_timestamp is None:
+                last_timestamp = T0
             self.num_time_bins = 0
 
             for i in range(0, num_structures):

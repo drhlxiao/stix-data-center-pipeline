@@ -21,7 +21,7 @@ from stix.fits import fits_creator
 from  stix.analysis import calibration
 from  stix.analysis import background_estimation as bkg
 from  stix.analysis import flare_detection
-from  stix.analysis import sci_packets_merger
+from  stix.analysis import sci_packets_analyzer
 from stix.spice import spice_manager as spm
 logger = stix_logger.get_logger()
 
@@ -170,7 +170,7 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
     if DO_BULK_SCIENCE_DATA_MERGING:
         logger.info('merging bulk science data and preparing bsd json files...')
         try:
-            sci_packets_merger.process(file_id)
+            sci_packets_analyzer.process(file_id)
         except Exception as e:
             logger.error(str(e))
         

@@ -1,4 +1,4 @@
-#reduce lc packet data volume before sending to browsers
+#plot STIX lightcurve
 #Hualin Xiao (hualin.xiao@fhnw.ch)
 # March 01, 2021
 import sys

@@ -1,3 +1,5 @@
+#Author Hualin Xiao (hualin.xiao@fhnw.ch)
+# Download data from Solar Orbiter Data Archive
 import requests 
 import wget
 import tempfile

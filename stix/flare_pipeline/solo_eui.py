@@ -45,8 +45,6 @@ def plot_eui(folder,_id, flare_id, start_utc, end_utc, sun_angular_diameter_arcm
     plt.colorbar()
     sdo.draw_limb()
     fname=os.path.join(folder, f'EUI_fsi174_stix_flare_{_id}_{flare_id}.png')
-    #plt.xlim(-sun_angular_diameter_arcmin*36,sun_angular_diameter_arcmin*36)
-    #plt.ylim(-sun_angular_diameter_arcmin*36,sun_angular_diameter_arcmin*36)
     print(fname)
     plt.savefig(fname, dpi=100)
     mdb.update_flare_joint_obs(_id, key, [fname])

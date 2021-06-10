@@ -1,4 +1,5 @@
 #Author Hualin Xiao (hualin.xiao@fhnw.ch)
+#plot AIA image for STIX flares
 import sys
 sys.path.append('.')
 import os
