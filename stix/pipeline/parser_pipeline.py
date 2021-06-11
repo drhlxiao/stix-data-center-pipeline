@@ -198,6 +198,7 @@ def main():
                     filelist[instrument].append(filename)
     for instrument, files in filelist.items():
         for filename in files:
+            print('Processing file:', filename)
             process(instrument, filename)
             num_processed+=1
     return num_processed

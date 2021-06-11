@@ -45,6 +45,8 @@ class StixBulkL0Analyzer(object):
     def __init__(self):
         self.request_id = -1
         self.packet_unix = 0
+        self.start_unix=None
+        self.end_unix=None
 
         self.auxiliary = {
             'pixel_mask': [],
@@ -67,6 +69,9 @@ class StixBulkL0Analyzer(object):
             'packet_unix': self.packet_unix,
             'boxes': self.boxes,
             'auxiliary': self.auxiliary,
+            'request_id':self.request_id,
+            'start_unix':self.start_unix,
+            'end_unix':self.end_unix
         }
         return report
 
@@ -78,6 +83,7 @@ class StixBulkL0Analyzer(object):
             # print(self.request_id)
             self.packet_unix = packet['unix_time']
             T0 = stix_datetime.scet2unix(packet[12].raw)
+
             num_structures = packet[13].raw
             eacc_SKM = (packet[5].raw, packet[6].raw, packet[7].raw)
             trig_SKM = (packet[9].raw, packet[10].raw, packet[11].raw)
@@ -95,6 +101,10 @@ class StixBulkL0Analyzer(object):
             for i in range(0, num_structures):
                 offset = i * 23
                 unix_time = children[offset][1] * 0.1 + T0
+                if self.start_unix is None:
+                    self.start_unix=unix_time
+                self.end_unix=unix_time
+
                 self.auxiliary['time'].append(unix_time)
                 self.auxiliary['rcr'].append(children[offset + 1][1])
                 dt = children[offset + 2][1] * 0.1
@@ -148,6 +158,9 @@ class StixBulkL1L2Analyzer(object):
         self.groups = []
         self.pixel_total_counts = [0] * 384
         self.num_time_bins = []
+        self.start_unix=None
+        self.end_unix=None
+
 
     def format_report(self):
         report = {
@@ -156,6 +169,8 @@ class StixBulkL1L2Analyzer(object):
             'groups': self.groups,
             'trig_skm': self.trig_SKM,
             'eacc_skm': self.eacc_SKM,
+            'start_unix': self.start_unix,
+            'end_unix': self.end_unix,
             'pixel_total_counts': self.pixel_total_counts,
         }
         return report
@@ -205,6 +220,10 @@ class StixBulkL1L2Analyzer(object):
             for i in range(0, num_structures):
                 offset = i * 22
                 time = children[offset][1] * 0.1 + T0
+                if self.start_unix is None:
+                    self.start_unix=time
+
+                self.end_unix=time
                 if time != last_time_bin:
                     self.num_time_bins += 1
                     last_time_bin = time
@@ -264,6 +283,8 @@ class StixBulkL3Analyzer(object):
         self.request_id = -1
         self.packet_unix = 0
         self.groups = []
+        self.start_unix=None
+        self.end_unix=None
 
     def format_report(self):
         report = {
@@ -272,6 +293,8 @@ class StixBulkL3Analyzer(object):
             'groups': self.groups,
             'trig_skm': self.trig_SKM,
             'eacc_skm': self.eacc_SKM,
+            'start_unix':self.start_unix,
+            'end_unix':self.end_unix
         }
         return report
 
@@ -297,6 +320,9 @@ class StixBulkL3Analyzer(object):
             for i in range(0, num_structures):
                 offset = i * 31
                 time = children[offset][1] * 0.1 + T0
+                if self.start_unix is None:
+                    self.start_unix=time
+                self.end_unix=time
                 rcr = children[offset + 1][1]
                 integrations = children[offset + 2][1]
                 pixel_mask = [
@@ -353,6 +379,8 @@ class StixBulkL4Analyzer(object):
         self.lightcurves = []
         self.groups = []
         self.num_time_bins = 0
+        self.start_unix=None
+        self.end_unix=None
 
     def format_report(self):
         report = {
@@ -360,6 +388,8 @@ class StixBulkL4Analyzer(object):
             'packet_unix': self.packet_unix,
             'groups': self.groups,
             'num_time_bins': self.num_time_bins,
+            'start_unix':self.start_unix,
+            'end_unix':self.end_unix
         }
         return report
 
@@ -386,6 +416,7 @@ class StixBulkL4Analyzer(object):
                 last_timestamp = T0
             self.num_time_bins = 0
 
+
             for i in range(0, num_structures):
                 offset = i * 10
                 pixel_mask = children[offset + 1][1]
@@ -402,6 +433,9 @@ class StixBulkL4Analyzer(object):
                 for j in range(0, num_samples):
                     k = j * 3
                     timestamp = samples[k + 0][1] * 0.1 + T0
+                    if self.start_unix is None:
+                        self.start_unix=timestamp
+                    self.end_unix=timestamp
                     dT = timestamp - last_timestamp
 
                     if dT > 0:
@@ -429,6 +463,8 @@ class StixBulkL4Analyzer(object):
 
 class StixBulkAspectAnalyzer(object):
     def __init__(self):
+        self.start_unix=None
+        self.end_unix=None
         pass
 
     def merge(self, cursor):
@@ -441,6 +477,9 @@ class StixBulkAspectAnalyzer(object):
             packet_utc = packet['UTC']
             T0 = stix_datetime.scet2unix(
                 packet[1].raw) + packet[2].raw / 65536.
+            if self.start_unix is None:
+                self.start_unix=T0
+
             if start_time == 0:
                 start_time = T0
             dt = packet[4].raw / 64 * (1 / 64.)  # has to be fixed
@@ -448,13 +487,18 @@ class StixBulkAspectAnalyzer(object):
             for i, param in enumerate(children):
                 readouts[i % 4].append(param[1])
                 if i % 4 == 0:
-                    read_time.append(dt * int(i / 4) + T0)
+                    ut=dt * int(i / 4) + T0
+                    read_time.append(ut)
+                    self.end_unix=ut
 
         return {
             'packet_utc': packet_utc,
             'readouts': readouts,
             'read_time': read_time,
             'start_time': start_time,
+            'start_unix':self.start_unix,
+            'end_unix':self.end_unix
+
         }
 
 
@@ -494,17 +538,21 @@ def merge(file_id, remove_existing=True):
             result = analyzer.merge(cursor)
         if result:
             date_str=datetime.now().strftime("%y%m%d%H")
-            existing_fname=doc.get('levl1','')
+            existing_fname=doc.get('level1','')
             if existing_fname:
                 old_file= os.path.join(level1_products_path,existing_fname)
-                os.remove(old_file)
-
-
+                try:
+                    os.remove(old_file)
+                except Exception:
+                    pass
             json_filename = os.path.join(level1_products_path,
                                          f'L1_{doc["_id"]}_{date_str}.json')
+            start_unix=result.get('start_unix',0)
+            end_unix=result.get('end_unix',0)
             with open(json_filename, 'w') as outfile:
                 json.dump(result, outfile)
-            collection.update_one({'_id': doc['_id']}, {'$set':{'level1': json_filename}})
+            collection.update_one({'_id': doc['_id']}, {'$set':{'level1': json_filename, 
+                'start_unix':start_unix, 'end_unix':end_unix}})
 
 
 if __name__ == '__main__':

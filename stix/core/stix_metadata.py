@@ -1,8 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 """
-    Science report analysis classes. They extract information from science packets and
-    write indexing information into mongodb, which is used by web applications
+    Create metadata from science reports. The information from science packets is written into mongodb
     @Author: Hualin Xiao
     @Date: Nov. 2019
 """
@@ -30,7 +29,7 @@ class StixScienceReportAnalyzer(object):
             db['calibration_runs'])
         self.ql_analyzer = StixQuickLookReportAnalyzer(db['quick_look'])
         self.user_request_analyzer = StixUserDataRequestReportAnalyzer(
-            db['bsd'])
+            db)
 
     def start(self, run_id, packet_id, packet):
         self.calibration_analyzer.capture(run_id, packet_id, packet)
@@ -224,7 +223,6 @@ class StixQuickLookReportAnalyzer(object):
         duration = points * 0.1 * (integrations + 1)
         start_unix_time = stix_datetime.scet2unix(start_coarse_time,
                                                   start_fine_time)
-
         start_scet=start_coarse_time+start_fine_time/65536.
         report = {
             '_id': self.current_report_id,
@@ -246,8 +244,9 @@ class StixQuickLookReportAnalyzer(object):
 
 
 class StixUserDataRequestReportAnalyzer(object):
-    def __init__(self, db):
-        self.db = db
+    def __init__(self, stix_db):
+        self.db = stix_db['bsd']
+        self.db_bsd_forms=stix_db['bsd_req_forms']
         self.last_unique_id = -1
         self.last_request_spid = -1
         self.packet_ids = []
@@ -307,6 +306,14 @@ class StixUserDataRequestReportAnalyzer(object):
                     'header_scet': packet['SCET'],
                     '_id': self.current_id,
                 }
+                try:
+                    req_form=self.db_bsd_forms.find_one({'unique_ids':int(unique_id)})
+                    if req_form:
+                        report['request_form']=req_form
+                except Exception as e:
+                    print(e)
+                    pass
+                    
                 self.db.insert_one(report)
                 self.current_id += 1
                 self.packet_ids = []

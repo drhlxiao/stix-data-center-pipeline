@@ -50,6 +50,7 @@ class MongoDB(object):
             self.collection_calibration = self.db['calibration_runs']
             self.collection_ql = self.db['quick_look']
             self.collection_data_requests = self.db['bsd']
+            self.col_bsd_forms= self.db['bsd_req_forms']
             self.collection_fits = self.db['fits']
             self.collection_events = self.db['events']
             self.col_goes= self.db['goes']
@@ -65,6 +66,9 @@ class MongoDB(object):
 
     def get_db(self):
         return self.db
+    def get_bsd_req_form_by_uid(self,uid):
+        return self.col_bsd_forms.find_one({'unique_ids':int(uid)})
+
 
     def get_collection(self, colname):
         try:
