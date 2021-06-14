@@ -43,7 +43,7 @@ ELUT_ENERGIES = [
 
 PHOTO_PEAKS_POS = [30.85, 35.13, 81]
 #PHOTO_PEAKS_POS=[30.85, 35.05, 81]
-PRINT_TO_PDF=False
+PRINT_TO_PDF = False
 
 mdb = db.MongoDB()
 gROOT.SetBatch(True)
@@ -526,8 +526,8 @@ if __name__ == '__main__':
     if len(sys.argv) == 1:
         daemon()
     elif len(sys.argv) >= 2:
-        start_id= int(sys.argv[1])
+        start_id = int(sys.argv[1])
         if len(sys.argv) >= 3:
-            end_id= int(sys.argv[2])
-        for i in range(start_id, end_id+1):
+            end_id = int(sys.argv[2])
+        for i in range(start_id, end_id + 1):
             analyze(i, output_dir)

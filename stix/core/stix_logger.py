@@ -34,7 +34,7 @@ class StixLogger(object):
         self.logfile = None
         self.filename = filename
         self.set_logger(filename, level)
-        self.debug=False
+        self.debug = False
 
         self.progress_enabled = True
 
@@ -68,9 +68,9 @@ class StixLogger(object):
 
     def get_log_filename(self):
         return self.filename
-    def enable_debugging(self):
-        self.debug=True
 
+    def enable_debugging(self):
+        self.debug = True
 
     def set_logger(self, filename=None, level=3):
         if self.logfile:

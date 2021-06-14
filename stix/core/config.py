@@ -9,8 +9,8 @@ from dateutil import parser as dtparser
 from stix.core import stix_logger
 logger = stix_logger.get_logger()
 
-ASW_VERSION=179
-HTTP_PREFIX='https://pub023.cs.technik.fhnw.ch'
+ASW_VERSION = 179
+HTTP_PREFIX = 'https://pub023.cs.technik.fhnw.ch'
 parser_config = {
     "pipeline": {
         "mongodb": {
@@ -42,19 +42,20 @@ parser_config = {
         },
         "asw_version": 179
     },
-    "ASW":{"179": 
-        {
-        "filename": "/data/pub/data/idb/idb.sqlite",
-        "version": "2.26.33",
-        "aswVersion": 179,
-        }, 
-    "181":{
-        "filename": "/data/pub/data/idb/idb_v2.26.35.sqlite",
-        "version": "2.26.34",
-        "validityPeriod": ["2020-12-28T00:00:00", "2020-12-28T00:00:00"]
-    } 
+    "ASW": {
+        "179": {
+            "filename": "/data/pub/data/idb/idb.sqlite",
+            "version": "2.26.33",
+            "aswVersion": 179,
+        },
+        "181": {
+            "filename": "/data/pub/data/idb/idb_v2.26.35.sqlite",
+            "version": "2.26.34",
+            "validityPeriod": ["2020-12-28T00:00:00", "2020-12-28T00:00:00"]
+        }
     },
-    'joint_obs':'/data/flares/',
+    'joint_obs':
+    '/data/flares/',
     "spice": [{
         "data": [
             "/data/pub/data/spice/latest/kernels/lsk/naif0012.tls",
@@ -64,7 +65,6 @@ parser_config = {
             '/data/pub/data/spice/latest/kernels/fk/solo_ANC*.tf',
             '/data/pub/data/spice/latest/kernels/spk/solo_ANC_soc-orbit_*.bsp',
             '/data/pub/data/spice/heliopy/*'
-
         ],
         "validityPeriod": ["2020-05-28T00:00:00", "2031-12-28T00:00:00"]
     }],
@@ -95,7 +95,7 @@ def get_config(key=None):
 
 def get_idb(asw_version=None):
     if not asw_version:
-        asw_version=ASW_VERSION
+        asw_version = ASW_VERSION
     return parser_config["ASW"][str(asw_version)]["filename"]
 
 

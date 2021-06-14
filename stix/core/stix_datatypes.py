@@ -13,7 +13,6 @@ STIX_IDB = stix_idb.stix_idb()
 logger = stix_logger.get_logger()
 
 
-
 def copy_object(x, deep_copy):
     if deep_copy:
         return copy.deepcopy(x)

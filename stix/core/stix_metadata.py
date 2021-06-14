@@ -28,8 +28,7 @@ class StixScienceReportAnalyzer(object):
         self.calibration_analyzer = StixCalibrationReportAnalyzer(
             db['calibration_runs'])
         self.ql_analyzer = StixQuickLookReportAnalyzer(db['quick_look'])
-        self.user_request_analyzer = StixUserDataRequestReportAnalyzer(
-            db)
+        self.user_request_analyzer = StixUserDataRequestReportAnalyzer(db)
 
     def start(self, run_id, packet_id, packet):
         self.calibration_analyzer.capture(run_id, packet_id, packet)
@@ -223,19 +222,19 @@ class StixQuickLookReportAnalyzer(object):
         duration = points * 0.1 * (integrations + 1)
         start_unix_time = stix_datetime.scet2unix(start_coarse_time,
                                                   start_fine_time)
-        start_scet=start_coarse_time+start_fine_time/65536.
+        start_scet = start_coarse_time + start_fine_time / 65536.
         report = {
             '_id': self.current_report_id,
             'run_id': run_id,
             'SPID': packet.SPID,
             'packet_id': packet_id,
             'start_unix_time': start_unix_time,
-            'stop_unix_time': start_unix_time+duration,
+            'stop_unix_time': start_unix_time + duration,
             'start_scet': start_scet,
             'packet_header_time': packet['unix_time'],
             'integrations': integrations,
             'duration': duration,
-            'stop_scet': start_scet+ duration,
+            'stop_scet': start_scet + duration,
             #'detector_mask': detector_mask,
             #'pixel_mask': pixel_mask
         }
@@ -246,7 +245,7 @@ class StixQuickLookReportAnalyzer(object):
 class StixUserDataRequestReportAnalyzer(object):
     def __init__(self, stix_db):
         self.db = stix_db['bsd']
-        self.db_bsd_forms=stix_db['bsd_req_forms']
+        self.db_bsd_forms = stix_db['bsd_req_forms']
         self.last_unique_id = -1
         self.last_request_spid = -1
         self.packet_ids = []
@@ -307,13 +306,14 @@ class StixUserDataRequestReportAnalyzer(object):
                     '_id': self.current_id,
                 }
                 try:
-                    req_form=self.db_bsd_forms.find_one({'unique_ids':int(unique_id)})
+                    req_form = self.db_bsd_forms.find_one(
+                        {'unique_ids': int(unique_id)})
                     if req_form:
-                        report['request_form']=req_form
+                        report['request_form'] = req_form
                 except Exception as e:
                     print(e)
                     pass
-                    
+
                 self.db.insert_one(report)
                 self.current_id += 1
                 self.packet_ids = []
@@ -338,16 +338,17 @@ class StixUserDataRequestReportAnalyzer(object):
             #the last or standalone
             if self.db:
                 report = {
-                    'start_unix_time':stix_datetime.scet2unix(self.start_obt_time),
+                    'start_unix_time':
+                    stix_datetime.scet2unix(self.start_obt_time),
                     'end_unix_time': stix_datetime.scet2unix(end_time),
-                    'start_scet':self.start_obt_time,
+                    'start_scet': self.start_obt_time,
                     'end_scet': end_time,
                     'packet_ids': self.packet_ids,
                     'SPID': packet['SPID'],
                     'run_id': run_id,
                     'name': DATA_REQUEST_REPORT_NAME[packet['SPID']],
                     'header_unix_time': packet['unix_time'],
-                    'header_scet': packet.get('SCET',0),
+                    'header_scet': packet.get('SCET', 0),
                     '_id': self.current_id,
                 }
                 self.db.insert_one(report)

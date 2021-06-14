@@ -16,7 +16,7 @@ from pathlib import Path
 
 NUM_MAX_PACKETS = 20000
 MAX_REQUEST_LC_TIME_SPAN_DAYS = 3
-MAX_NUM_RETURN_RECORDS=20000
+MAX_NUM_RETURN_RECORDS = 20000
 QL_SPIDS = {
     'lc': 54118,
     'bkg': 54119,
@@ -50,15 +50,15 @@ class MongoDB(object):
             self.collection_calibration = self.db['calibration_runs']
             self.collection_ql = self.db['quick_look']
             self.collection_data_requests = self.db['bsd']
-            self.col_bsd_forms= self.db['bsd_req_forms']
+            self.col_bsd_forms = self.db['bsd_req_forms']
             self.collection_fits = self.db['fits']
             self.collection_events = self.db['events']
-            self.col_goes= self.db['goes']
+            self.col_goes = self.db['goes']
             #self.col_flare_tbc= self.db['flare_tbc']
             self.collection_flares = self.db['flares']
-            self.collection_qllc_statistics= self.db['qllc_statistics']
-            self.collection_notifications= self.db['notifications']
-            self.collection_spice= self.db['spice']
+            self.collection_qllc_statistics = self.db['qllc_statistics']
+            self.collection_notifications = self.db['notifications']
+            self.collection_spice = self.db['spice']
 
         except Exception as e:
             print('Error occurred while initializing mongodb: {}'.format(
@@ -66,9 +66,9 @@ class MongoDB(object):
 
     def get_db(self):
         return self.db
-    def get_bsd_req_form_by_uid(self,uid):
-        return self.col_bsd_forms.find_one({'unique_ids':int(uid)})
 
+    def get_bsd_req_form_by_uid(self, uid):
+        return self.col_bsd_forms.find_one({'unique_ids': int(uid)})
 
     def get_collection(self, colname):
         try:
@@ -99,44 +99,51 @@ class MongoDB(object):
             cursor = self.collection_raw_files.find_one({'_id': int(run_id)})
             return cursor
         return None
-    def get_goes_x_ray_flux_file_list(self,start_unix,stop_unix):
-        runs=[]
+
+    def get_goes_x_ray_flux_file_list(self, start_unix, stop_unix):
+        runs = []
         if self.col_goes:
             #query_string = {'$or':[{'start_unix':{'$gte': start_unix,  '$lt': stop_unix}},
             #    {'stop_unix': {  '$gte': start_unix, '$lt': stop_unix  }  }]}
             query_string = {
-                    'start_unix':{'$lt': stop_unix}, 
-                    'stop_unix': {'$gt': start_unix  }  
-                    }
-            runs=self.col_goes.find(query_string).sort('_id',1)
-        return runs 
+                'start_unix': {
+                    '$lt': stop_unix
+                },
+                'stop_unix': {
+                    '$gt': start_unix
+                }
+            }
+            runs = self.col_goes.find(query_string).sort('_id', 1)
+        return runs
 
     def get_LC_pkt_by_tw(self, start_unix_time, span):
         if not self.collection_ql:
             yield []
         span = float(span)
         start_unix_time = float(start_unix_time)
-        max_duration=3600 * 24 * MAX_REQUEST_LC_TIME_SPAN_DAYS
-        span=span if span <= max_duration else max_duration
+        max_duration = 3600 * 24 * MAX_REQUEST_LC_TIME_SPAN_DAYS
+        span = span if span <= max_duration else max_duration
         stop_unix_time = start_unix_time + span
-        SPID=54118
+        SPID = 54118
         query_string = {
-                'stop_unix_time': {
-                    '$gt': start_unix_time
-                }, 
+            'stop_unix_time': {
+                '$gt': start_unix_time
+            },
             'start_unix_time': {
-                    '$lt': stop_unix_time
-                },
-            'SPID':SPID
+                '$lt': stop_unix_time
+            },
+            'SPID': SPID
         }
-        ret = self.collection_ql.find(query_string, {'packet_id': 1}).sort('_id', 1)
+        ret = self.collection_ql.find(query_string, {
+            'packet_id': 1
+        }).sort('_id', 1)
         packet_ids = [x['packet_id'] for x in ret]
         if not packet_ids:
             yield []
         if packet_ids:
-            for  _id in packet_ids:
+            for _id in packet_ids:
                 #query_string = {'_id': {'$in': packet_ids}}
-                yield self.collection_packets.find_one({'_id':_id})
+                yield self.collection_packets.find_one({'_id': _id})
 
     def get_packets_of_bsd_request(self, record_id, header_only=True):
         packets = []
@@ -163,12 +170,12 @@ class MongoDB(object):
             for x in cursor:
                 return x['filename']
         return ''
-    def get_raw_file_info(self,_id):
+
+    def get_raw_file_info(self, _id):
         cursor = self.collection_raw_files.find({'_id': int(run_id)})
         for x in cursor:
             return x
         return None
-
 
     def get_file_id(self, filename):
         if not self.collection_raw_files:
@@ -190,23 +197,19 @@ class MongoDB(object):
         return []
 
     def delete_one_run(self, run_id):
-        run_id=int(run_id)
+        run_id = int(run_id)
         if self.collection_packets:
-            cursor = self.collection_packets.delete_many(
-                {'run_id': run_id})
+            cursor = self.collection_packets.delete_many({'run_id': run_id})
 
         if self.collection_raw_files:
-            cursor = self.collection_raw_files.delete_many(
-                {'_id': run_id})
+            cursor = self.collection_raw_files.delete_many({'_id': run_id})
 
         if self.collection_calibration:
             cursor = self.collection_calibration.delete_many(
                 {'run_id': run_id})
 
         if self.collection_qllc_statistics:
-            self.collection_qllc_statistics.delete_many(
-                {'file_id': run_id})
-
+            self.collection_qllc_statistics.delete_many({'file_id': run_id})
 
         if self.collection_ql:
             cursor = self.collection_ql.delete_many({'run_id': run_id})
@@ -215,12 +218,11 @@ class MongoDB(object):
             cursor = self.collection_data_requests.delete_many(
                 {'run_id': run_id})
         if self.collection_flares:
-            cursor = self.collection_flares.delete_many(
-                {'run_id': run_id})
+            cursor = self.collection_flares.delete_many({'run_id': run_id})
         if self.collection_fits:
-            fits_docs=self.collection_fits.find({'file_id':run_id})
+            fits_docs = self.collection_fits.find({'file_id': run_id})
             for doc in fits_docs:
-                filename=os.path.join(doc['path'],doc['filename'])
+                filename = os.path.join(doc['path'], doc['filename'])
                 try:
                     os.remove(filename)
                 except OSError as e:
@@ -230,7 +232,6 @@ class MongoDB(object):
     def delete_runs(self, runs):
         for run in runs:
             self.delete_one_run(run)
-
 
     def select_packets_by_run(self,
                               run_id,
@@ -344,7 +345,7 @@ class MongoDB(object):
         new_inserted_flares = []
 
         num_inserted = 0
-        inserted_ids=[None]*result['num_peaks']
+        inserted_ids = [None] * result['num_peaks']
         for i in range(result['num_peaks']):
             if not result['is_major'][i]:
                 #not major peak
@@ -366,23 +367,23 @@ class MongoDB(object):
             doc = {
                 '_id': first_id + num_inserted,
                 'hidden': hidden,
-                'published':False
+                'published': False
             }
-            for key in  result:
+            for key in result:
                 if isinstance(result[key], list):
-                    if len(result[key])==result['num_peaks']:
-                        doc[key]=result[key][i]
+                    if len(result[key]) == result['num_peaks']:
+                        doc[key] = result[key][i]
                 else:
-                    doc[key]=result[key]
+                    doc[key] = result[key]
 
             num_inserted += 1
-            doc['peak_index']=i
+            doc['peak_index'] = i
             new_inserted_flares.append(doc)
 
-            inserted_ids[i]=doc['_id']
+            inserted_ids[i] = doc['_id']
             self.collection_flares.save(doc)
         #return new_inserted_flares
-        result['inserted_ids']=inserted_ids
+        result['inserted_ids'] = inserted_ids
 
     def set_flare_lc_filename(self, _id, lc_filename):
         doc = self.collection_flares.find_one({'_id': _id})
@@ -390,36 +391,33 @@ class MongoDB(object):
             doc['lc_path'] = os.path.dirname(lc_filename)
             doc['lc_filename'] = os.path.basename(lc_filename)
             self.collection_flares.replace_one({'_id': _id}, doc)
-    def get_flare_joint_obs(self,_id, key):
+
+    def get_flare_joint_obs(self, _id, key):
         doc = self.collection_flares.find_one({'_id': _id})
         if doc:
-            if key=='wiki':
-                return doc.get('wiki',None)
+            if key == 'wiki':
+                return doc.get('wiki', None)
             if 'joint_obs' not in doc:
                 return None
-            return doc['joint_obs'].get(key,None) 
+            return doc['joint_obs'].get(key, None)
         return None
-    def update_flare_field(self,_id, key, value):
+
+    def update_flare_field(self, _id, key, value):
         doc = self.collection_flares.find_one({'_id': _id})
         if doc:
-            doc[key]=value
+            doc[key] = value
             self.collection_flares.replace_one({'_id': _id}, doc)
 
     def update_flare_joint_obs(self, _id, key, value):
         doc = self.collection_flares.find_one({'_id': _id})
         if doc:
-            if key!='wiki':
+            if key != 'wiki':
                 if 'joint_obs' not in doc:
-                    doc['joint_obs']={}
+                    doc['joint_obs'] = {}
                 doc['joint_obs'][key] = value
             else:
-                doc['wiki']=value
+                doc['wiki'] = value
             self.collection_flares.replace_one({'_id': _id}, doc)
-
-
-
-
-
 
     def get_quicklook_packets(self,
                               packet_type,
@@ -464,17 +462,15 @@ class MongoDB(object):
                 'header.SPID', {'run_id': int(file_id)}) if x
         ]
 
-    def delete_flares_of_file(self,run_id):
+    def delete_flares_of_file(self, run_id):
         if self.collection_flares:
             self.collection_flares.delete_many({'run_id': int(run_id)})
 
-
-
     def search_flares_by_tw(self,
-                                start_unix,
-                                duration,
-                                num=MAX_NUM_RETURN_RECORDS,
-                                threshold=0):
+                            start_unix,
+                            duration,
+                            num=MAX_NUM_RETURN_RECORDS,
+                            threshold=0):
         #flares to be confirmed
         results = []
         if self.collection_flares:
@@ -490,56 +486,70 @@ class MongoDB(object):
             results = self.collection_flares.find(query_string).sort(
                 'peak_unix_time', -1).limit(num)
         return results
+
     def insert_qllc_statistics(self, doc):
-        next_id=0
+        next_id = 0
         try:
-            next_id=self.collection_qllc_statistics.find({}).sort(
+            next_id = self.collection_qllc_statistics.find({}).sort(
                 '_id', -1).limit(1)[0]['_id'] + 1
         except IndexError:
             pass
-        doc['_id']=next_id
+        doc['_id'] = next_id
         self.collection_qllc_statistics.save(doc)
 
     def get_spice_kernels(self):
-        return self.collection_spice.find({}).sort('file_date',1)
+        return self.collection_spice.find({}).sort('file_date', 1)
 
     def insert_spice_kernel(self, filename):
-        next_id=0
-        doc={}
+        next_id = 0
+        doc = {}
 
-        pfilename=Path(filename)
+        pfilename = Path(filename)
 
-        fdate=re.findall(r"\d{4}\d{2}\d{2}", filename)
-        date_str=fdate[0] if fdate else '19700101'
-        doc['file_date']=datetime.strptime(date_str, "%Y%m%d")
+        fdate = re.findall(r"\d{4}\d{2}\d{2}", filename)
+        date_str = fdate[0] if fdate else '19700101'
+        doc['file_date'] = datetime.strptime(date_str, "%Y%m%d")
 
-
- 
-        doc['path']=pfilename.parent.as_posix()
-        doc['filename']=pfilename.name
-        doc['type']=pfilename.parent.name
+        doc['path'] = pfilename.parent.as_posix()
+        doc['filename'] = pfilename.name
+        doc['type'] = pfilename.parent.name
         if self.collection_spice:
-            is_found=self.collection_spice.find_one({'filename':doc['filename']})
+            is_found = self.collection_spice.find_one(
+                {'filename': doc['filename']})
             if is_found:
                 return
         try:
-            next_id=self.collection_spice.find({}).sort(
+            next_id = self.collection_spice.find({}).sort(
                 '_id', -1).limit(1)[0]['_id'] + 1
         except IndexError:
             pass
 
-        doc['_id']=next_id
-        doc['entry_time']=datetime.now()
+        doc['_id'] = next_id
+        doc['entry_time'] = datetime.now()
         self.collection_spice.save(doc)
-        
-
 
     def get_nearest_qllc_statistics(self, start_unix, max_limit=500):
         try:
-            right_closest=list(self.collection_qllc_statistics.find({'start_unix': {'$gte':start_unix},
-                'is_quiet':True,'max.0':{'$lt':max_limit}}).sort('start_unix',1).limit(1))
-            left_closest=list(self.collection_qllc_statistics.find({'start_unix': {'$lte':start_unix}, 
-                'is_quiet':True, 'max.0':{'$lt':max_limit}}).sort('start_unix',-1).limit(1))
+            right_closest = list(
+                self.collection_qllc_statistics.find({
+                    'start_unix': {
+                        '$gte': start_unix
+                    },
+                    'is_quiet': True,
+                    'max.0': {
+                        '$lt': max_limit
+                    }
+                }).sort('start_unix', 1).limit(1))
+            left_closest = list(
+                self.collection_qllc_statistics.find({
+                    'start_unix': {
+                        '$lte': start_unix
+                    },
+                    'is_quiet': True,
+                    'max.0': {
+                        '$lt': max_limit
+                    }
+                }).sort('start_unix', -1).limit(1))
             if right_closest and not left_closest:
                 return left_closest[0]
             if not right_closest and left_closest:
@@ -548,25 +558,22 @@ class MongoDB(object):
                 return None
             left_unix = left_closest[0]['start_unix']
             right_unix = right_closest[0]['start_unix']
-            if start_unix-left_unix>right_unix-start_unix:
+            if start_unix - left_unix > right_unix - start_unix:
                 return right_closest[0]
             return left_closest[0]
         except:
             return None
 
     def insert_notification(self, doc, is_sent=False):
-        next_id=0
+        next_id = 0
         try:
-            next_id=self.collection_notifications.find({}).sort(
+            next_id = self.collection_notifications.find({}).sort(
                 '_id', -1).limit(1)[0]['_id'] + 1
         except IndexError:
             pass
-        doc['_id']=next_id
-        doc['is_sent']=is_sent
+        doc['_id'] = next_id
+        doc['is_sent'] = is_sent
         self.collection_notifications.save(doc)
-
-
-
 
     def get_quicklook_packets_of_run(self, packet_type, run):
         collection = None

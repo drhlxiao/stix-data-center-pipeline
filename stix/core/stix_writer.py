@@ -24,7 +24,6 @@ logger = stix_logger.get_logger()
 MONGODB_CONFIG = config.get_config()['pipeline']['mongodb']
 
 
-
 class StixPacketWriter(object):
     def write_all(self, packets):
         pass
@@ -214,8 +213,8 @@ class StixMongoDBWriter(StixPacketWriter):
             'hidden': False,
             'creation_time': datetime.datetime.now(),
             'run_start_unix_time': time.time(),
-            'data_start_scet' :0, 
-            'data_end_scet':0, 
+            'data_start_scet': 0,
+            'data_end_scet': 0,
             'run_stop_unix_time': 0,
             'data_start_unix_time': 0,
             'data_stop_unix_time': 0,
@@ -246,12 +245,12 @@ class StixMongoDBWriter(StixPacketWriter):
 
     def write_one(self, packet):
         header_unix = packet['header']['unix_time']
-        scet=packet['header'].get('SCET',0)
+        scet = packet['header'].get('SCET', 0)
 
         if stix_datetime.is_scet_valid(scet):
-            if scet <self.start_scet :
-                self.start_scet = scet 
-            if scet>self.end_scet:
+            if scet < self.start_scet:
+                self.start_scet = scet
+            if scet > self.end_scet:
                 self.end_scet = scet
         if stix_datetime.is_unix_time_valid(header_unix):
             if header_unix < self.start_unix:
@@ -260,7 +259,6 @@ class StixMongoDBWriter(StixPacketWriter):
                 self.end_unix = header_unix
 
         #insert header
-
 
         packet['run_id'] = self.current_run_id
         packet['_id'] = self.current_packet_id
@@ -288,10 +286,10 @@ class StixMongoDBWriter(StixPacketWriter):
             self.ipacket))
         run = self.collection_raw_files.find_one({'_id': self.inserted_run_id})
         if run:
-            if self.start_unix==math.inf:
-                self.start_unix=0
-            if self.start_scet==math.inf:
-                self.start_scet=0
+            if self.start_unix == math.inf:
+                self.start_unix = 0
+            if self.start_scet == math.inf:
+                self.start_scet = 0
             run['data_start_unix_time'] = self.start_unix
             run['data_stop_unix_time'] = self.end_unix
 
