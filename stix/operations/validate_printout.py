@@ -71,10 +71,14 @@ def error(msg):
 
 def info(msg):
     print('[INFO]:{}'.format(msg))
+
+
 def warn(msg):
     global num_warnings
-    num_warnings+= 1
+    num_warnings += 1
     print('[WARN]:{}'.format(msg))
+
+
 def success(msg):
     print('[SUCCESS]:{}'.format(msg))
 
@@ -114,7 +118,6 @@ def read_printouts(filename):
     return occurrences
 
 
-
 def are_parameters_equal(param1, param2):
     if param1[4] != param2[0]:
         return False
@@ -134,7 +137,6 @@ def are_parameters_equal(param1, param2):
         except:
             error('{} not same: {} -  {}'.format(param1[4], value1, value2))
             return False
-
 
 
 def check_parameters(params1, params2, rows):
@@ -167,7 +169,7 @@ def check_parameters(params1, params2, rows):
 def to_seconds(action_time):
     if action_time in ['ASAP', 'asap']:
         return 0
-    
+
     is_absolute = re.findall(r'\d{4}-\d{2}-\d{2}', action_time)
     if is_absolute:
         return dtparser.parse(action_time).timestamp()
@@ -203,8 +205,8 @@ def check_occurrence(i, occ, printouts, row):
             #skip platform telecommands
             break
         else:
-            info('Ignored TC in printouts:{}/{}'.format(pro['name'],pro['seq']))
-            
+            info('Ignored TC in printouts:{}/{}'.format(
+                pro['name'], pro['seq']))
 
     row[4] = pro['name']
     info('checking #{}: {}'.format(i, pro['name']))
@@ -212,11 +214,12 @@ def check_occurrence(i, occ, printouts, row):
     status = 'ok'
     if not check_timestamps(occ['actionTime'], pro['duration']):
         status = 'warning'
-        warn('TC {} action time {} <--> {} are not the same'.format(occ['name'],occ['actionTime'], pro['duration']))
+        warn('TC {} action time {} <--> {} are not the same'.format(
+            occ['name'], occ['actionTime'], pro['duration']))
     row[6] = '<span class="{};" >{}</span>'.format(status, pro['duration'])
     param_rows = []
 
-    if pro['name'] == occ['name'] or pro['seq']==occ['name']:
+    if pro['name'] == occ['name'] or pro['seq'] == occ['name']:
         row[7] = '<span class="ok" >valid</span>'
         paramter_mismatches = check_parameters(occ['parameters'],
                                                pro['parameters'], param_rows)
@@ -226,7 +229,9 @@ def check_occurrence(i, occ, printouts, row):
         else:
             success('{} validated'.format(occ['name']))
     else:
-        error('In PDOR cmd {} is not the same as in printout:  {} - {}  '.format(occ['name'],pro['name'], pro['seq']))
+        error(
+            'In PDOR cmd {} is not the same as in printout:  {} - {}  '.format(
+                occ['name'], pro['name'], pro['seq']))
         row[7] = '<span class="error" >Two telecommands are not the same</span>'
     return param_rows
 
@@ -245,7 +250,7 @@ def validate_pdor_printout(pdor_filename, printout_filename):
         '', 'TC name', 'description', 'action time/value', 'TC name',
         'description', 'action_time/value', 'checks'
     ]]
-    param_rows=[]
+    param_rows = []
     for i, occ in enumerate(pdors['occurrences']):
         row = [i, occ['name'], occ['desc'], occ['actionTime'], '', '', '', '']
         if 'ZIX' not in occ['name'] and 'AIX' not in occ['name']:
@@ -278,16 +283,18 @@ def validate(pdor_path, printout_path=None):
             for file in files:
                 if file.endswith('_F.csv') and file.startswith('PDOR'):
                     printout_filename = os.path.join(root, file)
-                    pdor_filename = os.path.join(pdor_path, os.path.basename(printout_filename[:-6] + '.SOL'))
-                    info('check file:{} <-> {}'.format( printout_filename, pdor_filename))
+                    pdor_filename = os.path.join(
+                        pdor_path,
+                        os.path.basename(printout_filename[:-6] + '.SOL'))
+                    info('check file:{} <-> {}'.format(printout_filename,
+                                                       pdor_filename))
                     if os.path.exists(pdor_filename):
                         report += validate_pdor_printout(
                             pdor_filename, printout_filename)
                     else:
-                        msg='PDOR: {} does not exist'.format(pdor_filename)
+                        msg = 'PDOR: {} does not exist'.format(pdor_filename)
                         warn(msg)
-                        report += '<h3 class="warning">{}</h3>'.format(
-                            msg)
+                        report += '<h3 class="warning">{}</h3>'.format(msg)
 
         summary = 'Total number of warnings :{}<br>\n Total number of errors {}'.format(
             num_warnings, num_errors)

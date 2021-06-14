@@ -11,7 +11,8 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 from dateutil import parser as dtparser
 from copy import deepcopy
-MIB_PATH=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../data/MIB')
+MIB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        '../data/MIB')
 
 
 def to_epoch(time_str, dformat='%Y-%jT%H:%M:%SZ'):
@@ -28,6 +29,8 @@ def to_epoch(time_str, dformat='%Y-%jT%H:%M:%SZ'):
         pass
 
     return ts
+
+
 def remove_namespace(doc, namespace):
     """Remove namespace in the passed document in place."""
     ns = u'{%s}' % namespace
@@ -36,14 +39,16 @@ def remove_namespace(doc, namespace):
         if elem.tag.startswith(ns):
             elem.tag = elem.tag[nsl:]
 
+
 def unix2utc(ts):
     return datetime.utcfromtimestamp(ts).isoformat()
+
 
 def get_aspect_uid(utc):
     if not utc.endswith('Z'):
         utc += 'Z'
     level = 5
-    version = 0 
+    version = 0
     start_datetime = dtparser.parse(utc)
     year = start_datetime.year
     month = start_datetime.month
@@ -67,7 +72,7 @@ class IORReader(object):
         self.mib = {}
         self.read_MIB(mib_path)
         self.read_css(mib_path)
-        self.tc_time_offset=0
+        self.tc_time_offset = 0
 
     def read_MIB(self, mib_path):
         for table in self.table_names:
@@ -86,11 +91,9 @@ class IORReader(object):
                 return line[4]
 
         return ''
+
     def get_telecommand_parameters(self, telecommand):
-        return [x[6] for x in self.mib['cdf'] if telecommand==x[0] and x[6]]
-
-
-
+        return [x[6] for x in self.mib['cdf'] if telecommand == x[0] and x[6]]
 
     def get_description(self, command):
         if 'ZIX' in command:
@@ -110,84 +113,92 @@ class IORReader(object):
             if name == occ_param[0] or name == occ_param[-1]:
                 return occ_param
         return []
+
     def get_action_time(self, start, tc):
         #print(start, tc)
-        time_type=tc[3] # A: absolute, R: relative
-        action_time=tc[4]
-        action_time_seconds=tc[5]
+        time_type = tc[3]  # A: absolute, R: relative
+        action_time = tc[4]
+        action_time_seconds = tc[5]
         is_absolute = re.findall(r'\d{4}-\d{2}-\d{2}', start)
         if is_absolute:
-            unix_time=dtparser.parse(start).timestamp()
-            if time_type =='A':
+            unix_time = dtparser.parse(start).timestamp()
+            if time_type == 'A':
                 return start
-            return datetime.utcfromtimestamp(unix_time+action_time_seconds).isoformat(timespec='milliseconds')
+            return datetime.utcfromtimestamp(unix_time +
+                                             action_time_seconds).isoformat(
+                                                 timespec='milliseconds')
         else:
-            if time_type=='R':
+            if time_type == 'R':
                 return action_time
             else:
                 return start
-            
+
         return ''
 
-
-
-            
     def seq2tc(self, occurrences):
         #convert all sequences to occurrences
-        new_occurrences=[]
+        new_occurrences = []
         for occ in occurrences:
             if 'ZIX' in occ['name']:
                 new_occurrences.append(deepcopy(occ))
             else:
-                telecommands=self.get_telecommands(occ['name'])
-                start=occ['actionTime']
-                self.tc_time_offset=0
+                telecommands = self.get_telecommands(occ['name'])
+                start = occ['actionTime']
+                self.tc_time_offset = 0
                 for tc in telecommands:
-                    name=tc[0]
-                    parameters=[]
-                    param_list=self.get_telecommand_parameters(name)
+                    name = tc[0]
+                    parameters = []
+                    param_list = self.get_telecommand_parameters(name)
                     if param_list:
-                        parameters=[ self.find_parameter(name, occ['parameters']) for name in param_list]
-                    new_occurrences.append({'name': name, 
-                            'desc':tc[1],
-                            'type':occ['type'],
-                            'actionTime':self.get_action_time(start, tc),
-                            'uniqueID': occ['uniqueID'],
-                            'sequence': occ['name'],
-                            'parameters':parameters
-                            }
-                    )
+                        parameters = [
+                            self.find_parameter(name, occ['parameters'])
+                            for name in param_list
+                        ]
+                    new_occurrences.append({
+                        'name':
+                        name,
+                        'desc':
+                        tc[1],
+                        'type':
+                        occ['type'],
+                        'actionTime':
+                        self.get_action_time(start, tc),
+                        'uniqueID':
+                        occ['uniqueID'],
+                        'sequence':
+                        occ['name'],
+                        'parameters':
+                        parameters
+                    })
         return new_occurrences
-                    
-    def read_css(self, mib_path):
-        output={}
-        filename = os.path.join(mib_path,  'css.dat')
-        with open(filename) as f:
-            lines=f.readlines()
-            last_seq=''
-            for l   in lines:
-                line=l.split('\t')
-                if line[0] not in output:
-                    output[line[0]]=[]
 
-                timestamp=line[8].strip().split('.')
-                delta_time=''
-                if len(timestamp)==3:
-                    delta_time=3600*int(timestamp[0]) + 60*int(timestamp[1])+int(timestamp[2])
-                output[line[0]].append((line[4],line[1],line[2], line[7],line[8], delta_time))
+    def read_css(self, mib_path):
+        output = {}
+        filename = os.path.join(mib_path, 'css.dat')
+        with open(filename) as f:
+            lines = f.readlines()
+            last_seq = ''
+            for l in lines:
+                line = l.split('\t')
+                if line[0] not in output:
+                    output[line[0]] = []
+
+                timestamp = line[8].strip().split('.')
+                delta_time = ''
+                if len(timestamp) == 3:
+                    delta_time = 3600 * int(timestamp[0]) + 60 * int(
+                        timestamp[1]) + int(timestamp[2])
+                output[line[0]].append(
+                    (line[4], line[1], line[2], line[7], line[8], delta_time))
                 #
-        self.css=output
-    def get_telecommands(self,name):
+        self.css = output
+
+    def get_telecommands(self, name):
         #TC name, description, value, 'absolute or relative', deleta time, delta time in seconds
         try:
             return self.css[name]
         except KeyError:
             return []
-
-                
-
-
-        
 
     def parse(self, filename, no_seq=False):
         #no_seq: No sequence, convert all sequences to TCs
@@ -199,10 +210,9 @@ class IORReader(object):
         #remove namespace for IOR
         req = root[0]
 
-
         header = req.find('header')
         occurrence_list = req.find('occurrenceList')
-        if header.attrib['type'] not in ['PDOR','IOR']:
+        if header.attrib['type'] not in ['PDOR', 'IOR']:
             print('Not support type')
             return None
         request['type'] = header.attrib['type']
@@ -218,7 +228,7 @@ class IORReader(object):
         request['genUnix'] = to_epoch(gen_time)
         request['count'] = occurrence_list.attrib['count']
         request['author'] = occurrence_list.attrib['author']
-        request['data_request_unique_ids']=[]
+        request['data_request_unique_ids'] = []
         occurrences = []
         for x in occurrence_list:
             name = x.attrib['name']
@@ -237,11 +247,11 @@ class IORReader(object):
                 except:
                     action_time = 'Error:-2'
                 if execution_time:
-                    dformat='%Y-%jT%H:%M:%S.%fZ'
-                    if request['type']=='IOR':
-                        dformat='%Y-%jT%H:%M:%SZ'
+                    dformat = '%Y-%jT%H:%M:%S.%fZ'
+                    if request['type'] == 'IOR':
+                        dformat = '%Y-%jT%H:%M:%SZ'
                     try:
-                        unix_time=to_epoch(execution_time,dformat)
+                        unix_time = to_epoch(execution_time, dformat)
                         action_time = unix2utc(unix_time)
                     except:
                         action_time = 'Error:-3'
@@ -254,8 +264,6 @@ class IORReader(object):
                 'actionTime': action_time,
                 'parameters': []
             }
-
-
 
             parameter_list = x.find('parameterList')
             if parameter_list:
@@ -271,9 +279,9 @@ class IORReader(object):
                         value.attrib['representation'],
                         self.get_idb_parameter_name(name, p.attrib['name'])
                     ]
-                    if parameter[0] in ['PIX00076','XF417B01', 'XF417A01']:
-                        request['data_request_unique_ids'].append(int(parameter[1]))
-
+                    if parameter[0] in ['PIX00076', 'XF417B01', 'XF417A01']:
+                        request['data_request_unique_ids'].append(
+                            int(parameter[1]))
 
                     occ['parameters'].append(parameter)
 
@@ -285,7 +293,6 @@ class IORReader(object):
             request['occurrences'] = occurrences
 
         return request
-    
 
 
 if __name__ == '__main__':

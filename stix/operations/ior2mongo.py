@@ -13,7 +13,8 @@ import hashlib
 from datetime import datetime
 from dateutil import parser as dtparser
 import ior2dict
-MIB_PATH=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../data/MIB')
+MIB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        '../data/MIB')
 
 
 def get_now(dtype='unix'):
@@ -107,10 +108,10 @@ class IORMongoDB(object):
                 'path': path,
                 'md5': md5,
                 'description': '',
-                'hidden':False,
+                'hidden': False,
                 'phase': '',
                 'processing_time': get_now(),
-                'status':1,
+                'status': 1,
                 'log': ''
             }
 

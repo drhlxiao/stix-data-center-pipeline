@@ -18,21 +18,30 @@ matplotlib.use('Agg')
 
 from matplotlib import pyplot as plt
 import config
-bsd_lc_path= config.get_path('bsd_lcs')
+bsd_lc_path = config.get_path('bsd_lcs')
 STIX_MDB = mongodb_api.MongoDB()
-collection=STIX_MDB.get_collection('bsd_req_forms')
+collection = STIX_MDB.get_collection('bsd_req_forms')
 
-data_levels={'L0':0, 'L1':1,'L2':2,'L3':3,'Spectrogram':4, 'Aspect':5}
-MAX_DURATION_PER_REQUEST=6550.
+data_levels = {
+    'L0': 0,
+    'L1': 1,
+    'L2': 2,
+    'L3': 3,
+    'Spectrogram': 4,
+    'Aspect': 5
+}
+MAX_DURATION_PER_REQUEST = 6550.
+
+
 def enable_data_transfer(mask=31399711):
-    return {"name":
-                "AIXF210A",
-                'actionTime':'00:00:00',
-                "parameters": [[
-                    "XF210A01",
-                    mask,
-                ]  ]
-            }
+    return {
+        "name": "AIXF210A",
+        'actionTime': '00:00:00',
+        "parameters": [[
+            "XF210A01",
+            mask,
+        ]]
+    }
 
 
 '''
@@ -72,38 +81,42 @@ def enable_data_transfer(mask=31399711):
     '''
 
 
-def form_aspect_request(start_unix, stop_unix,summing):
+def form_aspect_request(start_unix, stop_unix, summing):
     start_obt = int(stix_datetime.unix2scet(start_unix))
     stop_obt = int(stix_datetime.unix2scet(stop_unix))
-    duration=stop_obt-start_obt
-    tm_packets=math.ceil(8*(64/summing)*duration/4096.)
+    duration = stop_obt - start_obt
+    tm_packets = math.ceil(8 * (64 / summing) * duration / 4096.)
 
-    volume=8*(64/summing)*duration+26*tm_packets
-    return {"name":
-                "AIXF422A",
-                'actionTime':'00:10:00',
-                'data_volume':volume,
-                "parameters": [[
-                    "XF422A01",
-                    start_obt,
-                ], [
-                    "XF422A02",
-                    stop_obt,
-                ], ["XF422A03", summing]]
-            }
+    volume = 8 * (64 / summing) * duration + 26 * tm_packets
+    return {
+        "name":
+        "AIXF422A",
+        'actionTime':
+        '00:10:00',
+        'data_volume':
+        volume,
+        "parameters": [[
+            "XF422A01",
+            start_obt,
+        ], [
+            "XF422A02",
+            stop_obt,
+        ], ["XF422A03", summing]]
+    }
 
 
-def form_bsd_request_sequence(uid, start_unix,
-                 level,
-                 detector_mask,
-                 tmin,
-                 tmax,
-                 tunit,
-                 emin,
-                 emax,
-                 eunit,
-                 pixel_mask=0xfff,
-                 action_time='00:00:10'):
+def form_bsd_request_sequence(uid,
+                              start_unix,
+                              level,
+                              detector_mask,
+                              tmin,
+                              tmax,
+                              tunit,
+                              emin,
+                              emax,
+                              eunit,
+                              pixel_mask=0xfff,
+                              action_time='00:00:10'):
     start_obt = int(stix_datetime.unix2scet(start_unix))
     num_detectors = sum([(detector_mask & (1 << i)) >> i
                          for i in range(0, 32)])
@@ -112,13 +125,12 @@ def form_bsd_request_sequence(uid, start_unix,
     T = tmax / tunit
     M = num_detectors
     P = num_pixels
-    E = (emax - emin + 1)/(eunit+1)
-    data_volume=0
+    E = (emax - emin + 1) / (eunit + 1)
+    data_volume = 0
     if level == 1:
         data_volume = 1.1 * T * (M * P * (E + 4) + 16)
     elif level == 4:
         data_volume = 1.1 * T * (E + 4)
-        
 
     parameters = [
         ['XF417A01', uid],
@@ -240,182 +252,195 @@ def form_mask_config_telecommands(detector_mask, pixel_mask, level):
 415	PIXEL_MASK_L3R7P4	0x1	0	0xFFF
 416	PIXEL_MASK_L3R7P5	0xF	0	0xFFF
 """
-    dmask_map={4: '424', 1: '323', 2:'324', 3:'236',0:'322'}  
-    pmask_map={4: '425', 1: '328', 2:'336', 3:'377',0:'327'}  
+    dmask_map = {4: '424', 1: '323', 2: '324', 3: '236', 0: '322'}
+    pmask_map = {4: '425', 1: '328', 2: '336', 3: '377', 0: '327'}
     #see https://docs.google.com/spreadsheets/d/1xRrmUTjNuLFie8NlmUF9fU7Ncomk5KwBJQwoKgQUgNY/edit?usp=sharing
     #note this has to be updated according to RCR level
-    return [{
-                "name":
-                "AIXF414A",
-                'actionTime':'08:00:00',
-                "parameters": [[
-                    "XF414A01",
-                    dmask_map[level],
-                ], [
-                    "XF414A02",
-                    "0",
-                ], ["XF414A03", "0x%X" % detector_mask]]
-            },
-            {
-                "name":
-                "AIXF414A",
-                'actionTime':'00:00:01',
-                "parameters": [[
-                    "XF414A01",
-                    pmask_map[level],
-                ], [
-                    "XF414A02",
-                    "0",
-                ], ["XF414A03", "0x%X" % pixel_mask]]
-            },
-        ]
+    return [
+        {
+            "name":
+            "AIXF414A",
+            'actionTime':
+            '08:00:00',
+            "parameters": [[
+                "XF414A01",
+                dmask_map[level],
+            ], [
+                "XF414A02",
+                "0",
+            ], ["XF414A03", "0x%X" % detector_mask]]
+        },
+        {
+            "name":
+            "AIXF414A",
+            'actionTime':
+            '00:00:01',
+            "parameters": [[
+                "XF414A01",
+                pmask_map[level],
+            ], [
+                "XF414A02",
+                "0",
+            ], ["XF414A03", "0x%X" % pixel_mask]]
+        },
+    ]
+
 
 def parse_int(text):
     if '0x' in text:
-        return int(text,0)
+        return int(text, 0)
     return int(text)
 
 
 def attach_TC_aux_info(TC, form):
     TC.update({
-        'author':form['author'],
-        'subject':form['subject'],
-        'db_id':form['_id'],
-        })
+        'author': form['author'],
+        'subject': form['subject'],
+        'db_id': form['_id'],
+    })
+
 
 def create_occurrences(collection, _ids, forms):
-    last_detector_mask=0
-    last_pixel_mask=0
-    total_volume=0
-    last_level=-1;
+    last_detector_mask = 0
+    last_pixel_mask = 0
+    total_volume = 0
+    last_level = -1
 
-    requests = { 'occurrences':  []  }
-    TC_enabled_transfer=enable_data_transfer()
+    requests = {'occurrences': []}
+    TC_enabled_transfer = enable_data_transfer()
     requests['occurrences'].append(TC_enabled_transfer)
 
     #seq_of_day=STIX_MDB.select_user_data_requests_by_date(start_datetime).count()+1
-    next_uids={}
-    for form in  forms:
-        print('_id:',form['_id'])
+    next_uids = {}
+    for form in forms:
+        print('_id:', form['_id'])
         start_utc = form['start_utc']
-        start_unix= stix_datetime.utc2unix(start_utc)
-        level=data_levels[form['request_type']]
+        start_unix = stix_datetime.utc2unix(start_utc)
+        level = data_levels[form['request_type']]
         dt = int(form['duration'])
-        unique_ids=[]
+        unique_ids = []
         #lc_filename=make_lightcurve(form['_id'], start_unix, dt)
         #if lc_filename:
         #    form['lc_filename']=lc_filename
 
-        start_date=stix_datetime.utc2datetime(start_utc)
-        start_date_str=start_date.strftime('%y%m%d')
+        start_date = stix_datetime.utc2datetime(start_utc)
+        start_date_str = start_date.strftime('%y%m%d')
         if start_date_str not in next_uids:
-            next_uids[start_date_str]=STIX_MDB.get_user_data_request_next_unique_id(start_date, _ids)
+            next_uids[
+                start_date_str] = STIX_MDB.get_user_data_request_next_unique_id(
+                    start_date, _ids)
 
-
-        if level==5:
+        if level == 5:
             #aspect data
-            TC=form_aspect_request(start_unix, start_unix+dt, int(form['averaging']))
-            TC['uid']=next_uids[start_date_str]
+            TC = form_aspect_request(start_unix, start_unix + dt,
+                                     int(form['averaging']))
+            TC['uid'] = next_uids[start_date_str]
             attach_TC_aux_info(TC, form)
-            unique_ids=[next_uids[start_date_str]]
-            next_uids[start_date_str]+=1
+            unique_ids = [next_uids[start_date_str]]
+            next_uids[start_date_str] += 1
             requests['occurrences'].append(TC)
             total_volume += TC['data_volume']
         else:
             #science data
-            mask_TCs=[]
-            detector_mask=parse_int(form['detector_mask'])
-            pixel_mask= parse_int(form['pixel_mask'])
-            tbin=int(form['time_bin'])
-            emin=int(form['emin'])
-            emax=int(form['emax'])
-            eunit=int(form['eunit'])
-            if detector_mask!=last_detector_mask or pixel_mask!=last_pixel_mask or level!=last_level:
-                mask_TCs=form_mask_config_telecommands(detector_mask, pixel_mask, level )
-                #rcr 
+            mask_TCs = []
+            detector_mask = parse_int(form['detector_mask'])
+            pixel_mask = parse_int(form['pixel_mask'])
+            tbin = int(form['time_bin'])
+            emin = int(form['emin'])
+            emax = int(form['emax'])
+            eunit = int(form['eunit'])
+            if detector_mask != last_detector_mask or pixel_mask != last_pixel_mask or level != last_level:
+                mask_TCs = form_mask_config_telecommands(
+                    detector_mask, pixel_mask, level)
+                #rcr
                 requests['occurrences'].extend(mask_TCs)
-            num_TCs=math.ceil(dt/MAX_DURATION_PER_REQUEST)
+            num_TCs = math.ceil(dt / MAX_DURATION_PER_REQUEST)
             #create several TCs for long requests
-            if num_TCs<1:
-                num_TCs=1
-            last_id=0
-            for i in range(0,num_TCs):
-                T0=start_unix+i*MAX_DURATION_PER_REQUEST
-                deltaT=dt-i*MAX_DURATION_PER_REQUEST
-                if deltaT>MAX_DURATION_PER_REQUEST:
-                    deltaT=MAX_DURATION_PER_REQUEST
-                uid=next_uids[start_date_str]
-                next_uids[start_date_str]+=1
+            if num_TCs < 1:
+                num_TCs = 1
+            last_id = 0
+            for i in range(0, num_TCs):
+                T0 = start_unix + i * MAX_DURATION_PER_REQUEST
+                deltaT = dt - i * MAX_DURATION_PER_REQUEST
+                if deltaT > MAX_DURATION_PER_REQUEST:
+                    deltaT = MAX_DURATION_PER_REQUEST
+                uid = next_uids[start_date_str]
+                next_uids[start_date_str] += 1
                 #get_uid(T0, deltaT, form['request_type'], 0)
-                TC = form_bsd_request_sequence(uid, T0, level, detector_mask, 0, deltaT * 10, tbin * 10, emin,
-                                  emax, eunit-1, pixel_mask)
+                TC = form_bsd_request_sequence(uid, T0, level, detector_mask,
+                                               0, deltaT * 10, tbin * 10, emin,
+                                               emax, eunit - 1, pixel_mask)
                 unique_ids.append(uid)
                 attach_TC_aux_info(TC, form)
                 requests['occurrences'].append(TC)
                 total_volume += TC['data_volume']
-            last_pixel_mask=pixel_mask
-            last_detector_mask=detector_mask
-            last_level=level
-        form['unique_ids']=unique_ids
-        form['export_time']=stix_datetime.get_now()
+            last_pixel_mask = pixel_mask
+            last_detector_mask = detector_mask
+            last_level = level
+        form['unique_ids'] = unique_ids
+        form['export_time'] = stix_datetime.get_now()
         collection.save(form)
 
-
-    requests['total_volume']=total_volume
+    requests['total_volume'] = total_volume
     return requests
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     id_start = 830
     id_end = 1450
-    flares=[
-                '2105211927',
-                '2105130858',
-                '2105122233',
-                '2105110325',
-                '2105091355',
-                '2105090434',
-                '2105081840',
-                '2105071900',
-                '2105070036',
-                '2105052229',
-                '2105040617',
-                '2105040506',
-                '2105021215',
-                '2105021150',
-                '2105021125'
-     ]
-    subjects=[f'Flare # {x}' for x in flares]
-    ids=[830,831,832, 1472, 1471, 1473,1474]
-    aspects=range(1030,1043)
+    flares = [
+        '2105211927', '2105130858', '2105122233', '2105110325', '2105091355',
+        '2105090434', '2105081840', '2105071900', '2105070036', '2105052229',
+        '2105040617', '2105040506', '2105021215', '2105021150', '2105021125'
+    ]
+    subjects = [f'Flare # {x}' for x in flares]
+    ids = [830, 831, 832, 1472, 1471, 1473, 1474]
+    aspects = range(1030, 1043)
     ids.extend(aspects)
 
-    prio_ids=[]
-    all_forms=[]
-    forms1= collection.find({'$or':[{'_id': {'$in':ids}}, {'subject': {'$in':subjects}}]}).sort([('request_type',-1),('detector_mask',1),('pixel_mask',-1)])
+    prio_ids = []
+    all_forms = []
+    forms1 = collection.find({
+        '$or': [{
+            '_id': {
+                '$in': ids
+            }
+        }, {
+            'subject': {
+                '$in': subjects
+            }
+        }]
+    }).sort([('request_type', -1), ('detector_mask', 1), ('pixel_mask', -1)])
     for f in forms1:
-        if f['hidden']==True:
+        if f['hidden'] == True:
             continue
         #print(f['_id'])
         prio_ids.append(f['_id'])
         #all_forms.append(f)
     #candiate_ids=[]
-    forms2= collection.find({'_id': {'$gte':1192}}).sort([('request_type',-1),('detector_mask',1),('pixel_mask',-1)])
+    forms2 = collection.find({
+        '_id': {
+            '$gte': 1192
+        }
+    }).sort([('request_type', -1), ('detector_mask', 1), ('pixel_mask', -1)])
     for f in forms2:
         if f['hidden']:
             continue
         if f['_id'] not in prio_ids:
             prio_ids.append(f['_id'])
-            if len(prio_ids)>140:
+            if len(prio_ids) > 140:
                 break
         #prio_ids.append(f['_id'])
         #all_forms.append(f)
 
-    forms3= collection.find({'_id': {'$in':prio_ids}}).sort([('request_type',-1),('detector_mask',1),('pixel_mask',-1)])
-    requests=create_occurrences(collection,prio_ids, forms3)
+    forms3 = collection.find({
+        '_id': {
+            '$in': prio_ids
+        }
+    }).sort([('request_type', -1), ('detector_mask', 1), ('pixel_mask', -1)])
+    requests = create_occurrences(collection, prio_ids, forms3)
     print(requests)
-    print('number of requests:', len(requests['occurrences']) )
-    print('volume:', requests['total_volume']/(1024*1024.) )
+    print('number of requests:', len(requests['occurrences']))
+    print('volume:', requests['total_volume'] / (1024 * 1024.))
     with open('STP151_data_request.json', 'w') as txtfile:
         json.dump(requests, txtfile)
-    
-
