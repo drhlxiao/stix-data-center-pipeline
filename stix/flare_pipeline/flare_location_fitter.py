@@ -6,36 +6,6 @@ import numpy as np
 from core import skylut
 from spice import solo
 
-detector_open_area={0:0.292312,
-1:0.272487,
-2:0.252282,
-3:0.257189,
-4:0.281502,
-5:0.27254,
-6:0.292103,
-7:0.260207,
-10:0.335213,
-11:0.305518,
-12:0.335412,
-13:0.254877,
-14:0.264532,
-15:0.255886,
-16:0.304781,
-17:0.335199,
-18:0.30505,
-19:0.258,
-20:0.257187,
-21:0.252324,
-22:0.281503,
-23:0.260178,
-24:0.280854,
-25:0.257033,
-26:0.264449,
-27:0.261743,
-28:0.292299,
-29:0.272491,
-30:0.264514,
-31:0.254682}
 #open area ratio obtained by  the simulator
 #detectorIndex: ratio
 
@@ -88,8 +58,12 @@ def normalize(counts, counts_error):
 
 
 def fit_location(counts, count_errors, mean_fluence, mean_fluence_error, flare_utc,  use_small_pixels=True, use_det_fluence=True):
-    #counts: CFL counts
-    #mean_fluence:  detector fluence if no grid
+    #counts: CFL pixel counts
+    #count_errors: CFL pixel count errors
+
+    #mean_fluence: detector mean fluence
+    #mean_fluence_error: detector mean fluence error
+
 
 
     max_pixel_index=12 if use_small_pixels else 8

@@ -14,6 +14,39 @@ from stix.core import stix_logger
 from stix.core import config
 mdb = db.MongoDB()
 logger = stix_logger.get_logger()
+DET_ID_START=20
+DET_ID_END=32
+DET_SENSITVE_AREA=80.96
+GRID_OPEN_AREA_RATIO=np.array([0.292312,
+		0.272487,
+		0.252282,
+		0.257189,
+		0.281502,
+		0.27254,
+		0.292103,
+		0.260207,
+		0.335213,
+		0.305518,
+		0.335412,
+		0.254877,
+		0.264532,
+		0.255886,
+		0.304781,
+		0.335199,
+		0.30505,
+		0.258,
+		0.257187,
+		0.252324,
+		0.281503,
+		0.260178,
+		0.280854,
+		0.257033,
+		0.264449,
+		0.261743,
+		0.292299,
+		0.272491,
+		0.264514,
+		0.254682])
 
 class SciL1Analyzer(object):
     def __init__(self):
@@ -101,12 +134,18 @@ class SciL1Analyzer(object):
 
         results['detector_spectra_subtracted_bkg']=sig_bkgsub_counts
         results['detector_spectra_subtracted_bkg_error']=sig_bkgsub_count_error
-        results['detector_spectra_subtracted_bkg_4_12_keV']=sig_bkgsub_counts[:, min_bin:max_bin]
-        results['detector_spectra_subtracted_bkg_error_4_12_keV']=sig_bkgsub_count_error[:, min_bin:max_bin]
+        
 
+        det_mean_counts=np.mean(np.sum(sig_bkgsub_counts[DET_ID_START:DET_ID_END, min_bin:max_bin], axis=1)/GRID_OPEN_AREA_RATIO[DET_ID_END:DET_SENSITVE_AREA])
+        det_mean_counts_error=np.sum(sig_bkgsub_count_error[DET_ID_START:DET_ID_END, min_bin:max_bin],axis=1)**2/GRID_OPEN_AREA_RATIO[DET_ID_END:DET_SENSITVE_AREA])
+
+        
         results['cfl_pixel_spectra_subtracted_bkg_4_12_keV']=cfl_pixel_bkgsub_counts[:, min_bin:max_bin]
         results['cfl_pixel_spectra_subtracted_bkg_error_4_12_keV']=cfl_pixel_bkgsub_count_error[:, min_bin:max_bin]
         detector_4_12_keV_counts=np.sum(sig_bkgsub_counts[:, min_bin:max_bin],axis=1)
+
+
+        return results
         
         
     def compute_detector_counts(self, cursor, min_unix_time=None, max_unix_time=None): 

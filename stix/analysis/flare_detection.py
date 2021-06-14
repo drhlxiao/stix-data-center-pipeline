@@ -27,6 +27,8 @@ matplotlib.use('Agg')
 
 mdb = db.MongoDB()
 
+PEAK_MIN_NUM_POINTS= 7 #  peak duration must be greater than 28 seconds, used to determine energy range upper limit, 
+
 SPID = 54118
 
 terminal = False
@@ -237,10 +239,10 @@ def search(run_id,
                 flare_stat['signal_max']= int(np.max(lc_cnts))
                 flare_stat['signal_min']= int(np.min(lc_cnts))
                 num_2sigma=int(np.sum(lc_cnts> stat['median'][ilc]+2*stat['std'][ilc]))
-                flare_stat['num_peaks_above_2sigma']=num_2sigma
-                if num_2sigma>0:
+                flare_stat['num_points_above_2sigma']=num_2sigma
+                if num_2sigma>PEAK_MIN_NUM_POINTS: #longer than half minutes
                     upper_bin=ilc
-                flare_stat['num_peaks_above_3sigma']=int(np.sum(lc_cnts> stat['median'][ilc]+3*stat['std'][ilc]))
+                flare_stat['num_points_above_3sigma']=int(np.sum(lc_cnts> stat['median'][ilc]+3*stat['std'][ilc]))
                 flare_stats['lc'+str(ilc)]=flare_stat
             flare_stats['upper_ilc']=upper_bin
             LC_statistics.append(flare_stats)

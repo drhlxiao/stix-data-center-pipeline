@@ -1,3 +1,5 @@
+# Create data requests for flares
+# Author: Hualin Xiao on Jun 14, 2021
 import sys
 sys.path.append('.')
 import os
@@ -11,14 +13,15 @@ from stix.core import config
 mdb = db.MongoDB()
 DATA_LEVEL_NAMES={0: 'L0',1:'L1',2: 'L2',3: 'L3',4: 'Spectrogram',5: 'Aspect'}
 EMAX_MAP=[8, 13, 17, 23, 28] # emax if there are prominence the corresponding lightcurve
+PEAK_MIN_NUM_POINTS= 7 #  peak duration must be greater than 28 seconds, used to determine energy range upper limit, 
 
 logger = stix_logger.get_logger()
 db=mdb.get_db()
 bsd_form=db['bsd_req_forms']
-flare_collection=db['flares_tbc']
+flare_collection=db['flares']
 L4_TIME_MARGIN=120
 L1_TIME_MARGIN=300
-
+FLARE_MIN_PEAK_COUNTS=500
 L4_REQUEST_GROUP_MAX_TIME_GAP=3600
 
 def create_requests(flare_docs):
@@ -29,6 +32,17 @@ def create_requests(flare_docs):
     for doc in flares:
         create_l1_request(doc)
     create_l4_groups(flares)
+def get_energy_range_upper_limit(doc):
+    ilc=0
+    for i in range(5):
+        try:
+            np_2sigma=doc['LC_statistics'][f'lc{i}']['num_peaks_above_2sigma']
+        except KeyError:
+            np_2sigma=doc['LC_statistics'][f'lc{i}']['num_points_above_2sigma']
+
+        if np_2sigma>=PEAK_MIN_NUM_POINTS and i>ilc:
+            ilc=i
+    return ilc
 
 def create_l4_groups(flare_docs):
     group=[]
@@ -42,8 +56,6 @@ def create_l4_groups(flare_docs):
         last_time=this_time
         group.append(doc)
     print('number of L4 groups', len(groups))
-    
-
     for gp in groups:
         start_unix=gp[0]['start_unix']
         end_unix=gp[-1]['end_unix']
@@ -53,12 +65,9 @@ def create_l4_groups(flare_docs):
         emax=13
         flare_entry_ids=[x['_id'] for x in gp]
         run_ids=[x['run_id'] for x in gp]
-        try:
-            ilc=max([d['LC_statistics']['upper_ilc']  for d in gp])
-            emax=EMAX_MAP[ilc]
-            print(f'Max energy bin changed to {emax}')
-        except:
-            pass
+        ilc=max([get_energy_range_upper_limit(d) for d in gp])
+        emax=EMAX_MAP[ilc]
+        print(f'L4 requests for {flare_ids} Max energy bin changed to {emax} keV')
         create_template(flare_ids, flare_entry_ids, run_ids, start_utc, 
                 duration, emax, left_margin=-L4_TIME_MARGIN, right_margin=L4_TIME_MARGIN, level=4)
 
@@ -77,7 +86,9 @@ def create_l1_request(doc):
     emax=13
     try:
         ilc=doc['LC_statistics']['upper_ilc']
+        ilc=get_energy_range_upper_limit(doc)
         emax=EMAX_MAP[ilc]
+        print(f'Flare # {flare_id} Max energy bin changed to {emax} keV')
     except:
         pass
     create_template(flare_id, flare_entry_ids, run_ids, start_utc, duration, emax, -L1_TIME_MARGIN, L1_TIME_MARGIN, level=1)
@@ -153,23 +164,20 @@ def create_template(flare_ids, flare_entry_ids, run_ids, start_utc, duration, em
         }
     print(f'Inserting request {form["_id"]}, type: {level_name}')
     bsd_form.insert_one(form)
-#def create_data_request_for_files(file_ids, cnts_threshold=400):
-#    flares=flare_collection.find({'run_id':{'$in': file_ids}, 'peak_counts':{'$gt':cnts_threshold}, 'hidden':False}).sort('peak_unix_time',1)
-#    create_requests(flares)
 
-def create_data_request_for_flares(start_flare_id, end_flare_id, cnts_threshold=400):
-    query={'_id':{'$gte': start_flare_id, '$lte':end_flare_id},  'peak_counts':{'$gt':cnts_threshold}, 'hidden':False}
+def create_data_request_for_flares(start_flare_id, end_flare_id, min_peak_counts=FLARE_MIN_PEAK_COUNTS):
+    query={'_id':{'$gte': start_flare_id, '$lte':end_flare_id},  'peak_counts':{'$gt':min_peak_counts}, 'hidden':False}
     flares=flare_collection.find(query).sort('peak_unix_time',1)
-    print('counts',flares.count())
+    #print('counts',flares.count())
     create_requests(flares)
 
 
 
 if __name__=='__main__':
     if len(sys.argv)<3:
-        print('auto_req <begin_flare_id> <end_flare_id> [threshold:400]')
+        print('auto_req <begin_flare_id> <end_flare_id> [threshold:500]')
     else:
-        threshold=400
+        threshold=500
         if len(sys.argv)==4:
             threshold=int(sys.argv[3])
         start_id=int(sys.argv[1])
