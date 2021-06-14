@@ -31,7 +31,7 @@ flare_collection = db['flares']
 L4_TIME_MARGIN = 120
 L1_TIME_MARGIN = 300
 FLARE_MIN_PEAK_COUNTS = 500
-L4_REQUEST_GROUP_MAX_TIME_GAP = 3600
+L4_REQUEST_GROUP_MAX_TIME_GAP = 2*3600
 
 
 def create_requests(flare_docs):
@@ -46,7 +46,6 @@ def create_requests(flare_docs):
         forms.append(form)
     l4_forms = create_l4_groups(flares)
     forms.extend(l4_forms)
-    write_csv(forms, 'data_request.csv')
 
 
 def get_energy_range_upper_limit(doc):
@@ -105,7 +104,7 @@ def create_l4_groups(flare_docs):
                                left_margin=-L4_TIME_MARGIN,
                                right_margin=L4_TIME_MARGIN,
                                level=4)
-        forms.append(forms)
+        forms.append(form)
     return forms
 
 
@@ -129,14 +128,6 @@ def create_l1_request(doc):
                            -L1_TIME_MARGIN,
                            L1_TIME_MARGIN,
                            level=1)
-
-
-def write_csv(forms, fname):
-    with open(fname, 'w') as csv_file:
-        writer = csv.writer(csv_file)
-        for data in forms:
-            for key, value in data.items():
-                writer.writerow([key, value])
 
 
 def create_template(flare_ids,
@@ -190,13 +181,18 @@ def create_template(flare_ids,
         data_volume = 1.1 * T * (M * P * (E + 4) + 16)
     elif level == 4:
         data_volume = 1.1 * T * (E + 4)
+    subject=''
+    if len(flare_ids)<=1:
+        subject=f"Flare # {flare_ids}" 
+    else:
+        subject='Flares ' + ','.join([str(f) for f in flare_ids])
 
     form = {
         "data_volume": str(math.floor(data_volume)),
         "execution_date": '',
-        "author": "Hualin",
-        "email": "stix-obs@fhnw.ch",
-        "subject": f"Flare # {flare_ids}",
+        "author": "Hualin Xiao",
+        "email": "hualin.xiao@fhnw.ch",
+        "subject": subject,
         "purpose": "Solar Flare",
         "request_type": level_name,
         "start_utc": str(start_utc),
@@ -214,12 +210,12 @@ def create_template(flare_ids,
         'status': 0,
         "eunit": str(eunit),
         '_id': current_id,
-        "description": f"{level_name} request for Flare {flare_ids}",
+        "description": f"{level_name} request for {subject}",
         "volume": str(int(data_volume)),
         "unique_ids": []
     }
     print(f'Inserting request {form["_id"]}, type: {level_name}')
-    #bsd_form.insert_one(form)
+    bsd_form.insert_one(form)
     return form
 
 
