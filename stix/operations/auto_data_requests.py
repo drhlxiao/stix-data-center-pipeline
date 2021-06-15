@@ -33,6 +33,7 @@ L1_TIME_MARGIN = 300
 FLARE_MIN_PEAK_COUNTS = 500
 L4_REQUEST_GROUP_MAX_TIME_GAP = 2*3600
 
+OVERWRITTEN=False
 
 def create_requests(flare_docs):
     flares = list(flare_docs)
@@ -146,7 +147,6 @@ def create_template(flare_ids,
                 'request_type': level_name
             }).sort('_id', -1)):
         print(f'data request for Flare {flare_ids} already exists.')
-        return
     try:
         current_id = bsd_form.find().sort('_id', -1).limit(1)[0]['_id'] + 1
     except IndexError:
@@ -181,12 +181,7 @@ def create_template(flare_ids,
         data_volume = 1.1 * T * (M * P * (E + 4) + 16)
     elif level == 4:
         data_volume = 1.1 * T * (E + 4)
-    subject=''
-    if len(flare_ids)<=1:
-        subject=f"Flare # {flare_ids}" 
-    else:
-        subject='Flares ' + ','.join([str(f) for f in flare_ids])
-
+    subject=f"Flare # {flare_ids}"  if not isinstance(flare_ids,list) else 'Flares ' + ', '.join([str(f) for f in flare_ids])
     form = {
         "data_volume": str(math.floor(data_volume)),
         "execution_date": '',
@@ -218,6 +213,9 @@ def create_template(flare_ids,
     bsd_form.insert_one(form)
     return form
 
+def delete_requests(start_id, end_id):
+    print('deleting ids from ', start_id, end_id)
+    bsd_form.delete_many({'_id':{'$gte':start_id, '$lte':end_id}})
 
 def create_data_request_for_flares(start_flare_id,
                                    end_flare_id,
@@ -238,12 +236,13 @@ def create_data_request_for_flares(start_flare_id,
 
 
 if __name__ == '__main__':
+    #delete_requests(1527,9000)
     if len(sys.argv) < 3:
-        print('auto_req <begin_flare_id> <end_flare_id> [threshold:500]')
+        print('auto_data_request <begin_flare_id> <end_flare_id> [threshold:500]')
     else:
         threshold = 500
         if len(sys.argv) == 4:
             threshold = int(sys.argv[3])
         start_id = int(sys.argv[1])
         end_id = int(sys.argv[2])
-        create_data_request_for_flares(start_id, end_id)
+        create_data_request_for_flares(start_id, end_id,threshold)
