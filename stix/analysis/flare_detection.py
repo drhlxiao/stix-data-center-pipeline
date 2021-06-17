@@ -156,18 +156,14 @@ def major_peaks(lefts, rights):
     return major
 
 
-def search(run_id,
+def find_flares(run_id,
            peak_min_width=15,
            peak_min_distance=150,
            rel_height=0.9,
            snapshot_path='.'):
-
     data = get_lightcurve_data(run_id)
-
     print(f'Deleting flares in file #{run_id}')
-
     mdb.delete_flares_of_file(run_id)
-
     if not data:
         info(f'No QL LC packets found for file {run_id}')
         return 0
@@ -299,12 +295,12 @@ def search(run_id,
     return xpeaks.size
 
 
-def search_in_many(fid_start, fid_end, img_path='/data/flare_lc'):
+def find_flares_in_files(fid_start, fid_end, img_path='/data/flare_lc'):
     for i in range(fid_start, fid_end + 1):
         print(f'deleting flares of Files {i}')
         mdb.delete_flares_of_file(i)
     for i in range(fid_start, fid_end + 1):
-        search(i, snapshot_path=img_path)
+        find_flares(i, snapshot_path=img_path)
 
 
 if __name__ == '__main__':
@@ -313,9 +309,9 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         print('flare_detection file_number')
     elif len(sys.argv) == 2:
-        res = search(int(sys.argv[1]), snapshot_path='/data/flare_lc')
+        res = find_flares(int(sys.argv[1]), snapshot_path='/data/flare_lc')
         print('Number of peaks:', res)
     else:
-        search_in_many(int(sys.argv[1]),
+        find_flares_in_files(int(sys.argv[1]),
                        int(sys.argv[2]),
                        img_path='/data/flare_lc')

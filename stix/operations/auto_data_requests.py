@@ -22,18 +22,24 @@ DATA_LEVEL_NAMES = {
 }
 EMAX_MAP = [8, 13, 17, 23,
             28]  # emax if there are prominence the corresponding lightcurve
-PEAK_MIN_NUM_POINTS = 7  #  peak duration must be greater than 28 seconds, used to determine energy range upper limit,
 
 logger = stix_logger.get_logger()
 db = mdb.get_db()
 bsd_form = db['bsd_req_forms']
 flare_collection = db['flares']
-L4_TIME_MARGIN = 120
-L1_TIME_MARGIN = 300
-FLARE_MIN_PEAK_COUNTS = 500
-L4_REQUEST_GROUP_MAX_TIME_GAP = 2*3600
+conf={
+        'flare_min_points_above_threshold': 7,  #  peak duration must be greater than 28 seconds, used to determine energy range upper limit,
+        'L4':{
+            'time_margin':  [-300,600],
+            'group_max_merging_time_gap': 6500,
+            'flare_min_peak_counts': 300,
+            },
+        'L1':{
+                'time_margin':[-300,300],
+                'flare_min_peak_counts': 500,
+            }
+    }
 
-OVERWRITTEN=False
 
 def create_requests(flare_docs):
     flares = list(flare_docs)
@@ -43,14 +49,17 @@ def create_requests(flare_docs):
     forms = []
     for doc in flares:
         print('Creating request for flare # ', doc['_id'])
+        if doc['peak_counts'] < conf['L1']['flare_min_peak_counts']:
+            continue
         form = create_l1_request(doc)
         forms.append(form)
+
     l4_forms = create_l4_groups(flares)
     forms.extend(l4_forms)
 
 
 def get_energy_range_upper_limit(doc):
-    ilc = 0
+    ilc = 1
     for i in range(5):
         np_2sigma = None
         try:
@@ -62,9 +71,12 @@ def get_energy_range_upper_limit(doc):
                     'num_points_above_2sigma']
             except KeyError:
                 pass
+        print('sigma:',np_2sigma)
         if np_2sigma is None:
+            
             continue
-        if np_2sigma >= PEAK_MIN_NUM_POINTS and i > ilc:
+
+        if np_2sigma >= conf['flare_min_points_above_threshold'] and i > ilc:
             ilc = i
     return ilc
 
@@ -72,15 +84,14 @@ def get_energy_range_upper_limit(doc):
 def create_l4_groups(flare_docs):
     group = []
     groups = []
-    last_time = flare_docs[0]['peak_unix_time']
     for doc in flare_docs:
-        this_time = doc['peak_unix_time']
-        if this_time - last_time > L4_REQUEST_GROUP_MAX_TIME_GAP:
-            groups.append(group)
-            group = []
-        last_time = this_time
+        if len(group)>0:
+            if abs(doc['end_unix']-group[0]['start_unix']) >= (conf['L4']['group_max_merging_time_gap']
+                    -(conf['L4']['time_margin'][1]-conf['L4']['time_margin'][0])):
+                groups.append(group)
+                group = []
         group.append(doc)
-    print('number of L4 groups', len(groups))
+    print('number of L4 groups: ', len(groups))
     forms = []
     for gp in groups:
         start_unix = gp[0]['start_unix']
@@ -102,8 +113,9 @@ def create_l4_groups(flare_docs):
                                start_utc,
                                duration,
                                emax,
-                               left_margin=-L4_TIME_MARGIN,
-                               right_margin=L4_TIME_MARGIN,
+                               left_margin=conf['L4']['time_margin'][0],
+                               right_margin=conf['L4']['time_margin'][1],
+                               tunit=1,
                                level=4)
         forms.append(form)
     return forms
@@ -126,8 +138,9 @@ def create_l1_request(doc):
                            start_utc,
                            duration,
                            emax,
-                           -L1_TIME_MARGIN,
-                           L1_TIME_MARGIN,
+                           conf['L1']['time_margin'][0],
+                           conf['L1']['time_margin'][1],
+                           tunit=20,
                            level=1)
 
 
@@ -139,6 +152,7 @@ def create_template(flare_ids,
                     emax=13,
                     left_margin=0,
                     right_margin=0,
+                    tunit = 1,
                     level=1):
     level_name = DATA_LEVEL_NAMES[level]
     if list(
@@ -170,7 +184,6 @@ def create_template(flare_ids,
     emin = 0
     eunit = 1
     num_pixels = 12
-    tunit = 1
     tmax = duration
     T = tmax / tunit
     M = num_detectors
@@ -181,7 +194,7 @@ def create_template(flare_ids,
         data_volume = 1.1 * T * (M * P * (E + 4) + 16)
     elif level == 4:
         data_volume = 1.1 * T * (E + 4)
-    subject=f"Flare # {flare_ids}"  if not isinstance(flare_ids,list) else 'Flares ' + ', '.join([str(f) for f in flare_ids])
+    subject=f"Flare {flare_ids}"  if not isinstance(flare_ids,list) else 'Flares ' + ', '.join([str(f) for f in flare_ids])
     form = {
         "data_volume": str(math.floor(data_volume)),
         "execution_date": '',
@@ -192,7 +205,7 @@ def create_template(flare_ids,
         "request_type": level_name,
         "start_utc": str(start_utc),
         "duration": str(duration),
-        "time_bin": "1",
+        "time_bin": str(tunit),
         "flare_id": flare_ids,
         'flare_entry_ids': flare_entry_ids,
         "detector_mask": detector_mask,
@@ -205,7 +218,7 @@ def create_template(flare_ids,
         'status': 0,
         "eunit": str(eunit),
         '_id': current_id,
-        "description": f"{level_name} request for {subject}",
+        "description": f"{level_name} data request for {subject}",
         "volume": str(int(data_volume)),
         "unique_ids": []
     }
@@ -218,15 +231,11 @@ def delete_requests(start_id, end_id):
     bsd_form.delete_many({'_id':{'$gte':start_id, '$lte':end_id}})
 
 def create_data_request_for_flares(start_flare_id,
-                                   end_flare_id,
-                                   min_peak_counts=FLARE_MIN_PEAK_COUNTS):
+                                   end_flare_id):
     query = {
         '_id': {
             '$gte': start_flare_id,
             '$lte': end_flare_id
-        },
-        'peak_counts': {
-            '$gt': min_peak_counts
         },
         'hidden': False
     }
@@ -236,7 +245,7 @@ def create_data_request_for_flares(start_flare_id,
 
 
 if __name__ == '__main__':
-    #delete_requests(1527,9000)
+    delete_requests(1493,9000)
     if len(sys.argv) < 3:
         print('auto_data_request <begin_flare_id> <end_flare_id> [threshold:500]')
     else:
@@ -245,4 +254,4 @@ if __name__ == '__main__':
             threshold = int(sys.argv[3])
         start_id = int(sys.argv[1])
         end_id = int(sys.argv[2])
-        create_data_request_for_flares(start_id, end_id,threshold)
+        create_data_request_for_flares(start_id, end_id)

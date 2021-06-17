@@ -59,6 +59,7 @@ class MongoDB(object):
             self.collection_qllc_statistics = self.db['qllc_statistics']
             self.collection_notifications = self.db['notifications']
             self.collection_spice = self.db['spice']
+            self.collection_time_bins= self.db['time_bins']
 
         except Exception as e:
             print('Error occurred while initializing mongodb: {}'.format(
@@ -228,6 +229,9 @@ class MongoDB(object):
                 except OSError as e:
                     pass
             cursor = self.collection_fits.delete_many({'file_id': int(run_id)})
+
+        if self.collection_time_bins:
+            self.collection_time_bins.delete_many({'file_id': int(run_id)})
 
     def delete_runs(self, runs):
         for run in runs:
@@ -574,6 +578,12 @@ class MongoDB(object):
         doc['_id'] = next_id
         doc['is_sent'] = is_sent
         self.collection_notifications.save(doc)
+    def insert_time_bins(self,doc, delete_existing):
+        file_id=doc['file_id']
+        if delete_existing:
+            self.collection_time_bins.delete_many({'file_id':file_id})
+        self.collection_time_bins.save(doc)
+
 
     def get_quicklook_packets_of_run(self, packet_type, run):
         collection = None

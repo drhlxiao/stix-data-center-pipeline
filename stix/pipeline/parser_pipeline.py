@@ -22,6 +22,7 @@ from  stix.analysis import calibration
 from  stix.analysis import background_estimation as bkg
 from  stix.analysis import flare_detection
 from  stix.analysis import sci_packets_analyzer
+from  stix.analysis import integration_time_estimator
 from stix.spice import spice_manager as spm
 logger = stix_logger.get_logger()
 
@@ -30,9 +31,10 @@ S20_EXCLUDED=True
 DO_CALIBRATIONS= True
 ENABLE_FITS_CREATION= True
 DO_BULK_SCIENCE_DATA_MERGING= True
-DO_FLARE_SEARCH=True
+FIND_FLARES=True
 SCI_PACKET_SPIDS= ['54114', '54115', '54116', '54117', '54143', '54125']
 DO_BACKGROUND_ESTIMATION=True
+ESTIMATE_ROTATING_BUFFER_TIME_BINS=True
 
 daemon_config=config.get_config('pipeline.daemon')
 noti_config=config.get_config('pipeline.daemon.notification')
@@ -143,10 +145,16 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
         except Exception as e:
             logger.error(str(e))
 
-    if DO_FLARE_SEARCH:
+    if FIND_FLARES:
         logger.info('Searching for flares..')
         try:
-            num_flares=flare_detection.search(file_id, snapshot_path=daemon_config['flare_lc_snapshot_path'])
+            num_flares=flare_detection.find_flares(file_id, snapshot_path=daemon_config['flare_lc_snapshot_path'])
+        except Exception as e:
+            raise
+            logger.error(str(e))
+    if ESTIMATE_ROTATING_BUFFER_TIME_BINS:
+        try:
+            integration_time_estimator.process_file(file_id)
         except Exception as e:
             raise
             logger.error(str(e))
