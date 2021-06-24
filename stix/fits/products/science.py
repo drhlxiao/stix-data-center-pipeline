@@ -529,8 +529,14 @@ class XrayL3(Product):
         control['index'] = range(len(control))
 
         data = Data()
-        data['control_index'] = np.full(len(packets['NIX00441']), 0)
-        data['delta_time'] = (np.array(packets['NIX00441'], np.uint16)) * 0.1 * u.s
+        try:
+            data['control_index'] = np.full(len(packets['NIX00441']), 0)
+            data['delta_time'] = (np.array(packets['NIX00441'], np.uint16)) * 0.1 * u.s
+        except KeyError:
+            data['control_index'] = np.full(len(packets['NIX00404']), 0)
+            data['delta_time'] = (np.array(packets['NIX00404'], np.int32)) * 0.1 * u.s
+
+
         unique_times = np.unique(data['delta_time'])
 
         # time = np.array([])
@@ -679,7 +685,13 @@ class Spectrogram(Product):
         if counts.sum() != full_counts.sum():
             raise ValueError('Original and reformatted count totals do not match')
 
-        delta_time = (np.array(packets['NIX00441'], np.uint16)) * 0.1 * u.s
+        try:
+            delta_time = (np.array(packets['NIX00441'], np.uint16)) * 0.1 * u.s
+        except KeyError:
+            delta_time = (np.array(packets['NIX00404'], np.uint16)) * 0.1 * u.s
+
+
+
         closing_time_offset = (np.array(packets['NIX00269'], np.uint16)) * 0.1 * u.s
 
         # TODO incorporate into main loop above

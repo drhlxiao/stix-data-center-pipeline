@@ -9,7 +9,7 @@ from dateutil import parser as dtparser
 from stix.core import stix_logger
 logger = stix_logger.get_logger()
 
-ASW_VERSION = 179
+ASW_VERSION = 181
 HTTP_PREFIX = 'https://pub023.cs.technik.fhnw.ch'
 parser_config = {
     "pipeline": {
@@ -37,10 +37,11 @@ parser_config = {
             "flare_lc_snapshot_path": "/data/flare_lc",
             "calibration_report_path": "/data/calibration/",
             "level1_products_path": "/data/level1/",
+            "level2_products_path": "/data/level2/",
             "ngnix_cache": "/data/nginx/stix_cache/*",
             "goes_lc_path": "/data/goes/"
         },
-        "asw_version": 179
+        "asw_version": 181
     },
     "ASW": {
         "179": {
@@ -96,7 +97,10 @@ def get_config(key=None):
 def get_idb(asw_version=None):
     if not asw_version:
         asw_version = ASW_VERSION
-    return parser_config["ASW"][str(asw_version)]["filename"]
+
+    fname=parser_config["ASW"][str(asw_version)]["filename"]
+    #print(fname)
+    return fname
 
 
 def get_spice(utc=None):

@@ -10,10 +10,10 @@ import argparse
 import os
 import sys
 sys.path.append('.')
-from stix.core.config import config
+from stix.core import config
 from stix.core import stix_logger, stix_idb, stix_parser
 logger = stix_logger.get_logger()
-MONGODB_CONFIG=config['pipeline']['mongodb']
+MONGODB_CONFIG=config.get_config('pipeline.mongodb')
 
 
 def main():

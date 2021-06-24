@@ -338,6 +338,7 @@ def analyze(calibration_id, output_dir=DEFAULT_OUTPUT_DIR):
     canvas.Divide(3, 2)
     last_plots = None
     for spec in spectra:
+        #spectrum data from database
         if sum(spec[5]) < MIN_COUNTS_PEAK_FIND:
             continue
         detector = spec[0]
@@ -415,22 +416,21 @@ def analyze(calibration_id, output_dir=DEFAULT_OUTPUT_DIR):
         pixel = spec[1]
         sbspec_id = spec[2]
         spectrum = spec[5]
-        start = spec[3]
+        start = spec[3] #ADC channel start
         num_summed = spec[4]
         num_points = len(spectrum)
-        end = start + num_summed * num_points
+        end = start + num_summed * num_points #end ADC 
         if slope[detector][pixel] > 0 and offset[detector][pixel] > 0:
-            energies = (np.linspace(start, end - num_summed, num_points) -
-                        offset[detector][pixel]) / slope[detector][pixel]
+            energies = (np.linspace(start, end - num_summed, num_points) - offset[detector][pixel]) / slope[detector][pixel]
 
             if sbspec_id not in sum_spectra:
                 min_energy = (start - offset[detector][pixel]
-                              ) / slope[detector][pixel] * 0.8
+                              ) / slope[detector][pixel] * 0.8 #20% margin
                 max_energy = (end - offset[detector][pixel]
-                              ) / slope[detector][pixel] * 1.2
+                              ) / slope[detector][pixel] * 1.2 #20% margin
                 xvals = np.linspace(min_energy, max_energy,
-                                    int((num_points + 1) * 1.4))
-                sum_spectra[sbspec_id] = [[], []]
+                                    int((num_points + 1) * 1.4)) 
+                sum_spectra[sbspec_id] = [[], []] #sum spectrum x vs. y
                 sum_spectra[sbspec_id][0] = xvals
                 sum_spectra[sbspec_id][1] = np.zeros(len(xvals))
 

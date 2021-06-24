@@ -34,18 +34,17 @@ class SpiceManager:
                 if fname not in self.loaded_kernels:
                     self.loaded_kernels.append(fname)
                     MDB.insert_spice_kernel(fname)
-        for kernel in MDB.get_spice_kernels():
-            fname=os.path.join(kernel['path'],kernel['filename'])
-            try:
-                spiceypy.furnsh(fname)
-            except spiceypy.utils.exceptions.SpiceNOSUCHFILE:
-                #print(f'Failed to load {fname}')
-                pass
-            #if 'sclk' in fname or 'lsk' in fname:
-            #only import sclk and lsk module for data parser
-            if 'sclk' in fname:
-                self.last_sclk_file=fname
-        #print(self.last_sclk_file)
+        latest_kernels=MDB.get_latest_spice_kernels()
+        for kernel_type,kernels in latest_kernels.items():
+            for kernel in kernels:
+                fname=os.path.join(kernel['path'],kernel['filename'])
+                try:
+                    spiceypy.furnsh(fname)
+                    if 'sclk' in fname:
+                        self.last_sclk_file=fname
+                except spiceypy.utils.exceptions.SpiceNOSUCHFILE:
+                    #print(f'Failed to load {fname}')
+                    pass
 
         
 

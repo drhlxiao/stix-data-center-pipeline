@@ -8,11 +8,12 @@
 import os
 import re
 import pprint
-from datetime import datetime
+from datetime import datetime,timedelta
 import uuid
 import bson
 import pymongo
 from pathlib import Path
+NUM_KERNEL_FILES_LIMIT=10
 
 NUM_MAX_PACKETS = 20000
 MAX_REQUEST_LC_TIME_SPAN_DAYS = 3
@@ -60,6 +61,7 @@ class MongoDB(object):
             self.collection_notifications = self.db['notifications']
             self.collection_spice = self.db['spice']
             self.collection_time_bins= self.db['time_bins']
+            self.collection_aspect_solutions= self.db['aspect_solutions']
 
         except Exception as e:
             print('Error occurred while initializing mongodb: {}'.format(
@@ -273,6 +275,7 @@ class MongoDB(object):
             run = self.collection_raw_files.find_one({'_id': _id})
             run['quicklook_pdf'] = pdf_filename
             self.collection_raw_files.save(run)
+
 
     def get_run_ql_pdf(self, _id):
         if self.collection_raw_files:
@@ -501,8 +504,16 @@ class MongoDB(object):
         doc['_id'] = next_id
         self.collection_qllc_statistics.save(doc)
 
-    def get_spice_kernels(self):
-        return self.collection_spice.find({}).sort('file_date', 1)
+    def get_latest_spice_kernels(self):
+        types=list(self.collection_spice.distinct('type'))
+        results={}
+        for key in types:
+            rows=list(self.collection_spice.find({'type':key}).sort('file_date', -1).limit(NUM_KERNEL_FILES_LIMIT))
+            if rows:
+                rows.reverse()
+                results[key]=rows
+        return results
+
 
     def insert_spice_kernel(self, filename):
         next_id = 0
@@ -584,6 +595,7 @@ class MongoDB(object):
             self.collection_time_bins.delete_many({'file_id':file_id})
         self.collection_time_bins.save(doc)
 
+    
 
     def get_quicklook_packets_of_run(self, packet_type, run):
         collection = None

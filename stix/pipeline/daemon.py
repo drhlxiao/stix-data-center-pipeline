@@ -22,7 +22,10 @@ def parser_loop():
 
 def goes_loop():
     while True:
-        gd.main()
+        try:
+            gd.main()
+        except Exception as e:
+            print(e)
         time.sleep(GOES_TIME_LOOP)
 
 
