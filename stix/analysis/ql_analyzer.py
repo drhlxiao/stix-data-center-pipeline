@@ -36,9 +36,6 @@ class QLAnalyzer(object):
     @classmethod
     def parse(cls, packets):
         pass
-
-
-
 class LightCurveAnalyzer(QLAnalyzer):
     @classmethod
     def parse(cls, packets, exclude_duplicated=True):
@@ -61,8 +58,6 @@ class LightCurveAnalyzer(QLAnalyzer):
             if start_scet<=last_time and exclude_duplicated:
                 continue
             last_time=start_scet
-            
-
             int_duration = (packet[3].raw + 1) * 0.1
 
             detector_mask = packet[4].raw
@@ -93,26 +88,38 @@ class LightCurveAnalyzer(QLAnalyzer):
         if not lightcurves:
             return None
         return {'time': np.array(unix_time), 'lcs': {x: np.array(lightcurves[x]) for x in lightcurves},
-                'energy_bins':energy_bins,'num':len(unix_time)}
+                'energy_bins':energy_bins,'num':len(unix_time),'start_unix': unix_time[0],'end_unix':unix_time[-1]}
 
 class BackgroundReportAnalyzer(QLAnalyzer):
     @classmethod
     def parse(cls, packets):
         if not packets:
             return None
+        results=[]
         for pkt in packets:
             packet = sdt.Packet(pkt)
             if not packet.isa(QLBKG_SPID):
                 continue
-            seg_flag = packet['seg_flag']
-            fig = None
             scet_coarse = packet[1].raw
             scet_fine = packet[2].raw
-            int_duration = packet[3].raw + 1
-            compression_s = packet[5].raw
-            compression_k = packet[6].raw
-            compression_m = packet[7].raw
-            UTC = packet[7].raw
-            pass
+            start_unix=stix_datetime.scet2unix(scet_coarse, scet_fine)
+            tbin= (packet[3].raw + 1)*0.1
+            num_samples=packet[14].raw
+            samples=packet[14].children
+            for i in range(num_samples):
+                detector=samples[0+35*i][1]
+                spectra=[samples[j+35*i][2] for j in range(32)]
+                trig=samples[33+35*i][2]
+                t=start_unix+samples[34+35*i][1]*tbin#number of integrations after the first one
+                struct={
+                        'detector':detector,
+                        'spectra':spectra,
+                        'triggers':trig,
+                        'obs_time': t,
+                        'tbin':tbin,
+                        'packet_id':pkt['_id']
+                        }
+                results.push(struct)
+        return results
 
 
