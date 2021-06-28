@@ -30,8 +30,8 @@ flare_collection = db['flares']
 conf={
         'flare_min_points_above_threshold': 7,  #  peak duration must be greater than 28 seconds, used to determine energy range upper limit,
         'L4':{
-            'time_margin':  [-300,600],
-            'group_max_merging_time_gap': 6500,
+            'time_margin':  [-600,600],
+            'group_max_merging_time_gap': 2*3600,
             'flare_min_peak_counts': 300,
             },
         'L1':{
@@ -53,7 +53,6 @@ def create_requests(flare_docs):
             continue
         form = create_l1_request(doc)
         forms.append(form)
-
     l4_forms = create_l4_groups(flares)
     forms.extend(l4_forms)
 
@@ -216,6 +215,7 @@ def create_template(flare_ids,
         'hidden': False,
         'run_id': run_ids,
         'status': 0,
+        'priority': 1,
         "eunit": str(eunit),
         '_id': current_id,
         "description": f"{level_name} data request for {subject}",

@@ -150,6 +150,11 @@ class Packet(object):
             self._header = copy_object(a, deep_copy)
             if isinstance(b, list):
                 self._parameters = copy_object(b, deep_copy)
+    def is_valid(self):
+        if self._header and self._parameters:
+            return True
+        return False
+
 
     def get_raw_length(self):
         if not self._header:

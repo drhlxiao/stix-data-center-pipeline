@@ -9,6 +9,8 @@ try:
     collection_data_request_forms= db['bsd_req_forms']
     collection_fits= db['fits']
     collection_goes= db['goes']
+    collection_qllc= db['ql_lightcurves']
+    collection_qlspec= db['ql_spectra']
     print('creating indexes for goes')
     indexes=[[('start_unix',1)],[('stop_unix',1)]]
 
@@ -31,6 +33,15 @@ try:
         indexes=[[('stop_unix_time',1)],[('start_unix_time',1)],[('SPID',1)]]
         for index in indexes:
             collection_ql.create_index(index)
+
+    if collection_qllc:
+        indexes=[[('stop_unix_time',1)],[('start_unix_time',1)],[('run_id',1)]]
+        for index in indexes:
+            collection_qllc.create_index(index)
+    if collection_qlspec:
+        indexes=[[('obs_time',1)]]
+        for index in indexes:
+            collection_qlspec.create_index(index)
 
 
     print('creating indexes for packets')

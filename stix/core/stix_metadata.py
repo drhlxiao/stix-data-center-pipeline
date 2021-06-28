@@ -21,13 +21,14 @@ DATA_REQUEST_REPORT_NAME = {
     54125: 'ASP'
 }
 QL_REPORT_SPIDS = [54118, 54119, 54121, 54120, 54122]
+EBINS = [0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 25, 28, 32, 36, 40, 45, 50, 56, 63, 70, 76, 84, 100, 120, 150, 'Emax']
 
 
 class StixScienceReportAnalyzer(object):
     def __init__(self, db):
         self.calibration_analyzer = StixCalibrationReportAnalyzer(
             db['calibration_runs'])
-        self.ql_analyzer = StixQuickLookReportAnalyzer(db['quick_look'])
+        self.ql_analyzer = StixQuickLookReportAnalyzer(db)
         self.user_request_analyzer = StixUserDataRequestReportAnalyzer(db)
 
     def start(self, run_id, packet_id, packet):
@@ -176,20 +177,117 @@ class StixQuickLookReportAnalyzer(object):
     capture quicklook reports and fill packet information into a MongoDB collection
 
     """
-    def __init__(self, collection):
-        self.db_collection = collection
+    def __init__(self, db):
+        self.stix_db=db
+        self.qlspec_db=db.get_collection('ql_spectra')
+        self.qllc_db=db.get_collection('ql_lightcurves')
+        self.ql_db_collection = db.get_collection('quick_look')
         self.report = None
         try:
-            self.current_report_id = self.db_collection.find().sort(
+            self.current_report_id = self.ql_db_collection.find().sort(
                 '_id', -1).limit(1)[0]['_id'] + 1
         except IndexError:
             self.current_report_id = 0
+    def get_qllc_energy_bins(self, emask):
+        ebins=[]
+        for i in range(32):
+            if emask & (1 << i) != 0:
+                ebins.append(i);
+        names=[]
+        sci_edges=[]
+        for i in range(len(ebins) - 1):
+            begin = ebins[i]
+            end = ebins[i + 1]
+            sci_edges.append([begin,end])
+            if end == 32:
+                names.append(f'{EBINS[begin]} keV –⁠ Emax')
+            elif end < 32:
+                names.append(f'{EBINS[begin]}  – {EBINS[end]} keV')
+            else:
+                names.append('')
+        return {'names':names, 'sci_bin_edges':sci_edges}
+
+    def write_qllc_to_db(self, packet, run_id, packet_id):
+        lightcurves = {}
+        unix_time = []
+        energy_bins={}
+        last_time=0
+        if not isinstance(packet, sdt.Packet):
+            packet = sdt.Packet(packet)
+        if not packet.isa(54118) or not packet.is_valid():
+            return
+
+        scet_coarse = packet[1].raw
+        scet_fine = packet[2].raw
+        start_scet = scet_coarse + scet_fine / 65536.
+        int_duration = (packet[3].raw + 1) * 0.1
+        detector_mask = packet[4].raw
+        pixel_mask = packet[6].raw
+        num_lc = packet[17].raw
+        compression_s = packet[8].raw
+        compression_k = packet[9].raw
+        compression_m = packet[10].raw
+        if not energy_bins:
+            energy_bin_mask= packet[16].raw
+            energy_bins=self.get_qllc_energy_bins(energy_bin_mask)
+        num_lc_points = packet.get('NIX00270/NIX00271')[0]
+        lc = packet.get('NIX00270/NIX00271/*.eng')[0]
+        rcr = packet.get('NIX00275/*.raw')
+        trig= packet.get('NIX00273/*.raw')
+        UTC = packet['header']['UTC']
+        for i in range(len(lc)):
+            if i not in lightcurves:
+                lightcurves[str(i)] = []
+            lightcurves[str(i)].extend(lc[i])
+        unix_time.extend([
+            stix_datetime.scet2unix(start_scet + x * int_duration)
+            for x in range(num_lc_points[0])
+        ])
+
+        if not lightcurves:
+            return 
+        doc={'run_id':run_id, 'packet_id':packet_id, 'time': unix_time, 'lightcurves': lightcurves,'rcr':rcr,'trig':trig,
+                'energy_bins':energy_bins,'num':len(unix_time),'start_unix': unix_time[0],'end_unix':unix_time[-1]}
+        self.qllc_db.save(doc)
+
+    def write_ql_spec_to_db(self, packet, run_id, packet_id):
+        #write ql spectra to ql_spectra database
+        if not isinstance(packet, sdt.Packet):
+            packet=sdt.Packet(packet)
+        if not packet.isa(54120) or not packet.is_valid():
+            return
+
+        scet_coarse = packet[1].raw
+        scet_fine = packet[2].raw
+        start_unix=stix_datetime.scet2unix(scet_coarse, scet_fine)
+        tbin= (packet[3].raw + 1)*0.1
+        num_samples=packet[14].raw
+        samples=packet[14].children
+        for i in range(num_samples):
+            start_i=35*i
+            detector=samples[start_i][1]
+            spectra=[samples[1+j+start_i][2] for j in range(32)]
+            trig=samples[33+start_i][2]
+            t=start_unix+samples[34+start_i][1]*tbin#number of integrations after the first one
+            doc={'detector':detector,
+                 'spectra':spectra,
+                 'triggers':trig,
+                 'run_id':run_id,
+                 'obs_time': t,
+                 'tbin':tbin,
+                 'packet_id':packet_id
+                }
+            self.qlspec_db.save(doc)
+
 
     def capture(self, run_id, packet_id, pkt):
-        if not self.db_collection:
+        if not self.ql_db_collection:
             return
         packet = sdt.Packet(pkt)
+
         if packet.SPID not in QL_REPORT_SPIDS:
+            return
+        if not packet.is_valid():
             return
 
         start_coarse_time = 0
@@ -209,12 +307,21 @@ class StixQuickLookReportAnalyzer(object):
             #detector_mask = packet[4].raw
             #pixel_mask = packet[6].raw
             points = packet.get('NIX00270/NIX00271')[0][0]
+            try:
+                self.write_qllc_to_db(packet, run_id,packet_id)
+            except Exception as e: #in case a broken packet
+                raise
+                print(str(e))
         elif packet.SPID == 54119:
             points = packet[15].raw
         elif packet.SPID == 54121:
             points = packet[13].raw
         elif packet.SPID == 54120:
             points = packet[14].raw
+            try:
+                self.write_ql_spec_to_db(packet, run_id,packet_id)
+            except TypeError or IndexError: #in case a broken packet
+                pass
         elif packet.SPID == 54122:
             points = packet[4].raw
             #flare flag report
@@ -238,7 +345,7 @@ class StixQuickLookReportAnalyzer(object):
             #'detector_mask': detector_mask,
             #'pixel_mask': pixel_mask
         }
-        self.db_collection.insert_one(report)
+        self.ql_db_collection.insert_one(report)
         self.current_report_id += 1
 
 
@@ -249,6 +356,7 @@ class StixUserDataRequestReportAnalyzer(object):
         self.last_unique_id = -1
         self.last_request_spid = -1
         self.packet_ids = []
+        self.has_first_packet=False
         self.start_time = 0
         self.stop_time = 0
         try:
@@ -287,6 +395,7 @@ class StixUserDataRequestReportAnalyzer(object):
             return
         if packet['seg_flag'] in [1, 3]:  #first or standalone
             self.packet_ids = []
+            self.has_first_packet=True
         self.packet_ids.append(packet_id)
 
         if packet['seg_flag'] in [2, 3]:
@@ -297,6 +406,7 @@ class StixUserDataRequestReportAnalyzer(object):
                     'start_unix_time': stix_datetime.scet2unix(start),
                     'start_scet': start,
                     'unique_id': unique_id,
+                    'is_complete':self.has_first_packet,
                     'packet_ids': self.packet_ids,
                     'run_id': run_id,
                     'SPID': packet['SPID'],
@@ -316,7 +426,10 @@ class StixUserDataRequestReportAnalyzer(object):
 
                 self.db.insert_one(report)
                 self.current_id += 1
+                self.has_first_packet=False
                 self.packet_ids = []
+                
+
 
         self.last_unique_id = unique_id
         self.last_request_spid = packet['SPID']

@@ -62,6 +62,8 @@ class MongoDB(object):
             self.collection_spice = self.db['spice']
             self.collection_time_bins= self.db['time_bins']
             self.collection_aspect_solutions= self.db['aspect_solutions']
+            self.collection_qlspectra=self.db['ql_spectra']
+            self.collection_qllc=self.db['ql_lightcurves']
 
         except Exception as e:
             print('Error occurred while initializing mongodb: {}'.format(
@@ -234,6 +236,10 @@ class MongoDB(object):
 
         if self.collection_time_bins:
             self.collection_time_bins.delete_many({'file_id': int(run_id)})
+        if self.collection_qlspectra:
+            self.collection_qlspectra.delete_many({'run_id': int(run_id)})
+        if self.collection_qllc:
+            self.collection_qllc.delete_many({'run_id': int(run_id)})
 
     def delete_runs(self, runs):
         for run in runs:

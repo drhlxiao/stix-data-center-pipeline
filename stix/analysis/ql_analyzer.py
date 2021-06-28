@@ -1,13 +1,12 @@
 import os
 import sys
-
 import numpy as np
 from datetime import datetime
 from stix.spice import stix_datetime
 from stix.core import stix_datatypes as sdt
 
 QLLC_SPID = 54118
-QLBKG_SPID= 54119
+QLBKG_SPID= 54120
 
 EBINS = [0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 25, 28, 32, 36, 40, 45, 50, 56, 63, 70, 76, 84, 100, 120, 150, 'Emax']
 def get_energy_bins(emask):
