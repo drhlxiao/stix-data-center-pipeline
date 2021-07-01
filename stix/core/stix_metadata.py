@@ -181,6 +181,7 @@ class StixQuickLookReportAnalyzer(object):
         self.stix_db=db
         self.qlspec_db=db.get_collection('ql_spectra')
         self.qllc_db=db.get_collection('ql_lightcurves')
+        self.qlloc_db=db.get_collection('ql_flarelocations')
         self.ql_db_collection = db.get_collection('quick_look')
         self.report = None
         try:
@@ -278,7 +279,38 @@ class StixQuickLookReportAnalyzer(object):
                  'packet_id':packet_id
                 }
             self.qlspec_db.save(doc)
-
+    def write_ql_flare_loc_to_db(self, packet, run_id, packet_id):
+        #write ql spectra to ql_spectra database
+        if not isinstance(packet, sdt.Packet):
+            packet=sdt.Packet(packet)
+        if not packet.isa(54122) or not packet.is_valid():
+            return
+        scet_coarse = packet[1].raw
+        scet_fine = packet[2].raw
+        start_unix=stix_datetime.scet2unix(scet_coarse, scet_fine)
+        tbin= (packet[3].raw + 1)*0.1
+        num_samples=packet[4].raw
+        samples=packet[4].children
+        #parameters=['NIX00283','NIX00284','NIXD0060','NIXD0061']
+        for i in range(num_samples):
+            offset=i*7
+            locz=samples[offset+5][1]
+            locy=samples[offset+6][1]
+            if locz==0 and locy==0:
+                continue
+            non_thermal_index=samples[offset+3][1]
+            thermal_index=samples[offset+4][1]
+            
+            doc={
+                 'locz':locz,
+                 'locy':locy,
+                 'nonthermal_index':non_thermal_index,
+                 'thermal_index':thermal_index,
+                 'run_id':run_id,
+                 'obs_time': start_unix+i*tbin,
+                 'packet_id':packet_id
+                }
+            self.qlloc_db.save(doc)
 
     def capture(self, run_id, packet_id, pkt):
         if not self.ql_db_collection:
@@ -324,6 +356,7 @@ class StixQuickLookReportAnalyzer(object):
                 pass
         elif packet.SPID == 54122:
             points = packet[4].raw
+            self.write_ql_flare_loc_to_db(packet, run_id,packet_id)
             #flare flag report
 
         duration = points * 0.1 * (integrations + 1)

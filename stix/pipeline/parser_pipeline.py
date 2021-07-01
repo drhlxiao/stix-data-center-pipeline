@@ -199,6 +199,8 @@ def main():
         for pattern in selectors:
             filenames=glob.glob(pattern)
             for filename in filenames:
+                if os.path.getsize(filename)==0:
+                    continue
                 file_id=MDB.get_file_id(filename)
                 if file_id == -2 :
                     if instrument not in filelist:

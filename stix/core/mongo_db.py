@@ -64,6 +64,7 @@ class MongoDB(object):
             self.collection_aspect_solutions= self.db['aspect_solutions']
             self.collection_qlspectra=self.db['ql_spectra']
             self.collection_qllc=self.db['ql_lightcurves']
+            self.collection_qloc=self.db['ql_flarelocations']
 
         except Exception as e:
             print('Error occurred while initializing mongodb: {}'.format(
