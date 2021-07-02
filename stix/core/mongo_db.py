@@ -586,7 +586,7 @@ class MongoDB(object):
         except:
             return None
 
-    def insert_notification(self, doc, is_sent=False):
+    def insert_notification(self, doc):
         next_id = 0
         try:
             next_id = self.collection_notifications.find({}).sort(
@@ -594,8 +594,13 @@ class MongoDB(object):
         except IndexError:
             pass
         doc['_id'] = next_id
-        doc['is_sent'] = is_sent
         self.collection_notifications.save(doc)
+        return next_id
+    def release_notifications(self, ids):
+        if ids:
+            self.collection_notifications.update_many({'_id':{'$in':ids}},{'$set':{'released':True}})
+
+
     def insert_time_bins(self,doc, delete_existing):
         file_id=doc['file_id']
         if delete_existing:
