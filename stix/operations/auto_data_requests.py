@@ -6,11 +6,8 @@ import os
 import math
 import csv
 from datetime import datetime
-from stix.core import stix_datatypes as sdt
 from stix.spice import stix_datetime
 from stix.core import mongo_db as db
-from stix.core import stix_logger
-from stix.core import config
 mdb = db.MongoDB()
 DATA_LEVEL_NAMES = {
     0: 'L0',
@@ -23,7 +20,6 @@ DATA_LEVEL_NAMES = {
 EMAX_MAP = [8, 13, 17, 23,
             28]  # emax if there are prominence the corresponding lightcurve
 
-logger = stix_logger.get_logger()
 db = mdb.get_db()
 bsd_form = db['bsd_req_forms']
 flare_collection = db['flares']
