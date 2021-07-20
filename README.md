@@ -1,5 +1,5 @@
 
-## STIX data analysis package
+## Data processing pipeline for The Spectrometer/Telescope for Imaging X-rays (STIX) onboard Solar Orbiter
 
 This package includes STIX raw data parser, ior reader, data parser Qt GUI, calibration data processing code, and STIX pipeline data processing code. 
 
