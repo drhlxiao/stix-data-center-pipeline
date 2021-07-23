@@ -87,11 +87,11 @@ def main():
 
 def format_comment(stype,comment):
     content=""
-    if stype.rstrip() is not "": 
+    if stype.rstrip() != "": 
         content=content+stype.rstrip()
-    if content!="":
+    if content != "":
         content=content+','
-    if comment.rstrip() is not "":
+    if comment.rstrip() != "":
         content=content+comment.rstrip()
 
     return content

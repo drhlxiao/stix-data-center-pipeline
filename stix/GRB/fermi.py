@@ -46,28 +46,31 @@ def parse_rows(rows):
 
     for row in rows:
         table_data = row.find_all('td')
-        if len(table_data)>7:
-            trigid=table_data[0].get_text()
-            if nn>10:
-                break
-
+        if True:
             try:
+                trigid=table_data[0].get_text()
                 logging.info(trigid)
+
                 imgurl=''
                 gdate=table_data[1].get_text()
                 gtime=table_data[2].get_text()
                 da=datetime.strptime(gdate,'%y/%m/%d')
-                if da < datetime.now()-timedelta(days=180):
-                    continue
+                #if da < datetime.now()-timedelta(days=360):
+                #    continue
                 gdatetime=da.strftime("%Y-%m-%d")+" "+gtime
+                print(gdatetime)
 
                 ra=table_data[4].get_text()
                 dec=table_data[5].get_text()
                 msg=insert_database(trigid, gdatetime, ra, dec,imgurl)
+
+                #ut=dtparser.parse(gdatetime).timestamp()
+                #start=int(ut)-900
+                #url=f'https://pub023.cs.technik.fhnw.ch/view/plot/lightcurves?start={start}&span=1800'
+                #urls.append([url,row[1],row[0]])
                 nn=nn+1
 
             except Exception as e:
-                raise
                 print(e)
 
 
@@ -95,6 +98,7 @@ def main():
     except AttributeError as e:
         logging.info('No table rows found, exiting')
         return 1
+    print("RUNS:",len(rows))
 
     table_data = parse_rows(rows)
 

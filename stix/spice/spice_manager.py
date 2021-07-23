@@ -38,12 +38,13 @@ class SpiceManager:
         for kernel_type,kernels in latest_kernels.items():
             for kernel in kernels:
                 fname=os.path.join(kernel['path'],kernel['filename'])
+                #print(f'Loading {fname}')
                 try:
                     spiceypy.furnsh(fname)
                     if 'sclk' in fname:
                         self.last_sclk_file=fname
                 except spiceypy.utils.exceptions.SpiceNOSUCHFILE:
-                    #print(f'Failed to load {fname}')
+                    print(f'Failed to load {fname}')
                     pass
 
         

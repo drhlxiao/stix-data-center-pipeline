@@ -435,8 +435,9 @@ class StixUserDataRequestReportAnalyzer(object):
             #if self.last_unique_id!=unique_id or self.last_request_spid != packet['SPID']:
             #the last or standalone
             if self.db:
+                start_unix=stix_datetime.scet2unix(start)
                 report = {
-                    'start_unix_time': stix_datetime.scet2unix(start),
+                    'start_unix_time': start_unix,
                     'start_scet': start,
                     'unique_id': unique_id,
                     'is_complete':self.has_first_packet,
@@ -450,7 +451,8 @@ class StixUserDataRequestReportAnalyzer(object):
                 }
                 try:
                     req_form = self.db_bsd_forms.find_one(
-                        {'unique_ids': int(unique_id)})
+                            {'unique_ids': int(unique_id), 'hidden':False})#,'start_unix':{'$gt': start_unix-180, '$lt':start_unix+180}})
+                    #also math time
                     if req_form:
                         report['request_form'] = req_form
                 except Exception as e:

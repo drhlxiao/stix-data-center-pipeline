@@ -56,10 +56,10 @@ def get_lightcurve_data(start_utc, end_utc, sort_field='header.unix_time'):
 
 
 
-def plot_stix_lc(folder, _id, flare_id, start_utc, end_utc,  overwrite=True, peak_utc=None, light_time=0):
+def plot_stix_lc(folder, _id, event_name, start_utc, end_utc,  overwrite=True, peak_utc=None, light_time=0,event_type="Flare #"):
     key='stixlc'
     if  mdb.get_flare_joint_obs(_id, key) and overwrite == False:
-        print(f'Flare {flare_id} STIX LCs were not created!')
+        print(f'{event_type}{event_name} STIX LCs were not created!')
         return 
     data=get_lightcurve_data(start_utc, end_utc)
     if data['num']==0:
@@ -78,9 +78,9 @@ def plot_stix_lc(folder, _id, flare_id, start_utc, end_utc,  overwrite=True, pea
 
     plt.xlabel(f'S/C UTC + {light_time:.02f} s')
     plt.ylabel('Counts / 4 s')
-    title=f'STIX QL LCs (Flare #{flare_id})'
+    title=f'STIX QL LCs ({event_type}{event_name})'
     plt.title(title)
-    filename = os.path.join(folder, f'stix_flare_ql_lc_{_id}_{flare_id}.png')
+    filename = os.path.join(folder, f'stix_ql_lc_{_id}_{event_name}.png')
     fig.tight_layout()
     plt.yscale('log')
     plt.legend(loc='upper right')

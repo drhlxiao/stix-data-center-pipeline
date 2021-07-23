@@ -202,13 +202,16 @@ class MongoDB(object):
             return cursor
         return []
 
-    def delete_one_run(self, run_id):
+    def delete_one_run(self, run_id, keep_raw=False):
         run_id = int(run_id)
         if self.collection_packets:
             cursor = self.collection_packets.delete_many({'run_id': run_id})
 
         if self.collection_raw_files:
-            cursor = self.collection_raw_files.delete_many({'_id': run_id})
+            if keep_raw:
+                cursor = self.collection_raw_files.update_one({'_id': run_id},{'$set':{'hidden':True}})
+            else:
+                cursor = self.collection_raw_files.delete_many({'_id': run_id})
 
         if self.collection_calibration:
             cursor = self.collection_calibration.delete_many(
@@ -242,9 +245,9 @@ class MongoDB(object):
         if self.collection_qllc:
             self.collection_qllc.delete_many({'run_id': int(run_id)})
 
-    def delete_runs(self, runs):
+    def delete_runs(self, runs, keep_raw=False):
         for run in runs:
-            self.delete_one_run(run)
+            self.delete_one_run(run, keep_raw)
 
     def select_packets_by_run(self,
                               run_id,

@@ -61,14 +61,15 @@ def parse_rows(rows):
                     ra=table_data[3].get_text()
                     dec=table_data[4].get_text()
                     item=table_data[11]
-                    for link in item.find_all('a'):
-                        imgurl="http://gcn.gsfc.nasa.gov/"+link.get('href')
-                        if "jpeg" in imgurl:
-                            msg=insert_database(trigid,gdatetime,ra,dec,imgurl)
-                            nn=nn+1
-                            break
-                except:
-                    continue
+                    #for link in item.find_all('a'):
+                    #    imgurl="http://gcn.gsfc.nasa.gov/"+link.get('href')
+                    #    if "jpeg" in imgurl:
+                    imgurl=''
+                    msg=insert_database(trigid,gdatetime,ra,dec,imgurl)
+                    nn=nn+1
+                except Exception as e:
+                    print(e)
+                    pass
 
 
 def main():

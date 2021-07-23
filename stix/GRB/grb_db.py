@@ -47,8 +47,13 @@ def fetchall(sql):
 def main():
     sql='select start_utc, name  from  burst_events'
     rows=fetchall(sql)
+    urls=[]
     for row in rows:
         ut=dtparser.parse(row[0]).timestamp()
-        print(ut)
+        start=int(ut)-900
+        url=f'https://pub023.cs.technik.fhnw.ch/view/plot/lightcurves?start={start}&span=1800'
+        urls.append([url,row[1],row[0]])
+    for row in urls:
+        print(f'<a href="{row[0]}"> {row[1]} | {row[2]}</a><br>')
 if __name__=='__main__':
     main()

@@ -11,8 +11,10 @@ def delete_one(start_run, end_run=-1):
     print('runs to delete:{}'.format(str(runs)))
     ret=input('Are you sure to delete them ? Y/N: ')
     if ret=='Y':
+        ans=input('Keep raw file and delete the reset? Y/N: ')
+        keep_raw=False if ans=='N' else True
         mdb = mongo_db.MongoDB()
-        mdb.delete_runs(runs)
+        mdb.delete_runs(runs, keep_raw)
         print('deleted')
 
 
