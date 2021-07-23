@@ -32,7 +32,7 @@ def download_file(url: str, desc: str, progress_bar=True,filename=None):
     if filename is None:
         f = NamedTemporaryFile(delete=False, suffix=".fits")
     else:
-        f=open(filename)
+        f=open(filename,'wb')
     stream=progress_bar
     resp = requests.get(url, stream=stream)
     if not progress_bar:
@@ -87,7 +87,7 @@ def download(start_utc, stop_utc, fits_type='lc', progress_bar=True, filename=No
     url = pattern.format(start_utc=start_utc,
                          stop_utc=stop_utc,
                          fits_type=fits_type)
-    temp_file = download_file(url, 'Fetching data', progress_bar, filename)
-    return temp_file
+    save_fname = download_file(url, 'Fetching data', progress_bar, filename)
+    return save_fname 
 
 #search('2020-05-01T00:00:00','2020-05-01T01:00:00','hkmax')
