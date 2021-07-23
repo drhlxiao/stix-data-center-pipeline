@@ -56,7 +56,7 @@ def get_lightcurve_data(start_utc, end_utc, sort_field='header.unix_time'):
 
 
 
-def plot_stix_lc(folder, _id, event_name, start_utc, end_utc,  overwrite=True, peak_utc=None, light_time=0,event_type="Flare #"):
+def plot_stix_lc(folder, _id, event_name, start_utc, end_utc,  overwrite=True, peak_utc=None, light_time=0, event_type="Flare #"):
     key='stixlc'
     if  mdb.get_flare_joint_obs(_id, key) and overwrite == False:
         print(f'{event_type}{event_name} STIX LCs were not created!')

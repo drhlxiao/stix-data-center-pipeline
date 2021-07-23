@@ -31,7 +31,7 @@ def main():
         eu=stix_datetime.unix2utc(end)
         print(row)
         try:
-            stl.plot_stix_lc('LC_GRBs', 0, f'{row[0]}_{row[1]}', su, eu, True)
+            stl.plot_stix_lc('LC_GRBs', 0, f'{row[0]}_{row[1]}', su, eu, True, event_type=' ')
         except Exception as e:
             print(str(e))
 
