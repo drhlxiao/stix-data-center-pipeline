@@ -65,7 +65,7 @@ def plot_stix_lc(folder, _id, event_name, start_utc, end_utc,  overwrite=True, p
     if data['num']==0:
         print('No LC data')
         return
-    earth_dt = [datetime.fromtimestamp(x+light_time) for x in  data['time']]
+    earth_dt = [stix_datetime.unix2datetime(x+light_time) for x in  data['time']]
 
     fig, ax = plt.subplots()
     for i,lc in data['lcs'].items():
@@ -81,9 +81,9 @@ def plot_stix_lc(folder, _id, event_name, start_utc, end_utc,  overwrite=True, p
     title=f'STIX QL LCs ({event_type}{event_name})'
     plt.title(title)
     filename = os.path.join(folder, f'stix_ql_lc_{_id}_{event_name}.png')
-    fig.tight_layout()
     plt.yscale('log')
-    plt.legend(loc='upper right')
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    fig.tight_layout()
     plt.savefig(filename, dpi=100)
     print(filename)
     mdb.update_flare_joint_obs(_id, key, [filename])
