@@ -19,6 +19,7 @@ MDB=mongo_db.MongoDB()
 loaded_kernels=[]
 
 
+
 # SOLAR ORBITER naif identifier
 class SpiceManager:
     """taken from https://issues.cosmos.esa.int/solarorbiterwiki/display/SOSP/Translate+from+OBT+to+UTC+and+back
@@ -29,6 +30,7 @@ class SpiceManager:
         self.refresh_kernels()
         
     def refresh_kernels(self):
+        
         for pattern in config.get_spice():
             for fname in glob.glob(pattern):
                 if fname not in self.loaded_kernels:
@@ -38,7 +40,7 @@ class SpiceManager:
         for kernel_type,kernels in latest_kernels.items():
             for kernel in kernels:
                 fname=os.path.join(kernel['path'],kernel['filename'])
-                #print(f'Loading {fname}')
+                print(f'Loading type {kernel_type}: {fname}')
                 try:
                     spiceypy.furnsh(fname)
                     if 'sclk' in fname:

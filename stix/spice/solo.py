@@ -10,7 +10,8 @@ from stix.spice import stix_datetime
 from stix.utils import bson
 
 from stix.spice.spice_manager import spice as spice_manager
-solo_spice_min_datetime = stix_datetime.utc2datetime('2020-02-10T05:00:00Z')
+
+solo_spice_min_unix= stix_datetime.utc2unix('2020-02-10T05:00:00Z')
 
 
 def compute_earth_sun_so_angle(solo_positions):
@@ -26,6 +27,11 @@ def compute_earth_sun_so_angle(solo_positions):
         [np.dot(v1, v2) for v1, v2 in zip(vec_earth_sun, vec_solo_sun)])
     return np.degrees(np.arccos(product / mag))
 
+def get_sun_earth_light_time(obstime):
+    dt=stix_datetime.utc2datetime(obstime)
+    et=spice.datetime2et(dt)
+    [state, ltime] = spice.spkezr( 'Earth', et,      'J2000', 'LT+S',   'Sun')
+    return ltime
 
 def get_solo_ephemeris(start_utc,
                        end_utc,
@@ -43,30 +49,22 @@ def get_solo_ephemeris(start_utc,
         orbit data which is a python dictionary
     '''
     orbiter = hsp.Trajectory('Solar Orbiter')
-    starttime = stix_datetime.utc2datetime(start_utc)
+    #starttime = stix_datetime.utc2datetime(start_utc)
+    start_unix=stix_datetime.utc2unix(start_utc)
+    end_unix=stix_datetime.utc2unix(start_utc)
+    if start_unix< solo_spice_min_unix:
+        start_unix= solo_spice_min_unix
 
-    if starttime < solo_spice_min_datetime:
-        starttime = solo_spice_min_datetime
-    endtime = stix_datetime.utc2datetime(end_utc)
-    if endtime < starttime:
-        endtime = starttime
+    if end_unix<start_unix:
+        end_unix=start_unix
 
+    ut_space=np.linspace(start_unix, end_unix, num_steps)
     times = []
     utc_times = []
-    span = endtime - starttime
-
-    step_seconds = span.total_seconds() / num_steps
-    step = timedelta(minutes=1)
-    m, s = divmod(step_seconds, 60)
-    h, m = divmod(m, 60)
-    d, h = divmod(h, 24)
-    if d > 0 or h > 0 or m > 0:
-        step = timedelta(days=d, hours=h, minutes=m)
-
-    while starttime <= endtime:
-        times.append(starttime)
-        utc_times.append(starttime.strftime("%Y-%m-%dT%H:%M:%SZ"))
-        starttime += timedelta(days=1)
+    for t in ut_space:
+        dt=stix_datetime.unix2datetime(t)
+        times.append(dt)
+        utc_times.append(dt.strftime("%Y-%m-%dT%H:%M:%SZ"))
     result = {}
     try:
         orbiter.generate_positions(times, observer, frame)
@@ -74,14 +72,15 @@ def get_solo_ephemeris(start_utc,
         dist_to_earth = np.sqrt((orbiter.x.value + 1)**2 + orbiter.y.value**2 +
                                 orbiter.z.value**2)  #distance to earth
         light_time = (dist_to_earth * u.au).to(u.m) / const.c
-        time_to_earth = (1 * u.au).to(u.m) / const.c
+        #time_to_earth = (1 * u.au).to(u.m) / const.c
+        time_to_earth = get_sun_earth_light_time(start_utc)
         time_to_solo = orbiter.r.to(u.m) / const.c
         sun_open_angle=const.R_sun.to(u.m)/orbiter.r.to(u.m)
 
         
         sun_angular_diameter_arcmin=np.degrees(np.arctan(sun_open_angle.value))*60.*2
 
-        lt_diff = time_to_earth.value - time_to_solo.value
+        lt_diff = time_to_earth- time_to_solo.value
 
         earth_sun_solo_angles = compute_earth_sun_so_angle(orbiter)
         elevation= np.degrees(np.arctan2(orbiter.z.value, orbiter.r.value))
@@ -107,6 +106,7 @@ def get_solo_ephemeris(start_utc,
             'elevation': elevation,
         }
     except Exception as e:
+        raise
         result = {'error': str(e)}
     if return_json:
         return bson.dict_to_json(result)
