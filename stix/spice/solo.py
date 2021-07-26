@@ -51,7 +51,7 @@ def get_solo_ephemeris(start_utc,
     orbiter = hsp.Trajectory('Solar Orbiter')
     #starttime = stix_datetime.utc2datetime(start_utc)
     start_unix=stix_datetime.utc2unix(start_utc)
-    end_unix=stix_datetime.utc2unix(start_utc)
+    end_unix=stix_datetime.utc2unix(end_utc)
     if start_unix< solo_spice_min_unix:
         start_unix= solo_spice_min_unix
 
