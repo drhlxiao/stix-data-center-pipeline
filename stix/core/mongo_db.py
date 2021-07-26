@@ -518,12 +518,17 @@ class MongoDB(object):
         types=list(self.collection_spice.distinct('type'))
         results={}
         for key in types:
-            rows=list(self.collection_spice.find({'type':key}).sort('file_date', -1).limit(NUM_KERNEL_FILES_LIMIT))
+            num=1 if key in ['sclk','spk'] else NUM_KERNEL_FILES_LIMIT
+            if key=='spk': #load the kernel with the max counter number
+                rows=list(self.collection_spice.find({'type':key}).sort('counter', -1).limit(num))
+            else:
+                #only load one for sclk
+                rows=list(self.collection_spice.find({'type':key}).sort('file_date', -1).limit(num))
+
             if rows:
                 rows.reverse()
                 results[key]=rows
         return results
-
 
     def insert_spice_kernel(self, filename):
         next_id = 0
@@ -534,6 +539,27 @@ class MongoDB(object):
         fdate = re.findall(r"\d{4}\d{2}\d{2}", filename)
         date_str = fdate[0] if fdate else '19700101'
         doc['file_date'] = datetime.strptime(date_str, "%Y%m%d")
+        if 'orbit' in filename:
+            ver=re.findall(r"_V(\d)_", filename)
+            ver2=re.findall(r"_V(\d{2})_", filename)
+            ltp=re.findall(r"_L(\d{3})_", filename)
+            counter=re.findall(r"_(\d{5})_", filename)
+            try:
+                doc['LTP']=int(ltp[0])
+            except:
+               pass
+            try:
+                doc['version']=int(ver[0])
+            except:
+                pass
+            try:
+                doc['version2']=int(ver2[0])
+            except:
+                pass
+            try:
+                doc['counter']=int(counter[0])
+            except:
+                pass
 
         doc['path'] = pfilename.parent.as_posix()
         doc['filename'] = pfilename.name

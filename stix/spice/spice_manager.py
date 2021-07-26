@@ -19,7 +19,6 @@ MDB=mongo_db.MongoDB()
 loaded_kernels=[]
 
 
-
 # SOLAR ORBITER naif identifier
 class SpiceManager:
     """taken from https://issues.cosmos.esa.int/solarorbiterwiki/display/SOSP/Translate+from+OBT+to+UTC+and+back
