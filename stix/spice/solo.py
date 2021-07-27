@@ -73,14 +73,15 @@ def get_solo_ephemeris(start_utc,
                                 orbiter.z.value**2)  #distance to earth
         light_time = (dist_to_earth * u.au).to(u.m) / const.c
         #time_to_earth = (1 * u.au).to(u.m) / const.c
-        time_to_earth = get_sun_earth_light_time(start_utc)
+        #time_to_earth = get_sun_earth_light_time(start_utc)
         time_to_solo = orbiter.r.to(u.m) / const.c
         sun_open_angle=const.R_sun.to(u.m)/orbiter.r.to(u.m)
 
         
         sun_angular_diameter_arcmin=np.degrees(np.arctan(sun_open_angle.value))*60.*2
 
-        lt_diff = time_to_earth- time_to_solo.value
+        sun_earth_ltime= [get_sun_earth_light_time(utc)  for utc in utc_times]
+        lt_diff = np.array(sun_earth_ltime) - time_to_solo.value
 
         earth_sun_solo_angles = compute_earth_sun_so_angle(orbiter)
         elevation= np.degrees(np.arctan2(orbiter.z.value, orbiter.r.value))
@@ -100,6 +101,7 @@ def get_solo_ephemeris(start_utc,
             'earth_solo_r': dist_to_earth,
             'speed': orbiter.speed.value,
             'owlt': light_time.value,
+            'sun_earth_ltime':sun_earth_ltime,
             'light_time_diff': lt_diff,
             'earth_sun_solo_angle': earth_sun_solo_angles,
             'sun_angular_diameter':sun_angular_diameter_arcmin,

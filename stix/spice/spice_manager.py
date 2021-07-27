@@ -3,6 +3,7 @@
 import re
 import os
 import glob
+from pathlib import Path
 from datetime import datetime
 from dateutil import parser as dtparser
 from astropy.time import Time
@@ -12,10 +13,12 @@ from stix.core import stix_logger
 from stix.core import config
 from stix.core import mongo_db 
 
+NUM_KERNEL_FILES_LIMIT=10
+
 logger = stix_logger.get_logger()
 
-MDB=mongo_db.MongoDB()
-
+mdb=mongo_db.MongoDB()
+collection_spice=mdb.get_collection('spice')
 loaded_kernels=[]
 
 
@@ -34,8 +37,8 @@ class SpiceManager:
             for fname in glob.glob(pattern):
                 if fname not in self.loaded_kernels:
                     self.loaded_kernels.append(fname)
-                    MDB.insert_spice_kernel(fname)
-        latest_kernels=MDB.get_latest_spice_kernels()
+                    self.insert_spice_kernel(fname)
+        latest_kernels=self.get_latest_spice_kernels()
         for kernel_type,kernels in latest_kernels.items():
             for kernel in kernels:
                 fname=os.path.join(kernel['path'],kernel['filename'])
@@ -48,6 +51,65 @@ class SpiceManager:
                     print(f'Failed to load {fname}')
                     pass
 
+    def get_latest_spice_kernels(self):
+        types=list(collection_spice.distinct('type'))
+        results={}
+        for key in types:
+            num=1 if key in ['sclk','spk'] else NUM_KERNEL_FILES_LIMIT
+            sort_field='file_date' if key != 'spk' else 'counter'
+            rows=list(collection_spice.find({'type':key}).sort(sort_field, -1).limit(num))
+
+            if rows:
+                rows.reverse()
+                results[key]=rows
+        return results 
+    def get_spice_kernels(self):
+        return collection_spice.find({}).sort('file_date',1)
+
+    def insert_spice_kernel(self, filename):
+        next_id=0
+        doc={}
+        pfilename=Path(filename)
+        fdate=re.findall(r"\d{4}\d{2}\d{2}", filename)
+        date_str=fdate[0] if fdate else '19700101'
+        if 'orbit' in filename:
+            ver=re.findall(r"_V(\d)_", filename)
+            ver2=re.findall(r"_V(\d{2})_", filename)
+            ltp=re.findall(r"_L(\d{3})_", filename)
+            counter=re.findall(r"_(\d{5})_", filename)
+            try:
+                doc['LTP']=int(ltp[0])
+            except:
+               pass
+            try:
+                doc['version']=int(ver[0])
+            except:
+                pass
+            try:
+                doc['version2']=int(ver2[0])
+            except:
+                pass
+            try:
+                doc['counter']=int(counter[0])
+            except:
+                pass
+        doc['file_date']=datetime.strptime(date_str, "%Y%m%d")
+        doc['path']=pfilename.parent.as_posix()
+        doc['filename']=pfilename.name
+        doc['type']=pfilename.parent.name
+        if collection_spice:
+            is_found=collection_spice.find_one({'filename':doc['filename']})
+            if is_found:
+                return
+        try:
+            next_id=collection_spice.find({}).sort(
+                '_id', -1).limit(1)[0]['_id'] + 1
+        except IndexError:
+            pass
+
+        doc['_id']=next_id
+        doc['entry_time']=datetime.now()
+        collection_spice.save(doc)
         
 
     def get_last_sclk_filename(self):

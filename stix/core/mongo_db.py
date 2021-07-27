@@ -514,71 +514,7 @@ class MongoDB(object):
         doc['_id'] = next_id
         self.collection_qllc_statistics.save(doc)
 
-    def get_latest_spice_kernels(self):
-        types=list(self.collection_spice.distinct('type'))
-        results={}
-        for key in types:
-            num=1 if key in ['sclk','spk'] else NUM_KERNEL_FILES_LIMIT
-            if key=='spk': #load the kernel with the max counter number
-                rows=list(self.collection_spice.find({'type':key}).sort('counter', -1).limit(num))
-            else:
-                #only load one for sclk
-                rows=list(self.collection_spice.find({'type':key}).sort('file_date', -1).limit(num))
-
-            if rows:
-                rows.reverse()
-                results[key]=rows
-        return results
-
-    def insert_spice_kernel(self, filename):
-        next_id = 0
-        doc = {}
-
-        pfilename = Path(filename)
-
-        fdate = re.findall(r"\d{4}\d{2}\d{2}", filename)
-        date_str = fdate[0] if fdate else '19700101'
-        doc['file_date'] = datetime.strptime(date_str, "%Y%m%d")
-        if 'orbit' in filename:
-            ver=re.findall(r"_V(\d)_", filename)
-            ver2=re.findall(r"_V(\d{2})_", filename)
-            ltp=re.findall(r"_L(\d{3})_", filename)
-            counter=re.findall(r"_(\d{5})_", filename)
-            try:
-                doc['LTP']=int(ltp[0])
-            except:
-               pass
-            try:
-                doc['version']=int(ver[0])
-            except:
-                pass
-            try:
-                doc['version2']=int(ver2[0])
-            except:
-                pass
-            try:
-                doc['counter']=int(counter[0])
-            except:
-                pass
-
-        doc['path'] = pfilename.parent.as_posix()
-        doc['filename'] = pfilename.name
-        doc['type'] = pfilename.parent.name
-        if self.collection_spice:
-            is_found = self.collection_spice.find_one(
-                {'filename': doc['filename']})
-            if is_found:
-                return
-        try:
-            next_id = self.collection_spice.find({}).sort(
-                '_id', -1).limit(1)[0]['_id'] + 1
-        except IndexError:
-            pass
-
-        doc['_id'] = next_id
-        doc['entry_time'] = datetime.now()
-        self.collection_spice.save(doc)
-
+ 
     def get_nearest_qllc_statistics(self, start_unix, max_limit=500):
         try:
             right_closest = list(
