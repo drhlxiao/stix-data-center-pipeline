@@ -55,20 +55,8 @@ parser_config = {
             "validityPeriod": ["2020-12-28T00:00:00", "2020-12-28T00:00:00"]
         }
     },
-    'joint_obs':
-    '/data/flares/',
-    "spice": [{
-        "data": [
-            "/data/pub/data/spice/latest/kernels/lsk/naif0012.tls",
-            "/data/pub/data/spice/latest/kernels/sclk/solo_ANC_soc-sclk_*.tsc",
-            '/data/pub/data/spice/latest/kernels/ck/solo_ANC_soc-*.bc',
-            '/data/pub/data/spice/latest/kernels/mk/solo_*flown-mk_*.tm',
-            '/data/pub/data/spice/latest/kernels/fk/solo_ANC*.tf',
-            '/data/pub/data/spice/latest/kernels/spk/solo_ANC_soc-orbit_*.bsp',
-            '/data/pub/data/spice/heliopy/*'
-        ],
-        "validityPeriod": ["2020-05-28T00:00:00", "2031-12-28T00:00:00"]
-    }],
+    'joint_obs':     '/data/flares/',
+    "spice": "/data/pub/data/spice/latest/kernels",
 }
 
 
@@ -103,20 +91,8 @@ def get_idb(asw_version=None):
     return fname
 
 
-def get_spice(utc=None):
-    if not utc:
-        try:
-            return parser_config['spice'][0]['data']
-        except Exception as e:
-            logger.error(str(e))
-        return []
-    for item in parser_config['spice']:
-        dt = dtparser.parse(utc)
-        if dt > dtparser.parse(
-                item['validityPeriod'][0]) and dt <= dtparser.parse(
-                    item['validityPeriod'][1]):
-            return item['data']
-    return []
+def get_spice_folder():
+    return parser_config['spice']
 
 
 #print(config)

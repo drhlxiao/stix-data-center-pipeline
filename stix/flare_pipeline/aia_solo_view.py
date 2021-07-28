@@ -40,7 +40,6 @@ from sunpy.net import attrs as a
 from sunpy.net import Fido
 
 import tempfile
-from stix.spice import spice_manager
 from stix.core import mongo_db as db
 mdb = db.MongoDB()
 

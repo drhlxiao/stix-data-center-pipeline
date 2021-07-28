@@ -11,7 +11,6 @@ import os
 import sys
 import glob
 from datetime import datetime
-sys.path.append('.')
 from stix.core import config
 from stix.spice import stix_datetime
 from stix.core import mongo_db
@@ -121,7 +120,7 @@ def process_one(filename):
 
 
 def process(instrument, filename, notification_enabled=True, debugging=False):
-    spm.spice.refresh_kernels()
+    spm.spice.load_kernels()
     #always load the latest kernel files
     base = os.path.basename(filename)
     name = os.path.splitext(base)[0]

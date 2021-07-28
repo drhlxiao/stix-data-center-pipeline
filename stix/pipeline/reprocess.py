@@ -71,8 +71,8 @@ def find_and_fix_raw_files(start_run, end_run=-1,  min_delta_time=0):
         end_run=start_run
     raw_db=MDB.get_collection('raw_files')
     docs=raw_db.find({'_id':{'$gte':start_run, '$lte':end_run},'hidden':False}).sort('_id',1)
-    spice_sclk_fname=spm.spice.get_last_sclk_filename()
-    print('Last spice kernel:',spice_sclk_fname)
+    spice_fname=spm.spice.get_kernel_filename()
+    print('Last spice kernel:',spice_fname)
     file_ids=[]
     for doc in docs:
         _id=doc['_id']
@@ -105,7 +105,7 @@ def find_and_fix_raw_files(start_run, end_run=-1,  min_delta_time=0):
         updates={'$set':{
             'data_start_unix_time': new_start_unix,
             'data_stop_unix_time': new_end_unix,
-            'spice_sclk': spice_sclk_fname,
+            'spice_kernel': spice_fname,
             'update_time': stix_datetime.get_now(),
             'version': doc.get('version',0)+1
             }

@@ -221,7 +221,7 @@ class StixMongoDBWriter(StixPacketWriter):
             '_id': self.current_run_id,
             'status': stix_global.UNKNOWN,
             'summary': '',
-            'spice_sclk': spm.spice.get_last_sclk_filename(),
+            'spice_kernel': spm.spice.get_kernel_filename(),
             'filesize': filesize,
             'instrument': instrument,
             'idb_version': idb_version

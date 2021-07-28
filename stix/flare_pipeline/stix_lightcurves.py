@@ -67,9 +67,24 @@ def plot_stix_lc(folder, _id, event_name, start_utc, end_utc,  overwrite=True, p
         return
     earth_dt = [stix_datetime.unix2datetime(x+light_time) for x in  data['time']]
 
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(12,6))
+    min_cnts=0
+    max_cnts=0
     for i,lc in data['lcs'].items():
         plt.plot(earth_dt, lc, label=data['energy_bins']['names'][i])
+        max_lc_cnt=np.max(lc)
+        min_lc_cnt=np.min(lc)
+
+        if max_lc_cnt>max_cnts:
+            max_cnts=max_lc_cnt
+        if min_lc_cnt<min_cnts:
+            min_cnts=min_lc_cnt
+
+    
+    if peak_utc:
+        peak_dt=stix_datetime.utc2datetime(peak_utc)
+        plt.vlines(peak_dt,min_cnts, max_cnts, linestyle='dotted')
+
 
     locator = mdates.AutoDateLocator(minticks=3, maxticks=7)
     formatter = mdates.ConciseDateFormatter(locator)
@@ -80,6 +95,7 @@ def plot_stix_lc(folder, _id, event_name, start_utc, end_utc,  overwrite=True, p
     plt.ylabel('Counts / 4 s')
     title=f'STIX QL LCs ({event_type}{event_name})'
     plt.title(title)
+
     filename = os.path.join(folder, f'stix_ql_lc_{_id}_{event_name}.png')
     plt.yscale('log')
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
@@ -87,6 +103,8 @@ def plot_stix_lc(folder, _id, event_name, start_utc, end_utc,  overwrite=True, p
     plt.savefig(filename, dpi=100)
     print(filename)
     mdb.update_flare_joint_obs(_id, key, [filename])
+    plt.close()
+    return filename
     #print(filename)
     #plt.plot(t_since_t0,data['lc_smoothed'][where], label='1-min moving mean')
 if __name__=='__main__':

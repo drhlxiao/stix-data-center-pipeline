@@ -2,13 +2,15 @@
 
 import re
 import os
+import sys
+sys.path.append('./')
 import glob
+import spiceypy
 from pathlib import Path
 from datetime import datetime
 from dateutil import parser as dtparser
 from astropy.time import Time
 
-import spiceypy
 from stix.core import stix_logger
 from stix.core import config
 from stix.core import mongo_db 
@@ -18,103 +20,41 @@ NUM_KERNEL_FILES_LIMIT=10
 logger = stix_logger.get_logger()
 
 mdb=mongo_db.MongoDB()
-collection_spice=mdb.get_collection('spice')
-loaded_kernels=[]
-
-
 # SOLAR ORBITER naif identifier
 class SpiceManager:
     """taken from https://issues.cosmos.esa.int/solarorbiterwiki/display/SOSP/Translate+from+OBT+to+UTC+and+back
     """
     def __init__(self):
-        self.loaded_kernels=[]
-        self.last_sclk_file=None
-        self.refresh_kernels()
+
+        self.version_date=datetime.strptime('19700101', "%Y%m%d")
+
+        self.loaded_kernel_filename=None
+        self.latest_mk=None
+        self.load_kernels()
+
+    def get_kernel_filename(self):
+        return self.loaded_kernel_filename
+    def load_kernels(self):
+        spice_folder=config.get_config('spice')
+        mk_folder=os.path.join(spice_folder,'mk')
+        os.chdir(mk_folder)
+        #pred_mk='solo_ANC_soc-pred-mk.tm'
+        #print(mk_folder)
+        self.latest_mk=None
+        for filename in glob.glob(f'{mk_folder}/solo_ANC_soc-flown-mk*.tm'):
+            date_str=re.findall(r"\d{4}\d{2}\d{2}", filename)
+            if date_str:
+                fdt=datetime.strptime(date_str[0], "%Y%m%d")
+                if fdt>self.version_date:
+                    self.latest_mk=os.path.basename(filename)
+                    self.version_date=fdt
+        #if latest_mk!=None and utc<self.version_date:
         
-    def refresh_kernels(self):
-        
-        for pattern in config.get_spice():
-            for fname in glob.glob(pattern):
-                if fname not in self.loaded_kernels:
-                    self.loaded_kernels.append(fname)
-                    self.insert_spice_kernel(fname)
-        latest_kernels=self.get_latest_spice_kernels()
-        for kernel_type,kernels in latest_kernels.items():
-            for kernel in kernels:
-                fname=os.path.join(kernel['path'],kernel['filename'])
-                print(f'Loading type {kernel_type}: {fname}')
-                try:
-                    spiceypy.furnsh(fname)
-                    if 'sclk' in fname:
-                        self.last_sclk_file=fname
-                except spiceypy.utils.exceptions.SpiceNOSUCHFILE:
-                    print(f'Failed to load {fname}')
-                    pass
-
-    def get_latest_spice_kernels(self):
-        types=list(collection_spice.distinct('type'))
-        results={}
-        for key in types:
-            num=1 if key in ['sclk','spk'] else NUM_KERNEL_FILES_LIMIT
-            sort_field='file_date' if key != 'spk' else 'counter'
-            rows=list(collection_spice.find({'type':key}).sort(sort_field, -1).limit(num))
-
-            if rows:
-                rows.reverse()
-                results[key]=rows
-        return results 
-    def get_spice_kernels(self):
-        return collection_spice.find({}).sort('file_date',1)
-
-    def insert_spice_kernel(self, filename):
-        next_id=0
-        doc={}
-        pfilename=Path(filename)
-        fdate=re.findall(r"\d{4}\d{2}\d{2}", filename)
-        date_str=fdate[0] if fdate else '19700101'
-        if 'orbit' in filename:
-            ver=re.findall(r"_V(\d)_", filename)
-            ver2=re.findall(r"_V(\d{2})_", filename)
-            ltp=re.findall(r"_L(\d{3})_", filename)
-            counter=re.findall(r"_(\d{5})_", filename)
-            try:
-                doc['LTP']=int(ltp[0])
-            except:
-               pass
-            try:
-                doc['version']=int(ver[0])
-            except:
-                pass
-            try:
-                doc['version2']=int(ver2[0])
-            except:
-                pass
-            try:
-                doc['counter']=int(counter[0])
-            except:
-                pass
-        doc['file_date']=datetime.strptime(date_str, "%Y%m%d")
-        doc['path']=pfilename.parent.as_posix()
-        doc['filename']=pfilename.name
-        doc['type']=pfilename.parent.name
-        if collection_spice:
-            is_found=collection_spice.find_one({'filename':doc['filename']})
-            if is_found:
-                return
-        try:
-            next_id=collection_spice.find({}).sort(
-                '_id', -1).limit(1)[0]['_id'] + 1
-        except IndexError:
-            pass
-
-        doc['_id']=next_id
-        doc['entry_time']=datetime.now()
-        collection_spice.save(doc)
-        
-
-    def get_last_sclk_filename(self):
-        return self.last_sclk_file
-
+        if self.loaded_kernel_filename !=  self.latest_mk and self.latest_mk !=None:
+            spiceypy.furnsh(self.latest_mk)
+            self.loaded_kernel_filename=self.latest_mk
+        else:
+            print(f'Skipped! {self.latest_mk} has been loaded!')
 
 
     def obt2utc(self, obt_string):
