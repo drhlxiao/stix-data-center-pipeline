@@ -7,18 +7,16 @@ import astropy.units as u
 from astropy import constants as const
 from stix.spice import helio as hsp
 from stix.spice import stix_datetime
-from stix.utils import bson
-
 
 solo_spice_min_unix= stix_datetime.utc2unix('2020-02-10T05:00:00Z')
 
 
-def compute_earth_sun_so_angle(solo_positions):
-    size = solo_positions.x.value.size
-    vec_earth_sun = np.array([-1, 0, 0] * size).reshape(size, 3)
+def compute_earth_sun_so_angle(solo_sun):
 
+    size = solo_sun.x.value.size
+    vec_earth_sun = np.array([1, 0, 0] * size).reshape(size, 3)
     vec_solo_sun = np.array([
-        solo_positions.x.value, solo_positions.y.value, solo_positions.z.value
+        solo_sun.x.value, solo_sun.y.value, solo_sun.z.value
     ]).T
     fun = lambda v: math.sqrt(v.dot(v))
     mag = np.apply_along_axis(fun, 1, vec_solo_sun)
@@ -26,17 +24,15 @@ def compute_earth_sun_so_angle(solo_positions):
         [np.dot(v1, v2) for v1, v2 in zip(vec_earth_sun, vec_solo_sun)])
     return np.degrees(np.arccos(product / mag))
 
-def get_sun_earth_light_time(obstime):
-    dt=stix_datetime.utc2datetime(obstime)
-    et=spice.datetime2et(dt)
-    [state, ltime] = spice.spkezr( 'Earth', et,      'J2000', 'LT+S',   'Sun')
-    return ltime
+def get_earth_spice_HEE(datetimes):
+    ets=[spice.datetime2et(t) for t in datetimes]
+    pos_vel, light_times= spice.spkezr('Earth', ets,      'SOLO_HEE_NASA', 'LT+S',   'Sun')
+    positions = np.array(pos_vel)[:, :3] * u.km
+    return {'light_times':np.array(light_times),'positions':positions.to(u.au)}
 
 def get_solo_ephemeris(start_utc,
                        end_utc,
-                       observer='SUN',
-                       frame='GSE',
-                       num_steps=200, return_json=False):
+                       num_steps=200):
     '''
       calculate solo orbiter orbit using spice kernel data
       Args:
@@ -47,7 +43,12 @@ def get_solo_ephemeris(start_utc,
       Returns:
         orbit data which is a python dictionary
     '''
-    orbiter = hsp.Trajectory('Solar Orbiter')
+    observer='Earth'
+    frame='SOLO_HEE_NASA'
+    target='SOLO'
+    orbiter_earth= hsp.Trajectory(target)
+    orbiter_sun= hsp.Trajectory(target)
+    earth_hee= hsp.Trajectory('Earth')
     #starttime = stix_datetime.utc2datetime(start_utc)
     start_unix=stix_datetime.utc2unix(start_utc)
     end_unix=stix_datetime.utc2unix(end_utc)
@@ -56,6 +57,11 @@ def get_solo_ephemeris(start_utc,
 
     if end_unix<start_unix:
         end_unix=start_unix
+
+    step=(end_unix-start_unix)/num_steps
+    if step>12*3600:
+        num_steps=int((end_unix-start_unix)/(12*3600))
+    
 
     ut_space=np.linspace(start_unix, end_unix, num_steps)
     times = []
@@ -66,41 +72,43 @@ def get_solo_ephemeris(start_utc,
         utc_times.append(dt.strftime("%Y-%m-%dT%H:%M:%SZ"))
     result = {}
     try:
-        orbiter.generate_positions(times, observer, frame)
-        orbiter.change_units(u.au)
-        dist_to_earth = np.sqrt((orbiter.x.value + 1)**2 + orbiter.y.value**2 +
-                                orbiter.z.value**2)  #distance to earth
-        light_time = (dist_to_earth * u.au).to(u.m) / const.c
-        #time_to_earth = (1 * u.au).to(u.m) / const.c
-        #time_to_earth = get_sun_earth_light_time(start_utc)
-        time_to_solo = orbiter.r.to(u.m) / const.c
-        sun_open_angle=const.R_sun.to(u.m)/orbiter.r.to(u.m)
+        orbiter_earth.generate_positions(times, 'Earth', frame)
+        orbiter_sun.generate_positions(times, 'SUN', frame)
+        earth_hee.generate_positions(times, 'SUN', frame)
 
-        
+        orbiter_earth.change_units(u.au)
+        orbiter_sun.change_units(u.au)
+
+
+        solo_dist_to_earth = orbiter_earth.r.value
+
+
+
+        sun_open_angle=const.R_sun.to(u.m)/orbiter_sun.r.to(u.m)
+
         sun_angular_diameter_arcmin=np.degrees(np.arctan(sun_open_angle.value))*60.*2
 
-        sun_earth_ltime= [get_sun_earth_light_time(utc)  for utc in utc_times]
-        lt_diff = np.array(sun_earth_ltime) - time_to_solo.value
+        lt_diff = earth_hee.light_times - orbiter_sun.light_times 
 
-        earth_sun_solo_angles = compute_earth_sun_so_angle(orbiter)
-        elevation= np.degrees(np.arctan2(orbiter.z.value, orbiter.r.value))
+        earth_sun_solo_angles = compute_earth_sun_so_angle(orbiter_sun)
+        elevation= np.degrees(np.arctan2(orbiter_sun.z.value, orbiter_sun.r.value))
 
         result = {
-            'ref_frame':'GSE',
-            'observer':'Sun',
+            'ref_frame':frame,
+            'observer':observer,
             'aunit': 'deg',
             'lunit': 'au',
             'vunit':'km/s',
             'tunit':'s',
             'utc': utc_times,
-            'x': orbiter.x.value,
-            'y': orbiter.y.value,
-            'z': orbiter.z.value,
-            'sun_solo_r': orbiter.r.value,
-            'earth_solo_r': dist_to_earth,
-            'speed': orbiter.speed.value,
-            'owlt': light_time.value,
-            'sun_earth_ltime':sun_earth_ltime,
+            'x': -orbiter_sun.x.value,
+            'y': -orbiter_sun.y.value,
+            'z': -orbiter_sun.z.value,
+            'sun_solo_r': orbiter_sun.r.value,
+            'earth_solo_r': orbiter_earth.r.value,
+            'speed': orbiter_sun.speed.value,
+            'owlt': orbiter_earth.light_times,
+            #'sun_earth_ltime':sun_earth_ltime,
             'light_time_diff': lt_diff,
             'earth_sun_solo_angle': earth_sun_solo_angles,
             'sun_angular_diameter':sun_angular_diameter_arcmin,
@@ -108,9 +116,8 @@ def get_solo_ephemeris(start_utc,
         }
     except Exception as e:
         raise
+        print(e)
         result = {'error': str(e)}
-    if return_json:
-        return bson.dict_to_json(result)
     return result
 
 

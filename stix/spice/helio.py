@@ -150,6 +150,7 @@ class Trajectory:
     def __init__(self, target):
         self._target = Body(target)
         self._generated = False
+        self.light_times=[]
 
     def generate_positions(self, times, observing_body, frame,
                            abcorr=None):
@@ -188,6 +189,7 @@ class Trajectory:
 
         positions = np.array(pos_vel)[:, :3] * u.km
         velocities = np.array(pos_vel)[:, 3:] * u.km / u.s
+        self.light_times=np.array(lightTimes)
 
         self._frame = frame
         self._times = time.Time(times)
