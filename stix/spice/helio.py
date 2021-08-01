@@ -20,26 +20,6 @@ spice_astropy_frame_mapping = {
 }
 
 
-def furnish(kernel):
-    """
-    Furnish SPICE with a kernel.
-
-    Parameters
-    ----------
-    fname : `SPKKernel` or list of `SPKKernel`
-        SPICE kernel(s) to load.
-
-    See also
-    --------
-    heliopy.data.spice.get_kernel : For attempting to automatically download
-                                    kernels based on spacecraft name.
-
-    """
-    if isinstance(kernel, SPKKernel):
-        kernel = [kernel]
-    for k in kernel:
-        spiceypy.furnsh(k._fname_str)
-
 
 class SPKKernel:
     """

@@ -10,7 +10,7 @@
 
 import os
 import sys
-sys.path.append('.')
+sys.path.append('/opt/stix/parser')
 from scipy import signal
 import numpy as np
 import math
@@ -212,7 +212,7 @@ def find_flares(run_id,
     peak_unix_times = unix_time[xpeaks]
     peaks_utc = [stix_datetime.unix2utc(x) for x in peak_unix_times]
     ephemeris = [
-        solo.get_solo_ephemeris(x, x, return_json=True) for x in peaks_utc
+        solo.get_solo_ephemeris(x, x) for x in peaks_utc
     ]
     flare_ids = [
         stix_datetime.unix2datetime(x).strftime("%y%m%d%H%M")

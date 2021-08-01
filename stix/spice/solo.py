@@ -7,6 +7,7 @@ import astropy.units as u
 from astropy import constants as const
 from stix.spice import helio as hsp
 from stix.spice import stix_datetime
+from stix.utils import bson
 
 solo_spice_min_unix= stix_datetime.utc2unix('2020-02-10T05:00:00Z')
 
@@ -116,9 +117,8 @@ def get_solo_ephemeris(start_utc,
         }
     except Exception as e:
         raise
-        print(e)
         result = {'error': str(e)}
-    return result
+    return bson.dict_to_json(result)
 
 
 if __name__ == '__main__':
