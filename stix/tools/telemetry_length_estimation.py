@@ -2,7 +2,6 @@ import sys
 import os
 import pprint
 dirpath='../stix_parser'
-sys.path.append(dirpath)
 idb_fname=dirpath+'/idb/idb.sqlite'
 from core import stix_idb
 idb = stix_idb.stix_idb(idb_fname)

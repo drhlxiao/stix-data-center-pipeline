@@ -1,5 +1,4 @@
 import sys
-sys.path.append('../')
 from core import stix_idb
 
 IDB = stix_idb.stix_idb()

@@ -1,7 +1,5 @@
 #plugin example
 import sys
-sys.path.append('..')
-sys.path.append('.')
 from stix.core import stix_datatypes as sdt
 from matplotlib import pyplot as plt
 

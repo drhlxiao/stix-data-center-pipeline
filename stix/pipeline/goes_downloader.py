@@ -14,7 +14,6 @@
 """
 import sys
 import os
-sys.path.append('.')
 import json
 import time
 import requests

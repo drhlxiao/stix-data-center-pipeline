@@ -1,7 +1,6 @@
 # Create data requests for flares
 # Author: Hualin Xiao on Jun 14, 2021
 import sys
-sys.path.append('.')
 import os
 import math
 import csv

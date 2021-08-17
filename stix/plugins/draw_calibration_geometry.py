@@ -9,8 +9,6 @@ import sys
 import numpy as np
 
 from datetime import datetime
-sys.path.append(os.path.abspath('../../'))
-sys.path.append(os.path.abspath('./'))
 from stix.core import stix_datatypes as sdt
 SPID = 54124
 import detector_geometry as dg

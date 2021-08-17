@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 import sys
-sys.path.append('..')
-sys.path.append('.')
 import os
 import pickle
 import gzip

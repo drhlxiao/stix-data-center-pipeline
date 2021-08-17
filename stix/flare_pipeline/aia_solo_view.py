@@ -6,7 +6,6 @@ Last modification: 27-May-2021
 '''
 
 import sys
-sys.path.append('.')
 ############################################################
 ##### Imports
 import astropy.units as u
@@ -155,12 +154,16 @@ def as_seen_by_SOLO(map,  date_solo=None, center=None, fov=None):
 
     # Dimension of the output FOV (in pixels)
     out_shape = (3000, 3000) # (4096, 4096)
-
+    dsun_solo = float(np.sqrt(solo_hee.x**2+solo_hee.y**2+solo_hee.z**2)/u.km*1e3)
+    dsun_earth = float(map.dsun/u.m)
+    factor = dsun_earth / dsun_solo
+    pixel_size = [float(map.scale[0]/u.arcsec*u.pixel) * factor,
+                      float(map.scale[1]/u.arcsec*u.pixel) * factor]
     # Create a FITS-WCS header from a coordinate object
     out_header = make_fitswcs_header(
                                      out_shape,
                                      solo_ref_coord,
-                                     scale=(1.2, 1.2)*u.arcsec/u.pixel,
+                                     scale=pixel_size*u.arcsec/u.pixel,
                                      instrument="SOLO-AIA",
                                      observatory="SOLO",
                                      wavelength=map.wavelength)

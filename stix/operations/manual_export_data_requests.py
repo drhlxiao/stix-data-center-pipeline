@@ -4,7 +4,6 @@
 #@Date:   June. 5, 2020
 
 import sys
-sys.path.append('.')
 import os
 import math
 import json

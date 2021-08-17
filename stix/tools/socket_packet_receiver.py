@@ -4,7 +4,6 @@ import sys
 import binascii
 import socket
 import time
-sys.path.append('.')
 from datetime import datetime
 from stix_parser.core import stix_writer
 from PyQt5 import uic, QtWidgets, QtCore, QtGui

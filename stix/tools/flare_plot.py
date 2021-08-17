@@ -10,7 +10,6 @@
 
 import os
 import sys
-sys.path.append('.')
 from scipy import signal
 import numpy as np
 import math

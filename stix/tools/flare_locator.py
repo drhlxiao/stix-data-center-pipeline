@@ -1,7 +1,6 @@
 # fit flare location manually, for an given data requests
 
 import sys
-sys.path.append('.')
 import pymongo
 connect = pymongo.MongoClient()
 db = connect["stix"]

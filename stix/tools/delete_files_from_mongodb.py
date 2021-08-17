@@ -1,6 +1,5 @@
 import sys
 import os
-sys.path.append('.')
 from stix.core import mongo_db 
 def delete_one(start_run, end_run=-1):
     runs=[]

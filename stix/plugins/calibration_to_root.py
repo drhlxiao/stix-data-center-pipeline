@@ -9,7 +9,6 @@ import sys
 import numpy as np
 
 from datetime import datetime
-sys.path.append(os.path.abspath('../../'))
 from tkinter import filedialog
 from tkinter import *
 from ROOT import TTree, TFile, TH1F, TH2F

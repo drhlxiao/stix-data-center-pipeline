@@ -1,6 +1,5 @@
 import sys
 import os
-sys.path.append('.')
 from stix.core import mongo_db 
 from stix.spice import stix_datetime 
 from stix.pipeline import parser_pipeline as pp

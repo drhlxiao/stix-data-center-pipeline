@@ -1,6 +1,5 @@
 import pymongo
 import sys
-sys.path.append('.')
 from stix.core import stix_datatypes as sdt
 from stix.spice import stix_datetime
 connect = pymongo.MongoClient('localhost', 27017)

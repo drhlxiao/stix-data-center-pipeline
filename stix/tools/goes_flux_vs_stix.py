@@ -1,6 +1,5 @@
 import sys
 import math
-sys.path.append('.')
 from pprint import pprint
 import pymongo
 from datetime import datetime

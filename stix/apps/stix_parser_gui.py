@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 import sys
-sys.path.append('.')
 from stix.ui import parser_gui
 
 def main():

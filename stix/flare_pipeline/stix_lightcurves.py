@@ -2,7 +2,6 @@
 #Hualin Xiao (hualin.xiao@fhnw.ch)
 # March 01, 2021
 import sys
-sys.path.append('.')
 import os
 import numpy as np
 import math

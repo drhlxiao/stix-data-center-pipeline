@@ -3,7 +3,6 @@
 import re
 import os
 import sys
-sys.path.append('./')
 import glob
 import spiceypy
 from pathlib import Path

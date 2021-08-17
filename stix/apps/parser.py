@@ -9,7 +9,6 @@
 import argparse
 import os
 import sys
-sys.path.append('.')
 from stix.core import config
 from stix.core import stix_logger, stix_idb, stix_parser
 logger = stix_logger.get_logger()

@@ -12,7 +12,6 @@ from matplotlib.backends.qt_compat import QtCore, QtWidgets, is_pyqt5
 from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
 from datetime import datetime
-sys.path.append(os.path.abspath('../../'))
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 from stix.core import stix_datatypes as sdt

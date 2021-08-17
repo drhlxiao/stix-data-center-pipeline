@@ -1,7 +1,6 @@
 #create or edit an wiki page
 #don't upload it to github
 import sys
-sys.path.append('.')
 import time
 import requests
 from datetime import datetime

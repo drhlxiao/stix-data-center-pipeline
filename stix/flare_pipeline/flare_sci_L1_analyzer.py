@@ -2,7 +2,6 @@
 # author: Hualin Xiao
 # Compute flare location, do background subtraction
 import sys
-sys.path.append('.')
 import os
 import json
 import numpy as np

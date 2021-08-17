@@ -1,5 +1,4 @@
 import sys
-sys.path.append('..')
 
 import pickle
 from core import stix_writer

@@ -415,7 +415,6 @@ class Ui(mainwindow.Ui_MainWindow):
         abspath = os.path.dirname(os.path.abspath(__file__))
 
         template = (
-            "import sys\nsys.path.append('{}')\nimport client_packet_request as req\n"
             "packets=req.request(query_str='len', host='{}',port={}, verbose_level=1)\n"
             "#a query_string can be \n"
             "#  -  a python slice notation, for example, ':' '0:-1', 3:-1\n"

@@ -1,7 +1,6 @@
 #Author Hualin Xiao (hualin.xiao@fhnw.ch)
 # Joint observation main 
 import sys
-sys.path.append('.')
 import requests
 from datetime import datetime
 from stix.core import mongo_db as db

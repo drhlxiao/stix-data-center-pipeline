@@ -3,7 +3,6 @@
 # pre-process science data, merge bulk science data packets and write merged data to json files
 # so that web client side could load the data quickly
 import sys
-sys.path.append('.')
 import os
 import json
 import numpy as np

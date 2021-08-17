@@ -9,7 +9,6 @@ import os
 import sys
 from ROOT import TTree, TFile
 
-sys.path.append(os.path.abspath('../../'))
 import numpy as np
 from matplotlib import pyplot as plt
 from datetime import datetime

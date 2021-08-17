@@ -1,5 +1,4 @@
 import sys
-sys.path.append('.')
 import os
 from collections import defaultdict
 from datetime import datetime

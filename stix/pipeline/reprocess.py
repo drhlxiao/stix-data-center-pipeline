@@ -8,7 +8,6 @@
 
 import os
 import sys
-sys.path.append('.')
 import glob
 import time
 from datetime import datetime

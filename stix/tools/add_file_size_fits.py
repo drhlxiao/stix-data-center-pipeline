@@ -1,5 +1,4 @@
 import sys
-sys.path.append('.')
 import pymongo
 import os
 connect = pymongo.MongoClient()

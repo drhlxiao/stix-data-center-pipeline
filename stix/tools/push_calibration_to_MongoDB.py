@@ -1,8 +1,6 @@
 import os
 import sys
 import argparse
-sys.path.append('..')
-sys.path.append('.')
 from matplotlib.backends.backend_pdf import PdfPages
 
 from core import stix_logger

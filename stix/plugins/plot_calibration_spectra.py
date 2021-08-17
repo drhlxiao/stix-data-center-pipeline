@@ -3,8 +3,6 @@
 import os
 
 import sys
-sys.path.append('..')
-sys.path.append('.')
 from stix.core import stix_packet_analyzer as sta
 analyzer = sta.analyzer()
 

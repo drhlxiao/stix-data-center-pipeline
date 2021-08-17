@@ -1,6 +1,5 @@
 #Hualin Xiao (hualin.xiao@fhnw.ch)
 import sys
-sys.path.append('.')
 import os
 import matplotlib.patches as patches
 from matplotlib import pyplot as plt

@@ -12,7 +12,6 @@
 import os
 import sys
 import math
-sys.path.append('.')
 from scipy import signal
 import numpy as np
 from stix.core import stix_datatypes as sdt

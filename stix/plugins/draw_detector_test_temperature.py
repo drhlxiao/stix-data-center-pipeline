@@ -2,7 +2,6 @@
 import os
 
 import sys
-sys.path.append(os.path.abspath('../../'))
 import numpy as np
 from matplotlib import pyplot as plt
 from datetime import datetime

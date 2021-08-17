@@ -43,7 +43,6 @@ print(occurrences[-1])
 # In[50]:
 
 import sys
-sys.path.append('/home/xiaohl/FHNW/STIX/gsw/STIX_python')
 from stix.spice import stix_datetime
 import pymongo
 connect = pymongo.MongoClient('localhost', 9000)

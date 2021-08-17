@@ -1,5 +1,4 @@
 import sys
-sys.path.append('.')
 from pprint import pprint
 from stix.spice import stix_datetime as sdt
 

@@ -1,6 +1,5 @@
 import sys
 import os
-sys.path.append(os.path.abspath('../../'))
 from stix.core import stix_datatypes as sdt
 from stix.spice import stix_datetime
 from stix.core import stix_logger

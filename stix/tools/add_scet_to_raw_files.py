@@ -1,5 +1,4 @@
 import sys
-sys.path.append('.')
 import pymongo
 connect = pymongo.MongoClient()
 db = connect["stix"]

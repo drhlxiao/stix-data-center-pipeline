@@ -1,7 +1,6 @@
 
 import os
 import sys
-sys.path.append('.')
 import numpy as np
 from datetime import datetime
 from stix.spice import stix_datetime

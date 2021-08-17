@@ -1,7 +1,5 @@
 #plugin example
 import sys
-sys.path.append('..')
-sys.path.append('.')
 from stix.core import stix_packet_analyzer as sta
 from matplotlib import pyplot as plt
 

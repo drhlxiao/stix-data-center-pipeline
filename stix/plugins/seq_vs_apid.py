@@ -4,8 +4,6 @@ import pprint
 from matplotlib import pyplot as plt
 from core import stix_packet_analyzer as sta
 import sys
-sys.path.append('..')
-sys.path.append('.')
 analyzer = sta.analyzer()
 
 

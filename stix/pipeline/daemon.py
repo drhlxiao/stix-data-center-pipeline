@@ -3,7 +3,6 @@
 # @date         : May. 11, 2021
 
 import sys
-sys.path.append('/opt/stix/parser')
 import os
 import time
 import threading
