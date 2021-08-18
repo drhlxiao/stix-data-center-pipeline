@@ -25,48 +25,31 @@ def get_class(x):
         return f'M{x/1e-5:.1f}'
     else:
         return f'X{x/1e-4:.1ff}'
-
-
-
-
-def plot_goes(folder,_id, flare_id, start_utc, end_utc, peak_utc=None, overwrite=False):
+def process(folder,_id, flare_id, start_utc, end_utc, peak_utc=None, overwrite=False, create_plot=True):
     key='goes'
     if  mdb.get_flare_joint_obs(_id, key) and overwrite == False:
         print(f'GOES LC for Flare {flare_id} was not created!')
         return 
-
     flux = {}
     start_times={}
     num=0
     try:
         start = stix_datetime.utc2unix(start_utc)
         end = stix_datetime.utc2unix(end_utc)
-        files= list(mdb.get_goes_x_ray_flux_file_list(start, end))
+        data = mdb.get_goes_fluxes(start, end)
         last_time=0
-        for item in files:
-            filename = os.path.join(item['path'], item['filename'])
-            json_file = open(filename, 'r')
-            data = json.load(json_file)
-            for d in data:
-                unix = stix_datetime.utc2unix(d['time_tag'])
-                if unix < start:
-                    continue
-                if unix > end:
-                    break
-                if unix<last_time:
-                    continue
-                num+=1
-
-                last_time=unix
-
-                if d['energy'] not in flux:
-                    flux[d['energy']] = [[], []]
-                    #time_tags[d['energy']]=[]
-                flux[d['energy']][1].append(d['flux'])
-                flux[d['energy']][0].append(stix_datetime.utc2unix(d['time_tag']))
-                if d['energy'] not in start_times:
-                    start_times[d['energy']]=d['time_tag']
-
+        for d in data:
+            unix = d['unix_time']
+            if unix<=last_time:
+                continue
+            num+=1
+            last_time=unix
+            if d['energy'] not in flux:
+                flux[d['energy']] = [[], []]
+            flux[d['energy']][1].append(d['flux'])
+            flux[d['energy']][0].append(d['unix_time'])
+            if d['energy'] not in start_times:
+                start_times[d['energy']]=d['time_tag']
     except Exception as e:
         print("ERROR:", e)
         return False
@@ -84,8 +67,14 @@ def plot_goes(folder,_id, flare_id, start_utc, end_utc, peak_utc=None, overwrite
             imax=np.array(val[1]).argmax()
             goes_peak_unix_time=val[0][imax]
         ax.plot(t,val[1],label=energy_map.get(key,'unknown'))
-
     goes_peak_utc=stix_datetime.unix2utc(goes_peak_unix_time)
+    mdb.update_flare_info(_id, 'goes', 
+            {'flux': max_flux, 'class':get_class(max_flux),
+                'goes_peak_unix_time': goes_peak_unix_time, 
+                'goes_peak_utc':goes_peak_utc
+                }
+            )
+
     ax.set_ylabel(r'Watts m$^{-2}$')
     ax.set_yscale('log')
     labels = ['A', 'B', 'C', 'M', 'X']
@@ -99,7 +88,6 @@ def plot_goes(folder,_id, flare_id, start_utc, end_utc, peak_utc=None, overwrite
     ax2.yaxis.set_minor_locator(mticker.FixedLocator(centers))
     ax2.set_yticklabels(labels, minor=True)
     ax2.set_yticklabels([])
-
     ax.yaxis.grid(True, 'major')
     ax.xaxis.grid(False, 'major')
     ax.legend(loc='upper right')
@@ -109,12 +97,10 @@ def plot_goes(folder,_id, flare_id, start_utc, end_utc, peak_utc=None, overwrite
     ax.xaxis.set_major_locator(locator)
     ax.xaxis.set_major_formatter(formatter)
     fname=os.path.join(folder, f'flare_{_id}_{flare_id}_goes.png')
-    print(fname)
     fig.tight_layout()
     plt.savefig(fname, dpi=100)
     mdb.update_flare_joint_obs(_id, 'goes', [fname])
-    mdb.update_flare_field(_id, 'goes', {'flux': max_flux, 'class':get_class(max_flux), 'goes_peak_unix_time': goes_peak_unix_time, 'goes_peak_utc':goes_peak_utc})
     print(_id, {'flux': max_flux, 'class':get_class(max_flux)})
     return True
 if __name__=='__main__':
-    plot_goes('.',0,2,'2021-05-05T00:00:00','2021-05-05T01:10:00', '2021-05-05T02:05:00', True)
+    process('.',0,2,'2021-05-05T00:00:00','2021-05-05T01:10:00', '2021-05-05T02:05:00', True)

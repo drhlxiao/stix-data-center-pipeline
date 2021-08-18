@@ -39,7 +39,7 @@ def process_flares_for_file(file_id, overwrite=OVERWRITE):
         print('generate location')
         eph=plot_orbit.plot_solo_location(folder,_id, flare_id,peak_utc,  overwrite=overwrite)
         if eph:
-            mdb.update_flare_field(_id, 'ephemeris',
+            mdb.update_flare_info(_id, 'ephemeris',
                     {
                         'x':eph['x'][0],
                         'y':eph['y'][0],
@@ -59,7 +59,7 @@ def process_flares_for_file(file_id, overwrite=OVERWRITE):
         earth_end_utc=to_earth_utc(end_utc,light_time) 
         earth_peak_utc=to_earth_utc(peak_utc,light_time) 
         try:
-            goes.plot_goes(folder,_id, flare_id,earth_start_utc,earth_end_utc, earth_peak_utc, overwrite=overwrite)
+            goes.process(folder,_id, flare_id,earth_start_utc,earth_end_utc, earth_peak_utc, overwrite=overwrite)
         except Exception as e:
             raise
             print("error when creating goes LC")

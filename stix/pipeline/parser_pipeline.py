@@ -22,7 +22,10 @@ from stix.analysis import background_estimation as bkg
 from stix.analysis import flare_detection
 from stix.analysis import sci_packets_analyzer
 from stix.analysis import integration_time_estimator
+from stix.analysis import flare_goes_class as fgc
+from stix.analysis import goes_downloader as gdl
 from stix.spice import spice_manager as spm
+
 
 
 S20_EXCLUDED = True
@@ -43,6 +46,8 @@ MDB = mongo_db.MongoDB(mongodb_config['host'], mongodb_config['port'],
 HOST = config.HTTP_PREFIX
 
 logger = stix_logger.get_logger()
+
+goes=gdl.GOES()
 
 
 def get_now():
@@ -165,6 +170,9 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
         try:
             num_flares = flare_detection.find_flares(
                 file_id, snapshot_path=daemon_config['flare_lc_snapshot_path'])
+            if num_flares>0:
+                fgc.set_goes_class_flares_in_file(file_id)
+
             summary['num_flares']=num_flares
         except Exception as e:
             logger.error(str(e))
@@ -205,8 +213,10 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
                                            num_flares)
             summary['notification_id']=notif_id
         except Exception as e:
-            
             logger.info(str(e))
+
+
+
 
     clear_ngnix_cache()
     return summary
@@ -229,6 +239,8 @@ def main():
                         filelist[instrument] = []
                     filelist[instrument].append(filename)
     for instrument, files in filelist.items():
+        print('Downloading GOES LC...')
+        goes.download()
         for filename in files:
             print('Processing file:', filename)
             summary=process(instrument, filename , True)

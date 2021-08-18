@@ -8,11 +8,12 @@ try:
     collection_ql= db['quick_look']
     collection_data_request_forms= db['bsd_req_forms']
     collection_fits= db['fits']
-    collection_goes= db['goes']
+    collection_goes= db['goes_fluxes']
     collection_qllc= db['ql_lightcurves']
     collection_qlspec= db['ql_spectra']
     print('creating indexes for goes')
-    indexes=[[('start_unix',1)],[('stop_unix',1)]]
+
+    indexes=[[('unix_time',1)]]
 
     for index in indexes:
         collection_goes.create_index(index)

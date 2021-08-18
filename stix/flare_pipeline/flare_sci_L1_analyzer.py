@@ -247,8 +247,8 @@ def process_L1_BSD_in_file(file_id):
         db_id=doc['_id']
         #print(doc)
         try:
-            bsd_start_unix=doc['request_form']['start_unix']
-            bsd_end_unix=doc['request_form']['end_unix']
+            bsd_start_unix=doc['start_unix']
+            bsd_end_unix=doc['end_unix']
         except KeyError or TypeError:
             print('Skipped, failed to find data request form for BSD #',db_id)
             print('run tools/attach_data_req*.py')
@@ -276,8 +276,6 @@ def process_L1_BSD_in_file(file_id):
             flare_level1_result=analyzer.get_flare_spectra_and_location(bsd_doc, flare_doc)
 
         print('Processing BSD #', db_id)
-
-
         collection.update_one({'_id': doc['_id']}, {'$set':
             {'is_background': is_background, 
             'time_integrated_counts':result, 

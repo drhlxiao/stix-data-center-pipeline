@@ -54,7 +54,7 @@ class MongoDB(object):
             self.col_bsd_forms = self.db['bsd_req_forms']
             self.collection_fits = self.db['fits']
             self.collection_events = self.db['events']
-            self.col_goes = self.db['goes']
+            self.col_goes = self.db['goes_fluxes']
             #self.col_flare_tbc= self.db['flare_tbc']
             self.collection_flares = self.db['flares']
             self.collection_qllc_statistics = self.db['qllc_statistics']
@@ -106,20 +106,15 @@ class MongoDB(object):
             return cursor
         return None
 
-    def get_goes_x_ray_flux_file_list(self, start_unix, stop_unix):
+    def get_goes_fluxes(self, start_unix, stop_unix):
         runs = []
         if self.col_goes:
-            #query_string = {'$or':[{'start_unix':{'$gte': start_unix,  '$lt': stop_unix}},
-            #    {'stop_unix': {  '$gte': start_unix, '$lt': stop_unix  }  }]}
             query_string = {
-                'start_unix': {
-                    '$lt': stop_unix
-                },
-                'stop_unix': {
-                    '$gt': start_unix
+                'unix_time': {
+                    '$lt': stop_unix, '$gt': start_unix
                 }
             }
-            runs = self.col_goes.find(query_string).sort('_id', 1)
+            runs = self.col_goes.find(query_string).sort('unix_time', 1)
         return runs
 
     def get_LC_pkt_by_tw(self, start_unix_time, span):
@@ -419,7 +414,7 @@ class MongoDB(object):
             return doc['joint_obs'].get(key, None)
         return None
 
-    def update_flare_field(self, _id, key, value):
+    def update_flare_info(self, _id, key, value):
         doc = self.collection_flares.find_one({'_id': _id})
         if doc:
             doc[key] = value

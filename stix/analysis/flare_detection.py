@@ -5,6 +5,7 @@
     Procedure:
     1) smoothing the lowest energy bin lightcurve using a butterworth low-pass filter
     2) searching for local maxima in the smoothed lightcurve
+    This routine is called after a raw telemetry is being processed
 
 """
 
@@ -69,7 +70,6 @@ def get_lightcurve_data(file_id):
         info(f'No QL LC packets found for run {file_id}')
         return None
     return qla.LightCurveAnalyzer.parse(packets)
-
 
 def make_lightcurve_snapshot(data, docs, snapshot_path):
     '''
@@ -261,6 +261,9 @@ def find_flares(run_id,
             sig_cnts = cnts - dur * properties['width_heights'][
                 i] / seconds_per_bin
         total_signal_counts.append(sig_cnts)
+    flare_start_unix=unix_time[properties['left_ips'].astype(int)].tolist()
+    flare_end_unix=unix_time[properties['right_ips'].astype(int)].tolist()
+
 
     doc = {
         'num_peaks': xpeaks.size,
@@ -279,8 +282,8 @@ def find_flares(run_id,
         'width_height': properties['width_heights'].tolist(
         ),  # height of the width, background level
         'peak_prominence': properties['prominences'].tolist(),
-        'start_unix': unix_time[properties['left_ips'].astype(int)].tolist(),
-        'end_unix': unix_time[properties['right_ips'].astype(int)].tolist(),
+        'start_unix':flare_start_unix,
+        'end_unix': flare_end_unix,
         'is_major': majors,
         'LC_statistics': LC_statistics,
         'ephemeris': ephemeris,
@@ -292,7 +295,6 @@ def find_flares(run_id,
     data['lc_smoothed'] = lc_smoothed
     make_lightcurve_snapshot(data, doc, snapshot_path)
     return xpeaks.size
-
 
 def find_flares_in_files(fid_start, fid_end, img_path='/data/flare_lc'):
     for i in range(fid_start, fid_end + 1):
