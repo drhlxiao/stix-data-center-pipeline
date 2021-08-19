@@ -30,7 +30,9 @@ def get_first_element(obj):
             new_obj[key]=val
     return new_obj
 def goes_flux_to_class(x):
-    if x<1e-7:
+    if x==0:
+        return 'NA'
+    elif x<1e-7:
         return 'A'
     elif x<1e-6:
         return f'B{x/1e-7:.1f}'
@@ -41,6 +43,7 @@ def goes_flux_to_class(x):
     else:
         return f'X{x/1e-4:.1ff}'
 def get_goes_class(start, end):
+    print(start, end)
     data = mdb.get_goes_fluxes(start, end)
     last_time=0
     start_times=[]
@@ -49,10 +52,6 @@ def get_goes_class(start, end):
     max_flux=0
     for d in data:
         unix = d['unix_time']
-        if unix<=last_time:
-            continue
-        num+=1
-        last_time=unix
         flux=d['flux']
         if d['energy']==key and flux>max_flux:
             max_flux=flux
@@ -105,7 +104,7 @@ if __name__ == '__main__':
         file_ids.append(int(sys.argv[1]))
     else:
         file_ids=[x for x in range(int(sys.argv[1]),
-                       int(sys.argv[2]+1))]
+                       int(sys.argv[2])+1)]
     for _id in file_ids:
         set_goes_class_flares_in_file(_id)
 
