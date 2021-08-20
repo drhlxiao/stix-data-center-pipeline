@@ -210,9 +210,6 @@ def find_flares(run_id,
     peak_values = properties['peak_heights']
     peak_unix_times = unix_time[xpeaks]
     peaks_utc = [stix_datetime.unix2utc(x) for x in peak_unix_times]
-    ephemeris = [
-        solo.get_solo_ephemeris(x, x) for x in peaks_utc
-    ]
     flare_ids = [
         stix_datetime.unix2datetime(x).strftime("%y%m%d%H%M")
         for x in peak_unix_times
@@ -286,7 +283,6 @@ def find_flares(run_id,
         'end_unix': flare_end_unix,
         'is_major': majors,
         'LC_statistics': LC_statistics,
-        'ephemeris': ephemeris,
         'run_id': run_id
     }
 

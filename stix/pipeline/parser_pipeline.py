@@ -239,7 +239,7 @@ def main():
                         filelist[instrument] = []
                     filelist[instrument].append(filename)
     for instrument, files in filelist.items():
-        print('Downloading GOES LC...')
+        print('Downloading GOES x-ray flux...')
         goes.download()
         for filename in files:
             print('Processing file:', filename)

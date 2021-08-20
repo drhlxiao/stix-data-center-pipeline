@@ -14,8 +14,6 @@ goes=gd.GOES()
 def parser_loop(wait=60):
     while True:
         num_new=pd.main()
-        if num_new>0:
-            goes.dowload() #request latest goes LC,
         time.sleep(wait)
 
 

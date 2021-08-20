@@ -1,4 +1,7 @@
-
+#!/usr/bin/python3
+''' create goes light curves for STIX flares
+   author: Hualin Xiao, 2021-08-20
+'''
 import sys
 import os
 import json
@@ -7,40 +10,46 @@ import matplotlib.dates as mdates
 from datetime import datetime
 from matplotlib import pyplot as plt
 from stix.core import mongo_db as db
-from stix.spice import stix_datetime
+from stix.spice import stix_datetime as sdt
 import matplotlib.ticker as mticker
 mdb = db.MongoDB()
+db=mdb.get_collection('flares')
+
 energy_map= {
             '0.1-0.8nm': 'GOES low', #1.5 keV - 12 keV
             '0.05-0.4nm': 'GOES high' # 3 - 25
 }
-def get_class(x):
-    if x<1e-7:
-        return 'A'
-    elif x<1e-6:
-        return f'B{x/1e-7:.1f}'
-    elif x<1e-5:
-        return f'C{x/1e-6:.1f}'
-    elif x<1e-4:
-        return f'M{x/1e-5:.1f}'
-    else:
-        return f'X{x/1e-4:.1ff}'
-def process(folder,_id, flare_id, start_utc, end_utc, peak_utc=None, overwrite=False, create_plot=True):
+def plot_flare_goes(folder,_id, overwrite=False):
+    #_id is the flare db entry number
+    flare_doc=mdb.find_one({'_id':_id})
+    if not flare_doc:
+        print(f'Flare {_id} does not exist!')
+        return
     key='goes'
-    if  mdb.get_flare_joint_obs(_id, key) and overwrite == False:
-        print(f'GOES LC for Flare {flare_id} was not created!')
+    if  mdb.get_flare_pipeline_products(_id, key) and overwrite == False:
+        print(f'GOES LC for Flare #{_id} has been created!')
         return 
+    fname=os.path.join(folder, f'flare_{_id}_{flare_id}_goes.png')
+    start=flare_doc['start_unix']
+    end=flare_doc['end_unix']
+    start_utc=sdt.unix2utc(start)
+    end_utc=sdt.unix2utc(end)
+    if plot_goes(start_utc, end_utc):
+        mdb.update_flare_pipeline_products(_id, 'goes', [fname])
+
+def plot_goes(start_utc, end_utc, fig_filename=None): #start unix time and end unix time
     flux = {}
     start_times={}
     num=0
+    start=sdt.utc2unix(start_utc)
+    end=sdt.utc2unix(end_utc)
+    print(start,end, start_utc, end_utc)
     try:
-        start = stix_datetime.utc2unix(start_utc)
-        end = stix_datetime.utc2unix(end_utc)
         data = mdb.get_goes_fluxes(start, end)
         last_time=0
         for d in data:
             unix = d['unix_time']
-            if unix<=last_time:
+            if unix<last_time:
                 continue
             num+=1
             last_time=unix
@@ -54,27 +63,15 @@ def process(folder,_id, flare_id, start_utc, end_utc, peak_utc=None, overwrite=F
         print("ERROR:", e)
         return False
     if num==0:
-        return
+        print('GOES LC not available')
+        return None
     fig, ax = plt.subplots()
-    max_flux=0
     t0_utc=None
     for key,val in flux.items():
         if not t0_utc:
             t0_utc=start_times[key]
         t=[datetime.fromtimestamp(x) for x in val[0]]
-        if key=='0.1-0.8nm':
-            max_flux=np.max(val[1])
-            imax=np.array(val[1]).argmax()
-            goes_peak_unix_time=val[0][imax]
         ax.plot(t,val[1],label=energy_map.get(key,'unknown'))
-    goes_peak_utc=stix_datetime.unix2utc(goes_peak_unix_time)
-    mdb.update_flare_info(_id, 'goes', 
-            {'flux': max_flux, 'class':get_class(max_flux),
-                'goes_peak_unix_time': goes_peak_unix_time, 
-                'goes_peak_utc':goes_peak_utc
-                }
-            )
-
     ax.set_ylabel(r'Watts m$^{-2}$')
     ax.set_yscale('log')
     labels = ['A', 'B', 'C', 'M', 'X']
@@ -96,11 +93,12 @@ def process(folder,_id, flare_id, start_utc, end_utc, peak_utc=None, overwrite=F
     formatter = mdates.ConciseDateFormatter(locator)
     ax.xaxis.set_major_locator(locator)
     ax.xaxis.set_major_formatter(formatter)
-    fname=os.path.join(folder, f'flare_{_id}_{flare_id}_goes.png')
     fig.tight_layout()
-    plt.savefig(fname, dpi=100)
-    mdb.update_flare_joint_obs(_id, 'goes', [fname])
-    print(_id, {'flux': max_flux, 'class':get_class(max_flux)})
+    if fig_filename:
+        plt.savefig(fig_filename, dpi=100)
+    else:
+        plt.show()
+
     return True
 if __name__=='__main__':
-    process('.',0,2,'2021-05-05T00:00:00','2021-05-05T01:10:00', '2021-05-05T02:05:00', True)
+    plot_goes('2021-08-17T00:00:00','2021-08-17T10:00:00')

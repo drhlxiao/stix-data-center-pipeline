@@ -404,14 +404,14 @@ class MongoDB(object):
             doc['lc_filename'] = os.path.basename(lc_filename)
             self.collection_flares.replace_one({'_id': _id}, doc)
 
-    def get_flare_joint_obs(self, _id, key):
+    def get_flare_pipeline_products(self, _id, key):
         doc = self.collection_flares.find_one({'_id': _id})
         if doc:
             if key == 'wiki':
                 return doc.get('wiki', None)
-            if 'joint_obs' not in doc:
+            if 'pipeline' not in doc:
                 return None
-            return doc['joint_obs'].get(key, None)
+            return doc['pipeline'].get(key, None)
         return None
 
     def update_flare_info(self, _id, key, value):
@@ -420,13 +420,13 @@ class MongoDB(object):
             doc[key] = value
             self.collection_flares.replace_one({'_id': _id}, doc)
 
-    def update_flare_joint_obs(self, _id, key, value):
+    def update_flare_pipeline_products(self, _id, key, value):
         doc = self.collection_flares.find_one({'_id': _id})
         if doc:
             if key != 'wiki':
-                if 'joint_obs' not in doc:
-                    doc['joint_obs'] = {}
-                doc['joint_obs'][key] = value
+                if 'pipeline' not in doc:
+                    doc['plots'] = {}
+                doc['pipeline'][key] = value
             else:
                 doc['wiki'] = value
             self.collection_flares.replace_one({'_id': _id}, doc)

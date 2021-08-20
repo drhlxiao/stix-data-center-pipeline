@@ -43,7 +43,6 @@ def goes_flux_to_class(x):
     else:
         return f'X{x/1e-4:.1ff}'
 def get_goes_class(start, end):
-    print(start, end)
     data = mdb.get_goes_fluxes(start, end)
     last_time=0
     start_times=[]
@@ -78,9 +77,10 @@ def find_flare_goes_class(doc):
     if peak_counts<=threshold:
         print(f"Ignored flares {doc['_id']}, peak counts < {threshold}")
         return
-    eph=solo.get_solo_ephemeris(peak_utc, peak_utc)
+    ephs=solo.get_solo_ephemeris(peak_utc, peak_utc)
+    eph=get_first_element(ephs)
     try:
-        delta_lt=eph['light_time_diff'][0]
+        delta_lt=eph['light_time_diff']
     except (KeyError, IndexError):
         delta_lt=0
     
@@ -90,7 +90,8 @@ def find_flare_goes_class(doc):
     flare_db.update_one(
             {'_id':doc['_id']},
             {'$set':{
-                'goes':{'peak_unix':peak_unix, 'peak_utc': stix_datetime.unix2utc(peak_unix), 'peak_flux':peak_flux, 'class':goes_class}
+                'goes':{'peak_unix':peak_unix, 'peak_utc': stix_datetime.unix2utc(peak_unix), 'peak_flux':peak_flux, 'class':goes_class},
+                'ephemeris':eph
                 }
             })
             
