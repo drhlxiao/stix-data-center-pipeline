@@ -285,18 +285,10 @@ def plot(folder,_id, flare_id ,time_at_peak, wavelen=1600, overwrite=False):
     bands
     '''
     wlth = wavelen
-
-    '''
-    Since I don't know how you deal with the SPICE kernel,
-    here I put the variable in which the path to the MK folder
-    is needed. One could also modify this directly in
-    SolO.as_seen_by_SOLO
-    '''
     key='aia1600'
-    if  mdb.get_flare_joint_obs(_id, key) and overwrite == False:
+    if  mdb.get_flare_pipeline_products(_id, key) and overwrite == False:
         print(f'AIA 1600 image for Flare {flare_id} was not created as it exists already!')
         return 
-
     time_start = Time(time_at_peak)-6*u.s
     time_end = Time(time_at_peak)+6*u.s
     # Download and calibrate AIA
@@ -317,7 +309,7 @@ def plot(folder,_id, flare_id ,time_at_peak, wavelen=1600, overwrite=False):
     fname=os.path.join(folder, f'AIA_{wlth}_{_id}_{flare_id}.png')
     #lon, lat = ax.coords
     plt.savefig(fname, dpi=100)
-    mdb.update_flare_joint_obs(_id, key, [fname])
+    mdb.update_flare_pipeline_products(_id, key, [fname])
     #plt.show()
     return fname
 

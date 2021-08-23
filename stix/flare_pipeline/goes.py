@@ -25,6 +25,7 @@ def plot_flare_goes(folder,_id, overwrite=False):
     if not flare_doc:
         print(f'Flare {_id} does not exist!')
         return
+    flare_id=flare_doc['flare_id']
     key='goes'
     if  mdb.get_flare_pipeline_products(_id, key) and overwrite == False:
         print(f'GOES LC for Flare #{_id} has been created!')

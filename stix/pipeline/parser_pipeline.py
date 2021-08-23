@@ -239,14 +239,14 @@ def main():
                         filelist[instrument] = []
                     filelist[instrument].append(filename)
     for instrument, files in filelist.items():
-        print('Downloading GOES x-ray flux...')
         goes.download()
         for filename in files:
             print('Processing file:', filename)
             summary=process(instrument, filename , True)
             try:
                 notification_ids.append(summary['notification_id'])
-            except (TypeError, KeyError):
+            except Exception as e: 
+                print(e)
                 pass
             num_processed += 1
     MDB.release_notifications(notification_ids)

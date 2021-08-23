@@ -478,6 +478,7 @@ class MongoDB(object):
         if self.collection_flares:
             self.collection_flares.delete_many({'run_id': int(run_id)})
 
+
     def search_flares_by_tw(self,
                             start_unix,
                             duration,

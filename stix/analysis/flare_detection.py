@@ -20,7 +20,7 @@ from stix.core import stix_datatypes as sdt
 from stix.core import mongo_db as db
 from stix.spice import stix_datetime
 from stix.core import stix_logger
-from stix.spice import solo
+#from stix.spice import solo
 from stix.analysis import ql_analyzer as qla
 logger = stix_logger.get_logger()
 matplotlib.use('Agg')

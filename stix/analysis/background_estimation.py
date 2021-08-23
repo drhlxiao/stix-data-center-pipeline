@@ -48,11 +48,11 @@ def process_file(file_id):
     while end < end_unix:
         span = FRAME_SPAN
         end = start + span
-        get_background(start, end, file_id)
+        get_QL_background(start, end, file_id)
         start = end
 
 
-def get_background(start, end, file_id):
+def get_QL_background(start, end, file_id):
     span = end - start
     bkg_db = mdb.get_collection('qllc_statistics')
     if bkg_db.find({

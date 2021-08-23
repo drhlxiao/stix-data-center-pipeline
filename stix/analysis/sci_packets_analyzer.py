@@ -27,6 +27,12 @@ DATA_REQUEST_REPORT_NAME = {
     54125: 'ASP'
 }
 
+MAX_L1_REQ_DURATION=3600
+#max l1 data request duration, used to load flares before l1 processing
+FLARE_SELECTION_SPAN=2*60
+FLARE_SCI_EMAX = 17
+FLARE_SELECTION_MIN_QL_COUNTS=600 # flares with ql counts <600 will not be preocessed
+
 PROCESS_METHODS = {
     'normal': [54114, 54117, 54143, 54125],
     'yield': [54115, 54116]
@@ -145,8 +151,11 @@ class StixBulkL1L2Analyzer(object):
         self.pixel_mask = []
         self.detector_mask = []
         self.triggers = []
-        self.hits = []
-        #self.hits_time_int = np.zeros((33, 12, 32))  # total hits
+        self.pixel_rate_spec= np.zeros((12*32, 32))  # total hits
+        self.pixel_time_int_spectra= np.zeros((12*32, 32))  # total hits
+
+        self.flare_peak_pixel_spectra=np.zeros((12*32, 32))  # spectrum of each pixel near flare peaks
+        self.flare_pixel_counts=[0]*384
         #self.hits_time_ene_int = np.zeros(
         #    (33, 12))  # energy integrated total hits
         # self.T0=[]
@@ -156,12 +165,37 @@ class StixBulkL1L2Analyzer(object):
         self.packet_unix = 0
         self.groups = []
         self.pixel_total_counts = [0] * 384
+        self.sci_ebins=[]
         self.num_time_bins = []
         self.start_unix=None
         self.end_unix=None
+    def get_flare_times(self,start_unix, duration=MAX_L1_REQ_DURATION):
+        flares=mdb.search_flares_by_tw(
+                            start_unix,
+                            duration,
+                            threshold=FLARE_SELECTION_MIN_QL_COUNTS)
+        flare_ids,   flare_peak_unix_times, flare_start_times, flare_end_times=[],[],[],[]
+        for doc in flares:
+            flare_ids.append(doc['flare_id']) #QL always arrive earlier than SCI data
+            flare_peak_unix_times.append(doc['peak_unix_time'])
+            flare_start_times.append(doc['start_unix'])
+            flare_end_times.append(doc['end_unix'])
+        return flare_ids, flare_peak_unix_times, flare_start_times, flare_end_times
+
+    def is_near_flare_peak(self, start_times:list, end_times:list,  current_time):
+        #If current_time is 2 minutes near a peak, return true else false
+        for t0, t1 in zip(start_times, end_times):
+            if t0 <= current_time <=t1:
+                return True
+        return False
+        
+    
 
 
     def format_report(self):
+        duration=self.end_unix-self.start_unix
+        if duration >0:
+            self.pixel_rate_spec=self.pixel_time_int_spectra/duration
         report = {
             'request_id': self.request_id,
             'packet_unix': self.packet_unix,
@@ -171,8 +205,39 @@ class StixBulkL1L2Analyzer(object):
             'start_unix': self.start_unix,
             'end_unix': self.end_unix,
             'pixel_total_counts': self.pixel_total_counts,
-        }
-        return report
+            }
+        emin=-1
+        emax=-1
+        if self.sci_ebins:
+            emin=min([x[0] for x in self.sci_ebins])
+            emax=max([x[1] for x in self.sci_ebins])
+
+        flare_ids, flare_peak_unix_times,flare_start_times, flare_end_times=self.get_flare_times(self.start_unix, duration)
+        is_background=False if flare_ids else True #if no flare found it is background
+        synopsis={
+                'pixel_rate_spec': self.pixel_rate_spec.tolist(),
+                'duration':duration,
+                'sci_ebins':self.sci_ebins,
+                'emin':emin,
+                'emax':emax,
+                'is_background':is_background,
+                'pixel_total_counts': self.pixel_total_counts
+                }
+        if not is_background:
+            synopsis['flares']={
+                    'peak_pixel_spec': self.flare_peak_pixel_spectra.tolist(),
+                    'flare_pixel_counts':{
+                        'counts':self.flare_pixel_counts,
+                        'emax': FLARE_SCI_EMAX,
+                        'emin':emin,
+                        },
+                    'integration_times': [t1-t0 for t0,t1 in  zip(flare_start_times, flare_end_times)],
+                    'flare_ids':flare_ids,
+                    'peak_unix_times':flare_peak_unix_times,
+                    'start_unix_times':flare_start_times,
+                    'end_unix_times':flare_end_times,
+                    }
+        return report, synopsis
 
     def get_spectrum_pixel_indexes(self, detector_mask, pixel_mask_array):
         detectors = [0] * 32
@@ -196,11 +261,21 @@ class StixBulkL1L2Analyzer(object):
         return pixel_indexes
 
     def merge(self, cursor):
+        #it doesn't know the start time and end time of the data request 
+        ipkt=0
+        flare_start_times, flare_end_times=[],[]
         for pkt in cursor:
             packet = sdt.Packet(pkt)
             self.request_id = packet[3].raw
             self.packet_unix = packet['unix_time']
             T0 = stix_datetime.scet2unix(packet[12].raw)
+
+            if ipkt==0:
+                _, _, flare_start_times,flare_end_times=self.get_flare_times(T0, MAX_L1_REQ_DURATION)
+            ipkt+=1
+
+
+
             num_structures = packet[13].raw
             self.eacc_SKM = (packet[5].raw, packet[6].raw, packet[7].raw)
             self.trig_SKM = (packet[9].raw, packet[10].raw, packet[11].raw)
@@ -219,6 +294,12 @@ class StixBulkL1L2Analyzer(object):
             for i in range(0, num_structures):
                 offset = i * 22
                 time = children[offset][1] * 0.1 + T0
+
+                is_flare_data=self.is_near_flare_peak(flare_start_times, flare_end_times,time)
+                #if is_flare_data:
+                #    print('flare data:',flare_end_times, flare_end_times,T0)
+
+
                 if self.start_unix is None:
                     self.start_unix=time
 
@@ -246,11 +327,25 @@ class StixBulkL1L2Analyzer(object):
                     k = j * 4
                     E1_low = samples[k + 1][1]
                     E2_high = samples[k + 2][1]
+                    if (E1_low, E2_high) not in self.sci_ebins:
+                        self.sci_ebins.append((E1_low, E2_high))
+
                     pixel_counts = []
                     for idx, e in enumerate(samples[k + 3][3]):
                         pixel_counts.append(e[counts_idx])
+
                         self.pixel_total_counts[
                             pixel_indexes[idx]] += e[counts_idx]
+                        if is_flare_data and E1_low==E2_high:
+                            self.flare_peak_pixel_spectra[
+                                pixel_indexes[idx]][E1_low] += e[counts_idx]
+                            if E1_low<FLARE_SCI_EMAX:
+                                self.flare_pixel_counts[
+                                    pixel_indexes[idx]] += e[counts_idx]
+
+                        if E1_low == E2_high: #only fill counts with Ebin=1  to spectra
+                            self.pixel_time_int_spectra[
+                                pixel_indexes[idx]][E1_low] += e[counts_idx]
                     energies.append(
                         [E1_low, E2_high,
                          sum(pixel_counts), pixel_counts])
@@ -516,6 +611,7 @@ def merge(file_id, remove_existing=True):
         spid = int(doc['SPID'])
         logger.info(f'processing bsd id: {doc["_id"]}, spid:{spid}')
         cursor = mdb.get_packets_of_bsd_request(doc['_id'], header_only=False)
+        synopsis=None
         if not cursor:
             continue
         result = None
@@ -527,7 +623,7 @@ def merge(file_id, remove_existing=True):
             result = analyzer.merge(cursor)
         elif spid in [54115, 54116]:
             analyzer = StixBulkL1L2Analyzer()
-            result = analyzer.merge(cursor)
+            result, synopsis = analyzer.merge(cursor)
 
         elif spid == 54117:
             analyzer = StixBulkL3Analyzer()
@@ -551,7 +647,7 @@ def merge(file_id, remove_existing=True):
             with open(json_filename, 'w') as outfile:
                 json.dump(result, outfile)
             collection.update_one({'_id': doc['_id']}, {'$set':{'level1': json_filename, 
-                'start_unix':start_unix, 'end_unix':end_unix}})
+                'start_unix':start_unix, 'end_unix':end_unix, 'synopsis':synopsis}})
 
 
 if __name__ == '__main__':

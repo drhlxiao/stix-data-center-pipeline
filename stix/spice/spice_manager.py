@@ -47,13 +47,15 @@ class SpiceManager:
                 if fdt>self.version_date:
                     self.latest_mk=os.path.basename(filename)
                     self.version_date=fdt
+
         #if latest_mk!=None and utc<self.version_date:
         
-        if self.loaded_kernel_filename !=  self.latest_mk and self.latest_mk !=None:
+        if self.loaded_kernel_filename !=  self.latest_mk and self.latest_mk is not None:
+            print('loading kernel:',self.latest_mk)
             spiceypy.furnsh(self.latest_mk)
             self.loaded_kernel_filename=self.latest_mk
         else:
-            print(f'Skipped! {self.latest_mk} has been loaded!')
+            print(f'SPICE kernel loaded already: {self.latest_mk}.')
 
 
     def obt2utc(self, obt_string):

@@ -17,8 +17,8 @@ mdb = db.MongoDB()
 
 def plot_aia(folder,_id, flare_id ,utc_start,  wavelen=131, overwrite=False):
     key='aia131'
-    if  mdb.get_flare_joint_obs(_id, key) and overwrite == False:
-        print(f'GOES LC for Flare {flare_id} is not created!')
+    if  mdb.get_flare_pipeline_products(_id, key) and overwrite == False:
+        print(f'AIA for Flare {flare_id} is not created!')
         return 
     unix_start= stix_datetime.utc2unix(utc_start)
     utc_end = stix_datetime.unix2datetime(unix_start +
@@ -38,7 +38,7 @@ def plot_aia(folder,_id, flare_id ,utc_start,  wavelen=131, overwrite=False):
     sdo.draw_limb()
     fname=os.path.join(folder, f'AIA_{wavelen}_{_id}_{flare_id}.png')
     plt.savefig(fname, dpi=100)
-    mdb.update_flare_joint_obs(_id, key, [fname])
+    mdb.update_flare_pipeline_products(_id, key, [fname])
 
     return fname
 

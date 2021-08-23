@@ -54,10 +54,8 @@ class GOES(object):
     def download(self, max_unix=math.inf):
         if max_unix<self.last_unix_time:
             return
-            
-
         url='http://services.swpc.noaa.gov/json/goes/primary/xrays-7-day.json'
-        print('downloading GOES light curve')
+        print('Downloading GOES x-ray flux')
         r = requests.get(url)
         data=r.json()
         self.save_geos_fluxes(data)

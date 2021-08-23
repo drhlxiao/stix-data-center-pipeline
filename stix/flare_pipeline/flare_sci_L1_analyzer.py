@@ -1,6 +1,17 @@
 #!/usr/bin/python3
-# author: Hualin Xiao
-# Compute flare location, do background subtraction
+'''
+L1 flare data analysis pipeline
+  what it does here includes
+  - do background subtraction for flare data
+  - find flare location solution
+  - pre-requirements:
+     flare data should be processed by flare_goes_class.py and flare_detection.py and sci_packets_analyzer.py 
+    1) flare_goes_class prepare ephemeris for flare data
+    2) sci_packets_analyzer prepares spectra and  check if it is background
+    3) flare detection tells flare start time, end time, flare peak counts
+Author: Hualin Xiao, Aug. 2021
+email: hualin.xiao@fhnw.ch
+'''
 import sys
 import os
 import json
@@ -145,7 +156,6 @@ class SciL1Analyzer(object):
 
 
         return results
-        
         
     def compute_detector_counts(self, cursor, min_unix_time=None, max_unix_time=None): 
         #calculate spectrogram

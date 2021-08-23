@@ -38,9 +38,8 @@ def get_chi2(area, use_small_pixels, use_det_fluence, y, yerr, cfl_cnts_sum, cfl
 
 
         det_count_chi2 = 0 if  sigma==0 else (cfl_fluence-det_fluence)**2 / sigma
-
     obs=y if use_small_pixels else y[0:8]
-    exp=normalized_areas if use_small_pixels else normalized_areas[0:8]
+    exp=normalized_areas if use_small_pixels else normalized_areas[0:8] #expected pattern
     error=yerr if use_small_pixels else yerr[0:8]
     if np.sum(error)==0:
         error=np.sqrt(obs)
@@ -61,7 +60,7 @@ def fit_location(counts, count_errors, mean_fluence, mean_fluence_error, flare_u
     #counts: CFL pixel counts
     #count_errors: CFL pixel count errors
 
-    #mean_fluence: detector mean fluence
+    #mean_fluence: detector mean fluence = pixel total counts / open area ratio
     #mean_fluence_error: detector mean fluence error
 
 
