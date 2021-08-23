@@ -5,6 +5,7 @@ import random
 import numpy as np
 from core import skylut
 from spice import solo
+from stix.flare_pipeline import flare_location_fitter as flf
 
 #open area ratio obtained by  the simulator
 #detectorIndex: ratio
@@ -68,7 +69,7 @@ def fit_location(counts, count_errors, mean_fluence, mean_fluence_error, flare_u
     max_pixel_index=12 if use_small_pixels else 8
     normalized_counts, normalized_count_errors=normalize(counts, count_errors)
 
-    solo_location=solo.get_solo_ephemeris(flare_utc, flare_utc,  'SUN',  'GSE',1)
+    solo_location=solo.get_solo_ephemeris(flare_utc, flare_utc, num_steps=1)
     sun_angular_diameter=solo_location.get('sun_angular_diameter',0)*60
     sun_angular_radius=sun_angular_diameter*0.5
     #in units of arsec

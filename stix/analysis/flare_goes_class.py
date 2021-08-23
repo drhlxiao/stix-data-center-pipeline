@@ -58,15 +58,19 @@ def get_goes_class(start, end):
     goes_class=goes_flux_to_class(max_flux)
     return  max_time, max_flux,goes_class
 def set_goes_class_flares_in_file(file_id):
-
     print(f'processing flares in file {file_id}')
     fdb=mdb.get_collection('flares')
     flares=flare_db.find({'run_id':file_id, 'hidden':False})
     if not flares:
         print(f'Flare not found in  {file_id} !')
         return
+    goes_class_list=[]
     for doc in flares:
-        find_flare_goes_class(doc)
+        peak_utc, goes_class=find_flare_goes_class(doc)
+        goes_class_list.append((peak_utc, goes_class))
+
+    return goes_class_list
+
 def find_flare_goes_class(doc):
     start_unix=doc['start_unix']
     end_unix=doc['end_unix']
@@ -86,6 +90,7 @@ def find_flare_goes_class(doc):
     
     peak_unix, peak_flux, goes_class=get_goes_class(start_unix+delta_lt, end_unix+delta_lt)
     print(goes_class, stix_datetime.unix2utc(peak_unix))
+    
 
     flare_db.update_one(
             {'_id':doc['_id']},
@@ -94,6 +99,7 @@ def find_flare_goes_class(doc):
                 'ephemeris':eph
                 }
             })
+    return peak_utc, goes_class
             
 
 if __name__ == '__main__':
