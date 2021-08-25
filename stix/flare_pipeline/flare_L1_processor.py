@@ -26,6 +26,7 @@ from stix.flare_pipeline import flare_location_fitter as flf
 from pprint import pprint
 from matplotlib import pyplot as plt
 from matplotlib.patches import Circle,Rectangle, PathPatch
+import matplotlib.colors as colors
 from matplotlib.path import Path
 from stix.utils import bson
 from stix.flare_pipeline import flare_spice as fsp
@@ -250,7 +251,8 @@ class FlareDataProcessor(object):
 
         xloc=res['min_pos'][0]
         yloc=res['min_pos'][1]
-        flare_spice_data=fsp.get_flare_spice(xloc,yloc,flare_utc, observer='earth')
+        print(f"Flare location:({xloc}, {yloc}")
+        flare_spice_data=fsp.get_flare_spice(xloc,yloc,flare_utc, observer='solo')
 
         emission_earth=flare_spice_data['theta_flare_norm_earth_deg']
         emission_solo=flare_spice_data['theta_flare_norm_solo_deg']
@@ -259,8 +261,8 @@ class FlareDataProcessor(object):
                     'solution':res,
                     'background_bsd_id':bkg_doc['_id'],
                     'fig_filename':fig_filename,
-                    'x':xloc,
-                    'y':yloc,
+                    'cfl_xloc':xloc,
+                    'cfl_yloc':yloc,
                     'emission_earth_deg':emission_earth,
                     'emission_solo_deg':emission_solo,
                     'spice':flare_spice_data
@@ -270,6 +272,7 @@ class FlareDataProcessor(object):
 
 
         #store  results in database
+        print("Updating database...")
         self.bsd_db.update_one({'_id':bsd_doc['_id']},
                 {'$set':{'synopsis.flares.cfl':flare_loc}})
                 #rate are not energy integrated, dimemsions 384x32
@@ -279,9 +282,9 @@ class FlareDataProcessor(object):
 
 
 
-        if plot_fig:
+        if plot_fig or save_fig:
             ds='steps-mid'
-            fig, axs = plt.subplots(2,2, figsize=(16,16))
+            fig, axs = plt.subplots(2,2, figsize=(13,10))
             
             spec_timebins=np.array([stix_datetime.unix2datetime(xx) for xx in spectrogram_data['timebins']])
             spec_ebins=np.array([ sci_to_keV(x[0], x[1]) for x in spectrogram_data['ebins']])
@@ -289,21 +292,17 @@ class FlareDataProcessor(object):
             flare_start=stix_datetime.unix2datetime(bsd_doc['synopsis']['flares']['start_unix_times'][0])
             flare_end=stix_datetime.unix2datetime(bsd_doc['synopsis']['flares']['end_unix_times'][0])
             XX, YY=np.meshgrid(spec_timebins, spec_ebins)
-            im2=axs[0,0].pcolormesh(XX,YY, spec_data, cmap='plasma')
-            #im2=axs[1,1].imshow(spec_data, cmap='plasma')
+            spec_data[spec_data<0]=0.00001 #set to zero, negative dosen't make sense but could appear when doing bkg subtraction
+            im2=axs[0,0].pcolormesh(XX,YY, spec_data, cmap='plasma', norm=colors.LogNorm(vmin=spec_data.min(), vmax=spec_data.max()))
+            #fig.colorbar(im2, ax=axs[0,0])
             
             axs[0,0].set_title(f'BSD #{bsd_doc["_id"]}')
             if flare_start < spec_timebins[0]:
                 flare_start=spec_timebins[0]
-            if flare_end< spec_timebins[-1]:
+            if flare_end> spec_timebins[-1]:
                 flare_end=spec_timebins[-1]
 
-            axs[0,0].vlines([flare_start, flare_end], ymin=sig_emin, ymax=sig_emax, colors='cyan')
-
-            #rect = Rectangle((flare_start,sig_emin),flare_end -flare_start,sig_emax-sig_emin,
-            #        linewidth=8, edgecolor='cyan',facecolor='none')
-            #axs[0,0].add_patch(rect)
-            #axs[1,1].set_xticklabels(spec_timebins)
+            axs[0,0].vlines([flare_start, flare_end], ymin=emin, ymax=emax, colors='cyan')
             axs[0,0].set_yticklabels(spec_ebins)
             axs[0,0].set_xlabel(f'Start time {spec_timebins[0].strftime("%Y-%m-%dT%H:%M%S")}')
 
@@ -347,22 +346,21 @@ class FlareDataProcessor(object):
             x = np.linspace(res['x'][0] * 3600, res['x'][1] * 3600, res['x'][2])
             y = np.linspace(res['y'][0] * 3600, res['y'][1] * 3600, res['y'][2])
             X,Y=np.meshgrid(x,y)
-            chi2_map[chi2_map>50]=-1
-            im=axs[1,1].pcolormesh(X,Y, chi2_map, cmap='RdPu')
+            chi2_limit=22
+            chi2_map[chi2_map>chi2_map]=-1
+            im=axs[1,1].pcolormesh(X,Y, np.transpose(chi2_map), cmap='RdPu', vmin=0)
+            #fig.colorbar(im, ax=axs[1,1])
             axs[1,1].plot([xloc],[yloc],marker='+',markersize=10)
             axs[1,1].text(xloc-40,yloc-40, f'({xloc:.1f},{yloc:.1f})')
             axs[1,1].grid()
-            axs[1,1].set_xlim(-1800,1800)
-            axs[1,1].set_ylim(-1800,1800)
+            axs[1,1].set_xlim(-1600,1600)
+            axs[1,1].set_ylim(-1600,1600)
             axs[1,1].set_xlabel('X (arcsec)')
             axs[1,1].set_ylabel('Y (arcsec)')
             axs[1,1].set_title('CFL solution')
             circle = Circle((0, 0), res['sun_angular_diameter']*0.5, alpha=0.8, ec='red', fc='none')
             axs[1,1].add_patch(circle)
             axs[1,1].set_aspect('equal')
-            sci_energy_range=sci_to_keV(sig_emin, sig_emax)
-            descriptions=f'''Signal T0={flare_start.strftime("%H:%M:%S")}, duration={(flare_end-flare_start).total_seconds():.2f} s. Energy range: {sci_energy_range}'''
-            plt.figtext(0.01,0.02, descriptions, va="bottom", ha="left", fontsize=10)
             plt.suptitle(f'STIX flare #{flare_id} (BSD #{_id})')
 
 
@@ -370,16 +368,20 @@ class FlareDataProcessor(object):
             if plot_fig:
                 plt.show()
             if save_fig:
-                print('fig saved to ', fig_filename)
-                plt.savefig(fig_filename, dpi=300)
+                try:
+                    plt.savefig(fig_filename, dpi=300)
+                    print('Fig saved to ', fig_filename)
+                except Exception as e:
+                    print(e)
+            plt.close()
 
 
 
     def process_L1_BSD_in_file(self, file_id):
+        print("Processing file:", file_id)
         bsd_cursor = self.bsd_db.find({'run_id': file_id, 'SPID':54115}).sort('_id', 1)
         for doc in bsd_cursor:
             self.process_one_flare(doc, plot_fig=False, save_fig=True)
-            break
     def process_L1_BSD(self, bsd_id, bkg_bsd_id=None):
         doc= self.bsd_db.find_one({'_id': bsd_id, 'SPID':54115})
         self.process_one_flare(doc, bkg_bsd_id)
@@ -394,7 +396,8 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         print('flare_location_solver run_id')
         print('flare_location_solver run_id_start id_end')
-        #flp.process_L1_BSD(2720, 2722)
+        
+        flp.process_L1_BSD(2720, 2722)
     elif len(sys.argv)==2:
         flp.process_L1_BSD_in_file(int(sys.argv[1]))
     else:

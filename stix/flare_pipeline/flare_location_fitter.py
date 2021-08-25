@@ -59,8 +59,8 @@ def fit_location(counts, count_errors, mean_fluence, mean_fluence_error, flare_u
     sun_angular_radius=60
     if sun_angular_diameter:
         sun_angular_radius=sun_angular_diameter[0]*0.5*60
-    print(f'{sun_angular_diameter=}')
-    print(f'{solo_location=}')
+    #print(f'{sun_angular_diameter=}')
+    #print(f'{solo_location=}')
     #in units of arsec
     x_angles = np.linspace(skylut.data['x'][0]*3600,skylut.data['x'][1]*3600,skylut.data['x'][2])
     y_angles = np.linspace(skylut.data['y'][0]*3600,skylut.data['y'][1]*3600,skylut.data['y'][2])
