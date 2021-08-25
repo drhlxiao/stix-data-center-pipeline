@@ -24,20 +24,30 @@ from stix.core import stix_logger
 from stix.core import config
 from stix.flare_pipeline import flare_location_fitter as flf
 from pprint import pprint
+from matplotlib import pyplot as plt
+from matplotlib.patches import Circle,Rectangle, PathPatch
+from matplotlib.path import Path
+from stix.utils import bson
+from stix.flare_pipeline import flare_spice as fsp
 
-mdb = db.MongoDB()
-logger = stix_logger.get_logger()
+
 DET_ID_START=20
-DET_ID_END=32
-DET_SENSITVE_AREA=80.96
-GRID_OPEN_AREA_RATIO=np.array([0.292312,
+DET_ID_END=32  #only detector 20-32 selected  for detector mean counts calculation
+DET_SENSITVE_AREA=80.96 #detector pixel sensitive area in units of mm2
+BKG_MIN_DURATION=120 #minimal duration of bsd that can be used  for bkg subtraction, to reduce systematic error
+GRID_OPEN_AREA_RATIO=np.array(
+        [0.292312,
 		0.272487,
 		0.252282,
 		0.257189,
+
 		0.281502,
 		0.27254,
 		0.292103,
 		0.260207,
+        1,  # CFL,  dummy 
+        1, #bkg ,  dummy 
+
 		0.335213,
 		0.305518,
 		0.335412,
@@ -60,24 +70,52 @@ GRID_OPEN_AREA_RATIO=np.array([0.292312,
 		0.272491,
 		0.264514,
 		0.254682])
+#open area ration, obtained with the python stix imager simulator using nominal grid parameters
+EBINS = [0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 25, 28, 32, 36, 40, 45, 50, 56, 63, 70, 76, 84, 100, 120, 150, 'inf']
 
-BKG_MIN_DURATION=180
-class SciL1Processor(object):
+flare_pipeline_out_path= config.get_config('pipeline.daemon.flare_pipeline_path')
+mdb = db.MongoDB()
+
+def sci_to_keV(low_bin, up_bin):
+    if up_bin == 31:
+        return f'{EBINS[low_bin]}  keV - inf';
+    return f'{EBINS[low_bin]}  -  {EBINS[up_bin + 1]}  keV';
+
+class FlareDataProcessor(object):
     def __init__(self):
-        self.dt = []
         self.bsd_db= mdb.get_collection_bsd()
+        self.flare_db= mdb.get_collection("flares")
 
-    def get_background_bsd(self, signal_unix_time, emin, emax, background_bsd_id=None):
-        #find/load the most recent L1 data for background subtraction at a given signal time 
+    def get_background_request_data(self, signal_unix_time, emin, emax, background_bsd_id=None):
+        #load a bulk science data report for background subtraction or find the closest in time L1 data for background subtraction
         if background_bsd_id is not None:
             return self.bsd_db.find_one({'_id':background_bsd_id})
+
+        '''
+        find background data by database query
         bsd_ealier=list(self.bsd_db.find({'synopsis.is_background':True,
             'synopsis.duration':{'$gt':BKG_MIN_DURATION},
             'synopsis.emin':{'$lte':emin},
             'synopsis.emax':{'$gte':emax},
             'start_unix':{'$lt':signal_unix_time}}).sort('start_unix',-1).limit(1))
+
         bsd_later=list(self.bsd_db.find({'synopsis.is_background':True, 
             'synopsis.duration':{'$gt':BKG_MIN_DURATION},
+            'synopsis.emin':{'$lte':emin},
+            'synopsis.emax':{'$gte':emax},
+            'start_unix':{'$gt':signal_unix_time}}).sort('start_unix',1).limit(1))
+      '''
+        #find background data by database query
+        bsd_ealier=list(self.bsd_db.find({'request_form.purpose':'Background', #only select those marked as background
+            'synopsis.duration':{'$gt':BKG_MIN_DURATION},
+            'synopsis.emin':{'$lte':emin},
+            'name':'L1',
+            'synopsis.emax':{'$gte':emax},
+            'start_unix':{'$lt':signal_unix_time}}).sort('start_unix',-1).limit(1))
+
+        bsd_later=list(self.bsd_db.find({'request_form.purpose':'Background', #only select those marked as background
+            'synopsis.duration':{'$gt':BKG_MIN_DURATION},
+            'name':'L1',
             'synopsis.emin':{'$lte':emin},
             'synopsis.emax':{'$gte':emax},
             'start_unix':{'$gt':signal_unix_time}}).sort('start_unix',1).limit(1))
@@ -90,105 +128,276 @@ class SciL1Processor(object):
             t1=np.abs(bsd_later[0]['start_unix']-signal_unix_time)
         except (KeyError, IndexError):
             t1=np.inf
-        closet= np.min(t1,t0)
+        closet= min(t1,t0)
         
         if closet==np.inf:
             return None
         elif closet==t0:
             return bsd_ealier[0]
         else:
-            return bsd_later[0]
+            return bsd_later[0] 
         
     
-    def get_flare_spectra_and_location(self, bsd_doc):
+    def process_one_flare(self, bsd_doc, bkg_bsd_id=None, plot_fig=True, save_fig=True):
+        """tasks:
+        1) background subtraction using pre-processed data 
+        2) calculate CFL location 
+        3) earth viewing angle of the flare
+           """
+        
+        if not bsd_doc:
+            print('Not a valid STIX L1 sci dataset')
         results={}
         _id=bsd_doc['_id']
+        print(f"Processing flare {_id}")
         try:
             flare_ids=bsd_doc['synopsis']['flares']['flare_ids']
         except KeyError:
-            print(f'no flare information found in BSD #{_id}!')
+            print(f'no flare information found in BSD #{_id} or it has not been processed by sci_l1_analyzer.py')
             return None
 
         if len(flare_ids)>1:
             print(f'BSD {_id} contains several flares,but only the first will be processed!')
         flare_id=flare_ids[0]
         signal_counts=np.array(bsd_doc['synopsis']['flares']['flare_pixel_counts']['counts']) #already energy integrated 1d 384 vector
-        signal_emin=bsd_doc['synopsis']['flares']['flare_pixel_counts']['emin']
-        signal_emax=bsd_doc['synopsis']['flares']['flare_pixel_counts']['emax']
+
+        emin=bsd_doc['synopsis']['flares']['flare_pixel_counts']['emin']
+        emax=bsd_doc['synopsis']['flares']['flare_pixel_counts']['emax']
         signal_duration=bsd_doc['synopsis']['flares']['integration_times'][0]
-        bkg_doc=get_background_bsd(bsd_doc['start_unix'])
+        bkg_doc=self.get_background_request_data(bsd_doc['start_unix'], emin, emax, bkg_bsd_id)
+
         if not bkg_doc:
             print(f'No background found for {_id}')
             return
+        print(f'Using background: bsd #{bkg_doc["_id"]}')
+    
+        sig_emin, sig_emax=bsd_doc['synopsis']['emin'], bsd_doc['synopsis']['emax']
+        bkg_emin, bkg_emax=bkg_doc['synopsis']['emin'], bkg_doc['synopsis']['emax']
 
 
         bkg_rates_full_energy=np.array(bkg_doc['synopsis']['pixel_rate_spec']) #rate are not energy integrated, dimemsions 384x32
         bkg_duration=bkg_doc['synopsis']['duration']
 
-        bkg_rates=np.sum(bkg_rates_full_energy[:,emin:emax], axis=0) #only select bins in the energy range, energy integrated counts
-        bkg_rate_error=np.sqrt(bkg_rates*bkg_duration) #only statistic error 
+        #calculate duration
+        signal_rates_full_energy=np.array(bsd_doc['synopsis']['pixel_rate_spec']) #rate are not energy integrated, dimemsions 384x32
+        bsd_duration=bkg_doc['synopsis']['duration']
+        
+        e_range=[max(sig_emin, bkg_emin), min(sig_emax, bkg_emax)]
+
+        bkg_spectrum=np.sum(bkg_rates_full_energy, axis=0)*bsd_duration
+
+        sig_spectrum=np.sum(signal_rates_full_energy, axis=0)*bsd_duration
+
+        spectrogram_data=bsd_doc['synopsis']['spectrogram'] #rate are not energy integrated, dimemsions 384x32
+
+        bkg_subtracted_spectrum=np.sum(signal_rates_full_energy - bkg_rates_full_energy, axis=0)*bsd_duration
+        bkg_subtracted_spectrum_error=np.sqrt(np.sum(signal_rates_full_energy*bsd_duration+ bkg_rates_full_energy*bsd_duration, axis=0))
+
+        bkg_subtracted_spectrum[:e_range[0]]=0
+        bkg_subtracted_spectrum[e_range[1]:]=0
+        #the subtraction is not valid for e>emax and e<emin
+        #print(f'{bkg_subtracted_spectrum=}')
+        
+
+
+        bkg_rates=np.sum(bkg_rates_full_energy[:,emin:emax], axis=1) #only select bins in the energy range, energy integrated counts
+
+        #print("shape:",bkg_rates.shape)
+        bkg_rate_error=np.sqrt(bkg_rates*bkg_duration)/bkg_duration 
+        # rate*duration =  original counts;   only statistic error considered
 
         bkg_cfl_rate=bkg_rates[8*12:9*12]
+        #print(f'{bkg_cfl_rate=}')
+
         bkg_cfl_rate_error=bkg_rate_error[8*12:9*12]
+        #print(f'{bkg_cfl_rate_error=}')
+
         cfl_pixel_counts=signal_counts[8*12:9*12] #already energy bin integrated
+        #print(f'{cfl_pixel_counts=}')
+
 
         cfl_pixel_bkgsub_counts=cfl_pixel_counts - signal_duration * bkg_cfl_rate
-        cfl_pixel_bkgsub_count_error=np.sqrt(cfl_pixel_counts  + (signal_duration*bkg_cfl_rate_error) **2)
+        #sqrt(cfl_counts)**2 +signal_duration* bkg_cfl_rate_error **2 
+
+        cfl_pixel_bkgsub_counts[cfl_pixel_bkgsub_counts<0]=0
+        #reset negative counts to zeros, negative counts do not make physically
+
+        cfl_pixel_bkgsub_count_error=np.sqrt(cfl_pixel_counts  + signal_duration*bkg_cfl_rate_error**2)
 
 
         sig_bkgsub_counts=signal_counts - signal_duration*bkg_rates #background subtracted counts
-        sig_bkgsub_counts_error=np.sqrt(signal_counts+(signal_duration*bkg_rate_error)**2)
+        sig_bkgsub_counts_error=np.sqrt(signal_counts+ signal_duration*bkg_rate_error**2)
 
-        det_bkgsub_fluence=np.array([np.sum(sig_bkgsub_counts[idet*12:(idet*12+12)])/(GRID_OPEN_AREA_RATIO[idet]*DET_SENSITVE_AREA)
-            for idet in range(32)]) 
-        #background subtracted and energy integrated counts, normalized by open area ratio
 
-        det_bkgsub_fluence_error=np.array([np.sqrt(np.sum(sig_bkgsub_counts[idet*12:(idet*12+12)]))/(GRID_OPEN_AREA_RATIO[idet]*DET_SENSITVE_AREA)
-            for idet in range(32)]) 
+        #print(f'{sig_bkgsub_counts.shape=}')
+        
+        counts_to_fluence_factors=1/(GRID_OPEN_AREA_RATIO*DET_SENSITVE_AREA)
+
+        det_bkgsub_counts=np.array([np.sum(sig_bkgsub_counts[idet*12:(idet*12+12)]) for idet in range(0,32)])
+        det_bkgsub_counts_error=np.array([np.sqrt(np.sum(sig_bkgsub_counts_error[idet*12:(idet*12+12)]**2 )) for idet in range(0,32)])
+
+        det_bkgsub_fluence, det_bkgsub_fluence_error = det_bkgsub_counts*counts_to_fluence_factors,  det_bkgsub_counts_error*counts_to_fluence_factors
         #detector counts errors, only consider statistical uncertainties
 
         mean_fluence=np.mean(det_bkgsub_fluence[DET_ID_START: DET_ID_END])
         mean_fluence_error=np.sqrt(np.sum([det_bkgsub_fluence_error[i]**2 
             for i in range(DET_ID_START, DET_ID_END)]))
-        flare_utc=sdt.unix2utc(bsd_doc['start_unix'])
+        flare_utc=stix_datetime.unix2utc(bsd_doc['start_unix'])
 
-        res=flf.fit_location(sig_bkgsub_counts, sig_bkgsub_counts_error, 
+        chi2_map, res=flf.fit_location(cfl_pixel_bkgsub_counts, cfl_pixel_bkgsub_count_error, 
                 mean_fluence, mean_fluence_error, flare_utc,  use_small_pixels=True, use_det_fluence=True)
-        data={'flare_location':
-                {
+
+
+        xloc=res['min_pos'][0]
+        yloc=res['min_pos'][1]
+        flare_spice_data=fsp.get_flare_spice(xloc,yloc,flare_utc, observer='earth')
+
+        emission_earth=flare_spice_data['theta_flare_norm_earth_deg']
+        emission_solo=flare_spice_data['theta_flare_norm_solo_deg']
+        fig_filename=os.path.join(flare_pipeline_out_path, f'bsd_{_id}_flare_{flare_id}_l1_quick_analysis.png')
+        flare_location={
                     'solution':res,
-                    'inputs':{
-            
-                    'detector_mean_fluence_units':'counts / mm2',
-                    'detector_mean_fluence':mean_fluence, 
-                    'detector_mean_fluence_error':mean_fluence_error,
-                    'sig_bkgsub_counts':sig_bkgsub_counts,
-                    'sig_bkgsub_counts_error':sig_bkgsub_counts_error,
                     'background_bsd_id':bkg_doc['_id'],
+                    'fig_filename':fig_filename,
+                    'x':xloc,
+                    'y':yloc,
+                    'emission_earth_deg':emission_earth,
+                    'emission_solo_deg':emission_solo,
+                    'spice':flare_spice_data
                     }
-                }
-                }
-        pprint(data)
+        flare_loc=bson.dict_to_json(flare_location)
+
+
+
+        #store  results in database
+        self.bsd_db.update_one({'_id':bsd_doc['_id']},
+                {'$set':{'synopsis.flares.cfl':flare_loc}})
+                #rate are not energy integrated, dimemsions 384x32
+        self.flare_db.update_many({'flare_id':flare_id},
+                {'$set':{'L1_pipeline':flare_loc}})
+        #print(f'{flare_id=}')
+
+
+
+        if plot_fig:
+            ds='steps-mid'
+            fig, axs = plt.subplots(2,2, figsize=(16,16))
+            
+            spec_timebins=np.array([stix_datetime.unix2datetime(xx) for xx in spectrogram_data['timebins']])
+            spec_ebins=np.array([ sci_to_keV(x[0], x[1]) for x in spectrogram_data['ebins']])
+            spec_data=np.transpose(np.array(spectrogram_data['data']))
+            flare_start=stix_datetime.unix2datetime(bsd_doc['synopsis']['flares']['start_unix_times'][0])
+            flare_end=stix_datetime.unix2datetime(bsd_doc['synopsis']['flares']['end_unix_times'][0])
+            XX, YY=np.meshgrid(spec_timebins, spec_ebins)
+            im2=axs[0,0].pcolormesh(XX,YY, spec_data, cmap='plasma')
+            #im2=axs[1,1].imshow(spec_data, cmap='plasma')
+            
+            axs[0,0].set_title(f'BSD #{bsd_doc["_id"]}')
+            if flare_start < spec_timebins[0]:
+                flare_start=spec_timebins[0]
+            if flare_end< spec_timebins[-1]:
+                flare_end=spec_timebins[-1]
+
+            axs[0,0].vlines([flare_start, flare_end], ymin=sig_emin, ymax=sig_emax, colors='cyan')
+
+            #rect = Rectangle((flare_start,sig_emin),flare_end -flare_start,sig_emax-sig_emin,
+            #        linewidth=8, edgecolor='cyan',facecolor='none')
+            #axs[0,0].add_patch(rect)
+            #axs[1,1].set_xticklabels(spec_timebins)
+            axs[0,0].set_yticklabels(spec_ebins)
+            axs[0,0].set_xlabel(f'Start time {spec_timebins[0].strftime("%Y-%m-%dT%H:%M%S")}')
+
+
+
+            axs[0,1].errorbar(range(32),
+                    bkg_subtracted_spectrum, yerr=bkg_subtracted_spectrum_error,ds=ds, label='bkg subtracted')
+            axs[0,1].errorbar(range(32), sig_spectrum  , yerr=np.sqrt(sig_spectrum), ds=ds, label='signal')
+            axs[0,1].errorbar(range(32), bkg_spectrum  , yerr=np.sqrt(bkg_spectrum), ds=ds, label=f'BKG #{bkg_doc["_id"]}')
+            spec_ebins=[sci_to_keV(i, i) for i in range(32)]
+
+            axs[0,1].set_xlabel('Energy (keV)')
+            axs[0,1].set_xticklabels(spec_ebins)
+            axs[0,1].set_ylabel('Counts')
+            axs[0,1].set_yscale('log')
+            axs[0,1].set_xscale('log')
+            axs[0,1].legend()
+
+
+            cfl_tot_counts=np.sum(cfl_pixel_bkgsub_counts)
+            pattern=(np.array(res['norm_counts'])*cfl_tot_counts).tolist()
+            pattern_error=(np.array(res['norm_counts_errors'])*cfl_tot_counts).tolist()
+            pattern.append(mean_fluence)
+            pattern_error.append(mean_fluence_error)
+
+            axs[1,0].errorbar(range(13), pattern, yerr=pattern_error,marker='o',
+                    label="measurements")
+            best_fit_pattern=(np.array(res['pixel_area_norm'])*cfl_tot_counts).tolist()
+            best_fit_pattern.append(res['cfl_fluence'])
+            best_fit_pattern_error=[0]*12
+            best_fit_pattern_error.append(res['cfl_fluence_error'])
+            axs[1,0].plot(range(13), best_fit_pattern, marker='o',
+                    label='best match')
+            axs[1,0].set_xlabel('Pixels')
+            axs[1,0].set_ylabel('Counts')
+            axs[1,0].set_title('CFL pattern')
+            axs[1,0].legend()
+
+
+            chi2 = res['delta_chi2'][1]
+            x = np.linspace(res['x'][0] * 3600, res['x'][1] * 3600, res['x'][2])
+            y = np.linspace(res['y'][0] * 3600, res['y'][1] * 3600, res['y'][2])
+            X,Y=np.meshgrid(x,y)
+            chi2_map[chi2_map>50]=-1
+            im=axs[1,1].pcolormesh(X,Y, chi2_map, cmap='RdPu')
+            axs[1,1].plot([xloc],[yloc],marker='+',markersize=10)
+            axs[1,1].text(xloc-40,yloc-40, f'({xloc:.1f},{yloc:.1f})')
+            axs[1,1].grid()
+            axs[1,1].set_xlim(-1800,1800)
+            axs[1,1].set_ylim(-1800,1800)
+            axs[1,1].set_xlabel('X (arcsec)')
+            axs[1,1].set_ylabel('Y (arcsec)')
+            axs[1,1].set_title('CFL solution')
+            circle = Circle((0, 0), res['sun_angular_diameter']*0.5, alpha=0.8, ec='red', fc='none')
+            axs[1,1].add_patch(circle)
+            axs[1,1].set_aspect('equal')
+            sci_energy_range=sci_to_keV(sig_emin, sig_emax)
+            descriptions=f'''Signal T0={flare_start.strftime("%H:%M:%S")}, duration={(flare_end-flare_start).total_seconds():.2f} s. Energy range: {sci_energy_range}'''
+            plt.figtext(0.01,0.02, descriptions, va="bottom", ha="left", fontsize=10)
+            plt.suptitle(f'STIX flare #{flare_id} (BSD #{_id})')
+
+
+            
+            if plot_fig:
+                plt.show()
+            if save_fig:
+                print('fig saved to ', fig_filename)
+                plt.savefig(fig_filename, dpi=300)
+
 
 
     def process_L1_BSD_in_file(self, file_id):
-        collection = mdb.get_collection_bsd()
-        bsd_cursor = collection.find({'run_id': file_id, 'SPID':54115}).sort('_id', 1)
+        bsd_cursor = self.bsd_db.find({'run_id': file_id, 'SPID':54115}).sort('_id', 1)
         for doc in bsd_cursor:
-            self.get_flare_spectra_and_location(doc)
+            self.process_one_flare(doc, plot_fig=False, save_fig=True)
             break
+    def process_L1_BSD(self, bsd_id, bkg_bsd_id=None):
+        doc= self.bsd_db.find_one({'_id': bsd_id, 'SPID':54115})
+        self.process_one_flare(doc, bkg_bsd_id)
+
 
 
 
 
 
 if __name__ == '__main__':
+    flp=FlareDataProcessor()
     if len(sys.argv) < 2:
         print('flare_location_solver run_id')
         print('flare_location_solver run_id_start id_end')
+        #flp.process_L1_BSD(2720, 2722)
     elif len(sys.argv)==2:
-        process_L1_BSD_in_file(int(sys.argv[1]))
+        flp.process_L1_BSD_in_file(int(sys.argv[1]))
     else:
         for i in range(int(sys.argv[1]),int(sys.argv[2])+1):
-            process_L1_BSD_in_file(i)
+            flp.process_L1_BSD_in_file(i)
 

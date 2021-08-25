@@ -5,6 +5,10 @@ from stix.spice import stix_datetime as sdt
 from pprint import pprint
 connect = pymongo.MongoClient()
 db = connect['stix']['events']
+
+timeline_file_id='LTP04_v2'
+
+
 def create_report(_id, subject, start, end, descr):
     report={
     "_id" : _id,
@@ -16,6 +20,7 @@ def create_report(_id, subject, start, end, descr):
     "description" : descr,
     "submit" : "",
     "creation_time" : sdt.now(),
+    "timeline_file_id":timeline_file_id,
     "status" : 0,
     "hidden" : False
     }

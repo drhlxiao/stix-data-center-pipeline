@@ -39,7 +39,8 @@ parser_config = {
             "level1_products_path": "/data/level1/",
             "level2_products_path": "/data/level2/",
             "ngnix_cache": "/data/nginx/stix_cache/*",
-            "goes_lc_path": "/data/goes/"
+            "goes_lc_path": "/data/goes/",
+            "flare_pipeline_path":"/data/flare_pipeline"
         },
         "asw_version": 181
     },

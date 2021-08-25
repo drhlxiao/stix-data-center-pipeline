@@ -3,9 +3,8 @@
 import math
 import random
 import numpy as np
-from core import skylut
-from spice import solo
-from stix.flare_pipeline import flare_location_fitter as flf
+from stix.flare_pipeline import skylut
+from stix.spice import solo
 
 #open area ratio obtained by  the simulator
 #detectorIndex: ratio
@@ -19,25 +18,11 @@ def get_chi2(area, use_small_pixels, use_det_fluence, y, yerr, cfl_cnts_sum, cfl
     normalized_areas=area/area_sum
     det_count_chi2=0
 
-    if use_det_fluence:
+    if use_det_fluence: #the 13th element in the  pattern
         cfl_fluence=cfl_cnts_sum/area_sum 
         cfl_fluence_error=cfl_cnts_error_sum/area_sum
         sigma=cfl_fluence_error**2+det_fluence_error**2
         #fluence counts/cm2
-        '''
-        print('Area :',area)
-        print("CFL cnt:",cfl_cnts)
-        print("CFL cnt error:",cfl_cnts_error)
-        print("CFL fluence:",cfl_fluence)
-        print("CFL fluence error:",cfl_fluence_error)
-        print("det fluence:",det_fluence)
-        print("det fluence error:",det_fluence_error)
-        print('Area sum:',area_sum)
-        print(sigma)
-        print('======')
-        '''
-
-
         det_count_chi2 = 0 if  sigma==0 else (cfl_fluence-det_fluence)**2 / sigma
     obs=y if use_small_pixels else y[0:8]
     exp=normalized_areas if use_small_pixels else normalized_areas[0:8] #expected pattern
@@ -70,8 +55,12 @@ def fit_location(counts, count_errors, mean_fluence, mean_fluence_error, flare_u
     normalized_counts, normalized_count_errors=normalize(counts, count_errors)
 
     solo_location=solo.get_solo_ephemeris(flare_utc, flare_utc, num_steps=1)
-    sun_angular_diameter=solo_location.get('sun_angular_diameter',0)*60
-    sun_angular_radius=sun_angular_diameter*0.5
+    sun_angular_diameter=solo_location.get('sun_angular_diameter',0)
+    sun_angular_radius=60
+    if sun_angular_diameter:
+        sun_angular_radius=sun_angular_diameter[0]*0.5*60
+    print(f'{sun_angular_diameter=}')
+    print(f'{solo_location=}')
     #in units of arsec
     x_angles = np.linspace(skylut.data['x'][0]*3600,skylut.data['x'][1]*3600,skylut.data['x'][2])
     y_angles = np.linspace(skylut.data['y'][0]*3600,skylut.data['y'][1]*3600,skylut.data['y'][2])
@@ -80,12 +69,10 @@ def fit_location(counts, count_errors, mean_fluence, mean_fluence_error, flare_u
     x0=skylut.data['x'][0]*3600.
     y0=skylut.data['y'][0]*3600.
 
-    #arcseconds
     #convert to arc min
     #contour_levels=np.array([2.3,6.17,11.8])#1,2,3 sigma
     x_steps = len(x_angles)
     y_steps = len(y_angles)
-
     chi2 = np.zeros((x_steps, y_steps))+INF
     margin=1.5
     min_chi2 = np.inf
@@ -139,19 +126,19 @@ def fit_location(counts, count_errors, mean_fluence, mean_fluence_error, flare_u
     cfl_fluence_error=math.sqrt(sum([x*x for x in count_errors[0:max_pixel_index]]))/sum(best_fit_area[0:max_pixel_index]) 
     
 
-    return {'x': skylut.data['x'].tolist(),
+    return delta_chi2, {'x': skylut.data['x'].tolist(),
             'y': skylut.data['y'].tolist(),
             'min_pos': min_pos,
             'min_chi2': min_chi2,
             'pixel_area':  best_fit_area, #before normalized
             'pixel_area_norm':  normalized_area, #normalized
-            'det_mean_fluence':mean_fluence,
-            'det_mean_fluence_error':mean_fluence_error,
-            'cfl_fluence':cfl_fluence,
+            'det_mean_fluence':mean_fluence, #experimental detector mean fluence (counts/mm2)
+            'det_mean_fluence_error':mean_fluence_error,  
+            'cfl_fluence':cfl_fluence,  #cfl fluence (counts/mm2)
             'cfl_fluence_error':cfl_fluence_error,
             'norm_counts': normalized_counts.tolist(),
             'norm_counts_errors': normalized_count_errors.tolist(),
-            'sun_angular_diameter':sun_angular_diameter,
+            'sun_angular_diameter':2*sun_angular_radius,
             'angle_unit':'arcsec',
             'delta_chi2': [indexes_list, selected_values.tolist()],
             }

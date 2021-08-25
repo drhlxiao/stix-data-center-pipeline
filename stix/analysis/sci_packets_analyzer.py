@@ -31,7 +31,7 @@ MAX_L1_REQ_DURATION=3600
 #max l1 data request duration, used to load flares before l1 processing
 FLARE_SELECTION_SPAN=2*60
 FLARE_SCI_EMAX = 17
-FLARE_SELECTION_MIN_QL_COUNTS=600 # flares with ql counts <600 will not be preocessed
+FLARE_SELECTION_MIN_QL_COUNTS=0 # flares with ql counts <100 will not be preocessed
 
 PROCESS_METHODS = {
     'normal': [54114, 54117, 54143, 54125],
@@ -44,6 +44,34 @@ def get_process_method(spid):
         if spid in val:
             return key
     return 'unknown'
+
+
+class Spectrogram(object):
+    def __init__(self):
+        self.counts=[]
+        self.time_bins=[]
+        self.ebins=[]
+    def fill(self, ebin_low, ebin_up, time, counts):
+        if time not in self.time_bins:
+            self.time_bins.append(time)
+            self.counts.append([0]*32)
+        itbin=self.time_bins.index(time)
+        ebin=(ebin_low, ebin_up)
+        if ebin not in self.ebins:
+            self.ebins.append(ebin)
+
+        ibin=self.ebins.index(ebin)
+
+        self.counts[itbin][ibin]+=counts
+    def get_spectrogram(self, dtype='numpy.array'):
+        spec=np.array(self.counts)
+        num_bins=len(self.ebins)
+        sp=spec[:,0:num_bins]
+        spectrogram=sp.tolist() if dtype=='list' else sp
+        return self.time_bins, self.ebins, spectrogram
+
+
+
 
 
 class StixBulkL0Analyzer(object):
@@ -169,18 +197,20 @@ class StixBulkL1L2Analyzer(object):
         self.num_time_bins = []
         self.start_unix=None
         self.end_unix=None
+        self.spectrogram=Spectrogram()
     def get_flare_times(self,start_unix, duration=MAX_L1_REQ_DURATION):
         flares=mdb.search_flares_by_tw(
                             start_unix,
                             duration,
                             threshold=FLARE_SELECTION_MIN_QL_COUNTS)
-        flare_ids,   flare_peak_unix_times, flare_start_times, flare_end_times=[],[],[],[]
+        flare_ids, flare_peak_unix_times, flare_start_times, flare_end_times, peak_counts=[],[],[],[],[]
         for doc in flares:
             flare_ids.append(doc['flare_id']) #QL always arrive earlier than SCI data
             flare_peak_unix_times.append(doc['peak_unix_time'])
             flare_start_times.append(doc['start_unix'])
             flare_end_times.append(doc['end_unix'])
-        return flare_ids, flare_peak_unix_times, flare_start_times, flare_end_times
+            peak_counts.append(doc['peak_counts'])
+        return flare_ids, flare_peak_unix_times, flare_start_times, flare_end_times, peak_counts
 
     def is_near_flare_peak(self, start_times:list, end_times:list,  current_time):
         #If current_time is 2 minutes near a peak, return true else false
@@ -194,8 +224,12 @@ class StixBulkL1L2Analyzer(object):
 
     def format_report(self):
         duration=self.end_unix-self.start_unix
+        integration_times=[x['integrations']*0.1 for x in self.groups]
+        if integration_times:
+            duration+=(integration_times[0]+integration_times[-1])*0.5
         if duration >0:
-            self.pixel_rate_spec=self.pixel_time_int_spectra/duration
+            self.pixel_rate_spec = self.pixel_time_int_spectra/duration
+        #print(duration, len(self.groups))
         report = {
             'request_id': self.request_id,
             'packet_unix': self.packet_unix,
@@ -206,17 +240,21 @@ class StixBulkL1L2Analyzer(object):
             'end_unix': self.end_unix,
             'pixel_total_counts': self.pixel_total_counts,
             }
-        emin=-1
-        emax=-1
+        emin,emax=-1,-1
         if self.sci_ebins:
             emin=min([x[0] for x in self.sci_ebins])
             emax=max([x[1] for x in self.sci_ebins])
-
-        flare_ids, flare_peak_unix_times,flare_start_times, flare_end_times=self.get_flare_times(self.start_unix, duration)
+        flare_ids, flare_peak_unix_times, flare_start_times, flare_end_times, peak_counts=self.get_flare_times(self.start_unix, duration)
         is_background=False if flare_ids else True #if no flare found it is background
+        timebins, ebins, spectrogram=self.spectrogram.get_spectrogram('list')
         synopsis={
                 'pixel_rate_spec': self.pixel_rate_spec.tolist(),
                 'duration':duration,
+                'spectrogram': {
+                    'timebins':timebins,
+                    'ebins':ebins,
+                    'data':spectrogram
+                    },
                 'sci_ebins':self.sci_ebins,
                 'emin':emin,
                 'emax':emax,
@@ -233,6 +271,7 @@ class StixBulkL1L2Analyzer(object):
                         },
                     'integration_times': [t1-t0 for t0,t1 in  zip(flare_start_times, flare_end_times)],
                     'flare_ids':flare_ids,
+                    'QL_peak_counts':peak_counts,
                     'peak_unix_times':flare_peak_unix_times,
                     'start_unix_times':flare_start_times,
                     'end_unix_times':flare_end_times,
@@ -271,7 +310,7 @@ class StixBulkL1L2Analyzer(object):
             T0 = stix_datetime.scet2unix(packet[12].raw)
 
             if ipkt==0:
-                _, _, flare_start_times,flare_end_times=self.get_flare_times(T0, MAX_L1_REQ_DURATION)
+                _, _, flare_start_times,flare_end_times, peak_counts=self.get_flare_times(T0, MAX_L1_REQ_DURATION)
             ipkt+=1
 
 
@@ -291,6 +330,7 @@ class StixBulkL1L2Analyzer(object):
             group = {}
             last_time_bin = 0
             self.num_time_bins = 0
+            self.end_time=0
             for i in range(0, num_structures):
                 offset = i * 22
                 time = children[offset][1] * 0.1 + T0
@@ -303,7 +343,8 @@ class StixBulkL1L2Analyzer(object):
                 if self.start_unix is None:
                     self.start_unix=time
 
-                self.end_unix=time
+                if time>self.end_time:
+                    self.end_unix=time
                 if time != last_time_bin:
                     self.num_time_bins += 1
                     last_time_bin = time
@@ -327,12 +368,16 @@ class StixBulkL1L2Analyzer(object):
                     k = j * 4
                     E1_low = samples[k + 1][1]
                     E2_high = samples[k + 2][1]
+                    
                     if (E1_low, E2_high) not in self.sci_ebins:
                         self.sci_ebins.append((E1_low, E2_high))
 
                     pixel_counts = []
                     for idx, e in enumerate(samples[k + 3][3]):
                         pixel_counts.append(e[counts_idx])
+
+                        self.spectrogram.fill(E1_low, E2_high, time, e[counts_idx])
+                        #fill spectrogram
 
                         self.pixel_total_counts[
                             pixel_indexes[idx]] += e[counts_idx]

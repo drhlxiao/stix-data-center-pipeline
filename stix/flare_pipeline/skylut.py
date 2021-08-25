@@ -2,4 +2,5 @@
 import os
 import numpy as np
 filename=os.path.join(os.path.dirname(os.path.realpath(__file__)),'skylut.npz')
+print('skylut',filename)
 data=np.load(filename)

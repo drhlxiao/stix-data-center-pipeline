@@ -496,6 +496,7 @@ class MongoDB(object):
                     '$gte': threshold
                 }
             }
+            #print(query_string)
             results = self.collection_flares.find(query_string).sort(
                 'peak_unix_time', -1).limit(num)
         return results
