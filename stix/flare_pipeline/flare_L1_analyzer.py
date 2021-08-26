@@ -29,6 +29,7 @@ from matplotlib.patches import Circle,Rectangle, PathPatch
 import matplotlib.colors as colors
 from matplotlib.path import Path
 from stix.utils import bson
+from stix.utils import energy_bins as seb
 from stix.flare_pipeline import flare_spice as fsp
 
 
@@ -72,21 +73,14 @@ GRID_OPEN_AREA_RATIO=np.array(
 		0.264514,
 		0.254682])
 #open area ration, obtained with the python stix imager simulator using nominal grid parameters
-EBINS = [0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 25, 28, 32, 36, 40, 45, 50, 56, 63, 70, 76, 84, 100, 120, 150, 'inf']
 
 flare_pipeline_out_path= config.get_config('pipeline.daemon.flare_pipeline_path')
 mdb = db.MongoDB()
 
-def sci_to_keV(low_bin, up_bin):
-    if up_bin == 31:
-        return f'{EBINS[low_bin]}  keV - inf';
-    return f'{EBINS[low_bin]}  -  {EBINS[up_bin + 1]}  keV';
-
-class FlareDataProcessor(object):
+class FlareDataAnalyzer(object):
     def __init__(self):
         self.bsd_db= mdb.get_collection_bsd()
         self.flare_db= mdb.get_collection("flares")
-
     def get_background_request_data(self, signal_unix_time, emin, emax, background_bsd_id=None):
         #load a bulk science data report for background subtraction or find the closest in time L1 data for background subtraction
         if background_bsd_id is not None:
@@ -287,7 +281,7 @@ class FlareDataProcessor(object):
             fig, axs = plt.subplots(2,2, figsize=(13,10))
             
             spec_timebins=np.array([stix_datetime.unix2datetime(xx) for xx in spectrogram_data['timebins']])
-            spec_ebins=np.array([ sci_to_keV(x[0], x[1]) for x in spectrogram_data['ebins']])
+            spec_ebins=np.array([ seb.to_keV(x[0], x[1]) for x in spectrogram_data['ebins']])
             spec_data=np.transpose(np.array(spectrogram_data['data']))
             flare_start=stix_datetime.unix2datetime(bsd_doc['synopsis']['flares']['start_unix_times'][0])
             flare_end=stix_datetime.unix2datetime(bsd_doc['synopsis']['flares']['end_unix_times'][0])
@@ -312,7 +306,7 @@ class FlareDataProcessor(object):
                     bkg_subtracted_spectrum, yerr=bkg_subtracted_spectrum_error,ds=ds, label='bkg subtracted')
             axs[0,1].errorbar(range(32), sig_spectrum  , yerr=np.sqrt(sig_spectrum), ds=ds, label='signal')
             axs[0,1].errorbar(range(32), bkg_spectrum  , yerr=np.sqrt(bkg_spectrum), ds=ds, label=f'BKG #{bkg_doc["_id"]}')
-            spec_ebins=[sci_to_keV(i, i) for i in range(32)]
+            spec_ebins=[seb.to_keV(i, i) for i in range(32)]
 
             axs[0,1].set_xlabel('Energy (keV)')
             axs[0,1].set_xticklabels(spec_ebins)
@@ -375,8 +369,6 @@ class FlareDataProcessor(object):
                     print(e)
             plt.close()
 
-
-
     def process_L1_BSD_in_file(self, file_id):
         print("Processing file:", file_id)
         bsd_cursor = self.bsd_db.find({'run_id': file_id, 'SPID':54115}).sort('_id', 1)
@@ -387,12 +379,8 @@ class FlareDataProcessor(object):
         self.process_one_flare(doc, bkg_bsd_id)
 
 
-
-
-
-
 if __name__ == '__main__':
-    flp=FlareDataProcessor()
+    flp=FlareDataAnalyzer()
     if len(sys.argv) < 2:
         print('flare_location_solver run_id')
         print('flare_location_solver run_id_start id_end')

@@ -25,6 +25,7 @@ from stix.analysis import integration_time_estimator
 from stix.analysis import flare_goes_class as fgc
 from stix.analysis import goes_downloader as gdl
 from stix.spice import spice_manager as spm
+from stix.flare_pipeline import flare_L1_analyzer as fla
 
 
 
@@ -206,6 +207,12 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
             sci_packets_analyzer.process(file_id)
         except Exception as e:
             logger.error(str(e))
+    if RUN_L1_FLARE_ANALYZER:
+        try:
+            fla.process_L1_BSD_in_file(file_id)
+        except Exception as e:
+            logger.error(str(e))
+
     if notification_enabled:
         logger.info('Creating notification...')
         try:
