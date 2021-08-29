@@ -42,7 +42,6 @@ GRID_OPEN_AREA_RATIO=np.array(
 		0.272487,
 		0.252282,
 		0.257189,
-
 		0.281502,
 		0.27254,
 		0.292103,
@@ -85,7 +84,6 @@ class FlareDataAnalyzer(object):
         #load a bulk science data report for background subtraction or find the closest in time L1 data for background subtraction
         if background_bsd_id is not None:
             return self.bsd_db.find_one({'_id':background_bsd_id})
-
         '''
         find background data by database query
         bsd_ealier=list(self.bsd_db.find({'synopsis.is_background':True,
@@ -154,12 +152,13 @@ class FlareDataAnalyzer(object):
         if len(flare_ids)>1:
             print(f'BSD {_id} contains several flares,but only the first will be processed!')
         flare_id=flare_ids[0]
-        signal_counts=np.array(bsd_doc['synopsis']['flares']['flare_pixel_counts']['counts']) #already energy integrated 1d 384 vector
+        signal_energy_integrated_counts=np.array(bsd_doc['synopsis']['flares']['flare_pixel_counts']['counts']) 
+        #already integrated over energies,  1d vector 384 elements
 
-        emin=bsd_doc['synopsis']['flares']['flare_pixel_counts']['emin']
-        emax=bsd_doc['synopsis']['flares']['flare_pixel_counts']['emax']
+        flare_emin=bsd_doc['synopsis']['flares']['flare_pixel_counts']['emin'] #energy range selected for flare location calculation
+        flare_emax=bsd_doc['synopsis']['flares']['flare_pixel_counts']['emax']
         signal_duration=bsd_doc['synopsis']['flares']['integration_times'][0]
-        bkg_doc=self.get_background_request_data(bsd_doc['start_unix'], emin, emax, bkg_bsd_id)
+        bkg_doc=self.get_background_request_data(bsd_doc['start_unix'], flare_emin, flare_emax, bkg_bsd_id)
 
         if not bkg_doc:
             print(f'No background found for {_id}')
@@ -168,6 +167,10 @@ class FlareDataAnalyzer(object):
     
         sig_emin, sig_emax=bsd_doc['synopsis']['emin'], bsd_doc['synopsis']['emax']
         bkg_emin, bkg_emax=bkg_doc['synopsis']['emin'], bkg_doc['synopsis']['emax']
+
+        bkg_start_datetime=stix_datetime.unix2datetime(bkg_doc['start_unix'])
+        bkg_start_date=bkg_start_datetime.strftime('%Y-%m-%d')
+
 
 
         bkg_rates_full_energy=np.array(bkg_doc['synopsis']['pixel_rate_spec']) #rate are not energy integrated, dimemsions 384x32
@@ -195,19 +198,19 @@ class FlareDataAnalyzer(object):
         
 
 
-        bkg_rates=np.sum(bkg_rates_full_energy[:,emin:emax], axis=1) #only select bins in the energy range, energy integrated counts
+        bkg_energy_integrated_rates=np.sum(bkg_rates_full_energy[:,flare_emin:flare_emax], axis=1) #only select bins in the energy range, energy integrated counts
 
         #print("shape:",bkg_rates.shape)
-        bkg_rate_error=np.sqrt(bkg_rates*bkg_duration)/bkg_duration 
+        bkg_rate_error=np.sqrt(bkg_energy_integrated_rates*bkg_duration)/bkg_duration 
         # rate*duration =  original counts;   only statistic error considered
 
-        bkg_cfl_rate=bkg_rates[8*12:9*12]
+        bkg_cfl_rate=bkg_energy_integrated_rates[8*12:9*12]
         #print(f'{bkg_cfl_rate=}')
 
         bkg_cfl_rate_error=bkg_rate_error[8*12:9*12]
         #print(f'{bkg_cfl_rate_error=}')
 
-        cfl_pixel_counts=signal_counts[8*12:9*12] #already energy bin integrated
+        cfl_pixel_counts=signal_energy_integrated_counts[8*12:9*12] #already energy bin integrated
         #print(f'{cfl_pixel_counts=}')
 
 
@@ -219,9 +222,9 @@ class FlareDataAnalyzer(object):
 
         cfl_pixel_bkgsub_count_error=np.sqrt(cfl_pixel_counts  + signal_duration*bkg_cfl_rate_error**2)
 
+        sig_bkgsub_counts=signal_energy_integrated_counts - signal_duration*bkg_energy_integrated_rates #background subtracted counts
 
-        sig_bkgsub_counts=signal_counts - signal_duration*bkg_rates #background subtracted counts
-        sig_bkgsub_counts_error=np.sqrt(signal_counts+ signal_duration*bkg_rate_error**2)
+        sig_bkgsub_counts_error=np.sqrt(signal_energy_integrated_counts+ signal_duration*bkg_rate_error**2)
 
 
         #print(f'{sig_bkgsub_counts.shape=}')
@@ -245,33 +248,36 @@ class FlareDataAnalyzer(object):
 
         xloc=res['min_pos'][0]
         yloc=res['min_pos'][1]
-        print(f"Flare location:({xloc}, {yloc}")
+        print(f"Flare location:({xloc}, {yloc})")
         flare_spice_data=fsp.get_flare_spice(xloc,yloc,flare_utc, observer='solo')
 
         emission_earth=flare_spice_data['theta_flare_norm_earth_deg']
         emission_solo=flare_spice_data['theta_flare_norm_solo_deg']
         fig_filename=os.path.join(flare_pipeline_out_path, f'bsd_{_id}_flare_{flare_id}_l1_quick_analysis.png')
-        flare_location={
+
+        result={
                     'solution':res,
                     'background_bsd_id':bkg_doc['_id'],
+                    'bkg_start_unix':bkg_doc['start_unix'],
                     'fig_filename':fig_filename,
                     'cfl_xloc':xloc,
                     'cfl_yloc':yloc,
-                    'emission_earth_deg':emission_earth,
-                    'emission_solo_deg':emission_solo,
+                    'earth_flare_norm_deg':emission_earth,
+                    'solo_flare_norm_deg':emission_solo,
                     'spice':flare_spice_data
                     }
-        flare_loc=bson.dict_to_json(flare_location)
+        result_doc=bson.dict_to_json(result)
 
 
 
         #store  results in database
         print("Updating database...")
         self.bsd_db.update_one({'_id':bsd_doc['_id']},
-                {'$set':{'synopsis.flares.cfl':flare_loc}})
+                {'$set':{'synopsis.flares.cfl':result_doc}})
                 #rate are not energy integrated, dimemsions 384x32
+        result_doc['signal_bsd_id']=_id
         self.flare_db.update_many({'flare_id':flare_id},
-                {'$set':{'L1_pipeline':flare_loc}})
+                {'$set':{'L1_pipeline':result_doc}})
         #print(f'{flare_id=}')
 
 
@@ -290,22 +296,22 @@ class FlareDataAnalyzer(object):
             im2=axs[0,0].pcolormesh(XX,YY, spec_data, cmap='plasma', norm=colors.LogNorm(vmin=spec_data.min(), vmax=spec_data.max()))
             #fig.colorbar(im2, ax=axs[0,0])
             
-            axs[0,0].set_title(f'BSD #{bsd_doc["_id"]}')
+            axs[0,0].set_title(f'Raw spectrogram (BSD #{bsd_doc["_id"]})')
             if flare_start < spec_timebins[0]:
                 flare_start=spec_timebins[0]
             if flare_end> spec_timebins[-1]:
                 flare_end=spec_timebins[-1]
 
-            axs[0,0].vlines([flare_start, flare_end], ymin=emin, ymax=emax, colors='cyan')
+            axs[0,0].vlines([flare_start, flare_end], ymin=flare_emin, ymax=flare_emax, colors='cyan')
             axs[0,0].set_yticklabels(spec_ebins)
             axs[0,0].set_xlabel(f'Start time {spec_timebins[0].strftime("%Y-%m-%dT%H:%M%S")}')
 
 
 
             axs[0,1].errorbar(range(32),
-                    bkg_subtracted_spectrum, yerr=bkg_subtracted_spectrum_error,ds=ds, label='bkg subtracted')
-            axs[0,1].errorbar(range(32), sig_spectrum  , yerr=np.sqrt(sig_spectrum), ds=ds, label='signal')
-            axs[0,1].errorbar(range(32), bkg_spectrum  , yerr=np.sqrt(bkg_spectrum), ds=ds, label=f'BKG #{bkg_doc["_id"]}')
+                    bkg_subtracted_spectrum, yerr=bkg_subtracted_spectrum_error,ds=ds, label='after bkg. sub.')
+            axs[0,1].errorbar(range(32), bkg_spectrum  , yerr=np.sqrt(bkg_spectrum), ds=ds, label=f'bkg (#{bkg_doc["_id"]}, {bkg_start_date})')
+            axs[0,1].errorbar(range(32), sig_spectrum  , yerr=np.sqrt(sig_spectrum), ds=ds, label='before bkg. sub.')
             spec_ebins=[seb.to_keV(i, i) for i in range(32)]
 
             axs[0,1].set_xlabel('Energy (keV)')
@@ -330,7 +336,7 @@ class FlareDataAnalyzer(object):
             best_fit_pattern_error.append(res['cfl_fluence_error'])
             axs[1,0].plot(range(13), best_fit_pattern, marker='o',
                     label='best match')
-            axs[1,0].set_xlabel('Pixels')
+            axs[1,0].set_xlabel('Pixel ID')
             axs[1,0].set_ylabel('Counts')
             axs[1,0].set_title('CFL pattern')
             axs[1,0].legend()
@@ -345,16 +351,19 @@ class FlareDataAnalyzer(object):
             im=axs[1,1].pcolormesh(X,Y, np.transpose(chi2_map), cmap='RdPu', vmin=0)
             #fig.colorbar(im, ax=axs[1,1])
             axs[1,1].plot([xloc],[yloc],marker='+',markersize=10)
-            axs[1,1].text(xloc-40,yloc-40, f'({xloc:.1f},{yloc:.1f})')
+            axs[1,1].text(xloc+80,yloc-40, f'[{xloc:.1f}, {yloc:.1f}]', family='sans-serif', size=14)
+
             axs[1,1].grid()
             axs[1,1].set_xlim(-1600,1600)
             axs[1,1].set_ylim(-1600,1600)
             axs[1,1].set_xlabel('X (arcsec)')
             axs[1,1].set_ylabel('Y (arcsec)')
-            axs[1,1].set_title('CFL solution')
+            axs[1,1].set_title('Flare location (CFL solution)')
             circle = Circle((0, 0), res['sun_angular_diameter']*0.5, alpha=0.8, ec='red', fc='none')
             axs[1,1].add_patch(circle)
             axs[1,1].set_aspect('equal')
+            axs[1,1].text(0,res['sun_angular_diameter']*0.5,
+                    f'North', family='sans-serif', size=12)
             plt.suptitle(f'STIX flare #{flare_id} (BSD #{_id})')
 
 

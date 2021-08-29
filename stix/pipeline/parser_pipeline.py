@@ -52,12 +52,11 @@ logger = stix_logger.get_logger()
 
 goes=gdl.GOES()
 
-
 def get_now():
     return datetime.now().isoformat()
 
 
-def create_notification(raw_filename, service_5_headers, summary, num_flares):
+def create_notification(raw_filename, service_5_headers, summary, num_flares, goes_class_list):
     file_id = summary['_id']
     start = stix_datetime.unix2utc(summary['data_start_unix_time'])
     end = stix_datetime.unix2utc(summary['data_stop_unix_time'])
@@ -89,6 +88,12 @@ def create_notification(raw_filename, service_5_headers, summary, num_flares):
             num_flares)
     else:
         content += '\n No solar flare detected.\n'
+    if goes_class_list:
+        content+='Peak UTC *  GOES class\n'
+        for fl in goes_class_list:
+            content+=f'{fl[0]}  -  {fl[1]} \n'
+
+
     doc = {
         'title': 'STIX operational message',
         'group': 'operations',
@@ -149,6 +154,8 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
     #parser.set_store_binary_enabled(False)
     parser.set_packet_buffer_enabled(False)
     service_5_headers = None
+    goes_class_list=None
+
     try:
         parser.parse_file(filename)
         service_5_headers = parser.get_stix_alerts()
@@ -174,7 +181,7 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
             num_flares = flare_detection.find_flares(
                 file_id, snapshot_path=daemon_config['flare_lc_snapshot_path'])
             if num_flares>0:
-                fgc.set_goes_class_flares_in_file(file_id)
+                goes_class_list=fgc.find_goes_class_flares_in_file(file_id)
 
             summary['num_flares']=num_flares
         except Exception as e:
@@ -210,8 +217,9 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
         except Exception as e:
             logger.error(str(e))
     if RUN_L1_FLARE_ANALYZER:
+        flp=fla.FlareDataAnalyzer()
         try:
-            fla.process_L1_BSD_in_file(file_id)
+            flp.process_L1_BSD_in_file(file_id)
         except Exception as e:
             logger.error(str(e))
 
@@ -219,7 +227,7 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
         logger.info('Creating notification...')
         try:
             notif_id = create_notification(base, service_5_headers, summary,
-                                           num_flares)
+                                           num_flares, goes_class_list)
             summary['notification_id']=notif_id
         except Exception as e:
             logger.info(str(e))

@@ -57,7 +57,7 @@ def get_goes_class(start, end):
             max_time=unix
     goes_class=goes_flux_to_class(max_flux)
     return  max_time, max_flux,goes_class
-def set_goes_class_flares_in_file(file_id):
+def find_goes_class_flares_in_file(file_id):
     print(f'processing flares in file {file_id}')
     fdb=mdb.get_collection('flares')
     flares=flare_db.find({'run_id':file_id, 'hidden':False})
@@ -113,6 +113,6 @@ if __name__ == '__main__':
         file_ids=[x for x in range(int(sys.argv[1]),
                        int(sys.argv[2])+1)]
     for _id in file_ids:
-        set_goes_class_flares_in_file(_id)
+        find_goes_class_flares_in_file(_id)
 
 

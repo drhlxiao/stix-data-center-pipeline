@@ -12,6 +12,7 @@ from stix.spice import stix_datetime
 from stix.core import mongo_db as db
 from stix.core import stix_logger
 from stix.core import config
+from stix.analysis import data_models as sdm
 mdb = db.MongoDB()
 logger = stix_logger.get_logger()
 level1_products_path = config.get_config(
@@ -30,7 +31,7 @@ DATA_REQUEST_REPORT_NAME = {
 MAX_L1_REQ_DURATION=3600
 #max l1 data request duration, used to load flares before l1 processing
 FLARE_SELECTION_SPAN=2*60
-FLARE_SCI_EMAX = 17
+FLARE_SCI_EMAX = 13
 FLARE_SELECTION_MIN_QL_COUNTS=0 # flares with ql counts <100 will not be preocessed
 
 PROCESS_METHODS = {
@@ -44,31 +45,6 @@ def get_process_method(spid):
         if spid in val:
             return key
     return 'unknown'
-
-
-class Spectrogram(object):
-    def __init__(self):
-        self.counts=[]
-        self.time_bins=[]
-        self.ebins=[]
-    def fill(self, ebin_low, ebin_up, time, counts):
-        if time not in self.time_bins:
-            self.time_bins.append(time)
-            self.counts.append([0]*32)
-        itbin=self.time_bins.index(time)
-        ebin=(ebin_low, ebin_up)
-        if ebin not in self.ebins:
-            self.ebins.append(ebin)
-
-        ibin=self.ebins.index(ebin)
-
-        self.counts[itbin][ibin]+=counts
-    def get_spectrogram(self, dtype='numpy.array'):
-        spec=np.array(self.counts)
-        num_bins=len(self.ebins)
-        sp=spec[:,0:num_bins]
-        spectrogram=sp.tolist() if dtype=='list' else sp
-        return self.time_bins, self.ebins, spectrogram
 
 
 
@@ -172,6 +148,11 @@ class StixBulkL0Analyzer(object):
 
 
 class StixBulkL1L2Analyzer(object):
+    '''
+        L1,L2 reports analyzer, tasks:
+        - reads L1,L2 packets
+        - generates synopsis  used by by web pages 
+    '''
     def __init__(self):
         self.time = []
         self.rcr = []
@@ -197,7 +178,7 @@ class StixBulkL1L2Analyzer(object):
         self.num_time_bins = []
         self.start_unix=None
         self.end_unix=None
-        self.spectrogram=Spectrogram()
+        self.spectrogram=sdm.Spectrogram()
     def get_flare_times(self,start_unix, duration=MAX_L1_REQ_DURATION):
         flares=mdb.search_flares_by_tw(
                             start_unix,
@@ -218,9 +199,6 @@ class StixBulkL1L2Analyzer(object):
             if t0 <= current_time <=t1:
                 return True
         return False
-        
-    
-
 
     def format_report(self):
         duration=self.end_unix-self.start_unix
@@ -245,6 +223,7 @@ class StixBulkL1L2Analyzer(object):
             emin=min([x[0] for x in self.sci_ebins])
             emax=max([x[1] for x in self.sci_ebins])
         flare_ids, flare_peak_unix_times, flare_start_times, flare_end_times, peak_counts=self.get_flare_times(self.start_unix, duration)
+
         is_background=False if flare_ids else True #if no flare found it is background
         timebins, ebins, spectrogram=self.spectrogram.get_spectrogram('list')
         synopsis={
@@ -312,6 +291,8 @@ class StixBulkL1L2Analyzer(object):
             if ipkt==0:
                 _, _, flare_start_times,flare_end_times, peak_counts=self.get_flare_times(T0, MAX_L1_REQ_DURATION)
             ipkt+=1
+            #the data end time is known here 
+            # loads all flares in the next MAX_L1_REQ_DURATION 
 
 
 
@@ -336,6 +317,7 @@ class StixBulkL1L2Analyzer(object):
                 time = children[offset][1] * 0.1 + T0
 
                 is_flare_data=self.is_near_flare_peak(flare_start_times, flare_end_times,time)
+                #check if current time stamp fall between the start/end time of a flare in the preload flare list
                 #if is_flare_data:
                 #    print('flare data:',flare_end_times, flare_end_times,T0)
 
