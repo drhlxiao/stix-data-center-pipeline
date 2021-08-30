@@ -1,6 +1,8 @@
 #!/usr/bin/python
 '''
-    A script convert SCI L1 to L2. Procedure steps include:
+   data models
+   spectrogram and spectrum
+
     - dead time correction
     - transmission correction
     - energy binning correction

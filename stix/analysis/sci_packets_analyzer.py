@@ -1,7 +1,9 @@
 #!/usr/bin/python3
-# author: Hualin Xiao
-# pre-process science data, merge bulk science data packets and write merged data to json files
-# so that web client side could load the data quickly
+'''
+    pre-process science data, extract information from bulk science data packets and write results to json files or mongodb
+    so that web client side could load the data quickly 
+    author: Hualin Xiao
+'''
 import sys
 import os
 import json
@@ -12,7 +14,7 @@ from stix.spice import stix_datetime
 from stix.core import mongo_db as db
 from stix.core import stix_logger
 from stix.core import config
-from stix.analysis import data_models as sdm
+from stix.analysis import sci_data_models as sdm
 mdb = db.MongoDB()
 logger = stix_logger.get_logger()
 level1_products_path = config.get_config(
@@ -84,7 +86,7 @@ class StixBulkL0Analyzer(object):
         }
         return report
 
-    def merge(self, cursor):
+    def process_packets(self, cursor):
 
         for pkt in cursor:
             packet = sdt.Packet(pkt)
@@ -223,6 +225,7 @@ class StixBulkL1L2Analyzer(object):
             emin=min([x[0] for x in self.sci_ebins])
             emax=max([x[1] for x in self.sci_ebins])
         flare_ids, flare_peak_unix_times, flare_start_times, flare_end_times, peak_counts=self.get_flare_times(self.start_unix, duration)
+        #synopsis will be used by the flare processing pipeline
 
         is_background=False if flare_ids else True #if no flare found it is background
         timebins, ebins, spectrogram=self.spectrogram.get_spectrogram('list')
@@ -278,7 +281,7 @@ class StixBulkL1L2Analyzer(object):
                 pixel_indexes.append(i * 12 + j)
         return pixel_indexes
 
-    def merge(self, cursor):
+    def process_packets(self, cursor):
         #it doesn't know the start time and end time of the data request 
         ipkt=0
         flare_start_times, flare_end_times=[],[]
@@ -358,9 +361,9 @@ class StixBulkL1L2Analyzer(object):
                     for idx, e in enumerate(samples[k + 3][3]):
                         pixel_counts.append(e[counts_idx])
 
+
                         self.spectrogram.fill(E1_low, E2_high, time, e[counts_idx])
                         #fill spectrogram
-
                         self.pixel_total_counts[
                             pixel_indexes[idx]] += e[counts_idx]
                         if is_flare_data and E1_low==E2_high:
@@ -419,7 +422,7 @@ class StixBulkL3Analyzer(object):
         }
         return report
 
-    def merge(self, cursor):
+    def process_packets(self, cursor):
         for pkt in cursor:
             packet = sdt.Packet(pkt)
             self.request_id = packet[3].raw
@@ -514,7 +517,7 @@ class StixBulkL4Analyzer(object):
         }
         return report
 
-    def merge(self, cursor):
+    def process_packets(self, cursor):
         last_timestamp=None
         for pkt in cursor:
             packet = sdt.Packet(pkt)
@@ -588,7 +591,7 @@ class StixBulkAspectAnalyzer(object):
         self.end_unix=None
         pass
 
-    def merge(self, cursor):
+    def process_packets(self, cursor):
         readouts = [[], [], [], []]
         read_time = []
         packet_utc = ''
@@ -623,15 +626,15 @@ class StixBulkAspectAnalyzer(object):
         }
 
 
-def process(file_id):
+def process_one(file_id):
     try:
-        merge(file_id)
+        process_packets_in_file(file_id)
     except Exception as e:
         print(str(e))
         logger.error(str(e))
 
 
-def merge(file_id, remove_existing=True):
+def process_packets_in_file(file_id, remove_existing=True):
     collection = mdb.get_collection_bsd()
     bsd_cursor = collection.find({'run_id': file_id}).sort('_id', 1)
     for doc in bsd_cursor:
@@ -644,20 +647,20 @@ def merge(file_id, remove_existing=True):
         result = None
         if spid == 54125:
             analyzer = StixBulkAspectAnalyzer()
-            result = analyzer.merge(cursor)
+            result = analyzer.process_packets(cursor)
         elif spid == 54114:
             analyzer = StixBulkL0Analyzer()
-            result = analyzer.merge(cursor)
+            result = analyzer.process_packets(cursor)
         elif spid in [54115, 54116]:
             analyzer = StixBulkL1L2Analyzer()
-            result, synopsis = analyzer.merge(cursor)
+            result, synopsis = analyzer.process_packets(cursor)
 
         elif spid == 54117:
             analyzer = StixBulkL3Analyzer()
-            result = analyzer.merge(cursor)
+            result = analyzer.process_packets(cursor)
         elif spid == 54143:
             analyzer = StixBulkL4Analyzer()
-            result = analyzer.merge(cursor)
+            result = analyzer.process_packets(cursor)
         if result:
             date_str=datetime.now().strftime("%y%m%d%H")
             existing_fname=doc.get('level1','')
@@ -679,12 +682,12 @@ def merge(file_id, remove_existing=True):
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print('sci_packet_merger  run_id')
-        print('sci_packet_merger  run_id_start id_end')
+        print('process_sci_packets run_id')
+        print('process_sci_packets run_id_start id_end')
     elif len(sys.argv)==2:
-        process(int(sys.argv[1]))
+        process_one(int(sys.argv[1]))
     else:
         for i in range(int(sys.argv[1]),int(sys.argv[2])+1):
             print('process:',i)
-            process(i)
+            process_one(i)
 
