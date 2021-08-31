@@ -19,6 +19,7 @@ from stix.spice import stix_datetime
 from stix.core import stix_logger
 from stix.core import stix_metadata as meta
 from stix.spice import spice_manager as spm
+from stix.core import stix_instrument_config as stc
 
 logger = stix_logger.get_logger()
 MONGODB_CONFIG = config.get_config()['pipeline']['mongodb']
@@ -160,6 +161,7 @@ class StixMongoDBWriter(StixPacketWriter):
             self.db = self.connect["stix"]
             self.collection_packets = self.db['packets']
             self.collection_raw_files = self.db['raw_files']
+            self.stix_config_db=self.db['stix_config']
         except Exception as e:
             logger.error(str(e))
 
@@ -265,6 +267,14 @@ class StixMongoDBWriter(StixPacketWriter):
 
         self.science_report_analyzer.start(self.current_run_id,
                                            self.current_packet_id, packet)
+        #generate meta data
+
+        if packet['header']['TMTC'] == 'TC':
+            stc.parse_stix_config_telecommand(self.current_run_id,
+                                           self.current_packet_id, packet, self.stix_config_db)
+        #extract information from telecommands and stores the information in database
+
+
 
         try:
             self.collection_packets.insert_one(packet)

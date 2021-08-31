@@ -625,7 +625,6 @@ class StixBulkAspectAnalyzer(object):
 
         }
 
-
 def process_one(file_id):
     try:
         process_packets_in_file(file_id)

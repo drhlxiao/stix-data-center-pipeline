@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
     Create metadata from science reports. The information from science packets is written into mongodb
+    Routines in this script are called by stix_writer
     @Author: Hualin Xiao
     @Date: Nov. 2019
 """
@@ -10,6 +11,7 @@ import numpy as np
 from stix.core import stix_datatypes as sdt
 from stix.spice import stix_datetime
 from stix.core import stix_logger
+
 logger = stix_logger.get_logger()
 DATA_REQUEST_REPORT_SPIDS = [54114, 54115, 54116, 54117, 54143, 54125]
 DATA_REQUEST_REPORT_NAME = {

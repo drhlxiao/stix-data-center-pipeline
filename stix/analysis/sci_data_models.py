@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from stix.utils import energy_bins
 '''
    data models
    spectrogram and spectrum
@@ -58,16 +59,26 @@ class Spectrogram(object):
 
 
 class  EnergySpectrum(object):
+    '''
+        do corrections for x-ray flux spectrum
+
+    '''
     def __init__(self):
         self.spectrum=[]
         self.duration=[]
-        self.start_time=0
-        self.end_time=0
-    def fill_one_pixel(self, unix_time, time_bin, pixel_id, ebin_low, ebin_up, bin_counts, triggers): 
-        pass
+        self.start_time = 0
+        self.end_time = 0
+        self.tau=0.4e-6
+    def fill(self, unix_time, 
+            ebin_low, ebin_up, bin_counts, triggers): 
 
+        detector_id=pixel_id//12
 
-    def fill_one_detector(self, unix_time, time_bin, detector_id, ebin_low, ebin_up, bin_counts, triggers):
+        
+
+    def fill_one_detector(self, unix_time, time_bin, detector_id, 
+            ebin_low, ebin_up, bin_counts, triggers):
+
         pass
 
     def __sub__(self, B):

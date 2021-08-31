@@ -213,7 +213,7 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
         logger.info(
             'merging bulk science data and preparing bsd json files...')
         try:
-            sci_packets_analyzer.process(file_id)
+            sci_packets_analyzer.process_packets_in_file(file_id)
         except Exception as e:
             logger.error(str(e))
     if RUN_L1_FLARE_ANALYZER:
@@ -231,7 +231,6 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
             summary['notification_id']=notif_id
         except Exception as e:
             logger.info(str(e))
-
 
 
 

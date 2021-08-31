@@ -65,6 +65,7 @@ class MongoDB(object):
             self.collection_qlspectra=self.db['ql_spectra']
             self.collection_qllc=self.db['ql_lightcurves']
             self.collection_qloc=self.db['ql_flarelocations']
+            self.collection_stix_config=self.db['stix_config']
 
         except Exception as e:
             print('Error occurred while initializing mongodb: {}'.format(
@@ -467,6 +468,9 @@ class MongoDB(object):
                 sort_field, 1)
             return cursor
         return []
+    def get_telecommands_in_file(self,file_id):
+        return self.collection_packets.find({'header.TMTC':'TC', 'run_id': int(file_id)})
+
 
     def get_file_spids(self, file_id):
         return [
