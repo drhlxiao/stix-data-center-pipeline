@@ -641,6 +641,7 @@ def process_packets_in_file(file_id, remove_existing=True):
         logger.info(f'processing bsd id: {doc["_id"]}, spid:{spid}')
         cursor = mdb.get_packets_of_bsd_request(doc['_id'], header_only=False)
         synopsis=None
+        data_type=DATA_REQUEST_REPORT_NAME.get(spid,'UNKNOWN')
         if not cursor:
             continue
         result = None
@@ -673,6 +674,7 @@ def process_packets_in_file(file_id, remove_existing=True):
                                          f'L1_{doc["_id"]}_{date_str}.json')
             start_unix=result.get('start_unix',0)
             end_unix=result.get('end_unix',0)
+            result['data_type']=data_type
             with open(json_filename, 'w') as outfile:
                 json.dump(result, outfile)
             collection.update_one({'_id': doc['_id']}, {'$set':{'level1': json_filename, 

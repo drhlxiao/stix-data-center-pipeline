@@ -62,7 +62,7 @@ def fetch(start_utc, stop_utc, fits_type='lc', progress_bar=True):
         return None
 
 
-def download(start_utc, stop_utc, fits_type='lc', progress_bar=True, filename=None):
+def Query(start_utc, stop_utc, fits_type='lc', progress_bar=True, filename=None):
     """Query data from pub023 and download FITS file from the server.
     A fits file will be received for the packets which satistify the query condition.
     If no data is found on pub023, a json object will be received

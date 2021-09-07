@@ -337,10 +337,21 @@ class XrayL1(Product):
         data['integration_time'] = (np.array(packets.get('NIX00405'), np.uint16)) * 0.1 * u.s
 
         # TODO change once FSW fixed
-        ts, tk, tm = control['compression_scheme_counts_skm'][0]
-        triggers, triggers_var = decompress([packets.get(f'NIX00{i}') for i in range(242, 258)],
+        #ts, tk, tm = control['compression_scheme_counts_skm'][0]
+        
+        ts, tk, tm = control['compression_scheme_triggers_skm'][0]
+
+        trigger_from_packets=[packets.get(f'NIX00{i}') for i in range(242, 258)]
+
+
+        triggers, triggers_var = decompress(trigger_from_packets,
                                             s=ts, k=tk, m=tm,
                                             return_variance=True)
+        #print('before decompression:')
+        #print(trigger_from_packets, ts, tk, tm)
+        #print('After decompressed!')
+        #print(triggers)
+        #raise 
 
         data['triggers'] = triggers.T
         data['triggers_err'] = np.sqrt(triggers_var).T
@@ -361,6 +372,11 @@ class XrayL1(Product):
 
         counts = counts.reshape(unique_times.size, unique_energies_low.size,
                                 data['detector_masks'][0].sum(), data['num_pixel_sets'][0].sum())
+        #comment from Hualin, 2021, Sept. probably there is a bug here, when the number of energy bins is not 32, it cashes
+        #maybe need to replaced to:
+        #counts = counts.reshape(unique_times.size, 
+        #                        data['detector_masks'][0].sum(), data['num_pixel_sets'][0].sum(),unique_energies_low.size,
+        #)
 
         counts_var = counts_var.reshape(unique_times.size, unique_energies_low.size,
                                         data['detector_masks'][0].sum(),
