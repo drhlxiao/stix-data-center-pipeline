@@ -770,9 +770,9 @@ class Aspect(Product):
         delta_time = ((control['summing_value'] * control['averaging_value']) / 1000.0)
         samples = packets['NIX00089']
 
-        offsets = [delta_time[i]*0.5 * np.arange(ns) * u.s for i, ns in enumerate(samples)]
-        time = Time(np.hstack([start_times[i] + offsets[i] for i in range(len(offsets))]))
-        timedel = np.hstack(offsets).value * u.s
+        offsets = [delta_time[i]* np.arange(ns) * u.s for i, ns in enumerate(samples)]
+        time = Time([start_times[i] + offsets[i] for i in range(len(offsets))])
+        timedel = np.hstack(offsets)
 
         # Data
         try:
@@ -786,6 +786,7 @@ class Aspect(Product):
             data['control_index'] = np.hstack([np.full(ns, i) for i, ns in enumerate(samples)])
         except ValueError as e:
             logger.warning(e)
+            #raise
             return None
 
         return cls(control=control, data=data)

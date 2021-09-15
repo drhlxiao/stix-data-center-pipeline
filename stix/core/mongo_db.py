@@ -301,9 +301,9 @@ class MongoDB(object):
         #save calibration data analysis results to mongodb
         _id = int(calibration_id)
         if self.collection_calibration:
-            doc = self.collection_calibration.find_one({'_id': _id})
-            doc['analysis_report'] = data
-            self.collection_calibration.save(doc)
+            self.collection_calibration.update_one({'_id': _id}, {'$set':{'analysis_report':data}})
+            #doc['analysis_report'] = data
+            #self.collection_calibration.save(doc)
 
     def get_calibration_runs_for_processing(self):
         #search for calibration runs which have  not been yet processed

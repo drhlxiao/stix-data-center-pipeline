@@ -606,7 +606,7 @@ class StixBulkAspectAnalyzer(object):
 
             if start_time == 0:
                 start_time = T0
-            dt = packet[4].raw / 64 * (1 / 64.)  # has to be fixed
+            dt = packet[3].raw * packet[4].raw/1000.  # has to be fixed
             children = packet[5].children
             for i, param in enumerate(children):
                 readouts[i % 4].append(param[1])

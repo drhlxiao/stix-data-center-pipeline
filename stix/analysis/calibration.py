@@ -40,7 +40,7 @@ ELUT_ENERGIES = [
 ]
 
 PHOTO_PEAKS_POS = [30.85, 35.13, 81]
-#PHOTO_PEAKS_POS=[30.85, 35.05, 81]
+
 PRINT_TO_PDF = False
 
 mdb = db.MongoDB()
@@ -63,35 +63,8 @@ def compute_elut(offset, slope):
     return elut
 
 
-def find_peaks2(detector, pixel, subspec, start, num_summed, spec, fo, pdf):
-    #find peaks using TSpectrum
-    x_full = [
-        start + i * num_summed + 0.5 * num_summed for i in range(0, len(spec))
-    ]
-    nbins = len(subspec)
-    sigma = 2
-    threshold = 10
-    background_remove = True
-    decon_interations = 1000
-    markov = True
-    averg_window = 3
-
-    #print(threshold)
-
-    y = array('d', subspec)
-    des = array('d', [0] * nbins)
-    s = TSpectrum()
-    num_found = s.SearchHighRes(y, des, nbins, sigma, threshold,
-                                background_remove, decon_interations, markov,
-                                averg_window)
-    xp = s.GetPositionX()
-    xpeaks = []
-    for i in range(num_found):
-        xpeaks.append(x_full[xp[i]])
 
 
-def rebin(spec, h, offset, slope):
-    pass
 
 
 def interp(xvals, yvals, xnew):
@@ -128,18 +101,7 @@ def graph2(x, y, title="", xlabel="x", ylabel="y"):
     return g
 
 
-def heatmap(arr,
-            htitle,
-            title,
-            xlabel='detector',
-            ylabel='pixel',
-            zlabel='value'):
-    h2 = TH2F(title, '{};{};{};{}'.format(title, xlabel, ylabel, zlabel), 32,
-              0, 32, 12, 0, 12)
-    for i in range(0, 32):
-        for j in range(0, 12):
-            h2.SetBinContent(i + 1, j + 1, arr[i][j])
-    return h2
+
 
 
 def get_subspec(x, y, xmin, xmax):
