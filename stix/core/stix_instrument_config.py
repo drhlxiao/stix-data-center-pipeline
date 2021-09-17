@@ -70,8 +70,8 @@ def parse_elut_upload_telecommand(packet):
         ebins = [children[j + i0 + 2][1] for j in range(0, 32)]
         adcs = np.array(ebins[1:len(ELUT_ENERGY_BINS) + 1]) / 4.
         a, b = np.polyfit(ELUT_ENERGY_BINS, adcs, 1)
-        slope = round(a, 4)
-        offset = round(b, 4)
+        slope = round(a, 5)
+        offset = round(b, 5)
         utc = header['UTC']
         elut = {
             'type': 'elut',

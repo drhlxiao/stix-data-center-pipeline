@@ -52,14 +52,15 @@ def chi2test(obs_y:np.ndarray,exp_y:np.ndarray):
     Returns
         chisquare: float
             chiquare
-        pvalue:
-            p-value, set to 0 now
+        dof:
+            dof: dregress of freedom
     """
     #exp_y: expected spectrum
     #obs_y: observed spectra
     norm_factor=np.sum(obs_y)/np.sum(exp_y)
     exp_y[exp_y==0]=1e-12
-    return np.sum((obs_y-exp_y*norm_factor)**2/exp_y),0
+    dof=obs_y.size -1
+    return np.sum((obs_y-exp_y*norm_factor)**2/exp_y),dof
     #stats.chisquare is too slow
     #return stats.chisquare(f_obs=obs_y, f_exp=exp_y)
 
@@ -68,11 +69,9 @@ class Calibration(object):
     Fit calibration spectra using  spectrum models loaded from npy file
 
     """
-    FIT_RANGE = (28, 85) #20 keV - 90 keV
+    FIT_RANGE_KEV = (28, 85) #20 keV - 90 keV
     SPECTRUM_SEL_ADC_RANGE=(252, 448)
     #used to check if do fitting for a subspectrum
-    SPECTRUM_MODEL='PIXEL' #SUM, ECC
-    SLOPS_LIMITS = (2.2, 2.4)
     OFFSETS_LIMITS = (210, 235)  #default range, load from ELUT by default
     MIN_COUNTS = 100
     DEFAULT_OUTPUT_DIR = '/data/calibration/'
@@ -80,12 +79,14 @@ class Calibration(object):
     MAX_DEPTH=1  #random grid recursive search depth
     SCALE_FACTOR=10  #shrink search region after each interation
     PEAK_MIN_COUNTS = 50  # spectrum with little counts ignored
-    MEAN_ENERGY_CONVERSION_FACTOR=2.31
+    MEAN_GAIN=2.31
+
     ELUT_ENERGIES = [
         4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 25, 28, 32, 36,
         40, 45, 50, 56, 63, 70, 76, 84, 100, 120, 150
     ]
-    PIXEL_EBINS = np.linspace(0, 100, 1000)
+    SUM_SPECTRUM_STEPS=10000
+    PIXEL_EBINS = np.linspace(0, 100, SUM_SPECTRUM_STEPS)
 
     def __init__(self):
         self.pixel_fspec_models, self.default_slopes, self.default_offsets = \
@@ -113,8 +114,8 @@ class Calibration(object):
                 # print(det, pix, p0, p1)
                 if p0 > 0 and p1 > 0:
                     row = [det, pix, p0, p1]
-                    Elows = [int(4 * (p0 + p1 * x)) for x in Calibration.ELUT_ENERGIES]
-                    row.extend(Elows)
+                    elut_e_low= [int(4 * (p0 + p1 * x)) for x in Calibration.ELUT_ENERGIES]
+                    row.extend(elut_e_low)
                     elut.append(row)
         return elut
 
@@ -136,8 +137,8 @@ class Calibration(object):
         _x = np.arange(spec_len) * bin_width + 0.5 * bin_width + start_ch
         max_count = np.max(spectrum)
         peak_x = _x[spectrum == max_count][0]
-        min_adc=peak_x-(31-Calibration.FIT_RANGE[0])*Calibration.MEAN_ENERGY_CONVERSION_FACTOR
-        max_adc=peak_x+(-31+Calibration.FIT_RANGE[1])*Calibration.MEAN_ENERGY_CONVERSION_FACTOR
+        min_adc=peak_x-(31-Calibration.FIT_RANGE_KEV[0])*Calibration.MEAN_GAIN
+        max_adc=peak_x+(-31+Calibration.FIT_RANGE_KEV[1])*Calibration.MEAN_GAIN
 
         if only_fit_range:
             clip = (_x >min_adc) & (_x < max_adc)
@@ -170,26 +171,25 @@ class Calibration(object):
           predicted spectrum
 
         Returns
-         correlation factor
+         chi2:  chisquare
+         dof: dof
         """
         energies, pred_spec = self.get_intensity_from_model(detector,pixel, offset, slope, spec_x)
-        chi, pval=chi2test(spec_y, pred_spec)
-        return chi,pval
+        chi, dof=chi2test(spec_y, pred_spec)
+        return chi,dof
     def quick_random_search(self, detector,pixel, offsets_1d, slopes_1d, spec_x,spec_y,  max_delta=1e-3, depth=0):
         """
          Parameter search recursively
          finner search for higher depth
         """
         best_fit = {'slope': 0, 'offset': 0}
-        factors=[]
-        best_cor_factor=np.inf
+        min_chi2=np.inf
 
         for offset, slope in zip(offsets_1d, slopes_1d):
-            factor, pval= self.correlate(detector,pixel, offset, slope, spec_x, spec_y)
-            factors.append(factor)
-            if factor < best_cor_factor:
-                best_fit = {'slope': slope, 'offset': offset, 'factor':factor, 'factor2':pval }
-                best_cor_factor = factor
+            chi2, dof= self.correlate(detector,pixel, offset, slope, spec_x, spec_y)
+            if chi2< min_chi2:
+                best_fit = {'slope': slope, 'offset': offset, 'chi2':chi2, 'dof':dof}
+                min_chi2= chi2
         #delta=(best_cor_factor-min(factors))/best_cor_factor
         #print('depth:', depth, delta)
         return best_fit
@@ -230,7 +230,7 @@ class Calibration(object):
         #peak1_y = np.max(spec_y)
         #peak1_x = spec_x[spec_y==peak1_y][0]
         # find the peak with highest counts in the predefined range
-        #x_shift = Calibration.MEAN_ENERGY_CONVERSION_FACTOR * (81 - 31)
+        #x_shift = Calibration.MEAN_GAIN * (81 - 31)
         #peak3_peak_range = np.array([peak1_x + 0.9 * x_shift, peak1_x + 1.1 * x_shift])
         #peak3_x_range=(spec_x>peak3_peak_range[0]) & (spec_x<peak3_peak_range[1])
         #peak3_y_clip=spec_y[peak3_x_range]
@@ -273,22 +273,22 @@ class Calibration(object):
             pdf.savefig(fig)
             plt.close()
         return best_fit
-    def create_sum_spectrum(self, calibration_id, spectra, slope:np.ndarray,offset:np.ndarray):
+    def create_sum_spectra(self, calibration_id, spectra, slope:np.ndarray,offset:np.ndarray):
         # do calibration
         sum_spectra = {}#sum spectrum for all detectors
         # cc = TCanvas()
 
-        pixel_sum_spectra = np.zeros((32, 12, 1000))  # pixel sum spectrum, 100 energy bins
+        pixel_sum_spectra = np.zeros((32, 12, Calibration.SUM_SPECTRUM_STEPS))  # pixel sum spectrum, 100 energy bins
 
         xvals = []
         for spec in spectra:
 
             detector, pixel, sbspec_id, start, bin_width, spectrum = spec
-            if sum(spectrum) < Calibration.PEAK_MIN_COUNTS:
-                continue
             num_points = len(spectrum)
-
             spectrum=np.array(spectrum)
+            if np.sum(spectrum) < Calibration.PEAK_MIN_COUNTS:
+                continue
+
 
             end = start + bin_width * num_points  # end ADC
 
@@ -297,26 +297,18 @@ class Calibration(object):
                 #           slope[detector][pixel]
                 spec_x, spec_y = self.get_subspec(spectrum, start, bin_width, False)
                 energies=(spec_x-offset[detector][pixel])/slope[detector][pixel]
-                #pixel_sum_spectra_id=f'{sbspec_id}-{detector*12+pixel}'
-                #if pixel_sum_spectra_id not in pixel_sum_spectra
-
                 if sbspec_id not in sum_spectra:
                     #first occurent of the spectrum, any detector
                     min_energy,max_energy=np.min(energies)*0.8,np.max(energies)*1.2
                     xvals = np.linspace(min_energy, max_energy,
                                         int((num_points + 1) * 1.4))
-                    #xvals are the same for all detectors
                     sum_spectra[sbspec_id] = [xvals, np.zeros_like(xvals)]  # sum spectrum x vs. y
-
-
                 yvals = interp(energies, spectrum / bin_width, xvals)
                 sum_spectra[sbspec_id][1] += yvals
                 amps = interp(energies, spectrum / bin_width, Calibration.PIXEL_EBINS)
                 pixel_sum_spectra[detector][pixel]+=amps
-
         sub_sum_spec = {}
-        #produce sum spectrum
-        points = 1150
+        points = 1150*2
         energy_range = np.linspace(-10, 450, points)
         sbspec_sum = np.zeros(points)
         for key, val in sum_spectra.items():  # mongodb doesn't support array
@@ -345,6 +337,7 @@ class Calibration(object):
             pdf = PdfPages(pdf_filename)
         slope = np.zeros((32, 12))
         offset = np.zeros((32, 12))
+        chi2= np.zeros((32, 12))
         slope_error = np.zeros((32, 12))
         offset_error = np.zeros((32, 12))
         report = {}
@@ -372,18 +365,15 @@ class Calibration(object):
 
             slope[detector][pixel] = best_fit['slope']
             offset[detector][pixel] = best_fit['offset']
+            chi2[detector][pixel]=best_fit['chi2']
             slope_error[detector][pixel] = 0.5*bin_width/(81-30)
             offset_error[detector][pixel] = 0.5*bin_width
         if create_pdf:
             pdf.close()
             report['pdf']=pdf_filename
         report['elut'] = self.compute_elut(offset, slope)
-        slope1d = np.hstack(slope)
-        offset1d = np.hstack(offset)
-        slope_error_1d = np.hstack(slope_error)
-        offset_error_1d = np.hstack(offset_error)
 
-        sub_sum_spec, pixel_sum_spectra=self.create_sum_spectrum(calibration_id,spectra, slope, offset)
+        sub_sum_spec, pixel_sum_spectra=self.create_sum_spectra(calibration_id,spectra, slope, offset)
 
         calibration_result_filename=os.path.join(Calibration.DEFAULT_OUTPUT_DIR,
                                                 f'calibration_results_{calibration_id}.npz')
@@ -392,11 +382,12 @@ class Calibration(object):
         np.savez(calibration_result_filename, pixel_sum_spectra, slope, offset)
 
         report['calibration_results']=calibration_result_filename
-        report['slope'] = slope1d.tolist()
-        report['offset'] = offset1d.tolist()
-        report['slope_error'] = slope_error_1d.tolist()
-        report['offset_error'] = offset_error_1d.tolist()
+        report['slope'] = slope.reshape(-1).tolist()
+        report['offset'] = offset.reshape(-1).tolist()
+        report['slope_error'] = slope_error.reshape(-1).tolist()
+        report['offset_error'] = offset_error.reshape(-1).tolist()
         report['sum_spectra'] = sub_sum_spec
+        report['chi2'] = chi2.reshape(-1).tolist()
         # calibrated sum spectra
 
         mdb.update_calibration_analysis_report(calibration_id, report)
