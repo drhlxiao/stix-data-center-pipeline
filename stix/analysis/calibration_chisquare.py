@@ -145,7 +145,7 @@ class Calibration(object):
             return _x[clip], spectrum[clip]
         return _x, spectrum
 
-    def get_intensity_from_model(self, detector:int, pixel:int, offset:float, slope:float, spec_adcs:np.ndarray) -> object:
+    def get_spectrum_from_model(self, detector:int, pixel:int, offset:float, slope:float, spec_adcs:np.ndarray) -> object:
         """
         convert adc channels to keV
         Args
@@ -159,24 +159,6 @@ class Calibration(object):
         energies=(spec_adcs-offset)/slope
         return energies, self.pixel_fspec_models[detector*12+pixel](energies)
 
-    def correlate(self, detector, pixel, offset, slope, spec_x:np.ndarray,  spec_y:np.ndarray):
-        """
-        calculate correlation of two spectra
-        Parameters
-        spec_x: numpy.ndarray
-           energies of experimetal spectrum
-        spec_y: numpy.ndarray
-            counts spectrum
-        pred_spec: numpy.ndarray
-          predicted spectrum
-
-        Returns
-         chi2:  chisquare
-         dof: dof
-        """
-        energies, pred_spec = self.get_intensity_from_model(detector,pixel, offset, slope, spec_x)
-        chi, dof=chi2test(spec_y, pred_spec)
-        return chi,dof
     def quick_random_search(self, detector,pixel, offsets_1d, slopes_1d, spec_x,spec_y,  max_delta=1e-3, depth=0):
         """
          Parameter search recursively
@@ -186,14 +168,15 @@ class Calibration(object):
         min_chi2=np.inf
 
         for offset, slope in zip(offsets_1d, slopes_1d):
-            chi2, dof= self.correlate(detector,pixel, offset, slope, spec_x, spec_y)
+            energies, pred_spec = self.get_spectrum_from_model(detector, pixel, offset, slope, spec_x)
+            chi2, dof = chi2test(spec_y, pred_spec)
             if chi2< min_chi2:
                 best_fit = {'slope': slope, 'offset': offset, 'chi2':chi2, 'dof':dof}
                 min_chi2= chi2
         #delta=(best_cor_factor-min(factors))/best_cor_factor
         #print('depth:', depth, delta)
         return best_fit
-        '''
+        ''' # improvement is not obvious 
         if delta<max_delta or depth>Calibration.MAX_DEPTH:
             #no need to search further
             #print(best_fit)
@@ -208,14 +191,13 @@ class Calibration(object):
                                      best_fit['offset']+offset_next_range, len(offsets_1d))
         slopes_1d = np.random.uniform(best_fit['slope'] - slope_next_range,
                                       best_fit['slope'] + slope_next_range,len(slopes_1d))
-        
         return self.quick_random_search(detector, pixel, offsets_1d, slopes_1d, spec_x,
                                         spec_y,  max_delta, depth+1)
                                         '''
 
 
 
-    def find_solution(self, detector, pixel, sbspec_id,spectrum, start_ch, bin_width,
+    def find_best_fit(self, detector, pixel, sbspec_id,spectrum, start_ch, bin_width,
                       pdf=None):
         """
         Fit spectrum using a spectrum model
@@ -355,14 +337,12 @@ class Calibration(object):
 
             end = start + bin_width * len(spectrum)
             if start > Calibration.SPECTRUM_SEL_ADC_RANGE[0] or end < Calibration.SPECTRUM_SEL_ADC_RANGE[1]:
-                #ignore those spectra
                 continue
-            best_fit=self.find_solution(detector, pixel, sbspec_id, spectrum,start, bin_width,
+            best_fit=self.find_best_fit(detector, pixel, sbspec_id, spectrum,start, bin_width,
                                                pdf)
 
             #jjdetector>0:
             #   break
-
             slope[detector][pixel] = best_fit['slope']
             offset[detector][pixel] = best_fit['offset']
             chi2[detector][pixel]=best_fit['chi2']
@@ -372,15 +352,11 @@ class Calibration(object):
             pdf.close()
             report['pdf']=pdf_filename
         report['elut'] = self.compute_elut(offset, slope)
-
         sub_sum_spec, pixel_sum_spectra=self.create_sum_spectra(calibration_id,spectra, slope, offset)
-
         calibration_result_filename=os.path.join(Calibration.DEFAULT_OUTPUT_DIR,
                                                 f'calibration_results_{calibration_id}.npz')
         print(f'calibration_results saved to: {calibration_result_filename}')
-
         np.savez(calibration_result_filename, pixel_sum_spectra, slope, offset)
-
         report['calibration_results']=calibration_result_filename
         report['slope'] = slope.reshape(-1).tolist()
         report['offset'] = offset.reshape(-1).tolist()
@@ -389,7 +365,6 @@ class Calibration(object):
         report['sum_spectra'] = sub_sum_spec
         report['chi2'] = chi2.reshape(-1).tolist()
         # calibrated sum spectra
-
         mdb.update_calibration_analysis_report(calibration_id, report)
         #fout = open('/home/xiaohl/run_1301_chisquare_sum_spec.csv', 'w')
         #fout.close()
