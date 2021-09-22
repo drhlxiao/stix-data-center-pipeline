@@ -34,6 +34,7 @@ class SpiceManager:
     def get_kernel_filename(self):
         return self.loaded_kernel_filename
     def load_kernels(self):
+        cwd=os.getcwd()
         spice_folder=config.get_config('spice')
         mk_folder=os.path.join(spice_folder,'mk')
         os.chdir(mk_folder)
@@ -56,6 +57,7 @@ class SpiceManager:
             self.loaded_kernel_filename=self.latest_mk
         else:
             print(f'SPICE kernel loaded already: {self.latest_mk}.')
+        os.chdir(cwd)
 
 
     def obt2utc(self, obt_string):

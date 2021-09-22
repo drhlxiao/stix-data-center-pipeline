@@ -6,7 +6,6 @@
 import os
 import sys
 
-import numba
 import numpy as np
 import time
 from array import array
@@ -30,8 +29,7 @@ mdb = db.MongoDB()
 # 2.3 ADC/keV
 # Estimated energy conversion factor
 from matplotlib.backends.backend_pdf import PdfPages
-#import numba
-SPECTRUM_MODEL_DATA_FILES=Path(__file__).parent.parent/ 'data' / 'ExpSpecModel.npz'
+SPECTRUM_MODEL_DATA_FILE=Path(__file__).parent.parent/ 'data' / 'ExpSpecModel.npz'
 
 
 def interp(xvals, yvals, xnew):
@@ -90,7 +88,7 @@ class Calibration(object):
 
     def __init__(self):
         self.pixel_fspec_models, self.default_slopes, self.default_offsets = \
-            self.load_spectrum_models(SPECTRUM_MODEL_DATA_FILES)
+            self.load_spectrum_models(SPECTRUM_MODEL_DATA_FILE)
 
     def load_spectrum_models(self, npy_filename):
         data= np.load(npy_filename)
@@ -236,7 +234,7 @@ class Calibration(object):
         best_fit=self.quick_random_search(detector,pixel, offsets_1d, slopes_1d, spec_x, spec_y)
 
         #print(best_fit)
-        energies, pred_spec = self.get_intensity_from_model(detector,pixel,best_fit['offset'], best_fit['slope'], spec_x)
+        energies, pred_spec = self.get_spectrum_from_model(detector,pixel,best_fit['offset'], best_fit['slope'], spec_x)
         #fout.write(f'{detector},{pixel},{best_fit["offset"]},{best_fit["slope"]}\n')
         if pdf:
             fig=plt.figure()
@@ -244,10 +242,13 @@ class Calibration(object):
             plt.plot(energies, norm_spec,label='Model')
             plt.errorbar(energies,spec_y,yerr=np.sqrt(spec_y), label='exp')
             ax=plt.gca()
-            plt.text(0.6, 0.7,
-                 f'p0 = {best_fit["offset"]:.3f}, p1={best_fit["slope"]:.3f}',
-                 horizontalalignment='center', verticalalignment='center',
-                 transform=ax.transAxes)
+            text=f'baseline = {best_fit["offset"]:.3f}\n'\
+                 f'gain = {best_fit["slope"]:.3f}\n'\
+                 f'chi2/ndf = {best_fit["chi2"]:.1f}/{best_fit["dof"]}\n'
+            props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+            plt.text(0.3, 0.95,
+                     text,transform=ax.transAxes, fontsize=12,
+                        verticalalignment='top',  bbox=props)
             plt.xlabel('Energy (keV)')
             plt.ylabel('Normalized counts')
             plt.title(f'Detector {detector},pixel {pixel}, subspec {sbspec_id} ')
@@ -270,9 +271,6 @@ class Calibration(object):
             spectrum=np.array(spectrum)
             if np.sum(spectrum) < Calibration.PEAK_MIN_COUNTS:
                 continue
-
-
-            end = start + bin_width * num_points  # end ADC
 
             if slope[detector][pixel] > 0 and offset[detector][pixel] > 0:
                 #energies = (np.linspace(start, end - bin_width, num_points) - offset[detector][pixel]) / \
@@ -341,7 +339,7 @@ class Calibration(object):
             best_fit=self.find_best_fit(detector, pixel, sbspec_id, spectrum,start, bin_width,
                                                pdf)
 
-            #jjdetector>0:
+            #if detector>0:
             #   break
             slope[detector][pixel] = best_fit['slope']
             offset[detector][pixel] = best_fit['offset']
@@ -351,6 +349,7 @@ class Calibration(object):
         if create_pdf:
             pdf.close()
             report['pdf']=pdf_filename
+            print("PDF created:", pdf_filename)
         report['elut'] = self.compute_elut(offset, slope)
         sub_sum_spec, pixel_sum_spectra=self.create_sum_spectra(calibration_id,spectra, slope, offset)
         calibration_result_filename=os.path.join(Calibration.DEFAULT_OUTPUT_DIR,
