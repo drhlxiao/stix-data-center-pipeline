@@ -10,6 +10,7 @@ import numpy as np
 import time
 from array import array
 from datetime import datetime
+import h5py
 
 
 from scipy.interpolate import interp1d
@@ -29,15 +30,10 @@ mdb = db.MongoDB()
 # 2.3 ADC/keV
 # Estimated energy conversion factor
 from matplotlib.backends.backend_pdf import PdfPages
-SPECTRUM_MODEL_DATA_FILE=Path(__file__).parent.parent/ 'data' / 'ExpSpecModel.npz'
+SPECTRUM_MODEL_DATA_FILE=Path(__file__).parent.parent/ 'data' / 'ExpSpecModel.h5'
+DEFAULT_OUTPUT_DIR = '/data/calibration/'
 
 
-def interp(xvals, yvals, xnew):
-    # x y define orignal points
-    # xnew interpolated data points
-    f2 = interp1d(xvals, yvals, bounds_error=False, fill_value=0)
-    y = f2(xnew)
-    return y
 
 def chi2test(obs_y:np.ndarray,exp_y:np.ndarray):
     """
@@ -72,7 +68,6 @@ class Calibration(object):
     #used to check if do fitting for a subspectrum
     OFFSETS_LIMITS = (210, 235)  #default range, load from ELUT by default
     MIN_COUNTS = 100
-    DEFAULT_OUTPUT_DIR = '/data/calibration/'
     STEPS=10000  #number of data points generated for each interation
     MAX_DEPTH=1  #random grid recursive search depth
     SCALE_FACTOR=10  #shrink search region after each interation
@@ -90,12 +85,13 @@ class Calibration(object):
         self.pixel_fspec_models, self.default_slopes, self.default_offsets = \
             self.load_spectrum_models(SPECTRUM_MODEL_DATA_FILE)
 
-    def load_spectrum_models(self, npy_filename):
-        data= np.load(npy_filename)
-        spec=data['arr_0']
-        slope=data['arr_1']
-        offset=data['arr_2']
+    def load_spectrum_models(self, filename):
+        hf=h5py.File(filename,'r')
+        spec=np.array(hf.get('spec'))
+        slope=np.array(hf.get('slope'))
+        offset=np.array(hf.get('offset'))
         res = []
+
         for detector in range(32):
             for pixel in range(12):
                 res.append(
@@ -157,14 +153,9 @@ class Calibration(object):
         energies=(spec_adcs-offset)/slope
         return energies, self.pixel_fspec_models[detector*12+pixel](energies)
 
-    def quick_random_search(self, detector,pixel, offsets_1d, slopes_1d, spec_x,spec_y,  max_delta=1e-3, depth=0):
-        """
-         Parameter search recursively
-         finner search for higher depth
-        """
+    def fit_spectra(self, detector,pixel, offsets_1d, slopes_1d, spec_x,spec_y):
         best_fit = {'slope': 0, 'offset': 0}
         min_chi2=np.inf
-
         for offset, slope in zip(offsets_1d, slopes_1d):
             energies, pred_spec = self.get_spectrum_from_model(detector, pixel, offset, slope, spec_x)
             chi2, dof = chi2test(spec_y, pred_spec)
@@ -174,24 +165,6 @@ class Calibration(object):
         #delta=(best_cor_factor-min(factors))/best_cor_factor
         #print('depth:', depth, delta)
         return best_fit
-        ''' # improvement is not obvious 
-        if delta<max_delta or depth>Calibration.MAX_DEPTH:
-            #no need to search further
-            #print(best_fit)
-            return best_fit
-        #next search
-        #print('depth:', depth, delta)
-        offset_next_range=(np.max(offsets_1d)-np.min(offsets_1d))/Calibration.SCALE_FACTOR
-        slope_next_range=(np.max(slopes_1d)-np.min(slopes_1d))/Calibration.SCALE_FACTOR
-        #steps=len(offsets_1d)
-        #print("Range:",offset_next_range, slope_next_range)
-        offsets_1d=np.random.uniform(best_fit['offset']-offset_next_range,
-                                     best_fit['offset']+offset_next_range, len(offsets_1d))
-        slopes_1d = np.random.uniform(best_fit['slope'] - slope_next_range,
-                                      best_fit['slope'] + slope_next_range,len(slopes_1d))
-        return self.quick_random_search(detector, pixel, offsets_1d, slopes_1d, spec_x,
-                                        spec_y,  max_delta, depth+1)
-                                        '''
 
 
 
@@ -207,20 +180,6 @@ class Calibration(object):
           An 2d array indicate x, y of the theoretical spectrum. Use ECC model if it is None
         """
         spec_x, spec_y = self.get_subspec(spectrum, start_ch, bin_width) #real spectra
-        #peak1_y = np.max(spec_y)
-        #peak1_x = spec_x[spec_y==peak1_y][0]
-        # find the peak with highest counts in the predefined range
-        #x_shift = Calibration.MEAN_GAIN * (81 - 31)
-        #peak3_peak_range = np.array([peak1_x + 0.9 * x_shift, peak1_x + 1.1 * x_shift])
-        #peak3_x_range=(spec_x>peak3_peak_range[0]) & (spec_x<peak3_peak_range[1])
-        #peak3_y_clip=spec_y[peak3_x_range]
-        #peak3_max_counts=np.max(peak3_y_clip)#80 keV max counts
-        #peak3_x_clip=spec_x[peak3_x_range]
-        #peak3_x=peak3_x_clip[peak3_y_clip==peak3_max_counts][0]
-        #rough estimation of ranges
-        #print("PEAK",peak1_x, peak3_x, peak3_peak_range, peak3_max_counts)
-        #slope_rough = (peak3_x - peak1_x) / (81 - 31)
-        #offset_rough=peak1_x-31*slope_rough
         slope_rough=self.default_slopes[detector][pixel]
         offset_rough=self.default_offsets[detector][pixel]
         offset_limits=[offset_rough-5, offset_rough+5]
@@ -231,7 +190,7 @@ class Calibration(object):
                               np.random.uniform(slope_limits[0],slope_limits[1], Calibration.STEPS)
 
 
-        best_fit=self.quick_random_search(detector,pixel, offsets_1d, slopes_1d, spec_x, spec_y)
+        best_fit=self.fit_spectra(detector,pixel, offsets_1d, slopes_1d, spec_x, spec_y)
 
         #print(best_fit)
         energies, pred_spec = self.get_spectrum_from_model(detector,pixel,best_fit['offset'], best_fit['slope'], spec_x)
@@ -241,6 +200,7 @@ class Calibration(object):
             norm_spec=pred_spec *np.sum(spec_y)/np.sum(pred_spec)
             plt.plot(energies, norm_spec,label='Model')
             plt.errorbar(energies,spec_y,yerr=np.sqrt(spec_y), label='exp')
+
             ax=plt.gca()
             text=f'baseline = {best_fit["offset"]:.3f}\n'\
                  f'gain = {best_fit["slope"]:.3f}\n'\
@@ -249,6 +209,7 @@ class Calibration(object):
             plt.text(0.3, 0.95,
                      text,transform=ax.transAxes, fontsize=12,
                         verticalalignment='top',  bbox=props)
+
             plt.xlabel('Energy (keV)')
             plt.ylabel('Normalized counts')
             plt.title(f'Detector {detector},pixel {pixel}, subspec {sbspec_id} ')
@@ -301,7 +262,7 @@ class Calibration(object):
         sub_sum_spec['sbspec sum'] = [energy_range.tolist(), sbspec_sum.tolist()]
         return sub_sum_spec, pixel_sum_spectra
 
-    def process_one_run(self, calibration_id, create_pdf=True):
+    def process_one_run(self, calibration_id, create_pdf=True, pdf_path=DEFAULT_OUTPUT_DIR):
         docs = mdb.get_calibration_run_data(calibration_id)
         if not docs:
             print("Calibration run {} data doesn't exist".format(calibration_id))
@@ -313,7 +274,7 @@ class Calibration(object):
 
         if create_pdf:
             pdf_filename = os.path.abspath(
-                os.path.join(Calibration.DEFAULT_OUTPUT_DIR, f'calibration_{calibration_id}_chisquare.pdf'))
+                os.path.join(pdf_path, f'calibration_{calibration_id}_chisquare.pdf'))
             pdf = PdfPages(pdf_filename)
         slope = np.zeros((32, 12))
         offset = np.zeros((32, 12))
@@ -352,10 +313,16 @@ class Calibration(object):
             print("PDF created:", pdf_filename)
         report['elut'] = self.compute_elut(offset, slope)
         sub_sum_spec, pixel_sum_spectra=self.create_sum_spectra(calibration_id,spectra, slope, offset)
-        calibration_result_filename=os.path.join(Calibration.DEFAULT_OUTPUT_DIR,
-                                                f'calibration_results_{calibration_id}.npz')
+        calibration_result_filename=os.path.join(pdf_path,
+                                                f'calibration_results_{calibration_id}.h5')
         print(f'calibration_results saved to: {calibration_result_filename}')
-        np.savez(calibration_result_filename, pixel_sum_spectra, slope, offset)
+        #np.savez(calibration_result_filename, pixel_sum_spectra, slope, offset)
+        hf=h5py.File(calibration_result_filename,'w')
+        hf.create_dataset('spec',data=pixel_sum_spectra)
+        hf.create_dataset('slope',data=slope)
+        hf.create_dataset('offset',data=offset)
+        hf.close()
+
         report['calibration_results']=calibration_result_filename
         report['slope'] = slope.reshape(-1).tolist()
         report['offset'] = offset.reshape(-1).tolist()

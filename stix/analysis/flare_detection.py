@@ -155,7 +155,7 @@ def major_peaks(lefts, rights):
     return major
 
 
-def find_flares(run_id,
+def search_flares(run_id,
            peak_min_width=15,
            peak_min_distance=150,
            rel_height=0.9,
@@ -292,12 +292,12 @@ def find_flares(run_id,
     make_lightcurve_snapshot(data, doc, snapshot_path)
     return xpeaks.size
 
-def find_flares_in_files(fid_start, fid_end, img_path='/data/flare_lc'):
+def search_flares_in_files(fid_start, fid_end, img_path='/data/flare_lc'):
     for i in range(fid_start, fid_end + 1):
         print(f'deleting flares of Files {i}')
         mdb.delete_flares_of_file(i)
     for i in range(fid_start, fid_end + 1):
-        find_flares(i, snapshot_path=img_path)
+        search_flares(i, snapshot_path=img_path)
 
 
 if __name__ == '__main__':
@@ -306,9 +306,9 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         print('flare_detection file_number')
     elif len(sys.argv) == 2:
-        res = find_flares(int(sys.argv[1]), snapshot_path='/data/flare_lc')
+        res = search_flares(int(sys.argv[1]), snapshot_path='/data/flare_lc')
         print('Number of peaks:', res)
     else:
-        find_flares_in_files(int(sys.argv[1]),
+        search_flares_in_files(int(sys.argv[1]),
                        int(sys.argv[2]),
                        img_path='/data/flare_lc')

@@ -17,7 +17,7 @@ from stix.core import mongo_db
 from stix.core import stix_logger
 from stix.core import stix_parser
 from stix.fits import fits_creator
-from stix.analysis import calibration
+from stix.analysis import calibration_chisquare
 from stix.analysis import background_estimation as bkg
 from stix.analysis import flare_detection
 from stix.analysis import sci_packets_analyzer
@@ -192,15 +192,7 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
         except Exception as e:
             logger.error(str(e))
 
-    if DO_CALIBRATIONS:
-        logger.info('Starting calibration spectrum analysis...')
-        try:
-            calibration_run_ids = summary['calibration_run_ids']
-            report_path = daemon_config['calibration_report_path']
-            for run_id in calibration_run_ids:
-                calibration.analyze(run_id, report_path)
-        except Exception as e:
-            logger.error(str(e))
+
 
     if ENABLE_FITS_CREATION:
         logger.info('Creating fits files...')
@@ -232,6 +224,16 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
         except Exception as e:
             logger.info(str(e))
 
+    if DO_CALIBRATIONS:
+        logger.info('Starting calibration spectrum analysis...')
+        try:
+            calibration_run_ids = summary['calibration_run_ids']
+            report_path = daemon_config['calibration_report_path']
+            cal=Calibration()
+            for run_id in calibration_run_ids:
+                cal.process_one_run(run_id,create_pdf=True, pdf_path=report_path)
+        except Exception as e:
+            logger.error(str(e))
 
 
     clear_ngnix_cache()
