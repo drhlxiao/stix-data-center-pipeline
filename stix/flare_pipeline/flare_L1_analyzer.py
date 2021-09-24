@@ -37,41 +37,42 @@ DET_ID_START=20
 DET_ID_END=32  #only detector 20-32 selected  for detector mean counts calculation
 DET_SENSITVE_AREA=80.96 #detector pixel sensitive area in units of mm2
 BKG_MIN_DURATION=120 #minimal duration of bsd that can be used  for bkg subtraction, to reduce systematic error
-GRID_OPEN_AREA_RATIO=np.array(
-        [0.292312,
-		0.272487,
-		0.252282,
-		0.257189,
-		0.281502,
-		0.27254,
-		0.292103,
-		0.260207,
-        1,  # CFL,  dummy 
-        1, #bkg ,  dummy 
+GRID_OPEN_AREA_RATIO=np.array([
+        0.383332095,
+        0.243715836,
+        0.260355706,
+        0.263845616,
+        0.284908432,
+        0.248516311,
+        0.411123486,
+        0.256797947,
+        0,
+        0,
+        0.697247857,
+        0.308301538,
+        0.335181618,
+        0.263335304,
+        0.244122951,
+        0.261332516,
+        0.308298271,
+        0.335179274,
+        0.308303277,
+        0.266539578,
+        0.254592587,
+        0.256522323,
+        0.280037904,
+        0.239474758,
+        0.291241432,
+        0.256524112,
+        0.231796481,
+        0.271006556,
+        0.390570976,
+        0.260070316,
+        0.264345285,
+        0.261086447])
+#// = slit_width_front/pitch_front*slit_width_rear/pitch_rear
+#		// nominal parameters are used for gird 12,16,17,18 , real measurements are used for the rest
 
-		0.335213,
-		0.305518,
-		0.335412,
-		0.254877,
-		0.264532,
-		0.255886,
-		0.304781,
-		0.335199,
-		0.30505,
-		0.258,
-		0.257187,
-		0.252324,
-		0.281503,
-		0.260178,
-		0.280854,
-		0.257033,
-		0.264449,
-		0.261743,
-		0.292299,
-		0.272491,
-		0.264514,
-		0.254682])
-#open area ration, obtained with the python stix imager simulator using nominal grid parameters
 
 flare_pipeline_out_path= config.get_config('pipeline.daemon.flare_pipeline_path')
 mdb = db.MongoDB()
