@@ -298,12 +298,9 @@ class MongoDB(object):
         return rows
 
     def update_calibration_analysis_report(self, calibration_id, data):
-        #save calibration data analysis results to mongodb
         _id = int(calibration_id)
         if self.collection_calibration:
             self.collection_calibration.update_one({'_id': _id}, {'$set':{'analysis_report':data}})
-            #doc['analysis_report'] = data
-            #self.collection_calibration.save(doc)
 
     def get_calibration_runs_for_processing(self):
         #search for calibration runs which have  not been yet processed

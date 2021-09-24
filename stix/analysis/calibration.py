@@ -39,9 +39,9 @@ ELUT_ENERGIES = [
     40, 45, 50, 56, 63, 70, 76, 84, 100, 120, 150
 ]
 
-PHOTO_PEAKS_POS = [30.85, 35.13, 81]
+PHOTO_PEAKS_POS = [30.8, 35.2, 80.90]
 
-PRINT_TO_PDF = False
+PRINT_TO_PDF = True
 
 mdb = db.MongoDB()
 gROOT.SetBatch(True)
@@ -66,20 +66,12 @@ def compute_elut(offset, slope):
 
 
 
-
 def interp(xvals, yvals, xnew):
-    #x y define orignal points
-    #xnew interpolated data points
-    f2 = interp1d(xvals, yvals)
-    min_x = min(xvals)
-    max_x = max(xvals)
-    vals = []
-    for x in xnew:
-        if x < min_x or x > max_x:
-            vals.append(0)
-        else:
-            vals.append(f2(x))
-    return vals
+    # x y define orignal points
+    # xnew interpolated data points
+    f2 = interp1d(xvals, yvals, bounds_error=False, fill_value=0)
+    y = f2(xnew)
+    return y
 
 
 def graph_errors(x, y, ex, ey, title, xlabel="x", ylabel="y"):
@@ -214,15 +206,12 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
         peak_ex.append(0.)
         peak_y.append(param[1])
         peak_ey.append(param_errors[1])
-    #if param_errors[5]<MAX_ALLOWED_SIGMA_ERROR:
-    #    peak_x.append(PHOTO_PEAKS_POS[1])
-    #    peak_ex.append(0.)
-    #    peak_y.append(param[4])
-    #    peak_ey.append(param_errors[4])
     if par3_errors[2] < MAX_ALLOWED_SIGMA_ERROR:
+        #compensation=0.5 #we observed that there is about 0.5 adc channels shift if it  is fitting with single gaussian function
+        compensation=0
         peak_x.append(PHOTO_PEAKS_POS[2])
-        peak_ex.append(0.)
-        peak_y.append(par3[1])
+        peak_ex.append(0.125)
+        peak_y.append(par3[1]+compensation)
         peak_ey.append(par3_errors[1])
     #peak_x=[30.8, 34.9, 81]
     #peak_ex=[.0, 0., 0.]
@@ -248,17 +237,18 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
     return result, [g_full_spec, gspec, gpeaks, fgaus12, fgaus3]
 
 
-def analyze(calibration_id, output_dir=DEFAULT_OUTPUT_DIR):
-    data = mdb.get_calibration_run_data(calibration_id)[0]
-    if not data:
+def process_one_run(calibration_id, create_pdf=True, pdf_path=DEFAULT_OUTPUT_DIR):
+    runs = list(mdb.get_calibration_run_data(calibration_id))
+    if not runs:
         print("Calibration run {} doesn't exist".format(calibration_id))
         return
+    data=runs[0]
 
     sbspec_formats = data['sbspec_formats']
     spectra = data['spectra']
 
     fname_out = os.path.abspath(
-        os.path.join(output_dir, 'calibration_{}'.format(calibration_id)))
+        os.path.join(pdf_path, 'calibration_{}'.format(calibration_id)))
 
     f = TFile("{}.root".format(fname_out), "recreate")
 
@@ -276,6 +266,7 @@ def analyze(calibration_id, output_dir=DEFAULT_OUTPUT_DIR):
     canvas = TCanvas("c", "canvas", 1200, 500)
     pdf = '{}.pdf'.format(fname_out)
     if PRINT_TO_PDF:
+        print(f'Plots will be written to {pdf}')
         canvas.Print(pdf + '[')
     # make cover
     cover = TCanvas()
@@ -317,7 +308,6 @@ def analyze(calibration_id, output_dir=DEFAULT_OUTPUT_DIR):
             continue
         if last_plots:
             canvas.cd(1)
-
             if last_plots[0]:
                 last_plots[0].Draw("AL")
             canvas.cd(2)
@@ -380,9 +370,9 @@ def analyze(calibration_id, output_dir=DEFAULT_OUTPUT_DIR):
         num_summed = spec[4]
         num_points = len(spectrum)
         end = start + num_summed * num_points #end ADC 
+        print(detector, pixel)
         if slope[detector][pixel] > 0 and offset[detector][pixel] > 0:
             energies = (np.linspace(start, end - num_summed, num_points) - offset[detector][pixel]) / slope[detector][pixel]
-
             if sbspec_id not in sum_spectra:
                 min_energy = (start - offset[detector][pixel]
                               ) / slope[detector][pixel] * 0.8 #20% margin
@@ -397,7 +387,7 @@ def analyze(calibration_id, output_dir=DEFAULT_OUTPUT_DIR):
             yvals = interp(energies, np.array(spectrum) / num_summed, xvals)
             sum_spectra[sbspec_id][1] += yvals
 
-            cc.cd()
+            """cc.cd()
             g_cali2 = graph2(
                 xvals, yvals,
                 'calibrated spectrum {} {} {}'.format(sbspec_id, detector,
@@ -406,6 +396,7 @@ def analyze(calibration_id, output_dir=DEFAULT_OUTPUT_DIR):
             g_cali2.Draw("ALP")
             if PRINT_TO_PDF:
                 cc.Print(pdf)
+                """
 
     sub_sum_spec = {}
 
@@ -469,25 +460,17 @@ def analyze(calibration_id, output_dir=DEFAULT_OUTPUT_DIR):
     f.Close()
 
 
-    #print(par)
-def daemon():
-    while True:
-        calibration_run_ids = mdb.get_calibration_runs_for_processing()
-        print(calibration_run_ids)
-        for run_id in calibration_run_ids:
-            analyze(run_id)
-        print('waiting for new data...')
-        time.sleep(600)
 
 
 if __name__ == '__main__':
-    output_dir = DEFAULT_OUTPUT_DIR
+    pdf_path= DEFAULT_OUTPUT_DIR
     #output_dir='./'
     if len(sys.argv) == 1:
-        daemon()
+        print("Usage ./calibration <run_id>")
     elif len(sys.argv) >= 2:
         start_id = int(sys.argv[1])
+        end_id=start_id
         if len(sys.argv) >= 3:
             end_id = int(sys.argv[2])
         for i in range(start_id, end_id + 1):
-            analyze(i, output_dir)
+            process_one_run(i, pdf_path)

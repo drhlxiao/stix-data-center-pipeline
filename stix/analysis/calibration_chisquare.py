@@ -12,6 +12,7 @@ from array import array
 from datetime import datetime
 import h5py
 
+import matplotlib
 
 from scipy.interpolate import interp1d
 from pathlib import Path
@@ -24,15 +25,47 @@ from stix.core import mongo_db as db
 import pickle
 mdb = db.MongoDB()
 
+from matplotlib.backends.backend_pdf import PdfPages
+matplotlib.use('Agg')
+
 #
 
 
 # 2.3 ADC/keV
 # Estimated energy conversion factor
-from matplotlib.backends.backend_pdf import PdfPages
 SPECTRUM_MODEL_DATA_FILE=Path(__file__).parent.parent/ 'data' / 'ExpSpecModel.h5'
 DEFAULT_OUTPUT_DIR = '/data/calibration/'
 
+PHOTO_PEAKS_POS = np.array([30.85, 35.13, 81])
+def interp(xvals, yvals, xnew):
+    # x y define orignal points
+    # xnew interpolated data points
+    f2 = interp1d(xvals, yvals, bounds_error=False, fill_value=0)
+    y = f2(xnew)
+    return y
+
+def find_max_position(x, y, xmin,xmax):
+    """
+     get spectrum near the maximum  in the given x range
+     Parameters
+
+     x: np.ndarray
+     y: np.ndarray
+     xmin: float
+     xmax: float
+        range 
+     
+     left: float
+     right: float
+        left and right margin
+    """
+    _x=np.copy(x)
+    _y=np.copy(y)
+    _y[(x<xmin)|(x>xmax)]=0
+    max_y=np.max(_y)
+    max_pos=_x[_y==max_y][0]
+    #cut= (x > max_pos -left) & (x<max_pos +right)
+    return max_pos
 
 
 def chi2test(obs_y:np.ndarray,exp_y:np.ndarray):
@@ -68,11 +101,13 @@ class Calibration(object):
     #used to check if do fitting for a subspectrum
     OFFSETS_LIMITS = (210, 235)  #default range, load from ELUT by default
     MIN_COUNTS = 100
-    STEPS=10000  #number of data points generated for each interation
+    STEPS=100  #number of data points generated for each interation
     MAX_DEPTH=1  #random grid recursive search depth
     SCALE_FACTOR=10  #shrink search region after each interation
     PEAK_MIN_COUNTS = 50  # spectrum with little counts ignored
     MEAN_GAIN=2.31
+    FIT_RANGE_SMALL_MARGIN = 5
+    FIT_RANGE_BIG_MARGIN= 15
 
     ELUT_ENERGIES = [
         4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 25, 28, 32, 36,
@@ -180,16 +215,31 @@ class Calibration(object):
           An 2d array indicate x, y of the theoretical spectrum. Use ECC model if it is None
         """
         spec_x, spec_y = self.get_subspec(spectrum, start_ch, bin_width) #real spectra
-        slope_rough=self.default_slopes[detector][pixel]
-        offset_rough=self.default_offsets[detector][pixel]
-        offset_limits=[offset_rough-5, offset_rough+5]
-        slope_limits = [slope_rough - 2*bin_width/(81-31), slope_rough + 2*bin_width/(81-31)]
-        print("Limits", offset_limits, slope_limits)
+        #slope_rough=self.default_slopes[detector][pixel]
+        #offset_rough=self.default_offsets[detector][pixel]
+        #offset_limits=[offset_rough-5, offset_rough+5]
+        #slope_limits = [slope_rough - 2*bin_width/(81-31), slope_rough + 2*bin_width/(81-31)]
+        #print("Limits", offset_limits, slope_limits)
+
+        peak1_max_counts = np.max(spec_y)
+        peak1_pos = spec_x[spec_y==peak1_max_counts][0]
+        peak1_2_mean_shift=(PHOTO_PEAKS_POS[1]-PHOTO_PEAKS_POS[0]) * self.default_slopes[detector][pixel]
+        peak1_3_mean_shift=(PHOTO_PEAKS_POS[2]-PHOTO_PEAKS_POS[0]) * self.default_slopes[detector][pixel]
+        peak3_pos=find_max_position(spec_x,spec_y, 
+                peak1_pos + 0.85 * peak1_3_mean_shift, peak1_pos + 1.15 * peak1_3_mean_shift)
+        #above a rough positions
+
+        rough_slope=(peak3_pos-peak1_pos)/(PHOTO_PEAKS_POS[2]-PHOTO_PEAKS_POS[0])
+        rough_slope_half_range=bin_width/(PHOTO_PEAKS_POS[2]-PHOTO_PEAKS_POS[0])
+        rough_offset=peak1_pos-PHOTO_PEAKS_POS[0]*rough_slope
+        #the position should be very close to the peak value
+        offset_limits=[rough_offset-bin_width, rough_offset+bin_width]
+        slope_limits=[ rough_slope-rough_slope_half_range , rough_slope+rough_slope_half_range ]
+
+
 
         offsets_1d, slopes_1d=np.random.uniform(offset_limits[0],offset_limits[1],Calibration.STEPS), \
                               np.random.uniform(slope_limits[0],slope_limits[1], Calibration.STEPS)
-
-
         best_fit=self.fit_spectra(detector,pixel, offsets_1d, slopes_1d, spec_x, spec_y)
 
         #print(best_fit)
@@ -271,7 +321,6 @@ class Calibration(object):
         spectra = data['spectra']
         pdf, pdf_filename=None, None
 
-
         if create_pdf:
             pdf_filename = os.path.abspath(
                 os.path.join(pdf_path, f'calibration_{calibration_id}_chisquare.pdf'))
@@ -305,7 +354,7 @@ class Calibration(object):
             slope[detector][pixel] = best_fit['slope']
             offset[detector][pixel] = best_fit['offset']
             chi2[detector][pixel]=best_fit['chi2']
-            slope_error[detector][pixel] = 0.5*bin_width/(81-30)
+            slope_error[detector][pixel] = 0.5*bin_width/(PHOTO_PEAKS_POS[2]-PHOTO_PEAKS_POS[0])
             offset_error[detector][pixel] = 0.5*bin_width
         if create_pdf:
             pdf.close()
@@ -322,6 +371,8 @@ class Calibration(object):
         hf.create_dataset('slope',data=slope)
         hf.create_dataset('offset',data=offset)
         hf.close()
+        #pixel_sum_spectra=[]
+        #np.savez('calibration_1301.npz', pixel_sum_spectra, slope, offset)
 
         report['calibration_results']=calibration_result_filename
         report['slope'] = slope.reshape(-1).tolist()
@@ -331,7 +382,9 @@ class Calibration(object):
         report['sum_spectra'] = sub_sum_spec
         report['chi2'] = chi2.reshape(-1).tolist()
         # calibrated sum spectra
+        print('Writing metadata to database')
         mdb.update_calibration_analysis_report(calibration_id, report)
+        print('done')
         #fout = open('/home/xiaohl/run_1301_chisquare_sum_spec.csv', 'w')
         #fout.close()
 
