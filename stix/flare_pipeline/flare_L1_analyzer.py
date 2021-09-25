@@ -31,6 +31,8 @@ from matplotlib.path import Path
 from stix.utils import bson
 from stix.utils import energy_bins as seb
 from stix.flare_pipeline import flare_spice as fsp
+import matplotlib
+matplotlib.use('Agg')
 
 
 DET_ID_START=20
@@ -46,8 +48,8 @@ GRID_OPEN_AREA_RATIO=np.array([
         0.248516311,
         0.411123486,
         0.256797947,
-        0,
-        0,
+        1,
+        1,
         0.697247857,
         0.308301538,
         0.335181618,
@@ -201,7 +203,7 @@ class FlareDataAnalyzer(object):
 
         bkg_energy_integrated_rates=np.sum(bkg_rates_full_energy[:,flare_emin:flare_emax], axis=1) #only select bins in the energy range, energy integrated counts
 
-        #print("shape:",bkg_rates.shape)
+        print("bkg shape:",bkg_rates_full_energy.shape)
         bkg_rate_error=np.sqrt(bkg_energy_integrated_rates*bkg_duration)/bkg_duration 
         # rate*duration =  original counts;   only statistic error considered
 
@@ -228,7 +230,7 @@ class FlareDataAnalyzer(object):
         sig_bkgsub_counts_error=np.sqrt(signal_energy_integrated_counts+ signal_duration*bkg_rate_error**2)
 
 
-        #print(f'{sig_bkgsub_counts.shape=}')
+        print(f'sig shape, {sig_bkgsub_counts.shape}')
         
         counts_to_fluence_factors=1/(GRID_OPEN_AREA_RATIO*DET_SENSITVE_AREA)
 
@@ -242,6 +244,7 @@ class FlareDataAnalyzer(object):
         mean_fluence_error=np.sqrt(np.sum([det_bkgsub_fluence_error[i]**2 
             for i in range(DET_ID_START, DET_ID_END)]))
         flare_utc=stix_datetime.unix2utc(bsd_doc['start_unix'])
+        print('start fitting')
 
         chi2_map, res=flf.fit_location(cfl_pixel_bkgsub_counts, cfl_pixel_bkgsub_count_error, 
                 mean_fluence, mean_fluence_error, flare_utc,  use_small_pixels=True, use_det_fluence=True)
@@ -293,8 +296,11 @@ class FlareDataAnalyzer(object):
             flare_start=stix_datetime.unix2datetime(bsd_doc['synopsis']['flares']['start_unix_times'][0])
             flare_end=stix_datetime.unix2datetime(bsd_doc['synopsis']['flares']['end_unix_times'][0])
             XX, YY=np.meshgrid(spec_timebins, spec_ebins)
-            spec_data[spec_data<0]=0.00001 #set to zero, negative dosen't make sense but could appear when doing bkg subtraction
-            im2=axs[0,0].pcolormesh(XX,YY, spec_data, cmap='plasma', norm=colors.LogNorm(vmin=spec_data.min(), vmax=spec_data.max()))
+            spec_data[spec_data<=0]=0.00001 #set to zero, negative dosen't make sense but could appear when doing bkg subtraction
+            norm=colors.LogNorm(vmin=np.min(spec_data), vmax=np.max(spec_data))
+            print(norm)
+            im2=axs[0,0].pcolormesh(XX,YY, spec_data, cmap='plasma', norm=norm)
+
             #fig.colorbar(im2, ax=axs[0,0])
             
             axs[0,0].set_title(f'Raw spectrogram (BSD #{bsd_doc["_id"]})')

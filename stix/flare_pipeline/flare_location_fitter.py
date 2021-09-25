@@ -9,7 +9,7 @@ from stix.spice import solo
 #open area ratio obtained by  the simulator
 #detectorIndex: ratio
 
-INF=1e20
+INF=1e10
 SAMPLE_POINTS=200*200
 def get_chi2(area, use_small_pixels, use_det_fluence, y, yerr, cfl_cnts_sum, cfl_cnts_error_sum, det_fluence, det_fluence_error):
     area_sum = np.sum(area)
@@ -39,7 +39,9 @@ def normalize(counts, counts_error):
     csum=np.sum(ce)
     if csum>0:
         return ce/csum, ce_err/csum
-    return np.zeros(ce.size)+INF, np.zeros(ce.size)
+    c=np.zeros(ce.size)
+    c+=INF
+    return c, np.zeros(ce.size)
 
 
 def fit_location(counts, count_errors, mean_fluence, mean_fluence_error, flare_utc,  use_small_pixels=True, use_det_fluence=True):
@@ -73,7 +75,8 @@ def fit_location(counts, count_errors, mean_fluence, mean_fluence_error, flare_u
     #contour_levels=np.array([2.3,6.17,11.8])#1,2,3 sigma
     x_steps = len(x_angles)
     y_steps = len(y_angles)
-    chi2 = np.zeros((x_steps, y_steps))+INF
+    chi2 = np.zeros((x_steps, y_steps))
+    chi2+=INF
     margin=1.5
     min_chi2 = np.inf
     min_i=-1
