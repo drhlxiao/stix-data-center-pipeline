@@ -66,7 +66,7 @@ for i in range(NUM_IORS):
     ids = []
 
     for row in rows:
-        size = float(row['worst_case_data_volume'])
+        size = float(row['data_volume_upper_limit'])
         if len(ids) < MAX_NUM_TCs and total_volume < SIZE_LIMITS[i]:
             selected = True
             #here defines the strategy of selections
@@ -90,7 +90,7 @@ for i in range(NUM_IORS):
         ids.extend(aspect_requests_ids)
     print(f"TCs:{len(ids)}, Total volume:{total_volume/MiB:.3f}")
     print(f'Left: {len(rows)}')
-    data = ure.create_occurrences(data_request_database, ids)
+    #data = ure.create_occurrences(data_request_database, ids)
     write_json(i, data)
 
 print("total number of selected requests:", total_selected)

@@ -6,7 +6,7 @@ from pprint import pprint
 connect = pymongo.MongoClient()
 db = connect['stix']['events']
 
-timeline_file_id='LTP04_v2'
+timeline_file_id='LTP05_v2'
 
 
 def create_report(_id, subject, start, end, descr):
@@ -48,7 +48,7 @@ def import_timeline(filename):
         start=obs['startDate']
         end=obs['endDate']
         subject=name_map.get(name, name)
-        create_report(next_id, subject, start, end, descr=subject)
+        #create_report(next_id, subject, start, end, descr=subject)
         next_id+=1
 
 

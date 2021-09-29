@@ -181,6 +181,7 @@ class StixBulkL1L2Analyzer(object):
         self.start_unix=None
         self.end_unix=None
         self.spectrogram=sdm.Spectrogram()
+
     def get_flare_times(self,start_unix, duration=MAX_L1_REQ_DURATION):
         flares=mdb.search_flares_by_tw(
                             start_unix,

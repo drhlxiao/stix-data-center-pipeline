@@ -270,7 +270,7 @@ class StixMongoDBWriter(StixPacketWriter):
         #generate meta data
 
         if packet['header']['TMTC'] == 'TC':
-            stc.parse_stix_config_telecommand(self.current_run_id,
+            stc.parse_telecommand_packet(self.current_run_id,
                                            self.current_packet_id, packet, self.stix_config_db)
         #extract information from telecommands and stores the information in database
 

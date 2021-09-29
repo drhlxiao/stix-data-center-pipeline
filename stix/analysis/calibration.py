@@ -39,7 +39,8 @@ ELUT_ENERGIES = [
     40, 45, 50, 56, 63, 70, 76, 84, 100, 120, 150
 ]
 
-PHOTO_PEAKS_POS = [30.8, 35.2, 80.90]
+#PHOTO_PEAKS_POS = [30.8, 35.2, 80.90] based spectral lines from olivier
+PHOTO_PEAKS_POS = [30.85, 35.13, 81]
 
 PRINT_TO_PDF = True
 

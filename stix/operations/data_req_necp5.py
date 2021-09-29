@@ -86,7 +86,7 @@ def main():
         ids = []
 
         for req in data_requests:
-            size = float(req['worst_case_data_volume'])
+            size = float(req['data_volume_upper_limit'])
             if len(ids) < MAX_NUM_TCs and total_volume < SIZE_LIMITS[i]:
                 selected = True
                 #here defines the strategy of  selections

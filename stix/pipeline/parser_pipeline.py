@@ -178,7 +178,7 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
     if FIND_FLARES:
         logger.info('Searching for flares..')
         try:
-            num_flares = flare_detection.find_flares(
+            num_flares = flare_detection.search_flares(
                 file_id, snapshot_path=daemon_config['flare_lc_snapshot_path'])
             if num_flares>0:
                 goes_class_list=fgc.find_goes_class_flares_in_file(file_id)
@@ -207,12 +207,16 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
         try:
             sci_packets_analyzer.process_packets_in_file(file_id)
         except Exception as e:
+            #raise
             logger.error(str(e))
     if RUN_L1_FLARE_ANALYZER:
+        logger.info(
+            'Processing flare data...')
         flp=fla.FlareDataAnalyzer()
         try:
             flp.process_L1_BSD_in_file(file_id)
         except Exception as e:
+            #raise
             logger.error(str(e))
 
     if notification_enabled:

@@ -11,12 +11,29 @@ try:
     collection_goes= db['goes_fluxes']
     collection_qllc= db['ql_lightcurves']
     collection_qlspec= db['ql_spectra']
+    collection_bsd= db['bsd']
+    collection_flares= db['flares']
+
     print('creating indexes for goes')
 
     indexes=[[('unix_time',1)]]
-
     for index in indexes:
         collection_goes.create_index(index)
+
+    indexes=[[('start_unix_time',1)], [('unique_id',1)], [('name',1)]]
+    for index in indexes:
+        collection_bsd.create_index(index)
+
+    indexes=[[('goes.peak_flux',1)], 
+            [('peak_counts',1)], 
+            [('peak_unix_time',1)], 
+            [('LC_statistics.lc1.signal_max',1)], 
+            [('LC_statistics.lc2.signal_max',1)], 
+            [('LC_statistics.lc3.signal_max',1)], 
+            [('LC_statistics.lc4.signal_max',1)], 
+            ]
+    for index in indexes:
+        collection_flares.create_index(index)
 
     print('creating indexes for runs')
     if collection_raw_files:

@@ -298,8 +298,11 @@ class FlareDataAnalyzer(object):
             XX, YY=np.meshgrid(spec_timebins, spec_ebins)
             spec_data[spec_data<=0]=0.00001 #set to zero, negative dosen't make sense but could appear when doing bkg subtraction
             norm=colors.LogNorm(vmin=np.min(spec_data), vmax=np.max(spec_data))
-            print(norm)
-            im2=axs[0,0].pcolormesh(XX,YY, spec_data, cmap='plasma', norm=norm)
+            try:
+                im2=axs[0,0].pcolormesh(XX,YY, spec_data, cmap='plasma', norm=norm)
+            except Exception as e:
+                print(e)
+                im2=axs[0,0].imshow(spec_data)
 
             #fig.colorbar(im2, ax=axs[0,0])
             
@@ -354,7 +357,7 @@ class FlareDataAnalyzer(object):
             y = np.linspace(res['y'][0] * 3600, res['y'][1] * 3600, res['y'][2])
             X,Y=np.meshgrid(x,y)
             chi2_limit=22
-            chi2_map[chi2_map>chi2_map]=-1
+            chi2_map[chi2_map>chi2_limit]=-1
             im=axs[1,1].pcolormesh(X,Y, np.transpose(chi2_map), cmap='RdPu', vmin=0)
             #fig.colorbar(im, ax=axs[1,1])
             axs[1,1].plot([xloc],[yloc],marker='+',markersize=10)
