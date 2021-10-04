@@ -110,13 +110,18 @@ def make_lightcurve_snapshot(data, docs, snapshot_path):
         T0 = stix_datetime.unix2utc(docs['peak_unix_time'][i])
         xmin = docs['start_unix'][i] - docs['peak_unix_time'][i]
         xmax = docs['end_unix'][i] - docs['peak_unix_time'][i]
+        t70=[docs['PH70_unix'][i][0]-docs['peak_unix_time'][i],
+                docs['PH70_unix'][i][1]-docs['peak_unix_time'][i]]
 
         plt.plot([0], [peak_counts], marker='+', color='cyan', markersize=15)
 
         ylow = peak_counts - 1.1 * docs['properties']['prominences'][i]
 
-        plt.vlines(xmin, ylow, peak_counts, linestyle='dashed', color='C3')
-        plt.vlines(xmax, ylow, peak_counts, linestyle='dashed', color='C3')
+        plt.axvline(xmin, linestyle='dashed', color='C3')
+        plt.axvline(xmax, linestyle='dashed', color='C3')
+
+        plt.vlines(t70, ymin= 0.4 * peak_counts, ymax=0.9*peak_counts, linestyle='dashed', color='b')
+
         plt.text(xmin, 0.9 * peak_counts, 'Start', color='C3')
         plt.text(0.8 * xmax, 0.9 * peak_counts, 'End', color='C3')
         baseline = docs['baseline']
@@ -207,6 +212,8 @@ def search_flares(run_id,
         'min_height': height,
     }
     doc = {}
+
+
     peak_values = properties['peak_heights']
     peak_unix_times = unix_time[xpeaks]
     peaks_utc = [stix_datetime.unix2utc(x) for x in peak_unix_times]
@@ -221,11 +228,11 @@ def search_flares(run_id,
                     for i in range(xpeaks.size)]
     total_counts = [int(np.sum(lightcurve[r[0]:r[1]])) for r in range_indexs]
     LC_statistics = []
-    if stat:
+    if stat:#calculate statistics for all light curves, used for data requests
         for ipeak in range(xpeaks.size):
             flare_stats = {}
             upper_bin = 0
-            for ilc in range(0, 5):  #calculate statistics for all light curves
+            for ilc in range(0, 5):  
                 flare_stat = {}
                 flare_stat['bkg_median'] = stat['median'][ilc]
                 flare_stat['bkg_sigma'] = stat['std'][ilc]
@@ -246,6 +253,7 @@ def search_flares(run_id,
                 flare_stats['lc' + str(ilc)] = flare_stat
             flare_stats['upper_ilc'] = upper_bin
             LC_statistics.append(flare_stats)
+
     seconds_per_bin = 4
     durations = np.array([(r[1] - r[0]) * seconds_per_bin
                           for r in range_indexs])
@@ -258,8 +266,23 @@ def search_flares(run_id,
             sig_cnts = cnts - dur * properties['width_heights'][
                 i] / seconds_per_bin
         total_signal_counts.append(sig_cnts)
+
     flare_start_unix=unix_time[properties['left_ips'].astype(int)].tolist()
     flare_end_unix=unix_time[properties['right_ips'].astype(int)].tolist()
+
+    #peak_width_T90=np.vstack((unix_time[properties['left_ips'].astype(int)], unix_time[properties['right_ips'].astype(int)])).T
+
+    H70_res= signal.peak_widths(lc_smoothed, xpeaks, rel_height=0.7) #H70 calculation
+    peak_width_H70= np.vstack((unix_time[H70_res[2].astype(int)], unix_time[H70_res[3].astype(int)])).T
+
+    H80_res= signal.peak_widths(lc_smoothed, xpeaks, rel_height=0.7) #H70 calculation
+    peak_width_H80= np.vstack((unix_time[H80_res[2].astype(int)], unix_time[H80_res[3].astype(int)])).T
+
+    H50_res= signal.peak_widths(lc_smoothed, xpeaks, rel_height=0.5) #H50 calculation
+    peak_width_H50= np.vstack((unix_time[H50_res[2].astype(int)], unix_time[H50_res[3].astype(int)])).T
+    #calculate peak width at 50% of the maximum count
+
+    
 
 
     doc = {
@@ -279,6 +302,10 @@ def search_flares(run_id,
         'width_height': properties['width_heights'].tolist(
         ),  # height of the width, background level
         'peak_prominence': properties['prominences'].tolist(),
+        #'peak_T90_widths': peak_width_T90.tolist(),
+        'PH70_unix': peak_width_H70.tolist(),
+        'PH80_unix': peak_width_H80.tolist(),
+        'PH50_unix': peak_width_H50.tolist(),
         'start_unix':flare_start_unix,
         'end_unix': flare_end_unix,
         'is_major': majors,
