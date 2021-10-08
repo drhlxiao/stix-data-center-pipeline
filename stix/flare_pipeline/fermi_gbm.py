@@ -1,3 +1,9 @@
+import sys
+import math
+import numpy as np
+import wget
+from pathlib import Path
+
 from astropy.io  import fits 
 from datetime import datetime, timedelta
 from gbm.finder import TriggerFtp, ContinuousFtp
@@ -5,23 +11,22 @@ from gbm.data import TTE,Ctime, RSP, PosHist
 from gbm import time as gt
 from gbm.binning.unbinned import bin_by_time
 from gbm.detectors import Detector
-import math
-import numpy as np
 from gbm import coords as gc
-from pathlib import Path
 import matplotlib.pyplot as plt
 from gbm.plot import Lightcurve, Spectrum
-import wget
 import dateutil.parser as dtp
 
 from gbm.background import BackgroundFitter
 from gbm.background.binned import Polynomial
 
+from stix.core import mongo_db as db
+mdb = db.MongoDB()
+db=mdb.get_collection('flares')
+
 #from astropy.utils.data import download_file
 #https://fermi.gsfc.nasa.gov/ssc/data/analysis/gbm/gbm_data_tools/gdt-docs/notebooks/TteData.html
 #https://fermi.gsfc.nasa.gov/ssc/library/support/Science_DP_ICD_RevA.pdf
 #API https://fermi.gsfc.nasa.gov/ssc/data/analysis/gbm/gbm_data_tools/gdt-docs/api/api-data.html#gbm.data.Ctime
-out_directory='/data2/fits/'
 def to_met(t):
     if not t:
         return None
@@ -154,24 +159,6 @@ def plot_fermi_gdm_lightcurve_spectrum(start_utc='', end_utc='', bkg_start=None,
     energy_sliced_tte = time_sliced_tte.slice_energy(energy_range)
     phaii =energy_sliced_tte.to_phaii(bin_by_time, 4, time_ref=start_met)
     fig, axs=plt.subplots(1,2, figsize=(10,4))
-    """if bkg_start and bkg_end :
-        try:
-            bkgd_times=[(to_met(bkg_start), 
-                         to_met(bkg_end))]
-            backfitter = BackgroundFitter.from_tte(energy_sliced_tte, Polynomial, time_ranges=bkgd_times)
-
-            backfitter.fit(order=1)
-            bkgd = backfitter.interpolate_bins(phaii.data.tstart, phaii.data.tstop)
-            lc_bkgd = bkgd.integrate_energy(*energy_range)
-        
-    
-            lcplot = Lightcurve(data=phaii.to_lightcurve(), background=lc_bkgd)
-        except Exception as e:
-            #print(e)
-            #raise(e)
-            lcplot = Lightcurve(data=phaii.to_lightcurve())
-    else:
-    """
     lcplot = Lightcurve(data=phaii.to_lightcurve(), axis=axs[0])
     #plt.show()
     spectrum = time_sliced_tte.to_spectrum()
@@ -190,14 +177,18 @@ def plot_fermi_for_flare(image_folder, cache_folder,_id, overwrite=False):
     flare_doc=mdb.find_one({'_id':_id})
     if not flare_doc:
         print(f'Flare {_id} does not exist!')
-        return
+        return None
     flare_id=flare_doc['flare_id']
     key='fermi'
     if  mdb.get_flare_pipeline_products(_id, key) and overwrite == False:
         print(f'Fermi for Flare #{_id} has been created!')
-        return 
-    start=flare_doc['start_unix']
-    end=flare_doc['end_unix']
+        return None
+    if flare_doc['goes']['class']=='A':
+        print(f'Flare #{flare_id} skipped because it was not seen by GOES')
+        return None
+    light_time_diff=flare_doc['ephemeris']['light_time_diff']
+    start=flare_doc['start_unix']+light_time_diff-120
+    end=flare_doc['end_unix'] +light_time_diff + 120
     start_utc=sdt.unix2utc(start)
     end_utc=sdt.unix2utc(end)
     fname=plot_fermi_gdm_lightcurve_spectrum(start_utc, end_utc, image_folder=image_folder, cache_folder=cache_folder, flare_id=flare_id)

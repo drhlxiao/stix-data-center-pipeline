@@ -12,6 +12,7 @@ from matplotlib import pyplot as plt
 from stix.core import mongo_db as db
 from stix.spice import stix_datetime as sdt
 import matplotlib.ticker as mticker
+
 mdb = db.MongoDB()
 db=mdb.get_collection('flares')
 
