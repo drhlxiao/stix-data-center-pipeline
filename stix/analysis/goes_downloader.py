@@ -34,7 +34,7 @@ class GOES(object):
             self.last_unix_time = self.db.find().sort('unix_time',-1).limit(1)[0]['unix_time']
         except:
             self.last_unix_time=0
-        print('Last unix time ', self.last_unix_time)
+        print('Last UTC ', sdt.unix2utc(self.last_unix_time))
     def get_max_time(self):
         return self.last_unix_time
     def save_geos_fluxes(self, data):
@@ -51,10 +51,11 @@ class GOES(object):
             num+=1
             self.last_unix_time=d['unix_time']
         print(f'{num} entries inserted ')
+        print(f'Last timestamp: {sdt.unix2utc(self.last_unix_time)}')
     def download(self, max_unix=math.inf):
         if max_unix<self.last_unix_time:
             return
-        url='http://services.swpc.noaa.gov/json/goes/primary/xrays-7-day.json'
+        url='http://services.swpc.noaa.gov/json/goes/primary/xrays-3-day.json'
         print('Downloading GOES x-ray flux')
         r = requests.get(url)
         data=r.json()
