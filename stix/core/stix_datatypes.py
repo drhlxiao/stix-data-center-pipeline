@@ -309,14 +309,19 @@ class Packet(object):
         pprint.pprint(self.get_nodes(node_name))
 
     @staticmethod
-    def merge(packets, SPIDs, value_type='raw'):
-
+    def merge(packets, SPIDs, value_type='raw', remove_duplicates=False):
         if not isinstance(SPIDs, list):
             SPIDs = [SPIDs]
 
         result = {}
+        hash_list=[]
 
         for pkt in packets:
+            if remove_duplicates:
+                if pkt['hash'] in hash_list:
+                    logger.info(f'Duplicated packet {pkt["_id"]} excluded!')
+                    continue
+                hash_list.append(pkt['hash'])
             try:
                 if int(pkt['header']['SPID']) not in SPIDs:
                     continue

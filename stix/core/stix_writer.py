@@ -314,9 +314,13 @@ class StixMongoDBWriter(StixPacketWriter):
             run['summary'] = self.summary
             run['calibration_run_ids'] = self.science_report_analyzer.get_calibration_run_ids(
             )
+            self.science_report_analyzer.clear()
+
             self.collection_raw_files.save(run)
             logger.info('File info updated successfully.')
             logger.info('File ID:{}'.format(run['_id']))
+
+
             return run
         logger.error('File info not updated.')
         return None

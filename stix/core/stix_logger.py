@@ -104,6 +104,10 @@ class StixLogger(object):
 
     def error(self, msg):
         self.write(('[ERROR {}] : {}'.format(self.get_now(), msg)), ERROR)
+    def warn(self,msg):
+        self.warning(msg)
+    def alert(self,msg):
+        self.warning(msg)
 
     def warning(self, msg):
         if self.level < WARNING:

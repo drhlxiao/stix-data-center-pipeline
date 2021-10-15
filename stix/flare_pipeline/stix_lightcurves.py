@@ -55,56 +55,62 @@ def get_lightcurve_data(start_utc, end_utc, sort_field='header.unix_time'):
 
 
 
-def plot_stix_lc(folder, _id, event_name, start_utc, end_utc,  overwrite=True, peak_utc=None, light_time=0, event_type="Flare #"):
+def plot_stix_lc_and_save(folder, _id, event_name, start_utc, end_utc,  overwrite=True, peak_utc=None, light_time=0, event_type="Flare #"):
     key='stixlc'
-    if  mdb.get_flare_joint_obs(_id, key) and overwrite == False:
+    if  mdb.get_flare_pipeline_products(_id, key) and overwrite == False:
         print(f'{event_type}{event_name} STIX LCs were not created!')
         return 
+    fig,ax=plot_stix_lc(start_utc, end_utc,peak_utc, light_time, event_type, event_name)
+    #fig.tight_layout()
+    if not fig:
+        return None
+
+    filename = os.path.join(folder, f'stix_ql_lc_{_id}_{event_name}.png')
+    fig.savefig(filename, dpi=100)
+    print(filename)
+    mdb.update_flare_pipeline_products(_id, key, [filename])
+    return filename
+
+def plot_stix_lc(start_utc, end_utc, peak_utc=None, light_time=0, event_type='', event_name='', ax=None):
     data=get_lightcurve_data(start_utc, end_utc)
     if data['num']==0:
-        print('No LC data')
-        return
-    earth_dt = [stix_datetime.unix2datetime(x+light_time) for x in  data['time']]
 
-    fig, ax = plt.subplots(figsize=(12,6))
+        print('No LC data')
+        return None, None
+    earth_dt = [stix_datetime.unix2datetime(x+light_time) for x in  data['time']]
     min_cnts=0
     max_cnts=0
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(12,6))
+    else:
+        fig=plt.gcf()
+
+
+
     for i,lc in data['lcs'].items():
-        plt.plot(earth_dt, lc, label=data['energy_bins']['names'][i])
+        ax.plot(earth_dt, lc, label=data['energy_bins']['names'][i])
         max_lc_cnt=np.max(lc)
         min_lc_cnt=np.min(lc)
-
         if max_lc_cnt>max_cnts:
             max_cnts=max_lc_cnt
         if min_lc_cnt<min_cnts:
             min_cnts=min_lc_cnt
 
-    
     if peak_utc:
         peak_dt=stix_datetime.utc2datetime(peak_utc)
-        plt.vlines(peak_dt,min_cnts, max_cnts, linestyle='dotted')
-
-
+        ax.vlines(peak_dt,min_cnts, max_cnts, linestyle='dotted')
     locator = mdates.AutoDateLocator(minticks=3, maxticks=7)
     formatter = mdates.ConciseDateFormatter(locator)
     ax.xaxis.set_major_locator(locator)
     ax.xaxis.set_major_formatter(formatter)
-
-    plt.xlabel(f'S/C UTC + {light_time:.02f} s')
-    plt.ylabel('Counts / 4 s')
+    ax.set_xlabel(f'S/C UTC + {light_time:.02f} s')
+    ax.set_ylabel('Counts / 4 s')
     title=f'STIX QL LCs ({event_type}{event_name})'
-    plt.title(title)
+    ax.set_title(title)
+    ax.set_yscale('log')
+    ax.legend(loc='upper right')
+    return fig, ax
 
-    filename = os.path.join(folder, f'stix_ql_lc_{_id}_{event_name}.png')
-    plt.yscale('log')
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    fig.tight_layout()
-    plt.savefig(filename, dpi=100)
-    print(filename)
-    mdb.update_flare_joint_obs(_id, key, [filename])
-    plt.close()
-    return filename
-    #print(filename)
-    #plt.plot(t_since_t0,data['lc_smoothed'][where], label='1-min moving mean')
+
 if __name__=='__main__':
-    plot_stix_lc('.',0,0, '2021-03-01T08:50:00','2021-03-01T08:52:00')
+    plot_stix_lc_and_save('.',0,0, '2021-03-01T08:50:00','2021-03-01T08:52:00')

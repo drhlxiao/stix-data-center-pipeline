@@ -3,7 +3,8 @@ import math
 import numpy as np
 import wget
 from pathlib import Path
-
+import matplotlib
+matplotlib.use('Agg')
 from astropy.io  import fits 
 from datetime import datetime, timedelta
 from gbm.finder import TriggerFtp, ContinuousFtp
@@ -20,6 +21,7 @@ from gbm.background import BackgroundFitter
 from gbm.background.binned import Polynomial
 
 from stix.core import mongo_db as db
+from stix.spice.stix_datetime import unix2utc
 mdb = db.MongoDB()
 db=mdb.get_collection('flares')
 
@@ -27,6 +29,7 @@ db=mdb.get_collection('flares')
 #https://fermi.gsfc.nasa.gov/ssc/data/analysis/gbm/gbm_data_tools/gdt-docs/notebooks/TteData.html
 #https://fermi.gsfc.nasa.gov/ssc/library/support/Science_DP_ICD_RevA.pdf
 #API https://fermi.gsfc.nasa.gov/ssc/data/analysis/gbm/gbm_data_tools/gdt-docs/api/api-data.html#gbm.data.Ctime
+
 def to_met(t):
     if not t:
         return None
@@ -130,7 +133,7 @@ def download_fermi_sunward_detector_data( start_utc, end_utc,folder='.', downloa
             
             
     return result
-def plot_fermi_gdm_lightcurve_spectrum(start_utc='', end_utc='', bkg_start=None, bkg_end=None, energy_range=(10,26), image_folder='.', cache_folder='.', flare_id=''):
+def plot_fermi_gdm_lightcurve_spectrum(start_utc='', end_utc='', bkg_start=None, bkg_end=None, energy_range=(10,26), image_folder='.', cache_folder='.', flare_id='', entry_id=''):
     res=download_fermi_sunward_detector_data( start_utc, end_utc,cache_folder)
     #print(res)
     if not res['tte']:
@@ -158,27 +161,35 @@ def plot_fermi_gdm_lightcurve_spectrum(start_utc='', end_utc='', bkg_start=None,
     time_sliced_tte = tte.slice_time([start_met, end_met])
     energy_sliced_tte = time_sliced_tte.slice_energy(energy_range)
     phaii =energy_sliced_tte.to_phaii(bin_by_time, 4, time_ref=start_met)
-    fig, axs=plt.subplots(1,2, figsize=(10,4))
-    lcplot = Lightcurve(data=phaii.to_lightcurve(), axis=axs[0])
+    fig, axs=plt.subplots()
+    lcplot = Lightcurve(data=phaii.to_lightcurve(), axis=axs)
     #plt.show()
-    spectrum = time_sliced_tte.to_spectrum()
-    specplot = Spectrum(data=spectrum, axis=axs[1])
-   
-    fig.suptitle(f'GBM obs for flare {flare_id}')
-    plt.figtext(0.5, 0.01, f'{detectors}  {start_utc} -- {end_utc} E: {energy_range} keV', 
-                ha="center", fontsize=18, bbox={"facecolor":"orange", "alpha":0.5, "pad":5})
-    fname=Path(image_folder)/f'fermi_{flare_id}.png'
-    plt.savefig(fname)
+    #spectrum = time_sliced_tte.to_spectrum()
+    #specplot = Spectrum(data=spectrum, axis=axs[1])
+    #det='-'.join(detectors)
+    axs.set_title(f'GBM det {det} obs for flare {flare_id} ({entry_id})')
+    axs.set_ylabel('Start at {start_utc}')
+    
+
+    #plt.figtext(0.5, 0.01, f'{detectors}  {start_utc} -- {end_utc} E: {energy_range} keV', 
+    #            ha="left", )
+    fname=Path(image_folder)/f'fermi_{entry_id}_{det}_{flare_id}.png'
+    fig.savefig(fname)
     return fname
     
-def plot_fermi_for_flare(image_folder, cache_folder,_id, overwrite=False):
+def plot_fermi_for_flare(image_folder, cache_folder,_id, overwrite=True):
     #_id is the flare db entry number
     print('Processing flare #', _id)
-    flare_doc=mdb.find_one({'_id':_id})
+    flare_doc=db.find_one({'_id':_id})
     if not flare_doc:
         print(f'Flare {_id} does not exist!')
         return None
     flare_id=flare_doc['flare_id']
+    if flare_doc['peak_counts']<1000:
+        print(f'Flare #{flare_id} skipped because its counts too low ')
+        return None
+        
+
     key='fermi'
     if  mdb.get_flare_pipeline_products(_id, key) and overwrite == False:
         print(f'Fermi for Flare #{_id} has been created!')
@@ -189,9 +200,10 @@ def plot_fermi_for_flare(image_folder, cache_folder,_id, overwrite=False):
     light_time_diff=flare_doc['ephemeris']['light_time_diff']
     start=flare_doc['start_unix']+light_time_diff-120
     end=flare_doc['end_unix'] +light_time_diff + 120
-    start_utc=sdt.unix2utc(start)
-    end_utc=sdt.unix2utc(end)
-    fname=plot_fermi_gdm_lightcurve_spectrum(start_utc, end_utc, image_folder=image_folder, cache_folder=cache_folder, flare_id=flare_id)
+    start_utc=unix2utc(start)
+    end_utc=unix2utc(end)
+    fname=plot_fermi_gdm_lightcurve_spectrum(start_utc, end_utc, image_folder=image_folder, cache_folder=cache_folder, flare_id=flare_id, 
+            entry_id=_id)
     if fname:
         mdb.update_flare_pipeline_products(_id, key, [str(fname)])
     #plot_fermi_gdm_lightcurve_spectrum('2021-10-07T02:40:00', '2021-10-07T02:50:00')
@@ -202,13 +214,18 @@ if __name__=='__main__':
     ids=[]
     if len(sys.argv)==1:
         print('fermi_gbm <flare_entry_id> <end_id>')
+        plot_fermi_for_flare('/tmp','/tmp',2303)
+
     elif len(sys.argv)==2:
-        ids.append(int(sys.argv[2]))
+        ids.append(int(sys.argv[1]))
     elif len(sys.argv)==3:
-        ids=range(int(sys.argv[2]), int(sys.argv[3]))
+        ids=range(int(sys.argv[1]), int(sys.argv[2]))
 
     for _id in ids:
-        plot_fermi_for_flare(image_folder, cache_folder, _id)
+        try:
+            plot_fermi_for_flare(image_folder, cache_folder, _id)
+        except Exception as e:
+            print(e)
 
 
     

@@ -55,10 +55,16 @@ SPID_MAP = {
     54102: 'hk_maxi'
 }
 SEG_FLAG_MAP={0: 'continuation packet',1: 'first packet',2: 'last_packet',3:'stand-alone packet'}
+SCI_REPORT_SPIDS=[
+    54114,
+    54115,
+    54116,
+    54117,
+    54143]
 
 
 
-def process_packets(file_id, packet_lists, spid, product, report_status,  base_path_name=FITS_PATH, overwrite=True, version=1):
+def process_packets(file_id, packet_lists, spid, product, is_complete,  base_path_name=FITS_PATH, overwrite=True, version=1, remove_duplicates=False):
     """
     Process a sequence containing one or more packets for a given product.
 
@@ -102,8 +108,10 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  base_p
     for packets in packet_lists:
         if not packets:
             continue
-        parsed_packets = sdt.Packet.merge(packets, spid, value_type='raw')
-        e_parsed_packets = sdt.Packet.merge(packets, spid, value_type='eng')
+        parsed_packets = sdt.Packet.merge(packets, spid, value_type='raw', remove_duplicates=remove_duplicates)
+        eng_packets = sdt.Packet.merge(packets, spid, value_type='eng',remove_duplicates=remove_duplicates)
+        prod=None
+
 
 
         try:
@@ -114,46 +122,43 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  base_p
                 prod = MaxiReport(parsed_packets)
                 product_type = 'housekeeping'
             elif product == 'ql_light_curves':
-                #prod = LightCurve(parsed_packets, e_parsed_packets)
-                prod = LightCurve.from_packets(parsed_packets, e_parsed_packets)
+                prod = LightCurve.from_packets(parsed_packets, eng_packets)
                 product_type = 'quicklook'
             elif product == 'ql_background':
-                prod = Background.from_packets(parsed_packets, e_parsed_packets)
-                #prod = Background(parsed_packets, e_parsed_packets)
+                prod = Background.from_packets(parsed_packets, eng_packets)
                 product_type = 'quicklook'
             elif product == 'ql_spectrogram':
-                prod = Spectra.from_packets(parsed_packets, e_parsed_packets)
-                #prod = Spectra(parsed_packets, e_parsed_packets)
+                prod = Spectra.from_packets(parsed_packets, eng_packets)
                 product_type = 'quicklook'
             elif product == 'ql_variance':
-                prod = Variance.from_packets(parsed_packets, e_parsed_packets)
+                prod = Variance.from_packets(parsed_packets, eng_packets)
                 product_type = 'quicklook'
             elif product == 'flareflag_location':
                 prod = FlareFlagAndLocation.from_packets(parsed_packets)
                 product_type = 'quicklook'
             elif product == 'calibration_spectrum':
-                prod = CalibrationSpectra.from_packets(parsed_packets, e_parsed_packets)
+                prod = CalibrationSpectra.from_packets(parsed_packets, eng_packets)
                 product_type = 'quicklook'
             elif product == 'tm_status_and_flare_list':
                 prod = TMManagementAndFlareList.from_packets(parsed_packets)
                 product_type = 'quicklook'
             elif product == 'xray_l0_user':
-                prod = XrayL0.from_packets(parsed_packets, e_parsed_packets)
+                prod = XrayL0.from_packets(parsed_packets, eng_packets)
                 product_type = 'science'
             elif product == 'xray_l1_user':
-                prod = XrayL1.from_packets(parsed_packets, e_parsed_packets)
+                prod = XrayL1.from_packets(parsed_packets, eng_packets)
                 product_type = 'science'
             elif product == 'xray_l2_user':
-                prod = XrayL2.from_packets(parsed_packets, e_parsed_packets)
+                prod = XrayL2.from_packets(parsed_packets, eng_packets)
                 product_type = 'science'
             elif product == 'xray_l3_user':
-                prod = XrayL3.from_packets(parsed_packets, e_parsed_packets)
+                prod = XrayL3.from_packets(parsed_packets, eng_packets)
                 product_type = 'science'
-            elif product == 'spectrogram_user':
-                prod = Spectrogram.from_packets(parsed_packets, e_parsed_packets)
+            elif product == 'spectrogram_user': 
+                prod = Spectrogram.from_packets(parsed_packets, eng_packets)
                 product_type = 'science'
             elif product == 'aspect':
-                prod = Aspect.from_packets(parsed_packets, e_parsed_packets)
+                prod = Aspect.from_packets(parsed_packets, eng_packets)
                 product_type = 'science'
             else:
                 logger.warning(f'Not implemented {product}, SPID {spid}.')
@@ -165,9 +170,8 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  base_p
             base_path.mkdir(parents=True, exist_ok=True)
 
             unique_id=db.get_next_fits_id()
-            #print('Unique id:',unique_id)
-            complete=report_status=='complete'
             meta_entries=[]
+            #write extracted information to fits files
             if product_type=='housekeeping':
                 meta=hkw.write_fits(base_path,unique_id,  prod, product, overwrite, version) 
                 meta_entries=[meta]
@@ -176,11 +180,11 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  base_p
                 fits_processor.write_fits(prod)
                 meta_entries=fits_processor.get_meta_data()
             for meta in meta_entries :
-                file_size=0
                 try: 
                     abs_path=base_path/meta['filename']
                     file_size=abs_path.stat().st_size
                 except:
+                    file_size=0
                     pass
 
                 doc={
@@ -195,7 +199,7 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  base_p
                     #'data_start_unix':meta['data_start_unix'],
                     #'data_end_unix':meta['data_end_unix'],
                     #'filename': meta['filename'],
-                    'complete':complete,
+                    'complete':is_complete,
                     'version': version,
                     'level':DATA_LEVEL,
                     'creation_time':datetime.utcnow(),
@@ -203,7 +207,6 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  base_p
                     'file_size':file_size
                     }
                 doc.update(meta)
-                #print(doc)
                 db.write_fits_index_info(doc)
                 logger.info(f'created  fits file:  {meta["filename"]}')
 
@@ -234,6 +237,8 @@ def purge_fits_for_raw_file(file_id):
 def create_fits(file_id, output_path, overwrite=True,  version=1):
     if overwrite:
         purge_fits_for_raw_file(file_id)
+
+    file_id=int(file_id)
     spid_packets=db.get_file_spids(file_id)
     #print(spid_packets)
     if not spid_packets:
@@ -247,46 +252,81 @@ def create_fits(file_id, output_path, overwrite=True,  version=1):
         logger.info(f'Requesting packets of file {file_id} from MongoDB')
         sort_field='header.unix_time'
         #if spid==54118:
-        cursor= db.select_packets_by_run(file_id, [spid],sort_field=sort_field)
-        if cursor:
-            logger.info(f'packets have been selected for SPID {spid}')
-
+        logger.info(f'Querying packets for SPID: {spid}')
         product = SPID_MAP[spid]
-        report_status='complete'
+
+        if spid in SCI_REPORT_SPIDS:
+            #cursor=self.collection_packets.find({'_id':{'$in':pids}}).sort('header.unix_time',1)
+            bsd_docs=db.get_bsd_docs_by_run_id(file_id, spid)
+            for bsd in bsd_docs:
+                pids=bsd['packet_ids']
+                pkts=list(db.get_collection('packets').find({'_id':{'$in':pids}}).sort('header.unix_time',1))
+                if pkts:
+                    logger.info(f'Creating fits file for bsd #{bsd["_id"]}')
+                    process_packets(file_id, [pkts], spid, product, True, output_path, overwrite, version, remove_duplicates=True)
+                else:
+                    logger.error(f'packets not found for bsd #{bsd["_id"]}')
+            continue
+
+
+        cursor= db.select_packets_by_run(file_id, [spid],sort_field=sort_field)
+
+        is_complete=True
         if spid in [54101, 54102]:
             packets=[list(cursor)]
-            process_packets(file_id, packets, spid, product, report_status, output_path, overwrite, version)
+            process_packets(file_id, packets, spid, product, is_complete, output_path, overwrite, version)
             continue
+
         packets=[]
+        received_first=False
+        received_last=False
+
+        #iterate over packets of the same type
+        hashes=[]
         for i, pkt in enumerate(cursor):
+            if pkt['hash'] in hashes:
+                #remove duplicated packets
+                continue
+            hashes.append(pkt['hash'])
+
+
             seg_flag = int(pkt['header']['seg_flag'])
-            #print(f'Packet: {i} - { SEG_FLAG_MAP[seg_flag]}')
             
             if seg_flag == 3: #'stand-alone packet':
                 packets=[pkt]
+                received_first=True
+                received_last=True
+                
             elif seg_flag == 1:# 'first packet':
                 packets= [pkt]
+
+                received_first=True
+                received_last=False
+
             elif seg_flag == 0: #'continuation packet':
                 if packets:
                     packets.append(pkt)
                 else:
                     packets= [pkt]
             elif seg_flag ==2: # 'last packet':
+                received_last=True
+
                 if packets:
                     packets.append(pkt)
                 else:
                     packets= [pkt]
-            if seg_flag in [3,2]:
-                report_status='complete'
+            if received_first and received_last:
+                is_complete=True
                 #print('complete packets')
-                process_packets(file_id, [packets], spid, product, report_status, output_path, overwrite, version)
+                process_packets(file_id, [packets], spid, product, is_complete, output_path, overwrite, version)
                 packets=[] #clean container after processing packets
-        if packets:
+                received_first=False
+                received_last=False
+        if packets: #unprocessed packets
             #incomplete packets, QL packets are always incomplete 
-            report_status='incomplete'
-            #print('incomplete packets:')
-            #print([(pkt['_id'], pkt['header']['segmentation']) for pkt in packets])
-            process_packets(file_id, [packets], spid, product, report_status, output_path, overwrite, version)
+            is_complete=False
+            process_packets(file_id, [packets], spid, product, is_complete, output_path, overwrite, version)
+            logger.warning(f'Incomplete report {spid} (packets[0]["_id"]) found but fits file still created')
 
 
 
@@ -300,7 +340,7 @@ if  __name__ == '__main__':
                 packets_to_fits   <file_start_id> <end_id>
                 ''')
     elif len(sys.argv)==2:
-        create_fits(sys.argv[1], FITS_PATH, overwrite=True, version=1)
+        create_fits(int(sys.argv[1]), FITS_PATH, overwrite=True, version=1)
     else:
         start=int(sys.argv[1])
         end=int(sys.argv[2])

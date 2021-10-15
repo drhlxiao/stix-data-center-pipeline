@@ -32,10 +32,15 @@ def plot_flare_goes(folder,_id, overwrite=False):
         print(f'GOES LC for Flare #{_id} has been created!')
         return 
     fname=os.path.join(folder, f'flare_{_id}_{flare_id}_goes.png')
-    start=flare_doc['start_unix']
-    end=flare_doc['end_unix']
+    #start=flare_doc['start_unix']
+    #end=flare_doc['end_unix']
+    light_time_diff=flare_doc['ephemeris']['light_time_diff']
+    start=flare_doc['start_unix']+light_time_diff-120
+    end=flare_doc['end_unix'] +light_time_diff + 120
+
     start_utc=sdt.unix2utc(start)
     end_utc=sdt.unix2utc(end)
+
     if plot_goes(start_utc, end_utc):
         mdb.update_flare_pipeline_products(_id, 'goes', [fname])
 

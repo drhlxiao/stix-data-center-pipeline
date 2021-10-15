@@ -37,6 +37,8 @@ class StixScienceReportAnalyzer(object):
         self.calibration_analyzer.capture(run_id, packet_id, packet)
         self.ql_analyzer.capture(run_id, packet_id, packet)
         self.user_request_analyzer.capture(run_id, packet_id, packet)
+    def clear(self):
+        self.user_request_analyzer.clear()
 
     def get_calibration_run_ids(self):
         return self.calibration_analyzer.get_calibration_run_ids()
@@ -101,7 +103,7 @@ class StixCalibrationReportAnalyzer(object):
                      sbspec_formats[sbspec_id][2],
                      int(sbspec_formats[sbspec_id][1]) + 1, sbspec_spectrum))
             except Exception as e:
-                logger.warning(
+                logger.warn(
                     'Error occurred when formatting spectra: {}'.format(
                         str(e)))
 
@@ -109,7 +111,7 @@ class StixCalibrationReportAnalyzer(object):
             try:
                 num_counts = sum(sbspec_spectrum)
             except TypeError:
-                logger.warning(
+                logger.warn(
                     "Counts not decompressed. File id: {}, Packet id:{}".
                     format(run_id, packet_id))
             self.sbspec_counts[sbspec_id][detector_id * 12 +
@@ -136,13 +138,13 @@ class StixCalibrationReportAnalyzer(object):
         else:
             #continuation packet
             if not self.report:
-                logger.warning('The first calibration report is missing!')
+                logger.warn('The first calibration report is missing!')
             else:
                 self.report['packet_ids'].append(packet_id)
 
         if packet['seg_flag'] in [2, 3]:
             if not self.report:
-                logger.warning(
+                logger.warn(
                     'A calibration run (last packet ID:{}) is'
                     ' not recorded due to missing the first packet!'.format(
                         packet_id))
@@ -391,8 +393,8 @@ class StixUserDataRequestReportAnalyzer(object):
         self.last_unique_id = -1
         self.last_request_spid = -1
         self.packet_ids = []
-        self.has_first_packet=False
         self.start_time = 0
+        self.report={}
         self.stop_time = 0
         try:
             self.current_id = self.db.find().sort('_id',
@@ -413,63 +415,112 @@ class StixUserDataRequestReportAnalyzer(object):
             try:
                 self.process_aspect(run_id, packet_id, packet)
             except Exception as e:
-                logger.warning(
+                logger.warn(
                     'Can not parse aspect packet #{} in file #{}'.format(
                         packet_id, run_id))
-                #print(str(e))
-                #print(packet)
         else:
             self.process_bulk_science(run_id, packet_id, packet)
+
+    def update_bsd_doc(self,  unique_id, bsd_doc):
+        doc=self.db.find_one({'unique_id':unique_id})
+        if not doc:
+            logger.info(f"Inserting new bsd:{bsd_doc['_id']}")
+            self.db.save(bsd_doc)
+            updated_existing=False
+        else:
+            doc['packet_ids'].extend(bsd_doc['packet_ids'])
+            old_run_id=doc['run_id']
+            new_run_id=bsd_doc['run_id']
+            if isinstance(old_run_id, list):
+                doc['run_id'].append(new_run_id)
+            else:
+                doc['run_id']=[old_run_id,new_run_id]
+
+
+            if bsd_doc.get('first_pkt',-1)>=0:
+                doc['first_pkt']=bsd_doc['first_pkt']
+            if bsd_doc.get('last_pkt',-1)>=0:
+                doc['last_pkt']=bsd_doc['last_pkt']
+
+            logger.info(f"Replacing existing bsd:{doc['_id']}")
+
+
+            self.db.replace_one({'_id':doc['_id']},doc)
+            updated_existing=True
+        return updated_existing
+
+
+    def clear(self):
+        """
+        Write data in the buffer to database
+        """
+        if self.report:
+            if self.last_request_spid!=54125:
+                #not aspect
+                self.report['_id']=self.current_id
+                logger.info(f'Saving incomplete bsd {self.last_unique_id} to db')
+                self.report['packet_ids']=self.packet_ids
+                updated_existing=self.update_bsd_doc(self.last_unique_id, self.report)
+                if not updated_existing:
+                    self.current_id+=1
+                self.report={}
+                self.packet_ids = []
+            #else:
+            #    self.db.save(self.report)
+
 
     def process_bulk_science(self, run_id, packet_id, packet):
         try:
             unique_id = packet[3].raw
-            start = packet[12].raw
+            start = packet[12].raw #measurement start
         except Exception as e:
-            logger.warning(str(e))
+            logger.warn(str(e))
             return
-        if packet['seg_flag'] in [1, 3]:  #first or standalone
+
+        if (self.last_unique_id!=unique_id or self.last_request_spid != packet['SPID']) and self.report:
+            #store requests
+            try:
+                #attach request form
+                query={'unique_ids': int(self.last_unique_id), 'hidden':False}
+                req_form = self.db_bsd_forms.find_one(query
+                        )#,'start_unix':{'$gt': start_unix-180, '$lt':start_unix+180}})
+                if req_form:
+                    self.report['request_form'] = req_form
+                else:
+                    logger.warn(f'Can not find request info for Request UID-{self.last_unique_id}')
+            except Exception as e:
+                logger.error(e)
+                pass
+            logger.info(f'inserting bsd {self.last_unique_id} to db')
+            self.report['packet_ids']=self.packet_ids
+            self.report['_id']=self.current_id
+            updated_existing=self.update_bsd_doc(self.last_unique_id, self.report)
+            if not updated_existing:
+                self.current_id+=1
+
+            self.report={}
             self.packet_ids = []
-            self.has_first_packet=True
-        self.packet_ids.append(packet_id)
 
+        start_unix=stix_datetime.scet2unix(start)
+        self.report.update({
+                'start_unix_time': start_unix,
+                'start_scet': start,
+                'unique_id': unique_id,
+                'run_id': run_id,
+                'SPID': packet['SPID'],
+                'name': DATA_REQUEST_REPORT_NAME[packet['SPID']],
+                'header_unix_time': packet['unix_time'],
+                'header_scet': packet['SCET'],
+            })
+
+        if packet['seg_flag'] in [1, 3]:  #first or standalone
+            self.report['first_pkt']= packet_id
         if packet['seg_flag'] in [2, 3]:
-            #if self.last_unique_id!=unique_id or self.last_request_spid != packet['SPID']:
-            #the last or standalone
-            if self.db:
-                start_unix=stix_datetime.scet2unix(start)
-                report = {
-                    'start_unix_time': start_unix,
-                    'start_scet': start,
-                    'unique_id': unique_id,
-                    'is_complete':self.has_first_packet,
-                    'packet_ids': self.packet_ids,
-                    'run_id': run_id,
-                    'SPID': packet['SPID'],
-                    'name': DATA_REQUEST_REPORT_NAME[packet['SPID']],
-                    'header_unix_time': packet['unix_time'],
-                    'header_scet': packet['SCET'],
-                    '_id': self.current_id,
-                }
-                try:
-                    req_form = self.db_bsd_forms.find_one(
-                            {'unique_ids': int(unique_id), 'hidden':False})#,'start_unix':{'$gt': start_unix-180, '$lt':start_unix+180}})
-                    #also math time
-                    if req_form:
-                        report['request_form'] = req_form
-                except Exception as e:
-                    print(e)
-                    pass
-
-                self.db.insert_one(report)
-                self.current_id += 1
-                self.has_first_packet=False
-                self.packet_ids = []
-                
-
-
+            self.report['last_pkt']= packet_id
+        self.packet_ids.append(packet_id)
         self.last_unique_id = unique_id
         self.last_request_spid = packet['SPID']
+
 
     def process_aspect(self, run_id, packet_id, packet):
         start_obt = packet[1].raw + packet[2].raw / 65536
@@ -486,20 +537,22 @@ class StixUserDataRequestReportAnalyzer(object):
 
         if packet['seg_flag'] in [2, 3]:
             #the last or standalone
-            if self.db:
-                report = {
-                    'start_unix_time':
-                    stix_datetime.scet2unix(self.start_obt_time),
-                    'end_unix_time': stix_datetime.scet2unix(end_time),
-                    'start_scet': self.start_obt_time,
-                    'end_scet': end_time,
-                    'packet_ids': self.packet_ids,
-                    'SPID': packet['SPID'],
-                    'run_id': run_id,
-                    'name': DATA_REQUEST_REPORT_NAME[packet['SPID']],
-                    'header_unix_time': packet['unix_time'],
-                    'header_scet': packet.get('SCET', 0),
-                    '_id': self.current_id,
-                }
-                self.db.insert_one(report)
-                self.current_id += 1
+            self.report = {
+                'start_unix_time':
+                stix_datetime.scet2unix(self.start_obt_time),
+                'end_unix_time': stix_datetime.scet2unix(end_time),
+                'start_scet': self.start_obt_time,
+                'end_scet': end_time,
+                'packet_ids': self.packet_ids,
+                'SPID': packet['SPID'],
+                'run_id': run_id,
+                'name': 'ASP',
+                'header_unix_time': packet['unix_time'],
+                'header_scet': packet.get('SCET', 0),
+                '_id': self.current_id,
+            }
+            self.db.insert_one(self.report)
+            self.current_id += 1
+            self.last_request_spid=packet['SPID']
+            self.packet_ids=[]
+            self.report={}

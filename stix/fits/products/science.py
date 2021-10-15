@@ -326,6 +326,7 @@ class XrayL1(Product):
 
         unique_times = np.unique(data['delta_time'])
 
+
         data['rcr'] = np.array(packets['NIX00401'], np.ubyte)
         data['num_pixel_sets'] = np.array(packets['NIX00442'], np.ubyte)
         pixel_masks = _get_pixel_mask(packets, 'NIXD0407')
@@ -370,13 +371,18 @@ class XrayL1(Product):
         counts, counts_var = decompress(packets.get('NIX00260'), s=cs, k=ck, m=cm,
                                         return_variance=True)
 
+        #print('unique id:', packets['NIX00037'])
+        #print('unique times',len(unique_times), unique_times)
+        #print('pixel mask',len(data['pixel_masks']), pixel_masks.size)
+
+        #print(unique_times.size, 
+        #                        data['detector_masks'][0].sum(), data['num_pixel_sets'][0].sum(),unique_energies_low.size)
         counts = counts.reshape(unique_times.size, unique_energies_low.size,
                                 data['detector_masks'][0].sum(), data['num_pixel_sets'][0].sum())
         #comment from Hualin, 2021, Sept. probably there is a bug here, when the number of energy bins is not 32, it cashes
         #maybe need to replaced to:
-        #counts = counts.reshape(unique_times.size, 
-        #                        data['detector_masks'][0].sum(), data['num_pixel_sets'][0].sum(),unique_energies_low.size,
-        #)
+        #print(unique_times.size, 
+        #                        data['detector_masks'][0].sum(), data['num_pixel_sets'][0].sum(),unique_energies_low.size)
 
         counts_var = counts_var.reshape(unique_times.size, unique_energies_low.size,
                                         data['detector_masks'][0].sum(),

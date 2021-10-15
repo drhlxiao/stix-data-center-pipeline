@@ -74,6 +74,8 @@ class MongoDB(object):
     def get_db(self):
         return self.db
 
+
+
     def get_bsd_req_form_by_uid(self, uid):
         return self.col_bsd_forms.find_one({'unique_ids': int(uid)})
 
@@ -146,6 +148,13 @@ class MongoDB(object):
             for _id in packet_ids:
                 #query_string = {'_id': {'$in': packet_ids}}
                 yield self.collection_packets.find_one({'_id': _id})
+
+    def get_bsd_docs_by_run_id(self, run_id, spid, complete_only=True):
+        query={'run_id':int(run_id), 'SPID':int(spid)}
+        if complete_only:
+            query.update({'first_pkt':{'$gte':0}, 'last_pkt':{'$gte':0 }})
+        docs=self.collection_data_requests.find(query)
+        return docs
 
     def get_packets_of_bsd_request(self, record_id, header_only=True):
         packets = []
@@ -423,7 +432,7 @@ class MongoDB(object):
         if doc:
             if key != 'wiki':
                 if 'pipeline' not in doc:
-                    doc['plots'] = {}
+                    doc['pipeline'] = {}
                 doc['pipeline'][key] = value
             else:
                 doc['wiki'] = value
@@ -497,7 +506,6 @@ class MongoDB(object):
                     '$gte': threshold
                 }
             }
-            #print(query_string)
             results = self.collection_flares.find(query_string).sort(
                 'peak_unix_time', -1).limit(num)
         return results
@@ -562,6 +570,9 @@ class MongoDB(object):
     def release_notifications(self, ids):
         if ids:
             self.collection_notifications.update_many({'_id':{'$in':ids}},{'$set':{'released':True}})
+    
+
+
 
 
     def insert_time_bins(self,doc, delete_existing):

@@ -212,12 +212,14 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
     if RUN_L1_FLARE_ANALYZER:
         logger.info(
             'Processing flare data...')
+        """
         flp=fla.FlareDataAnalyzer()
         try:
             flp.process_L1_BSD_in_file(file_id)
         except Exception as e:
             #raise
             logger.error(str(e))
+            """
 
     if notification_enabled:
         logger.info('Creating notification...')

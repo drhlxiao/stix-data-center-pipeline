@@ -56,7 +56,7 @@ class SpiceManager:
             spiceypy.furnsh(self.latest_mk)
             self.loaded_kernel_filename=self.latest_mk
         else:
-            print(f'SPICE kernel loaded already: {self.latest_mk}.')
+            print(f'SPICE kernel loaded already: {self.loaded_kernel_filename}.')
         os.chdir(cwd)
 
 
