@@ -26,6 +26,7 @@ from scipy.interpolate import interp1d
 
 FIT_MIN_X = 252
 FIT_MAX_X = 448
+FIRST_PEAK_XMAX=350
 MAX_ALLOWED_SIGMA_ERROR = 20  #maximum allowed peak error
 MEAN_ENERGY_CONVERSION_FACTOR = 2.31
 MIN_COUNTS = 100
@@ -86,75 +87,59 @@ def graph_errors(x, y, ex, ey, title, xlabel="x", ylabel="y"):
 
 
 def graph2(x, y, title="", xlabel="x", ylabel="y"):
-    n = len(x)
-    g = TGraph(n, array('d', x), array('d', y))
+    n = x.size
+    g = TGraph(n, x.astype('float'), y.astype('float'))
     g.GetXaxis().SetTitle(xlabel)
     g.GetYaxis().SetTitle(ylabel)
     g.SetTitle(title)
     return g
 
 
-
-
-
-def get_subspec(x, y, xmin, xmax):
-    a = []
-    b = []
-    for ix, iy in zip(x, y):
-        if ix > xmin and ix < xmax:
-            a.append(ix)
-            b.append(iy)
-    return a, b
-
-
 def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
-
     gStyle.SetOptFit(111)
-    x_full_range = [
-        start + i * num_summed + 0.5 * num_summed
-        for i in range(0, len(spectrum))
-    ]
-    #bin center
-    x, y = get_subspec(x_full_range, spectrum, FIT_MIN_X, FIT_MAX_X)
+    num_points=spectrum.size
+    x_full=np.linspace(start, start+num_points*num_summed, 
+            num_points)+0.5*num_summed
+    sel=(x_full> FIT_MIN_X) & (x_full<FIT_MAX_X) 
+
+    x,y = x_full[sel], spectrum[sel]
+
     #spectrum in the predefined range
-    if not x:
+    if x.size==0:
         print('Can not find sub spectrum of ERROR:', detector, pixel)
         return None, None
 
-    total_counts = sum(y)
+    total_counts = np.sum(y)
     if total_counts < MIN_COUNTS:
         print('Too less counts:', detector, pixel)
         return None, None
 
     name = '{}_{}_{}'.format(detector, pixel, subspec)
     title = 'detector {} pixel {} subspec {}'.format(detector, pixel, subspec)
-    g_full_spec = graph2(x_full_range, spectrum,
+    g_full_spec = graph2(x_full, spectrum,
                          'Original spec - {}'.format(name), 'ADC channel',
                          'Counts')
-    peak1_y = max(y)
-    peak1_x = x[y.index(peak1_y)]
-    #find the peak with highest counts in the predefined range
+    peak1_y = np.max(y[x<FIRST_PEAK_XMAX])
+    peak1_x = x[y==peak1_y][0]
+    #find the peak with highest counts in the range
 
     x_shift = MEAN_ENERGY_CONVERSION_FACTOR * (81 - 31)
-    peak3_xmin = peak1_x + 0.9 * x_shift
-    peak3_xmax = peak1_x + 1.1 * x_shift
 
     # max conversion factor = 2.5 ADC/keV
     fit_range_x_left = 5
     fit_range_x_right = 15
     fit_range_peak3_x_left = 2
 
-    peak3_max_x = 0
-    peak3_max_y = 0
+
+    peak3_sel = (x > peak1_x + 0.9 * x_shift) & (x<peak1_x + 1.1 * x_shift)
+    peak3_x=x[peak3_sel] 
+    peak3_y=y[peak3_sel] 
+    peak3_max_y = np.max(peak3_y)
+    peak3_max_x = peak3_x[peak3_y==peak3_max_y][0]
 
     peak2_x = peak1_x + 4.2 * MEAN_ENERGY_CONVERSION_FACTOR
 
-    for ix, iy in zip(x, y):
-        if ix < peak3_xmin or ix > peak3_xmax:
-            continue
-        if iy > peak3_max_y:
-            peak3_max_x = ix
-            peak3_max_y = iy
+
     fgaus1 = TF1('fgaus1_{}'.format(name), 'gaus', peak1_x - fit_range_x_left,
                  peak1_x + fit_range_x_right)
     fgaus2 = TF1('fgaus2_{}'.format(name), 'gaus', peak2_x - fit_range_x_left,
@@ -299,7 +284,7 @@ def process_one_run(calibration_id, create_pdf=True, pdf_path=DEFAULT_OUTPUT_DIR
         start = spec[3]
         num_summed = spec[4]
         end = start + num_summed * len(spec[5])
-        spectrum = spec[5]
+        spectrum = np.array(spec[5])
         if start > FIT_MAX_X or end < FIT_MIN_X:
             #break
             continue
@@ -344,17 +329,10 @@ def process_one_run(calibration_id, create_pdf=True, pdf_path=DEFAULT_OUTPUT_DIR
     report['pdf'] = pdf
     report['elut'] = compute_elut(offset, slope)
 
-    slope1d = []
-    offset1d = []
-    slope_error_1d = []
-    offset_error_1d = []
-
-    for det in range(0, 32):
-        for pix in range(0, 12):
-            slope1d.append(slope[det][pix])
-            offset1d.append(offset[det][pix])
-            slope_error_1d.append(slope_error[det][pix])
-            offset_error_1d.append(offset_error[det][pix])
+    slope1d = slope.flatten()
+    offset1d = offset.flatten()
+    slope_error_1d = slope_error.flatten()
+    offset_error_1d = offset_error.flatten()
 
     #do calibration
     sum_spectra = {}
@@ -366,11 +344,15 @@ def process_one_run(calibration_id, create_pdf=True, pdf_path=DEFAULT_OUTPUT_DIR
         detector = spec[0]
         pixel = spec[1]
         sbspec_id = spec[2]
-        spectrum = spec[5]
+        spectrum = np.array(spec[5])
+        num_points = spectrum.size
+
         start = spec[3] #ADC channel start
+
         num_summed = spec[4]
-        num_points = len(spectrum)
+
         end = start + num_summed * num_points #end ADC 
+
         print(detector, pixel)
         if slope[detector][pixel] > 0 and offset[detector][pixel] > 0:
             energies = (np.linspace(start, end - num_summed, num_points) - offset[detector][pixel]) / slope[detector][pixel]
@@ -385,20 +367,10 @@ def process_one_run(calibration_id, create_pdf=True, pdf_path=DEFAULT_OUTPUT_DIR
                 sum_spectra[sbspec_id][0] = xvals
                 sum_spectra[sbspec_id][1] = np.zeros(len(xvals))
 
-            yvals = interp(energies, np.array(spectrum) / num_summed, xvals)
+            yvals = interp(energies, spectrum / num_summed, xvals)
             sum_spectra[sbspec_id][1] += yvals
 
-            """cc.cd()
-            g_cali2 = graph2(
-                xvals, yvals,
-                'calibrated spectrum {} {} {}'.format(sbspec_id, detector,
-                                                      pixel), ' Energy (keV) ',
-                'Counts')
-            g_cali2.Draw("ALP")
-            if PRINT_TO_PDF:
-                cc.Print(pdf)
-                """
-
+       
     sub_sum_spec = {}
 
     points = 1150
@@ -413,10 +385,10 @@ def process_one_run(calibration_id, create_pdf=True, pdf_path=DEFAULT_OUTPUT_DIR
 
     sub_sum_spec['sbspec sum'] = [energy_range.tolist(), sbspec_sum.tolist()]
 
-    report['slope'] = slope1d
-    report['offset'] = offset1d
-    report['slope_error'] = slope_error_1d
-    report['offset_error'] = offset_error_1d
+    report['slope'] = slope1d.tolist()
+    report['offset'] = offset1d.tolist()
+    report['slope_error'] = slope_error_1d.tolist()
+    report['offset_error'] = offset_error_1d.tolist()
     report['sum_spectra'] = sub_sum_spec
     #calibrated sum spectra
 
@@ -425,18 +397,17 @@ def process_one_run(calibration_id, create_pdf=True, pdf_path=DEFAULT_OUTPUT_DIR
     hist_slope = TH1F(
         "hist_slope",
         "Energy conversion factors; Conversion factors (ADC / keV); Counts",
-        100, 0.8 * min(slope1d), 1.2 * max(slope1d))
+        100, 0.8 * np.min(slope1d), 1.2 * np.max(slope1d))
     for s in slope1d:
         hist_slope.Fill(s)
     hist_offset = TH1F("hist_offset", "Baseline; Baseline (ADC); Counts", 100,
-                       0.8 * min(offset1d), 1.2 * max(offset1d))
+                       0.8 * np.min(offset1d), 1.2 * np.max(offset1d))
     for s in offset1d:
         hist_offset.Fill(s)
-    ids = range(0, len(slope1d))
+    ids = np.arange(384)
     g_slope = graph2(ids, slope1d, 'conversion factor', ' pixel #',
                      'conversion factor')
     g_offset = graph2(ids, offset1d, 'baseline', ' pixel #', 'baseline')
-
     c2 = TCanvas()
     c2.Divide(2, 2)
     c2.cd(1)

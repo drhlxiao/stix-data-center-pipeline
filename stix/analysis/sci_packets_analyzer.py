@@ -29,6 +29,13 @@ DATA_REQUEST_REPORT_NAME = {
     54143: 'L4',
     54125: 'ASP'
 }
+SCI_REPORT_SPID=[
+    54114,
+    54115,
+    54116,
+    54117,
+    54143,
+    ]
 
 MAX_L1_REQ_DURATION=3600
 #max l1 data request duration, used to load flares before l1 processing
@@ -87,9 +94,14 @@ class StixBulkL0Analyzer(object):
         return report
 
     def process_packets(self, cursor):
-
+        hash_list=[]
         for pkt in cursor:
+            if pkt['hash'] in hash_list:
+                continue
+            hash_list.append(pkt['hash'])
+
             packet = sdt.Packet(pkt)
+
             self.request_id = packet[3].raw
             # print(self.request_id)
             self.packet_unix = packet['unix_time']
@@ -286,7 +298,12 @@ class StixBulkL1L2Analyzer(object):
         #it doesn't know the start time and end time of the data request 
         ipkt=0
         flare_start_times, flare_end_times=[],[]
+        hash_list=[]
         for pkt in cursor:
+            if pkt['hash'] in hash_list:
+                continue
+            hash_list.append(pkt['hash'])
+
             packet = sdt.Packet(pkt)
             self.request_id = packet[3].raw
             self.packet_unix = packet['unix_time']
@@ -424,7 +441,12 @@ class StixBulkL3Analyzer(object):
         return report
 
     def process_packets(self, cursor):
+        hash_list=[]
         for pkt in cursor:
+            if pkt['hash'] in hash_list:
+                continue
+            hash_list.append(pkt['hash'])
+
             packet = sdt.Packet(pkt)
             self.request_id = packet[3].raw
             self.packet_unix = packet['unix_time']
@@ -520,7 +542,12 @@ class StixBulkL4Analyzer(object):
 
     def process_packets(self, cursor):
         last_timestamp=None
+        hash_list=[]
         for pkt in cursor:
+            if pkt['hash'] in hash_list:
+                continue
+            hash_list.append(pkt['hash'])
+
             packet = sdt.Packet(pkt)
             self.request_id = packet[3].raw
             self.packet_unix = packet['unix_time']
@@ -597,7 +624,11 @@ class StixBulkAspectAnalyzer(object):
         read_time = []
         packet_utc = ''
         start_time = 0
+        hash_list=[]
         for pkt in cursor:
+            if pkt['hash'] in hash_list:
+                continue
+            hash_list.append(pkt['hash'])
             packet = sdt.Packet(pkt)
             packet_utc = packet['UTC']
             T0 = stix_datetime.scet2unix(
@@ -640,6 +671,13 @@ def process_packets_in_file(file_id, remove_existing=True):
     for doc in bsd_cursor:
         spid = int(doc['SPID'])
         logger.info(f'processing bsd id: {doc["_id"]}, spid:{spid}')
+        if 'first_pkt' not in doc or 'last_pkt' not in doc:
+            #don't process incomplete packets
+            #wait until 
+            continue
+            #complete report 
+
+
         cursor = mdb.get_packets_of_bsd_request(doc['_id'], header_only=False)
         synopsis=None
         data_type=DATA_REQUEST_REPORT_NAME.get(spid,'UNKNOWN')

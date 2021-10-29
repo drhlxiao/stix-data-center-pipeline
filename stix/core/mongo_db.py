@@ -59,7 +59,6 @@ class MongoDB(object):
             self.collection_flares = self.db['flares']
             self.collection_qllc_statistics = self.db['qllc_statistics']
             self.collection_notifications = self.db['notifications']
-            self.collection_spice = self.db['spice']
             self.collection_time_bins= self.db['time_bins']
             self.collection_aspect_solutions= self.db['aspect_solutions']
             self.collection_qlspectra=self.db['ql_spectra']
@@ -173,7 +172,7 @@ class MongoDB(object):
             return self.collection_packets.find({'_id': {
                 '$in': packet_ids
             }}, {'header': 1})
-        return self.collection_packets.find({'_id': {'$in': packet_ids}})
+        return self.collection_packets.find({'_id': {'$in': packet_ids}}).sort('header.unix_time',1)
 
     def get_filename_of_run(self, run_id):
         if self.collection_raw_files:

@@ -127,6 +127,7 @@ def download_fermi_sunward_detector_data( start_utc, end_utc,folder='.', downloa
             if download_tte:    
                 tte_file=  download_fermi(dt, folder, 'tte', det_sunward)
                 result['tte'].append(tte_file)
+
             result['time'].append(gt.Met(mt).datetime) 
             result['detector'].append(det_sunward)
             result['angle'].append( min_angle)
@@ -166,7 +167,7 @@ def plot_fermi_gdm_lightcurve_spectrum(start_utc='', end_utc='', bkg_start=None,
     #plt.show()
     #spectrum = time_sliced_tte.to_spectrum()
     #specplot = Spectrum(data=spectrum, axis=axs[1])
-    #det='-'.join(detectors)
+    det='-'.join(detectors)
     axs.set_title(f'GBM det {det} obs for flare {flare_id} ({entry_id})')
     axs.set_ylabel('Start at {start_utc}')
     
@@ -177,7 +178,7 @@ def plot_fermi_gdm_lightcurve_spectrum(start_utc='', end_utc='', bkg_start=None,
     fig.savefig(fname)
     return fname
     
-def plot_fermi_for_flare(image_folder, cache_folder,_id, overwrite=True):
+def plot_fermi_for_flare(image_folder, cache_folder,_id, overwrite=False):
     #_id is the flare db entry number
     print('Processing flare #', _id)
     flare_doc=db.find_one({'_id':_id})
@@ -185,7 +186,7 @@ def plot_fermi_for_flare(image_folder, cache_folder,_id, overwrite=True):
         print(f'Flare {_id} does not exist!')
         return None
     flare_id=flare_doc['flare_id']
-    if flare_doc['peak_counts']<1000:
+    if flare_doc['peak_counts']<600:
         print(f'Flare #{flare_id} skipped because its counts too low ')
         return None
         

@@ -31,6 +31,17 @@ class SpiceManager:
         self.latest_mk=None
         self.load_kernels()
 
+    def get_kernel_files_from_mk(self, mk_filename):
+        fnames=[]
+        with open(mk_filename) as f:
+            content=f.read()
+            kernels=re.findall(r"\$KERNELS\/(.*)'",content)
+            for k in kernels:
+                fnames.append(k)
+        return fnames
+
+
+
     def get_kernel_filename(self):
         return self.loaded_kernel_filename
     def load_kernels(self):
@@ -52,8 +63,10 @@ class SpiceManager:
         #if latest_mk!=None and utc<self.version_date:
         
         if self.loaded_kernel_filename !=  self.latest_mk and self.latest_mk is not None:
+            fnames=self.get_kernel_files_from_mk(self.latest_mk)
+            for fname in fnames:
+                spiceypy.furnsh(os.path.join(spice_folder, fname))
             print('loading kernel:',self.latest_mk)
-            spiceypy.furnsh(self.latest_mk)
             self.loaded_kernel_filename=self.latest_mk
         else:
             print(f'SPICE kernel loaded already: {self.loaded_kernel_filename}.')

@@ -7,7 +7,10 @@ stix = connect['stix']
 db = stix['packets']
 
 HK = {
-    'NIXD0027': 'HK_DPU_3V3_C',
+    'NIXD0088': 'ATT M2 moving status',
+    'NIXD0089': 'ATT M1 moving status',
+    'NIXD0068': 'ATT AB flag',
+    'NIXD0069': 'ATT BC flag',
     'NIX00072': 'Med value of trig acc',
     'NIX00073': 'Max value of trig acc',
     }
