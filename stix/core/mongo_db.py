@@ -451,19 +451,15 @@ class MongoDB(object):
         collection = self.collection_ql
         if not collection:
             return []
-        query_string = {
-            "$and": [{
+        query_string ={
                 'stop_unix_time': {
                     '$gt': start_unix_time
-                }
-            }, {
+                },
                 'start_unix_time': {
                     '$lt': stop_unix_time
-                }
-            }, {
+                },
                 'SPID': SPID
-            }]
-        }
+            }
         ret = collection.find(query_string, {'packet_id': 1}).sort('_id', 1)
         packet_ids = [x['packet_id'] for x in ret]
 
@@ -473,6 +469,8 @@ class MongoDB(object):
                 sort_field, 1)
             return cursor
         return []
+
+
     def get_telecommands_in_file(self,file_id):
         return self.collection_packets.find({'header.TMTC':'TC', 'run_id': int(file_id)})
 

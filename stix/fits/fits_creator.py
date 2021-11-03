@@ -9,6 +9,7 @@ from stix.core import stix_datatypes as sdt
 from stix.fits.io.processors import FitsL1Processor
 from stix.fits.io import hk_fits_writer as hkw
 from stix.spice.stix_datetime import datetime_to_scet
+from stix.spice import stix_datetime
 from stix.fits.products.housekeeping import MiniReport, MaxiReport
 from stix.fits.products.quicklook import LightCurve, Background, Spectra, Variance, \
     FlareFlagAndLocation, CalibrationSpectra, TMManagementAndFlareList
@@ -26,6 +27,13 @@ db= mongo_db.MongoDB()
 FITS_PATH='/data/fits/'
 
 DATA_LEVEL='L1A'
+QL_SPID_MAP = {
+        54118: 'lc',
+        54119:'bkg',
+        54120:'qlspec',
+         54121:'var',
+         54122:'flare',
+}
 
 
 
@@ -48,12 +56,21 @@ SPID_MAP = {
     54120: 'ql_spectrogram',
     54121: 'ql_variance',
     54122: 'flareflag_location',
+
     54123: 'tm_status_and_flare_list',
     54124: 'calibration_spectrum',
     # House keeping
     54101: 'hk_mini',
     54102: 'hk_maxi'
 }
+LOW_LATENCY_TYPES={
+        54102: 'hk_maxi',
+    54118: 'ql_light_curves',
+    54119: 'ql_background',
+    54120: 'ql_spectrogram',
+    54121: 'ql_variance',
+    54122: 'flareflag_location'}
+
 SEG_FLAG_MAP={0: 'continuation packet',1: 'first packet',2: 'last_packet',3:'stand-alone packet'}
 SCI_REPORT_SPIDS=[
     54114,
@@ -64,7 +81,8 @@ SCI_REPORT_SPIDS=[
 
 
 
-def process_packets(file_id, packet_lists, spid, product, is_complete,  base_path_name=FITS_PATH, overwrite=True, version=1, remove_duplicates=False):
+def process_packets(file_id, packet_lists, spid, product, is_complete,  
+        base_path_name=FITS_PATH, overwrite=True, version=1, remove_duplicates=False, run_type='file'):
     """
     Process a sequence containing one or more packets for a given product.
 
@@ -105,14 +123,16 @@ def process_packets(file_id, packet_lists, spid, product, is_complete,  base_pat
         packet_lists = [list(chain.from_iterable(packet_lists))]
     #print('BASE',base_path_name)
 
+    if isinstance(file_id, str):
+        file_id=int(file_id)
+
     for packets in packet_lists:
         if not packets:
+            print('No packets ')
             continue
         parsed_packets = sdt.Packet.merge(packets, spid, value_type='raw', remove_duplicates=remove_duplicates)
         eng_packets = sdt.Packet.merge(packets, spid, value_type='eng',remove_duplicates=remove_duplicates)
         prod=None
-
-
 
         try:
             if product == 'hk_mini':
@@ -173,10 +193,10 @@ def process_packets(file_id, packet_lists, spid, product, is_complete,  base_pat
             meta_entries=[]
             #write extracted information to fits files
             if product_type=='housekeeping':
-                meta=hkw.write_fits(base_path,unique_id,  prod, product, overwrite, version) 
+                meta=hkw.write_fits(base_path,unique_id,  prod, product, overwrite, version,run_type) 
                 meta_entries=[meta]
             else:
-                fits_processor = FitsL1Processor(base_path, unique_id, version)
+                fits_processor = FitsL1Processor(base_path, unique_id, version,run_type)
                 fits_processor.write_fits(prod)
                 meta_entries=fits_processor.get_meta_data()
             for meta in meta_entries :
@@ -193,13 +213,14 @@ def process_packets(file_id, packet_lists, spid, product, is_complete,  base_pat
                     'packet_id_end': packets[-1]['_id'],
                     'packet_spid':spid,
                     'num_packets': len(packets),
-                    'file_id':int(file_id), 
+                    'file_id':file_id, 
                     'product_type':product, 
                     'product_group':product_type,
                     #'data_start_unix':meta['data_start_unix'],
                     #'data_end_unix':meta['data_end_unix'],
                     #'filename': meta['filename'],
                     'complete':is_complete,
+                    'run_type':run_type,
                     'version': version,
                     'level':DATA_LEVEL,
                     'creation_time':datetime.utcnow(),
@@ -212,7 +233,7 @@ def process_packets(file_id, packet_lists, spid, product, is_complete,  base_pat
 
         except Exception as e:
             logger.error(str(e))
-            raise e
+            #raise e
 
 def purge_fits_for_raw_file(file_id):
     print(f'Removing existing fits files for {file_id}')
@@ -228,6 +249,57 @@ def purge_fits_for_raw_file(file_id):
                 logger.warning(f'Failed to remove fits file:{fits_filename} due to: {str(e)}')
         logger.info(f'deleting fits collections for file: {file_id}')
         cursor = fits_collection.delete_many({'file_id': int(file_id)})
+
+
+def create_continous_low_latency_fits(start_unix, end_unix,  output_path=FITS_PATH, overwrite=True, version=1, run_type='daily'):
+    pkt_col=db.get_collection('packets')
+    file_id=-1
+    for spid, product in LOW_LATENCY_TYPES.items():
+        print(spid, product,start_unix, end_unix)
+        if spid in QL_SPID_MAP.keys():
+            packet_lists=[list(db.get_quicklook_packets(QL_SPID_MAP[spid],
+                start_unix,
+                              end_unix-start_unix,sort_field='header.unix_time'))]
+        elif spid==54102:
+            packet_lists=[list(pkt_col.find({'header.unix_time':{'$gte':start_unix,
+                '$lte':end_unix},
+                'header.SPID':spid}).sort('header.unix_time',1))]
+        process_packets(file_id, packet_lists, spid, 
+                product, is_complete=True,  
+                base_path_name=output_path, 
+                overwrite=overwrite, version=version, 
+                remove_duplicates=True, 
+                run_type=run_type)
+
+def create_daily_low_latency_fits(date, path=FITS_PATH):
+    start_datetime=f'{date}T00:00:00'
+    print("creating daily fits file for data on ", start_datetime)
+    start_unix=stix_datetime.utc2unix(start_datetime)
+    end_unix=86400+start_unix
+    create_continous_low_latency_fits(start_unix, end_unix,  output_path=path, overwrite=True, version=1, run_type='daily')
+
+def create_low_latency_fits_between_dates(date_start, date_end, path=FITS_PATH):
+    start_datetime=f'{date_start}T00:00:00'
+    start_unix=stix_datetime.utc2unix(start_datetime)
+    end_datetime=f'{date_end}T00:00:00'
+    end_unix=stix_datetime.utc2unix(end_datetime)
+    while start_unix<=end_unix:
+        create_continous_low_latency_fits(start_unix, start_unix+86400,  output_path=path, overwrite=True, version=1, run_type='daily')
+        start_unix+=86400
+
+def create_low_latency_fits_relative_days(relative_start, relative_end, path=FITS_PATH):
+    if relative_start>0:
+        relative_start=-relative_start
+    if relative_end>0:
+        relative_end=-relative_end
+
+    start=datetime.utcnow()+timedelta(days=relative_start)
+    end=datetime.utcnow()+timedelta(days=relative_end)
+    date_start=start.strftime('%Y-%m-%d')
+    date_end=end.strftime('%Y-%m-%d')
+    create_low_latency_fits_between_dates(date_start, date_end, path)
+
+
 
 
 
@@ -337,15 +409,21 @@ if  __name__ == '__main__':
                    It reads packets from mongodb and write them into fits
                 Usage:
                 packets_to_fits   <file_id>
-                packets_to_fits   <file_start_id> <end_id>
+                packets_to_fits   <file_start_id e.g. 2021-01-01> <end_id>
                 ''')
     elif len(sys.argv)==2:
-        create_fits(int(sys.argv[1]), FITS_PATH, overwrite=True, version=1)
+        try:
+            create_fits(int(sys.argv[1]), FITS_PATH, overwrite=True, version=1)
+        except ValueError:
+            create_daily_low_latency_fits(sys.argv[1], FITS_PATH)
     else:
-        start=int(sys.argv[1])
-        end=int(sys.argv[2])
-        for i in range(start,end+1):
-            purge_fits_for_raw_file(i)
-        for i in range(start,end+1):
-            create_fits(i, FITS_PATH, overwrite=False, version=1)
+        try:
+            start=int(sys.argv[1])
+            end=int(sys.argv[2])
+            for i in range(start,end+1):
+                purge_fits_for_raw_file(i)
+            for i in range(start,end+1):
+                create_fits(i, FITS_PATH, overwrite=False, version=1)
+        except ValueError:
+            create_low_latency_fits_between_dates(sys.argv[1], sys.argv[2], FITS_PATH)
 

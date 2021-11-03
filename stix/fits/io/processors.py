@@ -142,8 +142,15 @@ class FitsL0Processor:
 '''
 
 class FitsL1Processor:
-    def __init__(self, archive_path, db_id, ver):
+    def __init__(self, archive_path, db_id, ver, run_type):
         self.archive_path = archive_path
+
+        if run_type=='file': #to be consistent with the old convention
+            run_type=''
+        else:
+            run_type='_'+run_type
+
+        self.run_type=run_type
         self.fits_db_id=db_id
         self.meta=[]
         self.version=ver
@@ -264,7 +271,7 @@ class FitsL1Processor:
             date_range = f'{start_obs}-{end_obs}'
 
         fits_filename=f'solo_{product.level}_stix-{product.type}-' \
-               f'{product.name.replace("_", "-")}{user_req}' \
+               f'{product.name.replace("_", "-")}{user_req}{self.run_type}' \
                f'_{date_range}_{self.fits_db_id:06d}_V{self.version:02d}.fits'
         return fits_filename
                #f'_{date_range}_V{version:02d}{status}{tc_control}_{self.fits_db_id}.fits'

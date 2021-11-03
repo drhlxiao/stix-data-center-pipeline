@@ -55,7 +55,7 @@ def generate_primary_header(filename, scet_coarse, scet_fine, obs_beg, obs_avg, 
     )
     return headers
 
-def generate_filename(product,  unique_id, product_type,  version):
+def generate_filename(product,  unique_id, product_type,  version, run_type):
     """
     Generate fits file name with SOLO conventions.
 
@@ -79,13 +79,17 @@ def generate_filename(product,  unique_id, product_type,  version):
     #return f'solo_{level}_stix-{product_name.replace("_", "-")}_{dateobs}_{unique_id:05d}.fits'
     dateobs = product.obs_beg.strftime("%Y%m%dT%H%M%S")
     dateend=product.obs_end.strftime("%Y%m%dT%H%M%S")
+    if run_type=='file': #to be consistent with the old convention
+        run_type=''
+    else:
+        run_type='_'+run_type
     
-    return f'solo_L1A_stix-{product_type.replace("_", "-")}_{dateobs}-{dateend}_{unique_id:06d}_V{version:02d}.fits'
+    return f'solo_L1A_stix-{product_type.replace("_", "-")}{run_type}_{dateobs}-{dateend}_{unique_id:06d}_V{version:02d}.fits'
             #hk-mini or hk-maxi
 
 
-def write_fits(basepath,unique_id, prod, product_type, overwrite=True, version=1): 
-    filename = generate_filename(prod, unique_id, product_type, version=version)
+def write_fits(basepath,unique_id, prod, product_type, overwrite=True, version=1, run_type='file'): 
+    filename = generate_filename(prod, unique_id, product_type, version=version, run_type=run_type)
     primary_header = generate_primary_header(filename, prod.scet_coarse, prod.scet_fine,
                                                  prod.obs_beg, prod.obs_avg, prod.obs_end, version)
     hdul = prod.to_hdul()

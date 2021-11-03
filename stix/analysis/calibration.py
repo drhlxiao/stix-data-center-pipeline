@@ -76,7 +76,7 @@ def interp(xvals, yvals, xnew):
     return y
 
 
-def graph_errors(x, y, ex, ey, title, xlabel="x", ylabel="y"):
+def create_graph_errors(x, y, ex, ey, title, xlabel="x", ylabel="y"):
     n = len(x)
     g = TGraphErrors(n, array('d', x), array('d', y), array('d', ex),
                      array('d', ey))
@@ -86,7 +86,7 @@ def graph_errors(x, y, ex, ey, title, xlabel="x", ylabel="y"):
     return g
 
 
-def graph2(x, y, title="", xlabel="x", ylabel="y"):
+def create_graph(x, y, title="", xlabel="x", ylabel="y"):
     n = x.size
     g = TGraph(n, x.astype('float'), y.astype('float'))
     g.GetXaxis().SetTitle(xlabel)
@@ -116,7 +116,7 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
 
     name = '{}_{}_{}'.format(detector, pixel, subspec)
     title = 'detector {} pixel {} subspec {}'.format(detector, pixel, subspec)
-    g_full_spec = graph2(x_full, spectrum,
+    g_full_spec = create_graph(x_full, spectrum,
                          'Original spec - {}'.format(name), 'ADC channel',
                          'Counts')
     peak1_y = np.max(y[x<FIRST_PEAK_XMAX])
@@ -148,7 +148,7 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
                  peak3_max_x - fit_range_peak3_x_left,
                  peak3_max_x + fit_range_x_right)
 
-    gspec = graph2(x, y, 'Spectrum - {}'.format(title), 'ADC channel',
+    gspec = create_graph(x, y, 'Spectrum - {}'.format(title), 'ADC channel',
                    'Counts')
 
     gspec.Fit(fgaus1, 'RQ')
@@ -203,7 +203,7 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
     #peak_ex=[.0, 0., 0.]
     gpeaks = None
     if len(peak_x) >= 2:
-        gpeaks = graph_errors(peak_x, peak_y, peak_ex, peak_ey, title,
+        gpeaks = create_graph_errors(peak_x, peak_y, peak_ex, peak_ey, title,
                               'Energy (keV)', 'Peak position (ADC)')
         gpeaks.Fit('pol1', 'Q')
         gpeaks.GetYaxis().SetRangeUser(0.9 * peak_y[0], peak_y[-1] * 1.1)
@@ -405,9 +405,9 @@ def process_one_run(calibration_id, create_pdf=True, pdf_path=DEFAULT_OUTPUT_DIR
     for s in offset1d:
         hist_offset.Fill(s)
     ids = np.arange(384)
-    g_slope = graph2(ids, slope1d, 'conversion factor', ' pixel #',
+    g_slope = create_graph(ids, slope1d, 'conversion factor', ' pixel #',
                      'conversion factor')
-    g_offset = graph2(ids, offset1d, 'baseline', ' pixel #', 'baseline')
+    g_offset = create_graph(ids, offset1d, 'baseline', ' pixel #', 'baseline')
     c2 = TCanvas()
     c2.Divide(2, 2)
     c2.cd(1)

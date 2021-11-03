@@ -1,29 +1,32 @@
 import os
 import sys
-import argparse
-from matplotlib.backends.backend_pdf import PdfPages
 
-from core import stix_logger
-from core import stix_parser
-from core import stix_idb
-from core import stix_calibration
+import numpy as np
+from stix.core import mongo_db
+from stix.spice import stix_datetime as sdt
+mdb= mongo_db.MongoDB()
+db=mdb.get_db()
+cal_db=db['calibration_runs']
+flare_db=db['flares']
 
-from utils import mongo_db
-STIX_LOGGER = stix_logger.stix_logger()
-STIX_MDB= mongo_db.MongoDB()
+def is_sun_quiet(start_unix, duration, max_counts):
+    fdocs=flare_db.find({'peak_unix_time':{'$gt': start_unix,'$lte':start_unix+duration},'total_counts':{'$lt':max_counts}})
+    return fdoc
+
+for doc in cal_db.find():
+    start_unix=doc['start_unix_time']
+    duration=doc['duration']
+    counts=np.array(doc['counts'][1])
+    cfl_counts=counts[8*12:8*12+8]
+    min_cnts, max_cnts=np.min(cfl_counts), np.max(cfl_counts)
 
 
-def scan_all():
-    runs=STIX_MDB.select_all_runs(1)
-    collection=STIX_MDB.get_collection_calibration()
-    calibration=stix_calibration.StixCalibration(collection)
-    for run in runs:
-        packets=STIX_MDB.select_packets_by_run(run['_id'])
-        print(run['_id'],len(packets))
-        for packet in packets:
-            calibration.capture(run['_id'],packet['_id'],packet)
+    if max_cnts>2*min_cnts and is_sun_quiet(start_unix, duration, 2e4):
+        print('Occulted flares calibration run', doc['_id'])
 
-scan_all()
+
+
+
 
 
 
