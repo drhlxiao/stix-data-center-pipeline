@@ -194,13 +194,6 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
 
 
 
-    if ENABLE_FITS_CREATION:
-        logger.info('Creating fits files...')
-        try:
-            fits_creator.create_fits(file_id, daemon_config['fits_path'])
-        except Exception as e:
-            logger.error(str(e))
-
     if DO_BULK_SCIENCE_DATA_MERGING:
         logger.info(
             'merging bulk science data and preparing bsd json files...')
@@ -237,6 +230,13 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
             report_path = daemon_config['calibration_report_path']
             for run_id in calibration_run_ids:
                 calibration.process_one_run(run_id,create_pdf=True, pdf_path=report_path)
+        except Exception as e:
+            logger.error(str(e))
+
+    if ENABLE_FITS_CREATION:
+        logger.info('Creating fits files...')
+        try:
+            fits_creator.create_fits(file_id, daemon_config['fits_path'])
         except Exception as e:
             logger.error(str(e))
 
