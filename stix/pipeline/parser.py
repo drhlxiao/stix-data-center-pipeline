@@ -144,7 +144,7 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
     if debugging:
         logger.enable_debugging()
     parser = stix_parser.StixTCTMParser()
-    parser.set_MongoDB_writer(mongodb_config['host'], mongodb_config['port'],
+    parser.config_mongodb(mongodb_config['host'], mongodb_config['port'],
                               mongodb_config['user'],
                               mongodb_config['password'], '', filename,
                               instrument)
@@ -253,7 +253,6 @@ def find_new_telemetry_files():
     """
     filelist = {}
     print('checking new files ...')
-    num_processed = 0
     notification_ids=[]
     for instrument, selectors in daemon_config['data_source'].items():
         for pattern in selectors:
@@ -272,6 +271,7 @@ def process_files(filelist):
     """
     Process files
     """
+    num_processed = 0
 
     for instrument, files in filelist.items():
         goes.download()

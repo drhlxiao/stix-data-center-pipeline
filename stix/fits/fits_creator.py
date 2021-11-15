@@ -79,16 +79,14 @@ SCI_REPORT_SPIDS=[
     54117,
     54143]
 
-
-
-def process_packets(file_id, packet_lists, spid, product, is_complete,  
+def create_fits_for_packets(file_id, packets, spid, product, is_complete,  
         base_path_name=FITS_PATH, overwrite=True, version=1, remove_duplicates=False, run_type='file'):
     """
     Process a sequence containing one or more packets for a given product.
 
     Parameters
     ----------
-    packet_lists : list
+    packets: list
         Packets
     spid : int
         SPID
@@ -102,137 +100,114 @@ def process_packets(file_id, packet_lists, spid, product, is_complete,
         False (default) will raise error if fits file exits, True overwrite existing file
     """
 
-    """
-    Process a sequence containing one or more packets for a given product.
-
-    Parameters
-    ----------
-    packet_lists : list
-        List of packet sequences
-    spid : int
-        SPID
-    product : basestring
-        Product name
-    basepath : pathlib.Path
-        Path
-    overwrite : bool (optional)
-        False (default) will raise error if fits file exits, True overwrite existing file
-    """
     # For HK merge all stand alone packets in request
-    if spid in [54101, 54102]:
-        packet_lists = [list(chain.from_iterable(packet_lists))]
-    #print('BASE',base_path_name)
+    file_id=int(file_id)
+    if not packets:
+        print('No packets found!')
+        return
 
-    if isinstance(file_id, str):
-        file_id=int(file_id)
+    parsed_packets = sdt.Packet.merge(packets, spid, value_type='raw', remove_duplicates=remove_duplicates)
+    eng_packets = sdt.Packet.merge(packets, spid, value_type='eng',remove_duplicates=remove_duplicates)
+    prod=None
 
-    for packets in packet_lists:
-        if not packets:
-            print('No packets ')
-            continue
-        parsed_packets = sdt.Packet.merge(packets, spid, value_type='raw', remove_duplicates=remove_duplicates)
-        eng_packets = sdt.Packet.merge(packets, spid, value_type='eng',remove_duplicates=remove_duplicates)
-        prod=None
-
-        try:
-            if product == 'hk_mini':
-                prod = MiniReport(parsed_packets)
-                product_type = 'housekeeping'
-            elif product == 'hk_maxi':
-                prod = MaxiReport(parsed_packets)
-                product_type = 'housekeeping'
-            elif product == 'ql_light_curves':
-                prod = LightCurve.from_packets(parsed_packets, eng_packets)
-                product_type = 'quicklook'
-            elif product == 'ql_background':
-                prod = Background.from_packets(parsed_packets, eng_packets)
-                product_type = 'quicklook'
-            elif product == 'ql_spectrogram':
-                prod = Spectra.from_packets(parsed_packets, eng_packets)
-                product_type = 'quicklook'
-            elif product == 'ql_variance':
-                prod = Variance.from_packets(parsed_packets, eng_packets)
-                product_type = 'quicklook'
-            elif product == 'flareflag_location':
-                prod = FlareFlagAndLocation.from_packets(parsed_packets)
-                product_type = 'quicklook'
-            elif product == 'calibration_spectrum':
-                prod = CalibrationSpectra.from_packets(parsed_packets, eng_packets)
-                product_type = 'quicklook'
-            elif product == 'tm_status_and_flare_list':
-                prod = TMManagementAndFlareList.from_packets(parsed_packets)
-                product_type = 'quicklook'
-            elif product == 'xray_l0_user':
-                prod = XrayL0.from_packets(parsed_packets, eng_packets)
-                product_type = 'science'
-            elif product == 'xray_l1_user':
-                prod = XrayL1.from_packets(parsed_packets, eng_packets)
-                product_type = 'science'
-            elif product == 'xray_l2_user':
-                prod = XrayL2.from_packets(parsed_packets, eng_packets)
-                product_type = 'science'
-            elif product == 'xray_l3_user':
-                prod = XrayL3.from_packets(parsed_packets, eng_packets)
-                product_type = 'science'
-            elif product == 'spectrogram_user': 
-                prod = Spectrogram.from_packets(parsed_packets, eng_packets)
-                product_type = 'science'
-            elif product == 'aspect':
-                prod = Aspect.from_packets(parsed_packets, eng_packets)
-                product_type = 'science'
-            else:
-                logger.warning(f'Not implemented {product}, SPID {spid}.')
-                continue
+    try:
+        if product == 'hk_mini':
+            prod = MiniReport(parsed_packets)
+            product_type = 'housekeeping'
+        elif product == 'hk_maxi':
+            prod = MaxiReport(parsed_packets)
+            product_type = 'housekeeping'
+        elif product == 'ql_light_curves':
+            prod = LightCurve.from_packets(parsed_packets, eng_packets)
+            product_type = 'quicklook'
+        elif product == 'ql_background':
+            prod = Background.from_packets(parsed_packets, eng_packets)
+            product_type = 'quicklook'
+        elif product == 'ql_spectrogram':
+            prod = Spectra.from_packets(parsed_packets, eng_packets)
+            product_type = 'quicklook'
+        elif product == 'ql_variance':
+            prod = Variance.from_packets(parsed_packets, eng_packets)
+            product_type = 'quicklook'
+        elif product == 'flareflag_location':
+            prod = FlareFlagAndLocation.from_packets(parsed_packets)
+            product_type = 'quicklook'
+        elif product == 'calibration_spectrum':
+            prod = CalibrationSpectra.from_packets(parsed_packets, eng_packets)
+            product_type = 'quicklook'
+        elif product == 'tm_status_and_flare_list':
+            prod = TMManagementAndFlareList.from_packets(parsed_packets)
+            product_type = 'quicklook'
+        elif product == 'xray_l0_user':
+            prod = XrayL0.from_packets(parsed_packets, eng_packets)
+            product_type = 'science'
+        elif product == 'xray_l1_user':
+            prod = XrayL1.from_packets(parsed_packets, eng_packets)
+            product_type = 'science'
+        elif product == 'xray_l2_user':
+            prod = XrayL2.from_packets(parsed_packets, eng_packets)
+            product_type = 'science'
+        elif product == 'xray_l3_user':
+            prod = XrayL3.from_packets(parsed_packets, eng_packets)
+            product_type = 'science'
+        elif product == 'spectrogram_user': 
+            prod = Spectrogram.from_packets(parsed_packets, eng_packets)
+            product_type = 'science'
+        elif product == 'aspect':
+            prod = Aspect.from_packets(parsed_packets, eng_packets)
+            product_type = 'science'
+        else:
+            logger.warning(f'Not implemented {product}, SPID {spid}.')
+            return
 
 
 
-            base_path=Path(base_path_name)
-            base_path.mkdir(parents=True, exist_ok=True)
+        base_path=Path(base_path_name)
+        base_path.mkdir(parents=True, exist_ok=True)
 
-            unique_id=db.get_next_fits_id()
-            meta_entries=[]
-            #write extracted information to fits files
-            if product_type=='housekeeping':
-                meta=hkw.write_fits(base_path,unique_id,  prod, product, overwrite, version,run_type) 
-                meta_entries=[meta]
-            else:
-                fits_processor = FitsL1Processor(base_path, unique_id, version,run_type)
-                fits_processor.write_fits(prod)
-                meta_entries=fits_processor.get_meta_data()
-            for meta in meta_entries :
-                try: 
-                    abs_path=base_path/meta['filename']
-                    file_size=abs_path.stat().st_size
-                except:
-                    file_size=0
-                    pass
+        unique_id=db.get_next_fits_id()
+        meta_entries=[]
+        #write extracted information to fits files
+        if product_type=='housekeeping':
+            meta=hkw.write_fits(base_path,unique_id,  prod, product, overwrite, version,run_type) 
+            meta_entries=[meta]
+        else:
+            fits_processor = FitsL1Processor(base_path, unique_id, version,run_type)
+            fits_processor.write_fits(prod)
+            meta_entries=fits_processor.get_meta_data()
+        for meta in meta_entries :
+            try: 
+                abs_path=base_path/meta['filename']
+                file_size=abs_path.stat().st_size
+            except:
+                file_size=0
 
-                doc={
-                    #'_id':unique_id,
-                    'packet_id_start': packets[0]['_id'],
-                    'packet_id_end': packets[-1]['_id'],
-                    'packet_spid':spid,
-                    'num_packets': len(packets),
-                    'file_id':file_id, 
-                    'product_type':product, 
-                    'product_group':product_type,
-                    #'data_start_unix':meta['data_start_unix'],
-                    #'data_end_unix':meta['data_end_unix'],
-                    #'filename': meta['filename'],
-                    'complete':is_complete,
-                    'run_type':run_type,
-                    'version': version,
-                    'level':DATA_LEVEL,
-                    'creation_time':datetime.utcnow(),
-                    'path':base_path_name,
-                    'file_size':file_size
-                    }
-                doc.update(meta)
-                db.write_fits_index_info(doc)
-                logger.info(f'created  fits file:  {meta["filename"]}')
-
-        except Exception as e:
-            logger.error(str(e))
+            doc={
+                #'_id':unique_id,
+                'packet_id_start': parsed_packets['min_id'],
+                'packet_id_end': parsed_packets['max_id'],
+                'packet_spid':spid,
+                'num_packets': parsed_packets['num_packets'],
+                'file_id':file_id, 
+                'product_type':product, 
+                'product_group':product_type,
+                #'data_start_unix':meta['data_start_unix'],
+                #'data_end_unix':meta['data_end_unix'],
+                #'filename': meta['filename'],
+                'complete':is_complete,
+                'run_type':run_type,
+                'version': version,
+                'level':DATA_LEVEL,
+                'creation_time':datetime.utcnow(),
+                'path':base_path_name,
+                'file_size':file_size
+                }
+            doc.update(meta)
+            db.write_fits_index_info(doc)
+            logger.info(f'created  fits file:  {meta["filename"]}')
+    except Exception as e:
+        raise
+        logger.error(str(e))
             #raise e
 
 def purge_fits_for_raw_file(file_id):
@@ -246,6 +221,7 @@ def purge_fits_for_raw_file(file_id):
                 logger.info(f'Removing file: {fits_filename}')
                 os.unlink(fits_filename)
             except Exception as e:
+                raise
                 logger.warning(f'Failed to remove fits file:{fits_filename} due to: {str(e)}')
         logger.info(f'deleting fits collections for file: {file_id}')
         cursor = fits_collection.delete_many({'file_id': int(file_id)})
@@ -257,14 +233,14 @@ def create_continous_low_latency_fits(start_unix, end_unix,  output_path=FITS_PA
     for spid, product in LOW_LATENCY_TYPES.items():
         print(spid, product,start_unix, end_unix)
         if spid in QL_SPID_MAP.keys():
-            packet_lists=[list(db.get_quicklook_packets(QL_SPID_MAP[spid],
+            packets=db.get_quicklook_packets(QL_SPID_MAP[spid],
                 start_unix,
-                              end_unix-start_unix,sort_field='header.unix_time'))]
+                              end_unix-start_unix,sort_field='header.unix_time')
         elif spid==54102:
-            packet_lists=[list(pkt_col.find({'header.unix_time':{'$gte':start_unix,
+            packets=pkt_col.find({'header.unix_time':{'$gte':start_unix,
                 '$lte':end_unix},
-                'header.SPID':spid}).sort('header.unix_time',1))]
-        process_packets(file_id, packet_lists, spid, 
+                'header.SPID':spid}).sort('header.unix_time',1)
+        create_fits_for_packets(file_id, packets, spid, 
                 product, is_complete=True,  
                 base_path_name=output_path, 
                 overwrite=overwrite, version=version, 
@@ -332,23 +308,20 @@ def create_fits(file_id, output_path, overwrite=True,  version=1):
             bsd_docs=db.get_bsd_docs_by_run_id(file_id, spid)
             for bsd in bsd_docs:
                 pids=bsd['packet_ids']
-                pkts=list(db.get_collection('packets').find({'_id':{'$in':pids}}).sort('header.unix_time',1))
-                if pkts:
-                    logger.info(f'Creating fits file for bsd #{bsd["_id"]}')
-                    process_packets(file_id, [pkts], spid, product, True, output_path, overwrite, version, remove_duplicates=True)
-                else:
-                    logger.error(f'packets not found for bsd #{bsd["_id"]}')
+                pkts=db.get_collection('packets').find({'_id':{'$in':pids}}).sort('header.unix_time',1)
+                logger.info(f'Creating fits file for bsd #{bsd["_id"]}')
+                create_fits_for_packets(file_id, pkts, spid, product, True, output_path, overwrite, version, remove_duplicates=True)
             continue
 
+        #process of continuous data packets
 
         cursor= db.select_packets_by_run(file_id, [spid],sort_field=sort_field)
 
         is_complete=True
+        #if housekeeping, process all of them once
         if spid in [54101, 54102]:
-            packets=[list(cursor)]
-            process_packets(file_id, packets, spid, product, is_complete, output_path, overwrite, version)
+            create_fits_for_packets(file_id, cursor, spid, product, is_complete, output_path, overwrite, version)
             continue
-
         packets=[]
         received_first=False
         received_last=False
@@ -356,6 +329,7 @@ def create_fits(file_id, output_path, overwrite=True,  version=1):
         #iterate over packets of the same type
         hashes=[]
         for i, pkt in enumerate(cursor):
+            #process packets except HK and science data
             if pkt['hash'] in hashes:
                 #remove duplicated packets
                 continue
@@ -390,14 +364,14 @@ def create_fits(file_id, output_path, overwrite=True,  version=1):
             if received_first and received_last:
                 is_complete=True
                 #print('complete packets')
-                process_packets(file_id, [packets], spid, product, is_complete, output_path, overwrite, version)
+                create_fits_for_packets(file_id, packets, spid, product, is_complete, output_path, overwrite, version)
                 packets=[] #clean container after processing packets
                 received_first=False
                 received_last=False
         if packets: #unprocessed packets
             #incomplete packets, QL packets are always incomplete 
             is_complete=False
-            process_packets(file_id, [packets], spid, product, is_complete, output_path, overwrite, version)
+            create_fits_for_packets(file_id, packets, spid, product, is_complete, output_path, overwrite, version)
             logger.warning(f'Incomplete report {spid} (packets[0]["_id"]) found but fits file still created')
 
 
@@ -415,6 +389,7 @@ if  __name__ == '__main__':
         try:
             create_fits(int(sys.argv[1]), FITS_PATH, overwrite=True, version=1)
         except ValueError:
+            raise
             create_daily_low_latency_fits(sys.argv[1], FITS_PATH)
     else:
         try:

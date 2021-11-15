@@ -127,14 +127,14 @@ class StixBinaryWriter(StixPacketWriter):
             self.fout.close()
 
 
-class StixMongoDBWriter(StixPacketWriter):
+class StixMongoDB(StixPacketWriter):
     """write data to   MongoDB"""
     def __init__(self,
                  server=MONGODB_CONFIG['host'],
                  port=MONGODB_CONFIG['port'],
                  username=MONGODB_CONFIG['user'],
                  password=MONGODB_CONFIG['password']):
-        super(StixMongoDBWriter, self).__init__()
+        super(StixMongoDB, self).__init__()
 
         self.ipacket = 0
         self.packets = []

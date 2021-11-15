@@ -1361,13 +1361,13 @@ class StixTCTMParser(StixParameterParser):
             self.packet_writer.set_summary(summary)
         return packets
 
-    def set_pickle_writer(self, out_filename, comment=''):
-        self.packet_writer = stix_writer.StixPickleWriter(out_filename)
-        idb_version = STIX_IDB.get_idb_version()
-        self.packet_writer.register_run(self.raw_filename, self.raw_filename,
-                                        comment, idb_version)
+    #def set_pickle_writer(self, out_filename, comment=''):
+    #    self.packet_writer = stix_writer.StixPickleWriter(out_filename)
+    #    idb_version = STIX_IDB.get_idb_version()
+    #    self.packet_writer.register_run(self.raw_filename, self.raw_filename,
+    #                                    comment, idb_version)
 
-    def set_MongoDB_writer(self,
+    def config_mongodb(self,
                            server,
                            port,
                            username,
@@ -1377,7 +1377,7 @@ class StixTCTMParser(StixParameterParser):
                            instrument=''):
         #instrument: GU or PFM
         #server, port, username and password are required by MongoDB
-        self.packet_writer = stix_writer.StixMongoDBWriter(
+        self.packet_writer = stix_writer.StixMongoDB(
             server, port, username, password)
         idb_version = STIX_IDB.get_idb_version()
         self.raw_filename = raw_filename

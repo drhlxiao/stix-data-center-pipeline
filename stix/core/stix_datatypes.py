@@ -6,6 +6,7 @@
 #               definitions of structures of decoded parameters and packets
 import os
 import pprint
+import math
 import copy
 from stix.core import stix_logger
 from stix.core import stix_idb
@@ -315,6 +316,9 @@ class Packet(object):
 
         result = {}
         hash_list=[]
+        min_id=math.inf
+        max_id=-math.inf
+        pkt_len=0
 
         for pkt in packets:
             if remove_duplicates:
@@ -327,8 +331,15 @@ class Packet(object):
                     continue
             except ValueError:
                 continue
+            min_id=min(min_id,pkt['_id'])
+            max_id=max(max_id,pkt['_id'])
+            pkt_len+=1
+
             Packet.merge_headers(result, pkt['header'])
             Packet.merge_parameters(result, pkt['parameters'], value_type)
+        results['min_id']=min_id
+        results['max_id']=max_id
+        results['num_packets']=pkt_len
 
         return result
 
