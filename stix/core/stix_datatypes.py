@@ -337,9 +337,9 @@ class Packet(object):
 
             Packet.merge_headers(result, pkt['header'])
             Packet.merge_parameters(result, pkt['parameters'], value_type)
-        results['min_id']=min_id
-        results['max_id']=max_id
-        results['num_packets']=pkt_len
+        result['min_id']=min_id
+        result['max_id']=max_id
+        result['num_packets']=pkt_len
 
         return result
 
