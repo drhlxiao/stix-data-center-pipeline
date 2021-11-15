@@ -245,7 +245,12 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
     return summary
 
 
-def main():
+def find_new_telemetry_files():
+    """
+        Find new telemetry files in the folder specified in config.py
+        returns: dict
+        dictionary with a list of new files or empty dict
+    """
     filelist = {}
     print('checking new files ...')
     num_processed = 0
@@ -261,6 +266,13 @@ def main():
                     if instrument not in filelist:
                         filelist[instrument] = []
                     filelist[instrument].append(filename)
+    return filelist
+
+def process_files(filelist):
+    """
+    Process files
+    """
+
     for instrument, files in filelist.items():
         goes.download()
         for filename in files:
@@ -274,7 +286,10 @@ def main():
             num_processed += 1
     MDB.release_notifications(notification_ids)
     return num_processed
-
+def main():
+    flist=find_new_telemetry_files()
+    if flist:
+        process_files(flist)
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
