@@ -457,6 +457,9 @@ if  __name__ == '__main__':
     path=args['path']
 
     if args['bsd_id']:
+        bsd_id_start=int(args['bsd_id'])
+        bsd_id_end=bsd_id_start
+
         create_fits_for_bulk_science(bsd_id_start, bsd_id_end, path, overwrite=True, version=1)
     if args['bsd_id_range']:
         bsd_id_start=int(argsargs['bsd_id_start'])
