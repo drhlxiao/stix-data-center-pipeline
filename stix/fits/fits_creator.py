@@ -1,5 +1,6 @@
 import sys
 import os
+import argparse
 from collections import defaultdict
 from datetime import datetime
 from itertools import chain
@@ -80,7 +81,7 @@ SCI_REPORT_SPIDS=[
     54143]
 
 def create_fits_for_packets(file_id, packets, spid, product, is_complete,  
-        base_path_name=FITS_PATH, overwrite=True, version=1, remove_duplicates=False, run_type='file'):
+        base_path_name=FITS_PATH, overwrite=True, version=1, remove_duplicates=True, run_type='file'):
     """
     Process a sequence containing one or more packets for a given product.
 
@@ -107,7 +108,8 @@ def create_fits_for_packets(file_id, packets, spid, product, is_complete,
         return
 
     parsed_packets = sdt.Packet.merge(packets, spid, value_type='raw', remove_duplicates=remove_duplicates)
-    eng_packets = sdt.Packet.merge(packets, spid, value_type='eng',remove_duplicates=remove_duplicates)
+    #eng_packets = sdt.Packet.merge(packets, spid, value_type='eng',remove_duplicates=remove_duplicates)
+    eng_packets=None
     prod=None
 
     try:
@@ -206,7 +208,7 @@ def create_fits_for_packets(file_id, packets, spid, product, is_complete,
             db.write_fits_index_info(doc)
             logger.info(f'created  fits file:  {meta["filename"]}')
     except Exception as e:
-        raise
+        #raise
         logger.error(str(e))
             #raise e
 
@@ -221,7 +223,7 @@ def purge_fits_for_raw_file(file_id):
                 logger.info(f'Removing file: {fits_filename}')
                 os.unlink(fits_filename)
             except Exception as e:
-                raise
+                #raise
                 logger.warning(f'Failed to remove fits file:{fits_filename} due to: {str(e)}')
         logger.info(f'deleting fits collections for file: {file_id}')
         cursor = fits_collection.delete_many({'file_id': int(file_id)})
@@ -275,6 +277,25 @@ def create_low_latency_fits_relative_days(relative_start, relative_end, path=FIT
     date_end=end.strftime('%Y-%m-%d')
     create_low_latency_fits_between_dates(date_start, date_end, path)
 
+
+
+def create_fits_for_bulk_science(bsd_id_start, bsd_id_end, output_path, overwrite=True, version=1):
+    """
+        create fits file for bulk science data 
+        Parameters:
+        bsd_id_start:  bulk science data entry id
+        bsd_id_end:  bulk science data end id
+    """
+    bsd_db=db.get_collection('bsd')
+    bsd_docs=bsd_db.find({'_id':{'$gte':bsd_id_start, '$lte':bsd_id_end}})
+    for bsd in bsd_docs:
+        pids=bsd['packet_ids']
+        pkts=db.get_collection('packets').find({'_id':{'$in':pids}}).sort('header.unix_time',1)
+        logger.info(f'Creating fits file for bsd #{bsd["_id"]}')
+        file_id=bsd['run_id']
+        spid=bsd['SPID']
+        product = SPID_MAP[spid]
+        create_fits_for_packets(file_id, pkts, spid, product, True, output_path, overwrite, version, remove_duplicates=True)
 
 
 
@@ -378,27 +399,82 @@ def create_fits(file_id, output_path, overwrite=True,  version=1):
 
 
 if  __name__ == '__main__':
-    if len(sys.argv) == 1:
-        print('''STIX L1 FITS writer
-                   It reads packets from mongodb and write them into fits
-                Usage:
-                packets_to_fits   <file_id>
-                packets_to_fits   <file_start_id e.g. 2021-01-01> <end_id>
-                ''')
-    elif len(sys.argv)==2:
-        try:
-            create_fits(int(sys.argv[1]), FITS_PATH, overwrite=True, version=1)
-        except ValueError:
-            raise
-            create_daily_low_latency_fits(sys.argv[1], FITS_PATH)
-    else:
-        try:
-            start=int(sys.argv[1])
-            end=int(sys.argv[2])
-            for i in range(start,end+1):
-                purge_fits_for_raw_file(i)
-            for i in range(start,end+1):
-                create_fits(i, FITS_PATH, overwrite=False, version=1)
-        except ValueError:
-            create_low_latency_fits_between_dates(sys.argv[1], sys.argv[2], FITS_PATH)
+    ap = argparse.ArgumentParser()
+    required = ap.add_argument_group('Required arguments')
+    optional = ap.add_argument_group('Optional arguments')
+
+
+    optional.add_argument(
+        "-p",
+        dest='path',
+        default=FITS_PATH,
+        required=False,
+        help="Output fits path. ")
+
+    optional.add_argument(
+        "-f",
+        dest='file_id',
+        default=None,
+        required=False,
+        help="File ID")
+    optional.add_argument(
+        "-fs",
+        dest='file_id_range',
+         nargs=2,
+        default=None,
+        required=False,
+        help="File ID range")
+
+    optional.add_argument(
+        "-d",
+        dest='date',
+        default=None,
+        required=False,
+        help="Start time to select LL data")
+    optional.add_argument(
+        "-ds",
+        dest='date_range',
+         nargs=2,
+        default=None,
+        required=False,
+        help="End time to select LL data")
+
+    optional.add_argument(
+        "-b",
+        dest='bsd_id',
+        default=None,
+        required=False,
+        help="bsd id")
+    optional.add_argument(
+        "-bs",
+        dest='bsd_id_range',
+         nargs=2,
+        default=None,
+        required=False,
+        help="Bulk science data id range")
+
+    args = vars(ap.parse_args())
+    path=args['path']
+
+    if args['bsd_id']:
+        create_fits_for_bulk_science(bsd_id_start, bsd_id_end, path, overwrite=True, version=1)
+    if args['bsd_id_range']:
+        bsd_id_start=int(argsargs['bsd_id_start'])
+        bsd_id_end=int(argsargs['bsd_id_end'])
+        create_fits_for_bulk_science(bsd_id_start, bsd_id_end, path, overwrite=True, version=1)
+    if args['file_id']:
+        create_fits(int(args['file_id']), path, overwrite=True, version=1)
+    if args['file_id_range']:
+        for i in range(int(args['file_id_range'][0]),int(args['file_id_range'][1])+1):
+            create_fits(i, path, overwrite=True, version=1)
+
+    if args['date_range']:
+        date_start=args['date_range'][0]
+        date_end=args['date_range'][1]
+        create_low_latency_fits_between_dates(date_start, date_end, path)
+    if args['date']:
+        date=args['date']
+        create_daily_low_latency_fits(date, path)
+
+
 

@@ -253,7 +253,6 @@ def find_new_telemetry_files():
     """
     filelist = {}
     print('checking new files ...')
-    notification_ids=[]
     for instrument, selectors in daemon_config['data_source'].items():
         for pattern in selectors:
             filenames = glob.glob(pattern)
@@ -272,6 +271,7 @@ def process_files(filelist):
     Process files
     """
     num_processed = 0
+    notification_ids=[]
 
     for instrument, files in filelist.items():
         goes.download()
