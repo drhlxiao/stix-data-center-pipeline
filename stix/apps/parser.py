@@ -156,7 +156,7 @@ def process_single_file(filename, filetype, output_filename, selected_spids,sele
     if wdb:
         parser.set_store_binary_enabled(False)
         parser.set_packet_buffer_enabled(False)
-        parser.set_MongoDB_writer(db_host,db_port,db_user, db_pwd,comment, filename)
+        parser.config_mongodb(db_host,db_port,db_user, db_pwd,comment, filename)
     parser.parse_file(filename, filetype) 
     parser.done()
 

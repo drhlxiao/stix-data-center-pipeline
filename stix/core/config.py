@@ -9,7 +9,7 @@ from dateutil import parser as dtparser
 from stix.core import stix_logger
 logger = stix_logger.get_logger()
 
-ASW_VERSION = 181
+ASW_VERSION = 183
 HTTP_PREFIX = 'https://pub023.cs.technik.fhnw.ch'
 parser_config = {
     "pipeline": {
@@ -42,7 +42,7 @@ parser_config = {
             "goes_lc_path": "/data/goes/",
             "flare_pipeline_path":"/data/flare_pipeline"
         },
-        "asw_version": 181
+        "asw_version": 183
     },
     "ASW": {
         "179": {
@@ -53,6 +53,11 @@ parser_config = {
         "181": {
             "filename": "/data/pub/data/idb/idb_v2.26.35.sqlite",
             "version": "2.26.34",
+            "validityPeriod": ["2020-12-28T00:00:00", "2020-12-28T00:00:00"]
+        },
+        "183":{
+            "filename": "/data/pub/data/idb/idb_v2.26.36.sqlite",
+            "version": "2.26.36",
             "validityPeriod": ["2020-12-28T00:00:00", "2020-12-28T00:00:00"]
         }
     },

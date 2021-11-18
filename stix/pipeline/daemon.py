@@ -6,7 +6,7 @@ import sys
 import os
 import time
 import threading
-from stix.pipeline import parser as pd
+from stix.pipeline import level1 as pd
 from stix.analysis import goes_downloader as gd
 
 goes=gd.GOES()

@@ -102,7 +102,8 @@ def create_fits_for_packets(file_id, packets, spid, product, is_complete,
     """
 
     # For HK merge all stand alone packets in request
-    file_id=int(file_id)
+    if isinstance(file_id, str):
+        file_id=int(file_id)
     if not packets:
         print('No packets found!')
         return
@@ -208,7 +209,7 @@ def create_fits_for_packets(file_id, packets, spid, product, is_complete,
             db.write_fits_index_info(doc)
             logger.info(f'created  fits file:  {meta["filename"]}')
     except Exception as e:
-        #raise
+        raise
         logger.error(str(e))
             #raise e
 

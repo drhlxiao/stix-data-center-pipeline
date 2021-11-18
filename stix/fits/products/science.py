@@ -650,7 +650,14 @@ class Spectrogram(Product):
 
         control['pixel_mask'] = np.unique(_get_pixel_mask(packets), axis=0)
         control['detector_mask'] = np.unique(_get_detector_mask(packets), axis=0)
-        control['rcr'] = np.unique(packets['NIX00401']).astype(np.int16)
+        #try:
+        #    rcr=np.unique(packets['NIX00401']).astype(np.int16)
+        #    #raise an exception for  data  acquired on Oct 28, 2021
+        #except ValueError:
+        rcr=np.array(packets.get('NIX00401')[0], np.int16)
+        #print(rcr)
+        #print(control['pixel_mask'])
+        control['rcr'] =rcr
         control['index'] = range(len(control))
 
         e_min = np.array(packets['NIXD0442'])

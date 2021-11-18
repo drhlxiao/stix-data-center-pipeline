@@ -143,6 +143,7 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
     logger.set_logger(log_filename, level=3)
     if debugging:
         logger.enable_debugging()
+        print('Start processing file ', filename)
     parser = stix_parser.StixTCTMParser()
     parser.config_mongodb(mongodb_config['host'], mongodb_config['port'],
                               mongodb_config['user'],
