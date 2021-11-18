@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- encoding: utf-8 -*-
-# @title        : parser_pipeline.py
+# @title        : Level 1 processing pipeline 
 # @description  : STIX packet parser pipeline. It detects new files in the specified folder,
 #                 parses the packets and stores the decoded packets in the MongoDB
 # @author       : Hualin Xiao
@@ -129,12 +129,15 @@ def process_one(filename):
             notification_ids.append(summary['notification_id'])
         except (TypeError, KeyError):
             pass
+
     MDB.release_notifications(notification_ids)
 
 
 def process(instrument, filename, notification_enabled=True, debugging=False):
     spm.spice.load_kernels()
     #always load the latest kernel files
+
+    print('Start processing file ', filename)
     base = os.path.basename(filename)
     name = os.path.splitext(base)[0]
     num_flares = 0
@@ -294,6 +297,9 @@ def main():
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
-        main()
+        print("""Usage: 
+        level1 <raw telemetry filename>
+        """)
+
     else:
         process_one(sys.argv[1])

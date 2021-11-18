@@ -388,7 +388,7 @@ class StixQuickLookReportAnalyzer(object):
 
 class StixUserDataRequestReportAnalyzer(object):
     def __init__(self, stix_db):
-        self.db = stix_db['bsd']
+        self.bsd_db = stix_db['bsd']
         self.db_bsd_forms = stix_db['bsd_req_forms']
         self.last_unique_id = -1
         self.last_request_spid = -1
@@ -397,13 +397,13 @@ class StixUserDataRequestReportAnalyzer(object):
         self.report={}
         self.stop_time = 0
         try:
-            self.current_id = self.db.find().sort('_id',
+            self.current_id = self.bsd_db.find().sort('_id',
                                                   -1).limit(1)[0]['_id'] + 1
         except IndexError:
             self.current_id = 0
 
     def capture(self, run_id, packet_id, pkt):
-        if not self.db:
+        if not self.bsd_db:
             return
         packet = sdt.Packet(pkt)
         if packet.SPID not in DATA_REQUEST_REPORT_SPIDS:
@@ -422,10 +422,10 @@ class StixUserDataRequestReportAnalyzer(object):
             self.process_bulk_science(run_id, packet_id, packet)
 
     def update_bsd_doc(self,  unique_id, bsd_doc):
-        doc=self.db.find_one({'unique_id':unique_id})
+        doc=self.bsd_db.find_one({'unique_id':unique_id})
         if not doc:
             logger.info(f"Inserting new bsd:{bsd_doc['_id']}")
-            self.db.save(bsd_doc)
+            self.bsd_db.save(bsd_doc)
             updated_existing=False
         else:
             doc['packet_ids'].extend(bsd_doc['packet_ids'])
@@ -445,7 +445,7 @@ class StixUserDataRequestReportAnalyzer(object):
             logger.info(f"Replacing existing bsd:{doc['_id']}")
 
 
-            self.db.replace_one({'_id':doc['_id']},doc)
+            self.bsd_db.replace_one({'_id':doc['_id']},doc)
             updated_existing=True
         return updated_existing
 
@@ -466,7 +466,7 @@ class StixUserDataRequestReportAnalyzer(object):
                 self.report={}
                 self.packet_ids = []
             #else:
-            #    self.db.save(self.report)
+            #    self.bsd_db.save(self.report)
 
 
     def process_bulk_science(self, run_id, packet_id, packet):
@@ -490,7 +490,7 @@ class StixUserDataRequestReportAnalyzer(object):
                     logger.warn(f'Can not find request info for Request UID-{self.last_unique_id}')
             except Exception as e:
                 logger.error(e)
-                pass
+
             logger.info(f'inserting bsd {self.last_unique_id} to db')
             self.report['packet_ids']=self.packet_ids
             self.report['_id']=self.current_id
@@ -524,9 +524,18 @@ class StixUserDataRequestReportAnalyzer(object):
 
     def process_aspect(self, run_id, packet_id, packet):
         start_obt = packet[1].raw + packet[2].raw / 65536
-        summing = packet[3].raw
-        samples = packet[4].raw
-        duration = samples / 64. * summing
+        if packet[3].name=='NIX00037':
+            #valid for asw version >183
+            unique_id=packet[3].raw
+            offset=4
+        else:
+            offset=3
+            unique_id=-1
+        avg= packet[offset].raw
+        summing = packet[offset+1].raw
+        samples = packet[offset+2].raw
+
+        duration = samples * summing*avg/1000.
 
         if packet['seg_flag'] in [1, 3]:
             self.packet_ids = []
@@ -542,6 +551,7 @@ class StixUserDataRequestReportAnalyzer(object):
                 stix_datetime.scet2unix(self.start_obt_time),
                 'end_unix_time': stix_datetime.scet2unix(end_time),
                 'start_scet': self.start_obt_time,
+                'unique_id':unique_id,
                 'end_scet': end_time,
                 'packet_ids': self.packet_ids,
                 'SPID': packet['SPID'],
@@ -551,7 +561,7 @@ class StixUserDataRequestReportAnalyzer(object):
                 'header_scet': packet.get('SCET', 0),
                 '_id': self.current_id,
             }
-            self.db.insert_one(self.report)
+            self.bsd_db.insert_one(self.report)
             self.current_id += 1
             self.last_request_spid=packet['SPID']
             self.packet_ids=[]

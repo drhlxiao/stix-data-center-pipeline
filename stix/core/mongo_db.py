@@ -194,7 +194,6 @@ class MongoDB(object):
         abspath = os.path.abspath(filename)
         path = os.path.dirname(abspath)
         cursor = self.collection_raw_files.find({'filename': basename})
-        #,'path':path})
         for x in cursor:
             return x['_id']
 
