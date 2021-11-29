@@ -286,6 +286,7 @@ class FlareDataAnalyzer(object):
 
 
 
+        """
         if plot_fig or save_fig:
             ds='steps-mid'
             fig, axs = plt.subplots(2,2, figsize=(13,10))
@@ -387,6 +388,7 @@ class FlareDataAnalyzer(object):
                 except Exception as e:
                     print(e)
             plt.close()
+            """
 
     def process_L1_BSD_in_file(self, file_id):
         print("Processing file:", file_id)

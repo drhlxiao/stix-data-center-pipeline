@@ -4,8 +4,11 @@
 # @description:
 #               decompression of compressed parameters
 from stix.core import stix_logger
+from functools import cache
 
 logger = stix_logger.get_logger()
+
+
 
 MAX_STORED_INTEGER = 1e8
 #numbers greater than this value will be converted to float type
@@ -286,7 +289,7 @@ SCHEMAS = {
     # 54143:{},
 }
 
-
+@cache
 def decompress(x, S, K, M):
     """
     decompress x 
