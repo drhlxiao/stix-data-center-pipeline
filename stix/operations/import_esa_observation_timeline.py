@@ -6,7 +6,7 @@ from pprint import pprint
 connect = pymongo.MongoClient()
 db = connect['stix']['events']
 
-timeline_file_id='LTP05_v2'
+timeline_file_id='LTP06_v1'
 
 
 def create_report(_id, subject, start, end, descr):
@@ -47,12 +47,17 @@ def import_timeline(filename):
         name=obs['name']
         start=obs['startDate']
         end=obs['endDate']
+        if name=='STIX_BASIC':
+            continue
+        vol=obs['numberParameters']['SCI_REQUEST_VOLUME']
+        data_vol=f"Max science data volume: {vol['value']} {vol['unit']}"
         subject=name_map.get(name, name)
-        #create_report(next_id, subject, start, end, descr=subject)
+
+        create_report(next_id, subject, start, end, descr=data_vol)
         next_id+=1
 
 
 
     
-filename='/home/xiaohl/Documents/SSTX_observation_timeline_export_M04_V02.json'
+filename='SSTX_observation_timeline_export_M06_V01.json'
 import_timeline(filename)

@@ -169,18 +169,18 @@ def create_fits_for_packets(file_id, packets, spid, product, is_complete,
         base_path.mkdir(parents=True, exist_ok=True)
 
         unique_id=db.get_next_fits_id()
-        meta_entries=[]
+        metadata_entries=[]
         #write extracted information to fits files
         if product_type=='housekeeping':
-            meta=hkw.write_fits(base_path,unique_id,  prod, product, overwrite, version,run_type) 
-            meta_entries=[meta]
+            metadata=hkw.write_fits(base_path,unique_id,  prod, product, overwrite, version,run_type) 
+            metadata_entries=[metadata]
         else:
             fits_processor = FitsL1Processor(base_path, unique_id, version,run_type)
             fits_processor.write_fits(prod)
-            meta_entries=fits_processor.get_meta_data()
-        for meta in meta_entries :
+            metadata_entries=fits_processor.get_metadata()
+        for metadata in metadata_entries :
             try: 
-                abs_path=base_path/meta['filename']
+                abs_path=base_path/metadata['filename']
                 file_size=abs_path.stat().st_size
             except:
                 file_size=0
@@ -205,9 +205,9 @@ def create_fits_for_packets(file_id, packets, spid, product, is_complete,
                 'path':base_path_name,
                 'file_size':file_size
                 }
-            doc.update(meta)
+            doc.update(metadata)
             db.write_fits_index_info(doc)
-            logger.info(f'created  fits file:  {meta["filename"]}')
+            logger.info(f'created  fits file:  {metadata["filename"]}')
     except Exception as e:
         raise
         logger.error(str(e))
@@ -463,8 +463,8 @@ if  __name__ == '__main__':
 
         create_fits_for_bulk_science(bsd_id_start, bsd_id_end, path, overwrite=True, version=1)
     if args['bsd_id_range']:
-        bsd_id_start=int(argsargs['bsd_id_start'])
-        bsd_id_end=int(argsargs['bsd_id_end'])
+        bsd_id_start=int(args['bsd_id_range'][0])
+        bsd_id_end=int(args['bsd_id_range'][1])
         create_fits_for_bulk_science(bsd_id_start, bsd_id_end, path, overwrite=True, version=1)
     if args['file_id']:
         create_fits(int(args['file_id']), path, overwrite=True, version=1)

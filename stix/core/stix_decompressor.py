@@ -4,7 +4,6 @@
 # @description:
 #               decompression of compressed parameters
 from stix.core import stix_logger
-from functools import cache
 
 logger = stix_logger.get_logger()
 
@@ -289,7 +288,6 @@ SCHEMAS = {
     # 54143:{},
 }
 
-@cache
 def decompress(x, S, K, M):
     """
     decompress x 

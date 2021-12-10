@@ -152,14 +152,14 @@ class FitsL1Processor:
 
         self.run_type=run_type
         self.fits_db_id=db_id
-        self.meta=[]
+        self.metadata=[]
         self.version=ver
-    def get_meta_data(self):
-        return self.meta
+    def get_metadata(self):
+        return self.metadata
 
 
     def write_fits(self, product):
-        self.meta=[]
+        self.metadata=[]
         if callable(getattr(product, 'to_days', None)):
             #print("# to_days")
             products = product.to_days()
@@ -222,16 +222,16 @@ class FitsL1Processor:
                 full_path.unlink()
 
             hdul.writeto(full_path, overwrite=True, checksum=True)
-            _meta={'data_start_unix': prod.obs_beg.to_datetime().timestamp(),
+            _metadata={'data_start_unix': prod.obs_beg.to_datetime().timestamp(),
                     'data_end_unix': prod.obs_end.to_datetime().timestamp(),
                     '_id': self.fits_db_id,
                     'filename':filename
                     }
             if 'request_id' in control.colnames:
-                _meta['request_id']=int(control['request_id'][0])
+                _metadata['request_id']=int(control['request_id'][0])
 
             self.fits_db_id+=1
-            self.meta.append(_meta)
+            self.metadata.append(_metadata)
 
     def generate_filename(self, product=None, status=''):
         """

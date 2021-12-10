@@ -781,12 +781,23 @@ class Aspect(Product):
         control['summing_value'] = packets['NIX00088']
         control['averaging_value'] = packets['NIX00490']
         control['index'] = range(len(control))
+        try:
+            control['request_id'] = np.array(packets.get('NIX00037'), np.uint32)
+            #request id introduced after FSW v183, 2021-12-09
+        except KeyError:
+            pass
 
         delta_time = ((control['summing_value'] * control['averaging_value']) / 1000.0)
         samples = packets['NIX00089']
 
         offsets = [delta_time[i]* np.arange(ns) * u.s for i, ns in enumerate(samples)]
-        time = Time([start_times[i] + offsets[i] for i in range(len(offsets))])
+        time_st=[start_times[i] + offsets[i] for i in range(len(offsets))]
+        try: 
+            time = Time(time_st)
+        except AttributeError:
+            #throw exception after asw 183, updated by Hualin in order to 
+            time=np.array(time_st).flatten()
+
         timedel = np.hstack(offsets)
 
         # Data
