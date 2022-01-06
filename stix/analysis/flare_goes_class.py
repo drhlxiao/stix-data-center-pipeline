@@ -30,6 +30,7 @@ def get_first_element(obj):
             new_obj[key]=val
     return new_obj
 def goes_flux_to_class(x):
+    x=float(f'{x:.1e}')
     if x==0:
         return 'NA'
     elif x<1e-7:
@@ -41,7 +42,7 @@ def goes_flux_to_class(x):
     elif x<1e-4:
         return f'M{x/1e-5:.1f}'
     else:
-        return f'X{x/1e-4:.1ff}'
+        return f'X{x/1e-4:.1f}'
 def get_goes_class(start, end):
     data = mdb.get_goes_fluxes(start, end)
     last_time=0

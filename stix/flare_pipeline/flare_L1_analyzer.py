@@ -1,5 +1,9 @@
 #!/usr/bin/python3
 '''
+
+This script should run after running flare_sci_L1_analysis because it requires data prepared by flare sci
+
+
 L1 flare data analysis pipeline
   what it does here includes
   - do background subtraction for flare data

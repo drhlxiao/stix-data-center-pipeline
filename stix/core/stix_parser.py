@@ -1175,12 +1175,6 @@ class StixTCTMParser(StixParameterParser):
 
         return packets
 
-    #def parse_live_hex_stream(self, raw):
-    #    #used to parse live hex stream from TSC
-    #    self.is_live_hex_stream = True
-    #    #self.set_store_binary_enabled(False)
-    #    self.set_packet_buffer_enabled(False)
-    #    self.parse_hex(raw)
 
     def parse_hex(self, raw_hex):
         hex_string = re.sub(r"\s+", "", raw_hex)

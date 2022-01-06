@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 """
-    Create metadata from science reports. The information from science packets is written into mongodb
+    Create metadata from science reports. The information from science packets is written into the collection bsd in  mongodb
     Routines in this script are called by stix_writer
     @Author: Hualin Xiao
     @Date: Nov. 2019
@@ -238,7 +238,7 @@ class StixQuickLookReportAnalyzer(object):
         num_lc_points = packet.get('NIX00270/NIX00271')[0]
         lc = packet.get('NIX00270/NIX00271/*.eng')[0]
         rcr = packet.get('NIX00275/*.raw')
-        trig= packet.get('NIX00273/*.raw')
+        trig= packet.get('NIX00273/*.eng')
         UTC = packet['header']['UTC']
         for i in range(len(lc)):
             if i not in lightcurves:

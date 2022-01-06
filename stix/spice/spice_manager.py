@@ -65,7 +65,10 @@ class SpiceManager:
         if self.loaded_kernel_filename !=  self.latest_mk and self.latest_mk is not None:
             fnames=self.get_kernel_files_from_mk(self.latest_mk)
             for fname in fnames:
-                spiceypy.furnsh(os.path.join(spice_folder, fname))
+                try:
+                    spiceypy.furnsh(os.path.join(spice_folder, fname))
+                except spiceypy.utils.exceptions.SpiceNOSUCHFILE:
+                    print('Failed to load:', fname)
             print('loading kernel:',self.latest_mk)
             self.loaded_kernel_filename=self.latest_mk
         else:

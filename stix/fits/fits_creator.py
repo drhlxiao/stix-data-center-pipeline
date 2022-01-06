@@ -82,6 +82,16 @@ SCI_REPORT_SPIDS=[
 
 def create_fits_for_packets(file_id, packets, spid, product, is_complete,  
         base_path_name=FITS_PATH, overwrite=True, version=1, remove_duplicates=True, run_type='file'):
+    try:
+        _create_fits_for_packets(file_id, packets, spid, product, is_complete, 
+                base_path_name, overwrite, version, remove_duplicates, run_type)
+    except Exception as e:
+        print(e)
+        logger.error(e)
+
+
+def _create_fits_for_packets(file_id, packets, spid, product, is_complete,  
+        base_path_name=FITS_PATH, overwrite=True, version=1, remove_duplicates=True, run_type='file'):
     """
     Process a sequence containing one or more packets for a given product.
 

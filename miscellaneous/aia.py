@@ -1,5 +1,7 @@
-#Author Hualin Xiao (hualin.xiao@fhnw.ch)
-#plot AIA image for STIX flares
+"""
+Author Hualin Xiao (hualin.xiao@fhnw.ch)
+    make AIA images for STIX flares
+"""
 import sys
 import os
 import io
