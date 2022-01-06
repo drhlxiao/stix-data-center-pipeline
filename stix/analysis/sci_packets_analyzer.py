@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 '''
-    pre-process science data, extract information from bulk science data packets and write results to json files or mongodb
+    Pre-process science data, extract information from bulk science data packets and write results to json files or mongodb
     so that web client side could load the data quickly 
     author: Hualin Xiao
 '''
@@ -338,6 +338,7 @@ class StixBulkL1L2Analyzer(object):
                 time = children[offset][1] * 0.1 + T0
 
                 is_flare_data=self.is_near_flare_peak(flare_start_times, flare_end_times,time)
+                #not all are for requested for flares
                 #check if current time stamp fall between the start/end time of a flare in the preload flare list
                 #if is_flare_data:
                 #    print('flare data:',flare_end_times, flare_end_times,T0)

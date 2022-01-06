@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
     Create metadata from science reports. The information from science packets is written into the collection bsd in  mongodb
+    They are  used by the bulk science data page
     Routines in this script are called by stix_writer
     @Author: Hualin Xiao
     @Date: Nov. 2019
