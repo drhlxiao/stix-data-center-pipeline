@@ -30,35 +30,59 @@ from stix.spice import spice_manager as spm
 
 
 
-S20_EXCLUDED = True
-DO_CALIBRATIONS = True
-ENABLE_FITS_CREATION = True
-DO_BULK_SCIENCE_DATA_MERGING = True
-FIND_FLARES = True
-RUN_L1_FLARE_ANALYZER=True
+#S20_EXCLUDED = True
 
-SCI_PACKET_SPIDS = ['54114', '54115', '54116', '54117', '54143', '54125']
-DO_BACKGROUND_ESTIMATION = True
-ESTIMATE_ROTATING_BUFFER_TIME_BINS = True
+
+
+actions={'calibration':True,
+        'fits_creation':True,
+        'flare_detection':True,
+        'time_bins_simulation':True,
+        'bsd_report_merging':True,
+        'bsd_l1_preprocessing':False,
+        'bkg_estimation':True
+        }
+        
+HOST = config.HTTP_PREFIX
+logger = stix_logger.get_logger()
+goes=gdl.GOES()
 daemon_config = config.get_config('pipeline.daemon')
 mongodb_config = config.get_config('pipeline.mongodb')
 
 MDB = mongo_db.MongoDB(mongodb_config['host'], mongodb_config['port'],
                        mongodb_config['user'], mongodb_config['password'])
 
-HOST = config.HTTP_PREFIX
 
-logger = stix_logger.get_logger()
-
-goes=gdl.GOES()
 
 def get_now():
     return datetime.now().isoformat()
+
+class _WatchDog(object):
+    reset_time=datetime.now()
+    hours =  48
+    expiration_time= 5 #hours*3600
+    counter=0
+    def reset(self):
+        self.reset_time=datetime.now()
+        self.counter=0
+    def expired(self):
+      if  (datetime.now()-self.reset_time).total_seconds()>self.expiration_time:
+        self.counter=self.counter+1
+        print(self.counter)
+        return True
+      return False
+
+
+
+WatchDog=_WatchDog()
+
+
 class _Notification(object):
     def __init__(self):
         self.messages=[]
+    def push(self, msg):
+        self.messages.append(msg)
     def send(self):
-        mailer.send
         groups =MDB.get_group_users('operations') 
         if not groups:
             print('can not find emails for operations team ')
@@ -67,14 +91,16 @@ class _Notification(object):
         title = 'STIX operational message'
         bt='\n'+'='*50+'\n'
         content=str(bt).join(self.messages)
-        #receivers='hualin.xiao@fhnw.ch'
         mailer.send_email(receivers, title, content)
+        self.messages=[]
+        #empty list
 
-    def append(self, raw_filename, service_5_headers, summary, num_flares, goes_class_list):
+    def push_pipeline_message(self, raw_filename, service_5_headers, summary, num_flares, goes_class_list):
         file_id = summary['_id']
         start = stix_datetime.unix2utc(summary['data_start_unix_time'])
         end = stix_datetime.unix2utc(summary['data_stop_unix_time'])
         content = f'New file: {raw_filename}\nObservation time: {start} - {end} \nRaw packets: {HOST}/view/packet/file/{file_id}\n'
+        SCI_PACKET_SPIDS = ['54114', '54115', '54116', '54117', '54143', '54125']
         try:
             if '54102' in summary['summary']['spid'] or '54101' in summary[
                     'summary']['spid']:
@@ -124,18 +150,12 @@ def clear_ngnix_cache():
             logger.error(str(e))
     logger.info('Nginx cache removed')
 
-def process_one(filename):
-    file_id = MDB.get_file_id(filename)
-    if file_id == -2:
-        process('FM', filename, True, debugging=True)
-    Notification.send()
 
 
 
-def process(instrument, filename, notification_enabled=True, debugging=False):
+def pipeline(instrument, filename, notification_enabled=True, debugging=False):
     spm.spice.load_kernels()
     #always load the latest kernel files
-
     print('Start processing file ', filename)
     base = os.path.basename(filename)
     name = os.path.splitext(base)[0]
@@ -152,8 +172,8 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
                               mongodb_config['password'], '', filename,
                               instrument)
     logger.info('{}, processing {} ...'.format(get_now(), filename))
-    if S20_EXCLUDED:
-        parser.exclude_S20()
+    #if S20_EXCLUDED:
+    parser.exclude_S20()
     #parser.set_store_binary_enabled(False)
     parser.set_packet_buffer_enabled(False)
     service_5_headers = None
@@ -171,14 +191,14 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
 
     file_id = summary['_id']
 
-    if DO_BACKGROUND_ESTIMATION:
+    if actions['bkg_estimation']:
         logger.info('Background estimation..')
         try:
             bkg.process_file(file_id)
         except Exception as e:
             logger.error(str(e))
 
-    if FIND_FLARES:
+    if actions['flare_detection']:
         logger.info('Searching for flares..')
         try:
             num_flares = flare_detection.search_flares(
@@ -189,15 +209,13 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
             summary['num_flares']=num_flares
         except Exception as e:
             logger.error(str(e))
-    if ESTIMATE_ROTATING_BUFFER_TIME_BINS:
+    if actions['time_bins_simulation']:
         try:
             integration_time_estimator.process_file(file_id)
         except Exception as e:
             logger.error(str(e))
 
-
-
-    if DO_BULK_SCIENCE_DATA_MERGING:
+    if actions['bsd_report_merging']:
         logger.info(
             'merging bulk science data and preparing bsd json files...')
         try:
@@ -205,27 +223,12 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
         except Exception as e:
             #raise
             logger.error(str(e))
-    if RUN_L1_FLARE_ANALYZER:
-        logger.info(
-            'Processing flare data...')
-        """
-        flp=fla.FlareDataAnalyzer()
-        try:
-            flp.process_L1_BSD_in_file(file_id)
-        except Exception as e:
-            #raise
-            logger.error(str(e))
-            """
-
-    if notification_enabled:
-        logger.info('Creating notification...')
-        try:
-            Notification.append(base, service_5_headers, summary,
-                                           num_flares, goes_class_list)
-        except Exception as e:
-            logger.info(str(e))
-
-    if DO_CALIBRATIONS:
+    try:
+        Notification.push_pipeline_message(base, service_5_headers, summary,
+                                       num_flares, goes_class_list)
+    except Exception as e:
+        logger.info(str(e))
+    if actions['calibration']:
         logger.info('Starting calibration spectrum analysis...')
         try:
             calibration_run_ids = summary['calibration_run_ids']
@@ -235,15 +238,21 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
         except Exception as e:
             logger.error(str(e))
 
-    if ENABLE_FITS_CREATION:
+    if actions['fits_creation']:
         logger.info('Creating fits files...')
         try:
             fits_creator.create_fits(file_id, daemon_config['fits_path'])
         except Exception as e:
             logger.error(str(e))
     clear_ngnix_cache()
-    return summary
 
+    #return summary
+
+def process_one(filename):
+    file_id = MDB.get_file_id(filename)
+    if file_id == -2:
+        pipeline('FM', filename, True, debugging=True)
+    Notification.send()
 
 def find_new_telemetry_files():
     """
@@ -271,21 +280,25 @@ def process_files(filelist):
     Process files
     """
     num_processed = 0
-
     for instrument, files in filelist.items():
         goes.download()
         for filename in files:
-            print('Processing file:', filename)
-            process(instrument, filename , True)
+            #print('Processing file:', filename)
+            pipeline(instrument, filename , True)
             num_processed += 1
-
     Notification.send()
-
     return num_processed
+
 def main():
     flist=find_new_telemetry_files()
     if flist:
         process_files(flist)
+    #WatchDog.reset()
+    #print(WatchDog.counter)
+    #if WatchDog.expired() and  WatchDog.counter==1:
+    #    Notification.push(f' No telemetry data received in the past {WatchDog.hours} hours! ')
+    #    Notification.send()
+    #    WatchDog.reset()
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
