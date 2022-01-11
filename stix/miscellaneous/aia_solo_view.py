@@ -88,7 +88,7 @@ def download_calibrate_aia(time_start, time_end, wavelength):
 
 ############################################################
 ##### Main function
-def as_seen_by_SOLO(map,  date_solo=None, center=None, fov=None): 
+def as_seen_by_SOLO(aia_map,  date_solo=None, center=None, fov=None): 
     """
     Return the input map as seen by Solar Orbiter.
 
@@ -127,23 +127,23 @@ def as_seen_by_SOLO(map,  date_solo=None, center=None, fov=None):
     # I don't know if this is a good way of converting
     # string format to datetime.
     if date_solo == None:
-        date_solo = datetime.strptime(map.meta['date-obs'], '%Y-%m-%dT%H:%M:%S.%f')
+        date_solo = datetime.strptime(aia_map.meta['date-obs'], '%Y-%m-%dT%H:%M:%S.%f')
 
     # If center is specified and not the FOV, set default of 5 arcmin
     if center != None and fov == None:
         fov = [5,5]
 
     # Set the real radius of the Sun (and not the solar disk)
-    map.meta['rsun_ref'] = sunpy.sun.constants.radius.to_value('m')
+    aia_map.meta['rsun_ref'] = sunpy.sun.constants.radius.to_value('m')
 
     # Get the HEE coordinates of Solar Orbiter
     solo_hee = coordinates_SOLO(date_solo)
 
     # Mask the off disk data (array type must be float!)
-    hpc_coords = all_coordinates_from_map(map)
-    r = np.sqrt(hpc_coords.Tx ** 2 + hpc_coords.Ty ** 2) / map.rsun_obs
-    map = check_float(map) # maybe there is a better way of doing this
-    map.data[r > 1.0] = np.nan
+    hpc_coords = all_coordinates_from_map(aia_map)
+    r = np.sqrt(hpc_coords.Tx ** 2 + hpc_coords.Ty ** 2) / aia_map.rsun_obs
+    aia_map = check_float(aia_map) # maybe there is a better way of doing this
+    aia_map.data[r > 1.0] = np.nan
     
     # Solar Orbiter reference coordinates
     solo_ref_coord = SkyCoord(0*u.arcsec, 
@@ -155,10 +155,10 @@ def as_seen_by_SOLO(map,  date_solo=None, center=None, fov=None):
     # Dimension of the output FOV (in pixels)
     out_shape = (3000, 3000) # (4096, 4096)
     dsun_solo = float(np.sqrt(solo_hee.x**2+solo_hee.y**2+solo_hee.z**2)/u.km*1e3)
-    dsun_earth = float(map.dsun/u.m)
+    dsun_earth = float(aia_map.dsun/u.m)
     factor = dsun_earth / dsun_solo
-    pixel_size = [float(map.scale[0]/u.arcsec*u.pixel) * factor,
-                      float(map.scale[1]/u.arcsec*u.pixel) * factor]
+    pixel_size = [float(aia_map.scale[0]/u.arcsec*u.pixel) * factor,
+                      float(aia_map.scale[1]/u.arcsec*u.pixel) * factor]
     # Create a FITS-WCS header from a coordinate object
     out_header = make_fitswcs_header(
                                      out_shape,
@@ -166,7 +166,7 @@ def as_seen_by_SOLO(map,  date_solo=None, center=None, fov=None):
                                      scale=pixel_size*u.arcsec/u.pixel,
                                      instrument="SOLO-AIA",
                                      observatory="SOLO",
-                                     wavelength=map.wavelength)
+                                     wavelength=aia_map.wavelength)
 
     # Standard World Coordinate System (WCS) transformation
     out_wcs = WCS(out_header)
@@ -176,7 +176,7 @@ def as_seen_by_SOLO(map,  date_solo=None, center=None, fov=None):
 
     # Image reprojection
     #output, _ = reproject_adaptive(map, out_wcs, out_shape) # Can give memory problems
-    output, _ = reproject_interp(map, out_wcs, out_shape) # The fastest algorithm
+    output, _ = reproject_interp(aia_map, out_wcs, out_shape) # The fastest algorithm
     #output, _ = reproject_exact(map, out_wcs, out_shape) # The slowest algorithm
 
     # 2D map as seen from Solar Orbiter
@@ -186,10 +186,10 @@ def as_seen_by_SOLO(map,  date_solo=None, center=None, fov=None):
     if center == None:
         return solo_map    
     else:
-        center_solo_hpc = roi_hpc_SOLO(map, center, date_solo, solo_hee)
+        center_solo_hpc = roi_hpc_SOLO(aia_map, center, date_solo, solo_hee)
 
         # To convert FOV as seen from Solar Orbiter
-        ratio_dist = solo_map.dsun/map.dsun
+        ratio_dist = solo_map.dsun/aia_map.dsun
 
         # Coordinates of the sub-frame
         bl_solo = SkyCoord(center_solo_hpc.Tx - (fov[0]*60/(ratio_dist*2))*u.arcsec, 
@@ -249,7 +249,7 @@ def check_float(map):
     
     return map
 
-def roi_hpc_SOLO(map, coord, date_solo, solo_hee):
+def roi_hpc_SOLO(aia_map, coord, date_solo, solo_hee):
     """
     Takes the coordinates of the region of interest (ROI) as
     seen from Earth (on the surface of the Sun) and
@@ -260,7 +260,7 @@ def roi_hpc_SOLO(map, coord, date_solo, solo_hee):
     # SkyCoord of the ROI as seen from Earth
     roi_earth_hpc = SkyCoord(coord[0]*u.arcsec, 
                              coord[1]*u.arcsec, 
-                             frame=map.coordinate_frame)
+                             frame=aia_map.coordinate_frame)
     
     # Assume ROI to be on the surface of the Sun
     roi_inter = roi_earth_hpc.transform_to(HeliocentricEarthEcliptic)

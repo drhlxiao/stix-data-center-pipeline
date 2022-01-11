@@ -43,21 +43,30 @@ def goes_flux_to_class(x):
         return f'M{x/1e-5:.1f}'
     else:
         return f'X{x/1e-4:.1f}'
-def get_goes_class(start, end):
+def get_goes_info(start, end):
     data = mdb.get_goes_fluxes(start, end)
     last_time=0
     start_times=[]
-    key='0.1-0.8nm'
-    max_time=0
-    max_flux=0
+    low_name='0.1-0.8nm'
+    high_name='0.05-0.4nm'
+    peak_time_low=0
+    peak_flux_low=0
+    peak_flux_high=0
+    peak_time_high=0
     for d in data:
         unix = d['unix_time']
         flux=d['flux']
-        if d['energy']==key and flux>max_flux:
-            max_flux=flux
-            max_time=unix
-    goes_class=goes_flux_to_class(max_flux)
-    return  max_time, max_flux,goes_class
+        if d['energy']==low_name and flux>peak_flux_low:
+            peak_flux_low=flux
+            peak_time_low=unix
+
+        if d['energy']==high_name and flux>peak_flux_high:
+            peak_flux_high=flux
+            peak_time_high=unix
+
+
+    goes_class=goes_flux_to_class(peak_flux_low)
+    return  (peak_time_low, peak_flux_low, peak_time_high, peak_flux_high, goes_class)
 def find_goes_class_flares_in_file(file_id):
     print(f'processing flares in file {file_id}')
     fdb=mdb.get_collection('flares')
@@ -67,18 +76,19 @@ def find_goes_class_flares_in_file(file_id):
         return
     goes_class_list=[]
     for doc in flares:
-        peak_utc, goes_class=find_flare_goes_class(doc)
+        peak_utc, goes_class=get_flare_goes_class(doc)
         goes_class_list.append((peak_utc, goes_class))
 
     return goes_class_list
 
-def find_flare_goes_class(doc):
+def get_flare_goes_class(doc):
     start_unix=doc['start_unix']
     end_unix=doc['end_unix']
     start_utc=stix_datetime.unix2utc(start_unix)
     end_utc=stix_datetime.unix2utc(end_unix)
     peak_utc=doc['peak_utc']
     peak_counts=doc['peak_counts']
+
     if peak_counts<=threshold:
         print(f"Ignored flares {doc['_id']}, peak counts < {threshold}")
         return
@@ -89,18 +99,20 @@ def find_flare_goes_class(doc):
     except (KeyError, IndexError):
         delta_lt=0
     
-    peak_unix, peak_flux, goes_class=get_goes_class(start_unix+delta_lt, end_unix+delta_lt)
-    print(goes_class, stix_datetime.unix2utc(peak_unix))
-    
+    peak_time_low, peak_flux_low, peak_time_high, peak_flux_high, goes_class=get_goes_info(start_unix+delta_lt, end_unix+delta_lt)
 
     flare_db.update_one(
             {'_id':doc['_id']},
             {'$set':{
-                'goes':{'peak_unix':peak_unix, 'peak_utc': stix_datetime.unix2utc(peak_unix), 'peak_flux':peak_flux, 'class':goes_class},
+                'goes':{
+                    'low':{'unix_time':peak_time_low, 'utc': stix_datetime.unix2utc(peak_time_low), 'flux':peak_flux_low},
+                    'high':{'unix_time':peak_time_high, 'utc': stix_datetime.unix2utc(peak_time_high), 'flux':peak_flux_high},
+                    'class':goes_class
+                    },
                 'ephemeris':eph
                 }
             })
-    return peak_utc, goes_class
+    return peak_time_low, goes_class
             
 
 if __name__ == '__main__':

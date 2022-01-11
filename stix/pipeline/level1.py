@@ -16,6 +16,7 @@ from stix.spice import stix_datetime
 from stix.core import mongo_db
 from stix.core import stix_logger
 from stix.core import stix_parser
+from stix.mailer import mailer
 from stix.fits import fits_creator
 from stix.analysis import calibration
 from stix.analysis import background_estimation as bkg
@@ -25,7 +26,7 @@ from stix.analysis import integration_time_estimator
 from stix.analysis import flare_goes_class as fgc
 from stix.analysis import goes_downloader as gdl
 from stix.spice import spice_manager as spm
-from stix.flare_pipeline import flare_L1_analyzer as fla
+#from stix.flare_pipeline import flare_L1_analyzer as fla
 
 
 
@@ -40,7 +41,6 @@ SCI_PACKET_SPIDS = ['54114', '54115', '54116', '54117', '54143', '54125']
 DO_BACKGROUND_ESTIMATION = True
 ESTIMATE_ROTATING_BUFFER_TIME_BINS = True
 daemon_config = config.get_config('pipeline.daemon')
-noti_config = config.get_config('pipeline.daemon.notification')
 mongodb_config = config.get_config('pipeline.mongodb')
 
 MDB = mongo_db.MongoDB(mongodb_config['host'], mongodb_config['port'],
@@ -54,57 +54,61 @@ goes=gdl.GOES()
 
 def get_now():
     return datetime.now().isoformat()
+class _Notification(object):
+    def __init__(self):
+        self.messages=[]
+    def send(self):
+        mailer.send
+        groups =MDB.get_group_users('operations') 
+        if not groups:
+            print('can not find emails for operations team ')
+            return
+        receivers= groups[0]['user_emails']
+        title = 'STIX operational message'
+        bt='\n'+'='*50+'\n'
+        content=str(bt).join(self.messages)
+        #receivers='hualin.xiao@fhnw.ch'
+        mailer.send_email(receivers, title, content)
 
+    def append(self, raw_filename, service_5_headers, summary, num_flares, goes_class_list):
+        file_id = summary['_id']
+        start = stix_datetime.unix2utc(summary['data_start_unix_time'])
+        end = stix_datetime.unix2utc(summary['data_stop_unix_time'])
+        content = f'New file: {raw_filename}\nObservation time: {start} - {end} \nRaw packets: {HOST}/view/packet/file/{file_id}\n'
+        try:
+            if '54102' in summary['summary']['spid'] or '54101' in summary[
+                    'summary']['spid']:
+                content += f'\nHousekeeping data: {HOST}/view/plot/housekeeping/file/{file_id}\n'
+            if '54118' in summary['summary']['spid']:
+                content += f'\nLight curves: {HOST}/view/plot/lightcurves?run={file_id}\n'
+            content += f'\nL1A FITS files: {HOST}/view/list/fits/file/{file_id}\n'
+            if summary['calibration_run_ids']:
+                content += f'\nCalibration runs: {HOST}/view/plot/calibration/file/{file_id}\n'
+            if [x for x in summary['summary']['spid'] if x in SCI_PACKET_SPIDS]:
+                content += f'\nScience data: {HOST}/view/list/bsd/file/{file_id}\n'
+        except Exception as e:
+            logger.error(e)
+        if service_5_headers:
+            content += '\nSTIX Service 5 packets:\n'
+            for header in service_5_headers:
+                content += '\tAt {}, TM({},{}) {}\n'.format(
+                    header['UTC'], header['service_type'],
+                    header['service_subtype'], header['descr'])
+        else:
+            content += 'No Service 5 packet found in the file.\n'
 
-def create_notification(raw_filename, service_5_headers, summary, num_flares, goes_class_list):
-    file_id = summary['_id']
-    start = stix_datetime.unix2utc(summary['data_start_unix_time'])
-    end = stix_datetime.unix2utc(summary['data_stop_unix_time'])
-    content = f'New file: {raw_filename}\nObservation time: {start} - {end} \nRaw packets: {HOST}/view/packet/file/{file_id}\n'
-    try:
-        if '54102' in summary['summary']['spid'] or '54101' in summary[
-                'summary']['spid']:
-            content += f'\nHousekeeping data: {HOST}/view/plot/housekeeping/file/{file_id}\n'
-        if '54118' in summary['summary']['spid']:
-            content += f'\nLight curves: {HOST}/view/plot/lightcurves?run={file_id}\n'
-        content += f'\nL1A FITS files: {HOST}/view/list/fits/file/{file_id}\n'
-        if summary['calibration_run_ids']:
-            content += f'\nCalibration runs: {HOST}/view/plot/calibration/file/{file_id}\n'
-        if [x for x in summary['summary']['spid'] if x in SCI_PACKET_SPIDS]:
-            content += f'\nScience data: {HOST}/view/list/bsd/file/{file_id}\n'
-    except Exception as e:
-        logger.error(e)
-    if service_5_headers:
-        content += '\nSTIX Service 5 packets:\n'
-        for header in service_5_headers:
-            content += '\tAt {}, TM({},{}) {}\n'.format(
-                header['UTC'], header['service_type'],
-                header['service_subtype'], header['descr'])
-    else:
-        content += 'No Service 5 packet found in the file.\n'
+        if num_flares > 0:
+            content += '''\n{} solar flare(s) identified in the file\n \n'''.format(
+                num_flares)
+        else:
+            content += '\n No solar flare detected.\n'
+        if goes_class_list:
+            content+='Peak UTC *  GOES class\n'
+            for fl in goes_class_list:
+                content+=f'{fl[0]}  -  {fl[1]} \n'
+        self.messages.append(content)
 
-    if num_flares > 0:
-        content += '''\n{} solar flare(s) identified in the file\n \n'''.format(
-            num_flares)
-    else:
-        content += '\n No solar flare detected.\n'
-    if goes_class_list:
-        content+='Peak UTC *  GOES class\n'
-        for fl in goes_class_list:
-            content+=f'{fl[0]}  -  {fl[1]} \n'
-
-
-    doc = {
-        'title': 'STIX operational message',
-        'group': 'operations',
-        'content': content,
-        'time': stix_datetime.get_now(),
-        'released': False,
-        'is_sent': False,
-        'file': file_id
-    }
-    _id = MDB.insert_notification(doc)
-    return _id
+Notification=_Notification()
 
 
 def clear_ngnix_cache():
@@ -122,15 +126,10 @@ def clear_ngnix_cache():
 
 def process_one(filename):
     file_id = MDB.get_file_id(filename)
-    notification_ids=[]
     if file_id == -2:
-        summary=process('FM', filename, True, debugging=True)
-        try:
-            notification_ids.append(summary['notification_id'])
-        except (TypeError, KeyError):
-            pass
+        process('FM', filename, True, debugging=True)
+    Notification.send()
 
-    MDB.release_notifications(notification_ids)
 
 
 def process(instrument, filename, notification_enabled=True, debugging=False):
@@ -221,9 +220,8 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
     if notification_enabled:
         logger.info('Creating notification...')
         try:
-            notif_id = create_notification(base, service_5_headers, summary,
+            Notification.append(base, service_5_headers, summary,
                                            num_flares, goes_class_list)
-            summary['notification_id']=notif_id
         except Exception as e:
             logger.info(str(e))
 
@@ -243,8 +241,6 @@ def process(instrument, filename, notification_enabled=True, debugging=False):
             fits_creator.create_fits(file_id, daemon_config['fits_path'])
         except Exception as e:
             logger.error(str(e))
-
-
     clear_ngnix_cache()
     return summary
 
@@ -275,20 +271,16 @@ def process_files(filelist):
     Process files
     """
     num_processed = 0
-    notification_ids=[]
 
     for instrument, files in filelist.items():
         goes.download()
         for filename in files:
             print('Processing file:', filename)
-            summary=process(instrument, filename , True)
-            try:
-                notification_ids.append(summary['notification_id'])
-            except Exception as e: 
-                print(e)
-                pass
+            process(instrument, filename , True)
             num_processed += 1
-    MDB.release_notifications(notification_ids)
+
+    Notification.send()
+
     return num_processed
 def main():
     flist=find_new_telemetry_files()

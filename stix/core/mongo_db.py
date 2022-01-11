@@ -66,12 +66,16 @@ class MongoDB(object):
             self.collection_qloc=self.db['ql_flarelocations']
             self.collection_stix_config=self.db['stix_config']
 
+            self.col_user_groups=self.db['user_groups']
         except Exception as e:
             print('Error occurred while initializing mongodb: {}'.format(
                 str(e)))
 
     def get_db(self):
         return self.db
+
+    def get_group_users(self,group):
+        return list(self.col_user_groups.find({'group': group}))
 
 
 

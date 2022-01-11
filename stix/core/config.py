@@ -12,57 +12,67 @@ logger = stix_logger.get_logger()
 ASW_VERSION = 183
 HTTP_PREFIX = 'https://pub023.cs.technik.fhnw.ch'
 parser_config = {
-    "pipeline": {
-        "mongodb": {
-            "host": "localhost",
-            "user": "",
-            "password": "",
-            "port": 27017
-        },
-        "daemon": {
-            "data_source": {
-                "GU": ["/home/xiaohl/data/*.ascii"],
-                "PFM": [
-                    "/data/gfts/solmoc/from_moc/*.xml",
-                    "/data/gfts/solmoc/from_edds/tm/*.xml",
-                    "/data/gfts/solmoc/from_edds/tc/*.xml",
-                    "/data/gfts/solmoc/from_moc/*ascii"
-                ]
+        "pipeline": {
+            "mongodb": {
+                "host": "localhost",
+                "user": "",
+                "password": "",
+                "port": 27017
+                },
+            "daemon": {
+                "data_source": {
+                    "GU": ["/home/xiaohl/data/*.ascii"],
+                    "PFM": [
+                        "/data/gfts/solmoc/from_moc/*.xml",
+                        "/data/gfts/solmoc/from_edds/tm/*.xml",
+                        "/data/gfts/solmoc/from_edds/tc/*.xml",
+                        "/data/gfts/solmoc/from_moc/*ascii"
+                        ]
+                    },
+                "log_path": "/data/log/",
+                "notification": {
+                    "file": "/data/log/stix_message.log"
+                    },
+                "fits_path": "/data/fits",
+                "flare_lc_snapshot_path": "/data/flare_lc",
+                "calibration_report_path": "/data/calibration/",
+                "level1_products_path": "/data/level1/",
+                "level2_products_path": "/data/level2/",
+                "ngnix_cache": "/data/nginx/stix_cache/*",
+                "goes_lc_path": "/data/goes/",
+                "flare_pipeline_path":"/data/flare_pipeline"
+                },
+            "asw_version": 183
             },
-            "log_path": "/data/log/",
-            "notification": {
-                "file": "/data/log/stix_message.log"
+        "ASW": {
+            "179": {
+                "filename": "/data/pub/data/idb/idb.sqlite",
+                "version": "2.26.33",
+                "aswVersion": 179,
+                },
+            "181": {
+                "filename": "/data/pub/data/idb/idb_v2.26.35.sqlite",
+                "version": "2.26.34",
+                "validityPeriod": ["2020-12-28T00:00:00", "2020-12-28T00:00:00"]
+                },
+            "183":{
+                "filename": "/data/pub/data/idb/idb_v2.26.36.sqlite",
+                "version": "2.26.36",
+                "validityPeriod": ["2020-12-28T00:00:00", "2020-12-28T00:00:00"]
+                }
             },
-            "fits_path": "/data/fits",
-            "flare_lc_snapshot_path": "/data/flare_lc",
-            "calibration_report_path": "/data/calibration/",
-            "level1_products_path": "/data/level1/",
-            "level2_products_path": "/data/level2/",
-            "ngnix_cache": "/data/nginx/stix_cache/*",
-            "goes_lc_path": "/data/goes/",
-            "flare_pipeline_path":"/data/flare_pipeline"
-        },
-        "asw_version": 183
-    },
-    "ASW": {
-        "179": {
-            "filename": "/data/pub/data/idb/idb.sqlite",
-            "version": "2.26.33",
-            "aswVersion": 179,
-        },
-        "181": {
-            "filename": "/data/pub/data/idb/idb_v2.26.35.sqlite",
-            "version": "2.26.34",
-            "validityPeriod": ["2020-12-28T00:00:00", "2020-12-28T00:00:00"]
-        },
-        "183":{
-            "filename": "/data/pub/data/idb/idb_v2.26.36.sqlite",
-            "version": "2.26.36",
-            "validityPeriod": ["2020-12-28T00:00:00", "2020-12-28T00:00:00"]
-        }
-    },
-    'joint_obs':     '/data/flares/',
-    "spice": "/data/pub/data/spice/latest/kernels",
+        'joint_obs':     '/data/flares/',
+"spice": "/data/pub/data/spice/latest/kernels",
+        'mailer':    {
+                'sender':  'stix_obs@fhnw.ch',
+                'user': '',
+                'pwd': '',
+                'server': 'lmailer.fhnw.ch',
+                'port': 465
+                }
+
+
+
 }
 
 

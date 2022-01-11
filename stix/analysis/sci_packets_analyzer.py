@@ -667,8 +667,8 @@ def process_one(file_id):
 
 
 def process_packets_in_file(file_id, remove_existing=True):
-    collection = mdb.get_collection_bsd()
-    bsd_cursor = collection.find({'run_id': file_id}).sort('_id', 1)
+    bsd_collection = mdb.get_collection_bsd()
+    bsd_cursor = bsd_collection.find({'run_id': file_id}).sort('_id', 1)
     for doc in bsd_cursor:
         spid = int(doc['SPID'])
         logger.info(f'processing bsd id: {doc["_id"]}, spid:{spid}')
@@ -717,7 +717,7 @@ def process_packets_in_file(file_id, remove_existing=True):
             result['data_type']=data_type
             with open(json_filename, 'w') as outfile:
                 json.dump(result, outfile)
-            collection.update_one({'_id': doc['_id']}, {'$set':{'level1': json_filename, 
+            bsd_collection.update_one({'_id': doc['_id']}, {'$set':{'level1': json_filename, 
                 'start_unix':start_unix, 'end_unix':end_unix, 'synopsis':synopsis}})
 
 

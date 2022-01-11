@@ -52,11 +52,11 @@ def get_flare_spice(sun_x, sun_y, flare_utc, observer='earth'):
                                          obstime=Time(date_flare).isot,
                                          representation_type='cartesian')
     if observer == 'earth':
-        obs_coord = earth_hee.transform_to(
-            HeliographicStonyhurst(obstime=date_flare))
+        obs_coord = earth_hee#.transform_to(
+            #HeliographicStonyhurst(obstime=date_flare))
     else:
-        obs_coord = solo_hee.transform_to(
-            HeliographicStonyhurst(obstime=date_flare))
+        obs_coord = solo_hee#.transform_to(
+            #HeliographicStonyhurst(obstime=date_flare))
 
     flare_skycoord = SkyCoord(flare_coord[0] * u.arcsec,
                               flare_coord[1] * u.arcsec,
@@ -66,6 +66,7 @@ def get_flare_spice(sun_x, sun_y, flare_utc, observer='earth'):
 
     flare_hee = flare_skycoord.transform_to(
         HeliocentricEarthEcliptic(obstime=date_flare))
+
     v_flare_earth = earth_hee.cartesian - flare_hee.cartesian
     flare_hee_cart = flare_hee.cartesian
     flare_earth_r = np.sqrt(v_flare_earth.x**2 + v_flare_earth.y**2 +
@@ -84,7 +85,10 @@ def get_flare_spice(sun_x, sun_y, flare_utc, observer='earth'):
     flare_theta_stix = get_ang_vectors(flare_hee_cart, v_flare_solo)
     flare_theta_earth = get_ang_vectors(flare_hee_cart, v_flare_earth)
 
-    return {
+    earth_flare_solo_deg= get_ang_vectors(v_flare_earth, v_flare_solo)
+
+
+    res={
         'flare_earth_lt': flare_earth_t.value,
         'flare_solo_lt': flare_solo_t.value,
         'owlt': owlt.value,
@@ -95,6 +99,20 @@ def get_flare_spice(sun_x, sun_y, flare_utc, observer='earth'):
         'theta_flare_norm_earth_deg': flare_theta_earth,
         'theta_flare_norm_solo_deg': flare_theta_stix,
         'earth_sun_ltime': ltime_earth_sun,
+        'earth_flare_solo_deg': earth_flare_solo_deg,
         'sun_solo_ltime': ltime_sun_solo,
         'observer': observer
     }
+    return res
+
+if __name__=='__main__':
+    
+    res=[]
+    for i in range(10):
+        for j in range(10):
+            sun_x=-900+i*100
+            sun_y=-900+j*100
+            res.append({'loc':[sun_x, sun_y],'res':get_flare_spice(sun_x, sun_y, '2021-10-28T00:00:00', observer='solo')})
+    import json
+    f=open('flare_test.json', 'w')
+    json.dump(res,f)
