@@ -18,7 +18,6 @@ mdb = db.MongoDB()
 
 flare_db=mdb.get_collection('flares')
 
-
 def get_first_element(obj):
     if not isinstance(obj, dict):
         return obj
@@ -80,6 +79,21 @@ def find_goes_class_flares_in_file(file_id):
         goes_class_list.append((peak_utc, goes_class))
 
     return goes_class_list
+def estimate_goes_class(counts, dsun):
+    #details see https://pub023.cs.technik.fhnw.ch/wiki/index.php?title=GOES_Flux_vs_STIX_counts
+    #https://docs.google.com/spreadsheets/d/19dRkncYAFjbsJUrkOYOhfX_oxGNIkQMvRfS15UkYRDM/edit?usp=sharing
+    pars=[-6.576,-0.2675, -0.1273,0.02618]
+    mean_error=0.3
+    #result={'min':None,'max':None, 'center':None}
+    try:
+        x =np.log10(counts/dsun)
+    except ZeroDivisionError:
+        x=0
+
+    f=lambda x: goes_flux_to_class(10 ** (pars[0]+pars[1]*x+pars[2]*x**2+pars[3]*x**3))
+    return {'min': f(x -mean_error),  'center': f(x),  'max':f(x+mean_error)}
+
+
 
 def get_flare_goes_class(doc):
     start_unix=doc['start_unix']
@@ -94,12 +108,17 @@ def get_flare_goes_class(doc):
         return
     ephs=solo.get_solo_ephemeris(peak_utc, peak_utc)
     eph=get_first_element(ephs)
+    dsun=eph.get('sun_solo_r',1)
     try:
         delta_lt=eph['light_time_diff']
     except (KeyError, IndexError):
         delta_lt=0
     
     peak_time_low, peak_flux_low, peak_time_high, peak_flux_high, goes_class=get_goes_info(start_unix+delta_lt, end_unix+delta_lt)
+    bkg_subtracted_counts=peak_counts-doc['baseline']
+
+    estimated_class=estimate_goes_class(bkg_subtracted_counts, dsun)
+    #print(estimated_class)
 
     flare_db.update_one(
             {'_id':doc['_id']},
@@ -107,12 +126,13 @@ def get_flare_goes_class(doc):
                 'goes':{
                     'low':{'unix_time':peak_time_low, 'utc': stix_datetime.unix2utc(peak_time_low), 'flux':peak_flux_low},
                     'high':{'unix_time':peak_time_high, 'utc': stix_datetime.unix2utc(peak_time_high), 'flux':peak_flux_high},
-                    'class':goes_class
+                    'class':goes_class,
+                    'estimated_class':estimated_class,
                     },
                 'ephemeris':eph
                 }
             })
-    return peak_time_low, goes_class
+    return stix_datetime.unix2utc(peak_time_low), goes_class
             
 
 if __name__ == '__main__':
