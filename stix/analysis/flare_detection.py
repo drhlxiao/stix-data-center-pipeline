@@ -160,7 +160,7 @@ def major_peaks(lefts, rights):
     return major
 
 
-def search_flares(run_id,
+def find_flares_in_one_file(run_id,
            peak_min_width=15,
            peak_min_distance=150,
            rel_height=0.9,
@@ -171,6 +171,14 @@ def search_flares(run_id,
     if not data:
         info(f'No QL LC packets found for file {run_id}')
         return 0
+    auxilary={'run_id':run_id}
+    return find_flares_in_data(data, peak_min_width, peak_min_distance,rel_height, snapshot_path, auxilary)
+
+def find_flares_in_data(data, 
+           peak_min_width=15,
+           peak_min_distance=150,
+           rel_height=0.9,
+           snapshot_path='.', auxilary=None):
 
     unix_time = data['time']
     lightcurve = data['lcs'][0]
@@ -230,7 +238,7 @@ def search_flares(run_id,
     LC_statistics = []
     if stat:#calculate statistics for all light curves, used for data requests
         for ipeak in range(xpeaks.size):
-            flare_stats = {}
+            flare_stats = {'bkg_time_range':  (stat['start_utc'], stat['end_utc'])}
             upper_bin = 0
             for ilc in range(0, 5):  
                 flare_stat = {}
@@ -282,9 +290,6 @@ def search_flares(run_id,
     peak_width_H50= np.vstack((unix_time[H50_res[2].astype(int)], unix_time[H50_res[3].astype(int)])).T
     #calculate peak width at 50% of the maximum count
 
-    
-
-
     doc = {
         'num_peaks': xpeaks.size,
         'peak_unix_time': peak_unix_times.tolist(),
@@ -310,8 +315,9 @@ def search_flares(run_id,
         'end_unix': flare_end_unix,
         'is_major': majors,
         'LC_statistics': LC_statistics,
-        'run_id': run_id
     }
+    if isinstance(auxilary, dict):
+        doc.update(auxilary)
 
     mdb.save_flare_info(doc)
     doc['properties'] = properties
@@ -319,7 +325,7 @@ def search_flares(run_id,
     make_lightcurve_snapshot(data, doc, snapshot_path)
     return xpeaks.size
 
-def search_flares_in_files(fid_start, fid_end, img_path='/data/flare_lc'):
+def find_flares_in_files(fid_start, fid_end, img_path='/data/flare_lc'):
     for i in range(fid_start, fid_end + 1):
         print(f'deleting flares of Files {i}')
         mdb.delete_flares_of_file(i)
@@ -336,6 +342,6 @@ if __name__ == '__main__':
         res = search_flares(int(sys.argv[1]), snapshot_path='/data/flare_lc')
         print('Number of peaks:', res)
     else:
-        search_flares_in_files(int(sys.argv[1]),
+        find_flares_in_files(int(sys.argv[1]),
                        int(sys.argv[2]),
                        img_path='/data/flare_lc')

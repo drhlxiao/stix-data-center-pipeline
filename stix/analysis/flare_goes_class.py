@@ -75,15 +75,15 @@ def find_goes_class_flares_in_file(file_id):
         return
     goes_class_list=[]
     for doc in flares:
-        peak_utc, goes_class=get_flare_goes_class(doc)
-        goes_class_list.append((peak_utc, goes_class))
+        peak_utc, goes_class,goes_estimated=get_flare_goes_class(doc)
+        goes_class_list.append((peak_utc, goes_class, goes_estimated))
 
     return goes_class_list
 def estimate_goes_class(counts, dsun):
     #details see https://pub023.cs.technik.fhnw.ch/wiki/index.php?title=GOES_Flux_vs_STIX_counts
     #https://docs.google.com/spreadsheets/d/19dRkncYAFjbsJUrkOYOhfX_oxGNIkQMvRfS15UkYRDM/edit?usp=sharing
-    pars=[-6.576,-0.2675, -0.1273,0.02618]
-    mean_error=0.3
+    pars=[-6.576,0.2675, -0.1273,0.02618]
+    mean_error=0.5
     #result={'min':None,'max':None, 'center':None}
     try:
         x =np.log10(counts/dsun)
@@ -101,11 +101,19 @@ def get_flare_goes_class(doc):
     start_utc=stix_datetime.unix2utc(start_unix)
     end_utc=stix_datetime.unix2utc(end_unix)
     peak_utc=doc['peak_utc']
-    peak_counts=doc['peak_counts']
+
+    
+    try:
+        peak_counts=doc['LC_statistics']['lc0']['signal_max']
+    except KeyError:
+        print('peak counts not found')
+        peak_counts=doc['peak_counts']
 
     if peak_counts<=threshold:
         print(f"Ignored flares {doc['_id']}, peak counts < {threshold}")
         return
+
+
     ephs=solo.get_solo_ephemeris(peak_utc, peak_utc)
     eph=get_first_element(ephs)
     dsun=eph.get('sun_solo_r',1)
@@ -132,7 +140,7 @@ def get_flare_goes_class(doc):
                 'ephemeris':eph
                 }
             })
-    return stix_datetime.unix2utc(peak_time_low), goes_class
+    return stix_datetime.unix2utc(peak_time_low), goes_class, estimated_class
             
 
 if __name__ == '__main__':

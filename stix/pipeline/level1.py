@@ -131,7 +131,12 @@ class _Notification(object):
         if goes_class_list:
             content+='Peak UTC *  GOES class\n'
             for fl in goes_class_list:
-                content+=f'{fl[0]}  -  {fl[1]} \n'
+                try:
+                    est_goes=f', {fl[2]["center"]} (estimated)'
+                except (IndexError, KeyError):
+                    est_goes=''
+
+                content+=f'{fl[0]}  -  {fl[1]}  {est_goes} \n'
         self.messages.append(content)
 
 Notification=_Notification()
@@ -199,9 +204,9 @@ def pipeline(instrument, filename, notification_enabled=True, debugging=False):
             logger.error(str(e))
 
     if actions['flare_detection']:
-        logger.info('Searching for flares..')
+        logger.info('Detecting flares..')
         try:
-            num_flares = flare_detection.search_flares(
+            num_flares = flare_detection.find_flares_in_one_file(
                 file_id, snapshot_path=daemon_config['flare_lc_snapshot_path'])
             if num_flares>0:
                 goes_class_list=fgc.find_goes_class_flares_in_file(file_id)
