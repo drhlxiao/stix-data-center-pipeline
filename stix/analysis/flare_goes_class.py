@@ -18,6 +18,9 @@ mdb = db.MongoDB()
 
 flare_db=mdb.get_collection('flares')
 
+GOES_STIX_COEFFS=[-6.88, 0.05591, 0.07223]
+GOES_STIX_ERROR_LUT={'bins':[(0,10)],'errors':[0.3]}
+
 def get_first_element(obj):
     if not isinstance(obj, dict):
         return obj
@@ -66,10 +69,18 @@ def get_goes_info(start, end):
 
     goes_class=goes_flux_to_class(peak_flux_low)
     return  (peak_time_low, peak_flux_low, peak_time_high, peak_flux_high, goes_class)
+
+
+
 def find_goes_class_flares_in_file(file_id):
     print(f'processing flares in file {file_id}')
     fdb=mdb.get_collection('flares')
     flares=flare_db.find({'run_id':file_id, 'hidden':False})
+
+    
+
+
+
     if not flares:
         print(f'Flare not found in  {file_id} !')
         return
@@ -79,20 +90,53 @@ def find_goes_class_flares_in_file(file_id):
         goes_class_list.append((peak_utc, goes_class, goes_estimated))
 
     return goes_class_list
-def estimate_goes_class(counts, dsun):
-    #details see https://pub023.cs.technik.fhnw.ch/wiki/index.php?title=GOES_Flux_vs_STIX_counts
-    #https://docs.google.com/spreadsheets/d/19dRkncYAFjbsJUrkOYOhfX_oxGNIkQMvRfS15UkYRDM/edit?usp=sharing
-    pars=[-6.576,0.2675, -0.1273,0.02618]
-    mean_error=0.5
-    #result={'min':None,'max':None, 'center':None}
+
+def estimate_goes_class(counts:float,   dsun:float, coeffs:list, error_lut:dict,default_error=0.3):
+    """
+    estimate goes class
+       see https://pub023.cs.technik.fhnw.ch/wiki/index.php?title=GOES_Flux_vs_STIX_counts
+
+    Parameters:
+        peak_counts:  float
+            STIX background subtracted peak counts
+        dsun: float
+            distance between solar orbiter and the sun in units of au
+        coeff: list
+            polynomial function coefficients
+        error_lut: dict
+            a look-up table contains errors  in log goes flux
+            for example, errors_lut={'bins':[[0,0.5],[0.5,2]],'errors':[0.25,0.25]}
+            bins contains bin edges and errors the corresponding error of the bin
+        default_error: float
+            default error in log goes flux when it can not be found in the lut
+    Returns: dict
+        predicted GOES class and limts
+    """
+
+    stix_cnts=counts*dsun**2
+    if stix_cnts<=0:
+        return {'min':None,'max':None,'max':None}
+    x =np.log10(stix_cnts)
+
+    g=lambda y: sum([coeffs[i] * y ** i for i in range(len(coeffs))])
+    f=lambda y: goes_flux_to_class(10 ** g(y))
+
+    error=default_error #default error
     try:
-        x =np.log10(counts/dsun)
-    except ZeroDivisionError:
-        x=0
+        bin_range=error_lut['bins']
+        errors=error_lut['errors']
+        for b,e in zip(bin_range, errors):
+            if b[0] <= x <= b[1]:
+                error=e
+                print(error)
+                break
+    except (KeyError, IndexError, TypeError):
+        pass
 
-    f=lambda x: goes_flux_to_class(10 ** (pars[0]+pars[1]*x+pars[2]*x**2+pars[3]*x**3))
-    return {'min': f(x -mean_error),  'center': f(x),  'max':f(x+mean_error)}
-
+    result={'min': f(x -error),  'center': f(x),  'max':f(x+error), 
+            'parameters':{'coeff':coeffs, 'error':error}
+            }
+    return result
 
 
 def get_flare_goes_class(doc):
@@ -103,11 +147,7 @@ def get_flare_goes_class(doc):
     peak_utc=doc['peak_utc']
 
     
-    try:
-        peak_counts=doc['LC_statistics']['lc0']['signal_max']
-    except KeyError:
-        print('peak counts not found')
-        peak_counts=doc['peak_counts']
+    peak_counts=doc['LC_statistics']['lc0']['signal_max']
 
     if peak_counts<=threshold:
         print(f"Ignored flares {doc['_id']}, peak counts < {threshold}")
@@ -121,12 +161,17 @@ def get_flare_goes_class(doc):
         delta_lt=eph['light_time_diff']
     except (KeyError, IndexError):
         delta_lt=0
-    
     peak_time_low, peak_flux_low, peak_time_high, peak_flux_high, goes_class=get_goes_info(start_unix+delta_lt, end_unix+delta_lt)
-    bkg_subtracted_counts=peak_counts-doc['baseline']
+    bkg_subtracted_counts=peak_counts-doc['LC_statistics']['lc0']['bkg_median']
 
-    estimated_class=estimate_goes_class(bkg_subtracted_counts, dsun)
+
+
+    estimated_class=estimate_goes_class(bkg_subtracted_counts, dsun, GOES_STIX_COEFFS, GOES_STIX_ERROR_LUT)
+    #estimated_class=estimate_goes_class(doc['peak_counts'], dsun)
     #print(estimated_class)
+    is_ok= goes_class>estimated_class['min'] and goes_class<estimated_class['max']
+    print(peak_utc, estimated_class, goes_class, is_ok)
+    
 
     flare_db.update_one(
             {'_id':doc['_id']},
