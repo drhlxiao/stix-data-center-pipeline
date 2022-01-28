@@ -10,8 +10,8 @@ import argparse
 import os
 import sys
 from stix.core import config
-from stix.core import stix_logger, stix_idb, stix_parser
-logger = stix_logger.get_logger()
+from stix.core import logger, idb, parser
+logger = logger.get_logger()
 MONGODB_CONFIG=config.get_config('pipeline.mongodb')
 
 
@@ -135,7 +135,7 @@ def main():
         return
 
     if args['idb']:
-        idb_instance = stix_idb.stix_idb(args['idb'])
+        idb_instance = idb.idb(args['idb'])
     selected_spids = args['SPID']
     selected_services = args['services']
     comment=args['comment']
@@ -145,7 +145,7 @@ def main():
 
 def process_single_file(filename, filetype, output_filename, selected_spids,selected_services ,comment, S20_excluded,
         wdb, db_host,db_port, db_user, db_pwd, source):
-    parser = stix_parser.StixTCTMParser()
+    parser = parser.StixTCTMParser()
     parser.set_packet_filter(selected_services, selected_spids)
     if S20_excluded:
         parser.exclude_S20()

@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #create a detector  svg file
-from stix_parser.utils import colour
+from parser.utils import colour
 import numpy as np
 
 CANVAS_W = 1005

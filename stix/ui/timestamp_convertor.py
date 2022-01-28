@@ -8,7 +8,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from stix.spice import stix_datetime 
+from stix.spice import datetime 
 from PyQt5.QtCore import QDateTime,Qt
 
 class Ui_Dialog(object):
@@ -59,20 +59,20 @@ class Ui_Dialog(object):
         try:
             if inputType == 'UTC':
                 utc=inputData
-                unix=stix_datetime.utc2unix(inputData)
-                scet=stix_datetime.utc2scet(inputData)
+                unix=datetime.utc2unix(inputData)
+                scet=datetime.utc2scet(inputData)
             elif inputType=='SCET':
                 scet=int(inputData)
-                unix=stix_datetime.scet2unix(inputData)
-                utc=stix_datetime.scet2utc(inputData)
+                unix=datetime.scet2unix(inputData)
+                utc=datetime.scet2utc(inputData)
             else:
                 unix=int(inputData)
-                utc=stix_datetime.unix2utc(unix)
-                scet=stix_datetime.utc2scet(utc)
+                utc=datetime.unix2utc(unix)
+                scet=datetime.utc2scet(utc)
                 
             gap=946728000
             J2000=unix-gap
-            scet_utc=stix_datetime.unix2utc(scet+gap)
+            scet_utc=datetime.unix2utc(scet+gap)
             outputText='''UTC: {}\nUNIX:{}\nSCET:{}\nJ2000 (calculated from UNIX epoch):{}\n UTC(calculated from SCET):{}
             '''.format(utc, unix,scet,J2000, scet_utc)
         except Exception as e:

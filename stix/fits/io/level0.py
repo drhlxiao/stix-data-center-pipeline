@@ -15,7 +15,7 @@ from astropy.time.core import Time
 from bitstring import ConstBitStream, ReadError
 
 from stix.io.fits.processors import FitsL0Processor
-from stix.core.stix_logger import get_logger
+from stix.core.logger import get_logger
 logger = get_logger(__name__)
 
 tm_header = {

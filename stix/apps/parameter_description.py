@@ -10,7 +10,7 @@ from __future__ import (absolute_import, unicode_literals)
 import sys
 from core import idb
 
-_stix_idb = idb._stix_idb
+_idb = idb._idb
 
 
 def main():
@@ -22,11 +22,11 @@ def main():
         parameter = sys.argv[1]
         print('\n\n')
         print(parameter + ':')
-        desc = _stix_idb.get_scos_description(parameter)
+        desc = _idb.get_scos_description(parameter)
         if desc:
             print(str(desc))
         else:
-            desc = _stix_idb.get_PCF_description(parameter)
+            desc = _idb.get_PCF_description(parameter)
             if desc:
                 print(str(desc[0]))
 

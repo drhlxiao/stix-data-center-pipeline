@@ -5,9 +5,9 @@ db = connect["stix"]
 raw_db= db['raw_files']
 packets_db= db['packets']
 
-from stix.core import stix_decompressor
-from stix.spice import stix_datetime
-from stix.core import stix_datatypes as std
+from stix.core import decompressor
+from stix.spice import datetime
+from stix.core import datatypes as std
 
 def get_packet(file_id):
     start_scet = 0

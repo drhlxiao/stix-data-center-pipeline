@@ -16,13 +16,13 @@ import numpy as np
 import math
 import matplotlib
 from matplotlib import pyplot as plt
-from stix.core import stix_datatypes as sdt
+from stix.core import datatypes as sdt
 from stix.core import mongo_db as db
-from stix.spice import stix_datetime
-from stix.core import stix_logger
+from stix.spice import datetime
+from stix.core import logger
 #from stix.spice import solo
 from stix.analysis import ql_analyzer as qla
-logger = stix_logger.get_logger()
+logger = logger.get_logger()
 matplotlib.use('Agg')
 
 mdb = db.MongoDB()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- encoding: utf-8 -*-
-# @title        : stix_xml_to_bin.py
+# @title        : xml_to_bin.py
 # @description  : read hex string from clipboard and write it to a binary file
 # @date         : March. 28, 2019
 import sys

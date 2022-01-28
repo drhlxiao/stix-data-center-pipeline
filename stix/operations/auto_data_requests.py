@@ -5,7 +5,7 @@ import os
 import math
 import csv
 from datetime import datetime
-from stix.spice import stix_datetime
+from stix.spice import datetime
 from stix.core import mongo_db as db
 mdb = db.MongoDB()
 DATA_LEVEL_NAMES = {
@@ -91,7 +91,7 @@ def create_l4_groups(flare_docs):
         start_unix = gp[0]['start_unix']
         end_unix = gp[-1]['end_unix']
         flare_ids = [d['flare_id'] for d in gp]
-        start_utc = stix_datetime.unix2utc(start_unix)
+        start_utc = datetime.unix2utc(start_unix)
         duration = end_unix - start_unix
         emax = 13
         flare_entry_ids = [x['_id'] for x in gp]
@@ -118,7 +118,7 @@ def create_l4_groups(flare_docs):
 def create_l1_request(doc):
     flare_id = doc['flare_id']
     flare_entry_id = doc['_id']
-    start_utc = stix_datetime.unix2utc(doc['start_unix'])
+    start_utc = datetime.unix2utc(doc['start_unix'])
     duration = int(doc['duration'])
     flare_entry_ids = doc['_id']
     run_ids = doc['run_id']
@@ -165,8 +165,8 @@ def create_template(flare_ids,
         return
 
     if left_margin != 0:
-        start_utc = stix_datetime.unix2utc(
-            stix_datetime.utc2unix(start_utc) + left_margin)
+        start_utc = datetime.unix2utc(
+            datetime.utc2unix(start_utc) + left_margin)
 
     if isinstance(flare_ids, list):
         if len(flare_ids) == 1:

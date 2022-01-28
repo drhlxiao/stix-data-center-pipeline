@@ -9,7 +9,7 @@ from dateutil import parser as dtparser
 #fname='/home/xiaohl/FHNW/STIX/SolarFlareAnalysis/eui/fsi09.csv'
 import pandas as pd
 import csv
-from stix.spice import stix_datetime as sdt
+from stix.spice import datetime as sdt
 import sys
 
 connect = pymongo.MongoClient()

@@ -18,7 +18,7 @@ import numpy as np
 import time
 from array import array
 from datetime import datetime
-from stix.core import stix_datatypes as sdt
+from stix.core import datatypes as sdt
 from stix.core import mongo_db as db
 from ROOT import TGraph, TFile, TCanvas, TH1F, gROOT, TBrowser, gSystem, TH2F, gPad, TF1, TGraphErrors, gStyle, TSpectrum, gRandom, TPaveLabel, TPaveText
 

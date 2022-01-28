@@ -1,6 +1,6 @@
-from core import stix_idb
+from core import idb
 
-idb = stix_idb.stix_idb()
+idb = idb.idb()
 sql = 'select PCF_NAME, PCF_DESCR from PCF'
 pcf = idb.execute(sql)
 print("var PCF_DESCR={")

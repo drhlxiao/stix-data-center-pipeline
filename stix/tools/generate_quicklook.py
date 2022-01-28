@@ -1,7 +1,7 @@
 import pymongo
 import sys
-from stix.core import stix_datatypes as sdt
-from stix.spice import stix_datetime
+from stix.core import datatypes as sdt
+from stix.spice import datetime
 
 class StixQuickLookReportAnalyzer(object):
     """
@@ -62,7 +62,7 @@ class StixQuickLookReportAnalyzer(object):
 
 
         duration = points * 0.1 * (integrations + 1)
-        start_unix_time = stix_datetime.scet2unix(start_coarse_time,
+        start_unix_time = datetime.scet2unix(start_coarse_time,
                                                       start_fine_time)
 
 

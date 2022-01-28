@@ -21,12 +21,12 @@ from PyQt5.QtCore import QThread, pyqtSignal, QTimer
 from PyQt5.QtChart import QChart, QChartView, QLineSeries, QValueAxis
 from PyQt5.QtChart  import QBarSeries, QBarSet, QScatterSeries
 
-from stix.core import stix_parser
-from stix.core import stix_writer
-from stix.core import stix_idb
+from stix.core import parser
+from stix.core import io as stixio
+from stix.core import idb
 from stix.core import mongo_db as mgdb
-from stix.spice import stix_datetime 
-from stix.core import stix_logger
+from stix.spice import datetime 
+from stix.core import logger
 from stix.ui import mainwindow
 from stix.ui import mongo_dialog
 from stix.ui import tsc_connection
@@ -35,15 +35,15 @@ from stix.ui import plugin
 from stix.ui import timestamp_convertor
 from stix.ui import raw_viewer
 #from stix.ui import console
-from stix.core.stix_datatypes import Parameter
-from stix.core.stix_datatypes import Packet
+from stix.core.datatypes import Parameter
+from stix.core.datatypes import Packet
 
 SELECTED_SERVICES = [1, 3, 5, 6, 9, 17, 20, 21, 22, 236, 237, 238, 239]
 
-STIX_IDB = stix_idb.stix_idb()
+STIX_IDB = idb.idb()
 MAX_NUM_PACKET_IN_BUFFER = 6000
 
-LOGGER = stix_logger.get_logger()
+LOGGER = logger.get_logger()
 
 
 class ParserQThread(QThread):
@@ -57,16 +57,16 @@ class ParserQThread(QThread):
 
     def __init__(self):
         super(ParserQThread, self).__init__()
-        self.stix_tctm_parser = stix_parser.StixTCTMParser()
-        self.stix_tctm_parser.set_packet_buffer_enabled(True)
-        self.stix_tctm_parser.set_store_binary_enabled(True)
+        self.tctm_parser = parser.StixTCTMParser()
+        self.tctm_parser.set_packet_buffer_enabled(True)
+        self.tctm_parser.set_store_binary_enabled(True)
 
         handlers = {
-            stix_logger.INFO: self.info,
-            stix_logger.CRITICAL: self.critical,
-            stix_logger.WARNING: self.warning,
-            stix_logger.ERROR: self.error,
-            stix_logger.PROGRESS: self.progress
+            logger.INFO: self.info,
+            logger.CRITICAL: self.critical,
+            logger.WARNING: self.warning,
+            logger.ERROR: self.error,
+            logger.PROGRESS: self.progress
         }
         LOGGER.set_signal_handlers(handlers)
 
@@ -122,7 +122,7 @@ class StixSocketPacketReceiver(ParserQThread):
             if buf[0:9] == 'TM_PACKET'.encode():
                 data_hex = data2[-1][0:-4]
                 data_binary = binascii.unhexlify(data_hex)
-                packets = self.stix_tctm_parser.parse_binary(data_binary)
+                packets = self.tctm_parser.parse_binary(data_binary)
                 if packets:
                     packets[0]['header']['arrival'] = str(datetime.now())
                     self.packetArrival.emit(packets)
@@ -227,11 +227,11 @@ class StixFileReader(ParserQThread):
         self.data.clear()
 
     def setPacketFilter(self, selected_services, selected_SPID):
-        self.stix_tctm_parser.set_packet_filter(selected_services,
+        self.tctm_parser.set_packet_filter(selected_services,
                                                 selected_SPID)
 
     def stopParsing(self):
-        self.stix_tctm_parser.kill()
+        self.tctm_parser.kill()
 
     def run(self):
         self.data = []
@@ -247,7 +247,7 @@ class StixFileReader(ParserQThread):
             self.data = pickle.load(f)['packet']
             f.close()
         else:
-            self.data = self.stix_tctm_parser.parse_file(filename)
+            self.data = self.tctm_parser.parse_file(filename)
         if self.data:
             self.dataLoaded.emit(self.data)
 
@@ -264,7 +264,7 @@ class StixHexStringParser(ParserQThread):
 
     def run(self):
         if self.hex_string:
-            self.data = self.stix_tctm_parser.parse_hex(self.hex_string)
+            self.data = self.tctm_parser.parse_hex(self.hex_string)
             if self.data:
                 self.packetArrival.emit(self.data)
 
@@ -384,7 +384,7 @@ class Ui(mainwindow.Ui_MainWindow):
 
         # IDB location
 
-        self.settings = QtCore.QSettings('FHNW', 'stix_parser')
+        self.settings = QtCore.QSettings('FHNW', 'parser')
         self.idb_filename = self.settings.value('idb_filename', [], str)
         if self.idb_filename:
             STIX_IDB.reload(self.idb_filename)
@@ -642,7 +642,7 @@ class Ui(mainwindow.Ui_MainWindow):
 
         STIX_IDB.reload(self.idb_filename)
         if STIX_IDB.is_connected():
-            #settings = QtCore.QSettings('FHNW', 'stix_parser')
+            #settings = QtCore.QSettings('FHNW', 'parser')
             self.settings.setValue('idb_filename', self.idb_filename)
         self.showMessage(
             'IDB location: {} '.format(STIX_IDB.get_idb_filename()), 1)
@@ -661,11 +661,11 @@ class Ui(mainwindow.Ui_MainWindow):
         msg = 'Writing data to file %s' % self.output_filename
         self.showMessage(msg)
         if self.output_filename.endswith(('.pklz', '.pkl')):
-            stw = stix_writer.StixPickleWriter(self.output_filename)
+            stw = stixio.StixPickleWriter(self.output_filename)
             stw.register_run(str(self.input_filename))
             stw.write_all(self.data)
         elif self.output_filename.endswith('.dat'):
-            stw = stix_writer.StixBinaryWriter(self.output_filename)
+            stw = stixio.StixBinaryWriter(self.output_filename)
             stw.write_all(self.data)
             num_ok = stw.get_num_sucess()
             msg = (
@@ -830,7 +830,7 @@ class Ui(mainwindow.Ui_MainWindow):
                                 QtGui.QColor(
                                     colors[header['service_subtype']])))
 
-            timestamp_str = stix_datetime.format_datetime(header['unix_time'])
+            timestamp_str = datetime.format_datetime(header['unix_time'])
             root.setText(0, timestamp_str)
             description = '{}({},{}) - {}'.format(
                 header['TMTC'], header['service_type'],
@@ -906,7 +906,7 @@ class Ui(mainwindow.Ui_MainWindow):
         diag = QtWidgets.QDialog()
         diag_ui = mongo_dialog.Ui_Dialog()
         diag_ui.setupUi(diag)
-        #self.settings = QtCore.QSettings('FHNW', 'stix_parser')
+        #self.settings = QtCore.QSettings('FHNW', 'parser')
         self.mongo_server = self.settings.value('mongo_server', [], str)
         self.mongo_port = self.settings.value('mongo_port', [], str)
         self.mongo_user = self.settings.value('mongo_user', [], str)
@@ -957,9 +957,9 @@ class Ui(mainwindow.Ui_MainWindow):
             root = QtWidgets.QTreeWidgetItem(dui.treeWidget)
             root.setText(0, str(run['_id']))
             root.setText(1, run['filename'])
-            root.setText(2, stix_datetime.format_datetime(run['date']))
-            root.setText(3, stix_datetime.format_datetime(run['data_start_unix_time']))
-            root.setText(4, stix_datetime.format_datetime(run['data_stop_unix_time']))
+            root.setText(2, datetime.format_datetime(run['date']))
+            root.setText(3, datetime.format_datetime(run['data_start_unix_time']))
+            root.setText(4, datetime.format_datetime(run['data_stop_unix_time']))
 
     def loadDataFromMongoDB(self, dui, diag):
         self.showMessage('Loading packets ...')

@@ -5,7 +5,7 @@
 
 import sys
 from pprint import pprint
-from stix.spice import stix_datetime
+from stix.spice import datetime
 from datetime import datetime
 import json
 
@@ -13,7 +13,7 @@ Request = {'occurrences': []}
 
 
 def get_uid(start_unix, level):
-    start_datetime = stix_datetime.unix2datetime(start_unix)
+    start_datetime = datetime.unix2datetime(start_unix)
     year = start_datetime.year
     month = start_datetime.month
     day = start_datetime.day
@@ -40,7 +40,7 @@ def form_request(start_unix,
                  pixel_mask=0xfff,
                  action_time='00:00:10'):
     uid = get_uid(start_unix, level)
-    start_obt = int(stix_datetime.unix2scet(start_unix))
+    start_obt = int(datetime.unix2scet(start_unix))
     num_detectors = sum([(detector_mask & (1 << i)) >> i
                          for i in range(0, 32)])
     num_pixels = sum([((pixel_mask & (1 << i)) >> i) for i in range(0, 12)])
@@ -75,7 +75,7 @@ def form_request(start_unix,
 
 def create_request(start_utc,  duration, detector_mask,pixel_mask,  json_filename):
     #start utc : utc str
-    unix_t0 = stix_datetime.utc2unix(start_utc)
+    unix_t0 = datetime.utc2unix(start_utc)
     json_file = open(json_filename, 'w')
     detector_mask = 0xffffffff - 0x300
     pixel_mask = 0xff  #big pixels
@@ -114,12 +114,12 @@ def create_request(start_utc,  duration, detector_mask,pixel_mask,  json_filenam
         emin = 3
         emax = 17
         eunit = 0
-        #print(stix_datetime.unix2utc(unix))
+        #print(datetime.unix2utc(unix))
         TC = form_request(unix, 1, detector_mask, 0, dt * 10, tbin * 10, emin,
                           emax, eunit, pixel_mask)
         total_volume += TC['data_volume']
         print('{} , {},   {}, {}, {}, {}, {}, {}, {},{} '.format(
-            stix_datetime.unix2utc(unix), stix_datetime.unix2utc(unix + dt),
+            datetime.unix2utc(unix), datetime.unix2utc(unix + dt),
             tbin, detector_mask, pixel_mask, emin, emax, eunit,
             TC['data_volume'], TC['uid']))
         requests['occurrences'].append(TC)

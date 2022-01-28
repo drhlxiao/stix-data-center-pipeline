@@ -1,10 +1,10 @@
 import sys
 import os
-from stix.core import stix_datatypes as sdt
-from stix.spice import stix_datetime
-from stix.core import stix_logger
+from stix.core import datatypes as sdt
+from stix.spice import datetime
+from stix.core import logger
 from pprint import pprint
-logger = stix_logger.get_logger()
+logger = logger.get_logger()
 import numpy as np
 
 
@@ -99,7 +99,7 @@ class StixCalibrationReportAnalyzer(object):
             self.report['duration'] = param_dict['NIX00122'][0].raw
             scet = param_dict['NIX00445'][0].raw
             self.report['SCET'] = scet
-            self.report['start_unix_time'] = stix_datetime.scet2unix(scet)
+            self.report['start_unix_time'] = datetime.scet2unix(scet)
             self.report['auxiliary'] = packet['parameters'][0:14]
             #Don't copy repeaters 
             self.report['total_counts'] = self.total_counts

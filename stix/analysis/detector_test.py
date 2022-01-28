@@ -6,7 +6,7 @@ import numpy as np
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib import pyplot as plt
 from datetime import datetime
-from core import stix_packet_analyzer as sta
+from core import packet_analyzer as sta
 
 analyzer = sta.analyzer()
 

@@ -9,7 +9,7 @@ import sys
 import numpy as np
 from matplotlib import pyplot as plt
 from datetime import datetime
-from stix.core import stix_datatypes as sdt
+from stix.core import datatypes as sdt
 
 SPID = 54119
 

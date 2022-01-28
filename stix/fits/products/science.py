@@ -13,11 +13,11 @@ from astropy.time.core import Time
 from stix.core import config
 
 from stix.fits.calibration.integer_compression import decompress
-from stix.spice.stix_datetime import scet_to_datetime
+from stix.spice.datetime import scet_to_datetime
 from stix.fits.products.common import _get_pixel_mask, _get_detector_mask, _get_compression_scheme
 from stix.fits.products.quicklook import get_energies_from_mask, ENERGY_CHANNELS
 
-from stix.core.stix_logger import get_logger
+from stix.core.logger import get_logger
 logger = get_logger(__name__)
 
 
@@ -84,9 +84,9 @@ class Product:
 
         Parameters
         ----------
-        control : stix_parser.products.quicklook.Control
+        control : parser.products.quicklook.Control
             Table containing control information
-        data : stix_parser.products.quicklook.Data
+        data : parser.products.quicklook.Data
             Table containing data
         """
         self.type = 'sci'

@@ -1,6 +1,6 @@
 import numpy as np
 
-from stix.core.stix_logger import get_logger
+from stix.core.logger import get_logger
 
 logger = get_logger()
 

@@ -9,7 +9,6 @@ import sys
 import numpy as np
 import time
 from array import array
-from datetime import datetime
 import h5py
 
 import matplotlib
@@ -19,8 +18,7 @@ from pathlib import Path
 from matplotlib import pyplot as plt
 from scipy import stats
 
-from stix.spice import stix_datetime
-from stix.core import stix_datatypes as sdt
+from stix.core import datatypes as sdt
 from stix.core import mongo_db as db
 import pickle
 mdb = db.MongoDB()

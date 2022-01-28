@@ -1,6 +1,6 @@
 #plugin example
 import sys
-from stix.core import stix_packet_analyzer as sta
+from stix.core import packet_analyzer as sta
 from matplotlib import pyplot as plt
 
 analyzer = sta.analyzer()

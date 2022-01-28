@@ -1,6 +1,6 @@
 import sys
 from pprint import pprint
-from stix.spice import stix_datetime
+from stix.spice import datetime
 
 import pymongo
 connect = pymongo.MongoClient()
@@ -12,8 +12,8 @@ names=['AIXF414A'] #load prameters
 start_utc='2021-06-15T00:00:00'
 end_utc='2021-11-15T00:00:00'
 
-start_unix=stix_datetime.utc2unix(start_utc)
-end_unix=stix_datetime.utc2unix(end_utc)
+start_unix=datetime.utc2unix(start_utc)
+end_unix=datetime.utc2unix(end_utc)
 query_string={'startUnix': { '$gte': start_unix,    '$lt':end_unix },
             'status':{'$gt':0},
             'occurrences':{'$elemMatch':{ 'name': {'$in':names}}},

@@ -1,7 +1,7 @@
 import sys
 import os
 from stix.core import mongo_db 
-from stix.spice import stix_datetime 
+from stix.spice import datetime 
 from stix.pipeline import parser_pipeline as pp
 mdb = mongo_db.MongoDB()
 MAX_ALLOWED_DIFF=0.5
@@ -22,8 +22,8 @@ def test(start_run, end_run=-1):
         end_scet=doc['data_end_scet']
         if start_scet==0 or end_scet ==0 :
             continue
-        new_start_unix=stix_datetime.scet2unix(start_scet)
-        new_end_unix=stix_datetime.scet2unix(end_scet)
+        new_start_unix=datetime.scet2unix(start_scet)
+        new_end_unix=datetime.scet2unix(end_scet)
         delta_start=abs(start_unix-new_start_unix)
         delta_end=abs(end_unix-new_end_unix)
         if delta_start>MAX_ALLOWED_DIFF or delta_end>MAX_ALLOWED_DIFF:

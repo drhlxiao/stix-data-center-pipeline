@@ -11,7 +11,7 @@ from sunpy.net import Fido, attrs as a
 from sunpy.map import Map
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
-from stix.spice import stix_datetime
+from stix.spice import datetime
 import tempfile
 
 from stix.core import mongo_db as db
@@ -22,8 +22,8 @@ def plot_aia(folder,_id, flare_id ,utc_start,  wavelen=131, overwrite=False):
     if  mdb.get_flare_pipeline_products(_id, key) and overwrite == False:
         print(f'AIA for Flare {flare_id} is not created!')
         return 
-    unix_start= stix_datetime.utc2unix(utc_start)
-    utc_end = stix_datetime.unix2datetime(unix_start +
+    unix_start= datetime.utc2unix(utc_start)
+    utc_end = datetime.unix2datetime(unix_start +
                                           60).strftime('%Y-%m-%dT%H:%M:%S')
     sdo_query = Fido.search(a.Time(utc_start, utc_end), a.Instrument('AIA'),
                             a.Wavelength(wavelen* u.angstrom))

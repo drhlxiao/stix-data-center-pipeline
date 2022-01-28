@@ -2,7 +2,7 @@
 import pprint
 
 from matplotlib import pyplot as plt
-from core import stix_packet_analyzer as sta
+from core import packet_analyzer as sta
 import sys
 analyzer = sta.analyzer()
 

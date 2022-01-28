@@ -12,8 +12,7 @@ import sys
 import numpy as np
 import time
 from array import array
-from datetime import datetime
-from stix.core import stix_datatypes as sdt
+from stix.core import datatypes as sdt
 from stix.core import mongo_db as db
 from scipy.interpolate import interp1d
 from scipy.optimize import curve_fit

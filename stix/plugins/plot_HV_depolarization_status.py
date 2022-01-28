@@ -1,6 +1,6 @@
 #plot HV depolarization states
 import pprint
-from stix.core import stix_packet_analyzer as sta
+from stix.core import packet_analyzer as sta
 analyzer = sta.analyzer()
 from matplotlib import pyplot as plt
 

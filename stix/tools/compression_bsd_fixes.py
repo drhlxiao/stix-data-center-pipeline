@@ -6,8 +6,8 @@ cursor=packet_db.find({'header.SPID':54115})
 #cursor=packet_db.find({'_id':771287})
 
 print('number of packets:',cursor.count())
-from stix.core import stix_decompressor
-from stix.core import stix_datatypes as std
+from stix.core import decompressor
+from stix.core import datatypes as std
 
 s=0
 k=4
@@ -50,7 +50,7 @@ for pkt in cursor:
         if param[0] in trig_parameters:
             raw=param[1]
             #origin=int(param[2])
-            param[2]=stix_decompressor.decompress(raw, s, k, m)
+            param[2]=decompressor.decompress(raw, s, k, m)
             #print(origin,'=>', param[2])
 
     num += 1

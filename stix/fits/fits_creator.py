@@ -6,11 +6,10 @@ from datetime import datetime
 from itertools import chain
 from pathlib import Path
 
-from stix.core import stix_datatypes as sdt
+from stix.core import datatypes as sdt
 from stix.fits.io.processors import FitsL1Processor
 from stix.fits.io import hk_fits_writer as hkw
-from stix.spice.stix_datetime import datetime_to_scet
-from stix.spice import stix_datetime
+from stix.spice import datetime as st
 from stix.fits.products.housekeeping import MiniReport, MaxiReport
 from stix.fits.products.quicklook import LightCurve, Background, Spectra, Variance, \
     FlareFlagAndLocation, CalibrationSpectra, TMManagementAndFlareList
@@ -18,8 +17,8 @@ from stix.fits.products.science import XrayL0, Aspect, XrayL1, XrayL2, XrayL3, S
 #from stix.utils.logger import get_logger
 
 
-from stix.core import mongo_db, stix_logger
-logger = stix_logger.get_logger()
+from stix.core import mongo_db, logger
+logger = logger.get_logger()
 
 
 db= mongo_db.MongoDB()
@@ -263,15 +262,15 @@ def create_continous_low_latency_fits(start_unix, end_unix,  output_path=FITS_PA
 def create_daily_low_latency_fits(date, path=FITS_PATH):
     start_datetime=f'{date}T00:00:00'
     print("creating daily fits file for data on ", start_datetime)
-    start_unix=stix_datetime.utc2unix(start_datetime)
+    start_unix=st.utc2unix(start_datetime)
     end_unix=86400+start_unix
     create_continous_low_latency_fits(start_unix, end_unix,  output_path=path, overwrite=True, version=1, run_type='daily')
 
 def create_low_latency_fits_between_dates(date_start, date_end, path=FITS_PATH):
     start_datetime=f'{date_start}T00:00:00'
-    start_unix=stix_datetime.utc2unix(start_datetime)
+    start_unix=st.utc2unix(start_datetime)
     end_datetime=f'{date_end}T00:00:00'
-    end_unix=stix_datetime.utc2unix(end_datetime)
+    end_unix=st.utc2unix(end_datetime)
     while start_unix<=end_unix:
         create_continous_low_latency_fits(start_unix, start_unix+86400,  output_path=path, overwrite=True, version=1, run_type='daily')
         start_unix+=86400

@@ -7,8 +7,8 @@ import sys
 import os
 import math
 import json
-from spice import stix_datetime
-from core import stix_datatypes as sdt
+from spice import datetime
+from core import datatypes as sdt
 from datetime import timedelta
 from core import mongodb_api
 import numpy as np
@@ -44,7 +44,7 @@ def enable_data_transfer(mask=31399711):
     #    level=6
 
     unix=int(unix)
-    start_datetime=stix_datetime.unix2datetime(unix)
+    start_datetime=datetime.unix2datetime(unix)
     #year = start_datetime.year
     #month = start_datetime.month
     #day = start_datetime.day
@@ -72,8 +72,8 @@ def enable_data_transfer(mask=31399711):
 
 
 def form_aspect_request(start_unix, stop_unix,summing):
-    start_obt = int(stix_datetime.unix2scet(start_unix))
-    stop_obt = int(stix_datetime.unix2scet(stop_unix))
+    start_obt = int(datetime.unix2scet(start_unix))
+    stop_obt = int(datetime.unix2scet(stop_unix))
     duration=stop_obt-start_obt
     tm_packets=math.ceil(8*(64/summing)*duration/4096.)
 
@@ -104,7 +104,7 @@ def form_bsd_request_sequence(uid, start_unix,
                  pixel_mask=0xfff,
                  action_time='00:00:10'):
 
-    start_obt = int(stix_datetime.unix2scet(start_unix))
+    start_obt = int(datetime.unix2scet(start_unix))
     num_detectors = sum([(detector_mask & (1 << i)) >> i
                          for i in range(0, 32)])
     num_pixels = sum([((pixel_mask & (1 << i)) >> i) for i in range(0, 12)])
@@ -298,7 +298,7 @@ def create_occurrences(collection, _ids, forms):
     for form in  forms:
         print('_id:',form['_id'])
         start_utc = form['start_utc']
-        start_unix= stix_datetime.utc2unix(start_utc)
+        start_unix= datetime.utc2unix(start_utc)
         level=data_levels[form['request_type']]
         dt = int(form['duration'])
         unique_ids=[]
@@ -306,7 +306,7 @@ def create_occurrences(collection, _ids, forms):
         #if lc_filename:
         #    form['lc_filename']=lc_filename
 
-        start_date=stix_datetime.utc2datetime(start_utc)
+        start_date=datetime.utc2datetime(start_utc)
         start_date_str=start_date.strftime('%y%m%d')
         if start_date_str not in next_uids:
             next_uids[start_date_str]=STIX_MDB.get_user_data_request_next_unique_id(start_date, _ids)
@@ -357,7 +357,7 @@ def create_occurrences(collection, _ids, forms):
             last_detector_mask=detector_mask
             last_level=level
         form['unique_ids']=unique_ids
-        form['export_time']=stix_datetime.get_now()
+        form['export_time']=datetime.get_now()
         collection.save(form)
 
 

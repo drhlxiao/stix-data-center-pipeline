@@ -79,8 +79,8 @@ class StixBulkL1L2Analyzer(object):
         return pixel_indexes
     def process(self,unique_id, start_utc, end_utc,range_name):
         emin,emax=ebin_map[range_name]
-        start_unix=stix_datetime.utc2unix(start_utc)
-        end_unix=stix_datetime.utc2unix(end_utc)
+        start_unix=datetime.utc2unix(start_utc)
+        end_unix=datetime.utc2unix(end_utc)
         packets=get_packets(unique_id,start_unix, end_unix, emin,emax)
         return merge(packets,start_unix, end_unix, emin, emax) 
     def merge(self, cursor, start_unix, end_unix, emin, emax):
@@ -88,7 +88,7 @@ class StixBulkL1L2Analyzer(object):
             packet = sdt.Packet(pkt)
             self.request_id = packet[3].raw
             self.packet_unix = packet['unix_time']
-            T0 = stix_datetime.scet2unix(packet[12].raw)
+            T0 = datetime.scet2unix(packet[12].raw)
             num_structures = packet[13].raw
             self.eacc_SKM = (packet[5].raw, packet[6].raw, packet[7].raw)
             self.trig_SKM = (packet[9].raw, packet[10].raw, packet[11].raw)
@@ -157,8 +157,8 @@ class StixBulkL1L2Analyzer(object):
                 #self.groups.append(group)
         return {'emin':emin,
                 'emax':emax,
-                'start': stix_datetime.unix2utc(start_unix),
-                'end': stix_datetime.unix2utc(end_unix),
+                'start': datetime.unix2utc(start_unix),
+                'end': datetime.unix2utc(end_unix),
                 'counts':self.pixel_total_counts,
                 'cfl':self.pixel_total_counts[8*12, 8*12+12]
                 }

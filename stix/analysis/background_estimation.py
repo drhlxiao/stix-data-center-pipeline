@@ -14,9 +14,9 @@ import sys
 import math
 from scipy import signal
 import numpy as np
-from stix.core import stix_datatypes as sdt
+from stix.core import datatypes as sdt
 from stix.core import mongo_db as db
-from stix.spice import stix_datetime
+from stix.spice import datetime as st
 
 mdb = db.MongoDB()
 
@@ -96,7 +96,7 @@ def get_QL_background(start, end, file_id):
         UTC = packet['header']['UTC']
         num_lcs = len(lc)
         for i in range(len(lc[0])):
-            t = stix_datetime.scet2unix(start_scet + i * int_duration)
+            t = st.scet2unix(start_scet + i * int_duration)
             if t > end:
                 break
             if t < start:
@@ -132,8 +132,8 @@ def get_QL_background(start, end, file_id):
         'num_points': num_points,
         'start_unix': unix_time[0],
         'end_unix': unix_time[-1],
-        'start_utc': stix_datetime.unix2datetime(unix_time[0]),
-        'end_utc': stix_datetime.unix2datetime(unix_time[-1]),
+        'start_utc': st.unix2datetime(unix_time[0]),
+        'end_utc': st.unix2datetime(unix_time[-1]),
         'median': median,
         'mean': mean,
         'std': std,

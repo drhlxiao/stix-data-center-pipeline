@@ -1,7 +1,7 @@
 import sys
 from pprint import pprint
 from datetime import datetime
-from stix.spice import stix_datetime as sdt
+from stix.spice import datetime as sdt
 
 import pymongo
 connect = pymongo.MongoClient()

@@ -16,13 +16,13 @@ import numpy as np
 import math
 import matplotlib
 from matplotlib import pyplot as plt
-from stix.core import stix_datatypes as sdt
+from stix.core import datatypes as sdt
 from stix.core import mongo_db as db
-from stix.spice import stix_datetime
-from stix.core import stix_logger
+from stix.spice import datetime
+from stix.core import logger
 #from stix.spice import solo
 from stix.analysis import ql_analyzer as qla
-logger = stix_logger.get_logger()
+logger = logger.get_logger()
 matplotlib.use('Agg')
 
 mdb = db.MongoDB()
@@ -107,7 +107,7 @@ def make_lightcurve_snapshot(data, docs, snapshot_path):
         plt.plot(t_since_t0,
                  data['lc_smoothed'][where],
                  label='1-min moving mean')
-        T0 = stix_datetime.unix2utc(docs['peak_unix_time'][i])
+        T0 = datetime.unix2utc(docs['peak_unix_time'][i])
         xmin = docs['start_unix'][i] - docs['peak_unix_time'][i]
         xmax = docs['end_unix'][i] - docs['peak_unix_time'][i]
         t70=[docs['PH70_unix'][i][0]-docs['peak_unix_time'][i],
@@ -224,9 +224,9 @@ def find_flares_in_data(data,
 
     peak_values = properties['peak_heights']
     peak_unix_times = unix_time[xpeaks]
-    peaks_utc = [stix_datetime.unix2utc(x) for x in peak_unix_times]
+    peaks_utc = [datetime.unix2utc(x) for x in peak_unix_times]
     flare_ids = [
-        stix_datetime.unix2datetime(x).strftime("%y%m%d%H%M")
+        datetime.unix2datetime(x).strftime("%y%m%d%H%M")
         for x in peak_unix_times
     ]
 

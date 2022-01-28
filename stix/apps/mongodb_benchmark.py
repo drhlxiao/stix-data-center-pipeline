@@ -1,7 +1,7 @@
 import sys
 
 import pickle
-from core import stix_writer
+from core import writer
 
 
 def push(fname):
@@ -10,7 +10,7 @@ def push(fname):
         print('loading data')
         packets = data['packets']
         run = data['run']
-        st_writer = stix_writer.StixMongoWriter()
+        st_writer = writer.StixMongoWriter()
         in_filename = run['input']
         file_size = 1024
         print('pushing data')

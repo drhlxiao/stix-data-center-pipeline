@@ -1,6 +1,6 @@
 import sys
 import pprint
-from core import stix_packet_analyzer as sta
+from core import packet_analyzer as sta
 analyzer = sta.analyzer()
 
 SPID = 54124

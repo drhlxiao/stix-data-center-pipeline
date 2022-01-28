@@ -10,8 +10,8 @@ import matplotlib.dates as mdates
 from datetime import datetime
 from pprint import pprint
 from stix.core import mongo_db as db
-from stix.core import stix_datatypes as sdt
-from stix.spice import stix_datetime
+from stix.core import datatypes as sdt
+from stix.spice import datetime
 from stix.analysis import ql_analyzer as qla
 
 
@@ -46,8 +46,8 @@ def get_lightcurve_data(start_utc, end_utc, sort_field='header.unix_time'):
 
         sort_field (str, optional): [description]. Defaults to 'header.unix_time'.
     """
-    start_unix=stix_datetime.utc2unix(start_utc)
-    duration=stix_datetime.utc2unix(end_utc)-start_unix
+    start_unix=datetime.utc2unix(start_utc)
+    duration=datetime.utc2unix(end_utc)-start_unix
     packets=mdb.get_LC_pkt_by_tw(
             start_unix,
             duration)
@@ -55,29 +55,29 @@ def get_lightcurve_data(start_utc, end_utc, sort_field='header.unix_time'):
 
 
 
-def plot_stix_lc_and_save(folder, _id, event_name, start_utc, end_utc,  overwrite=True, peak_utc=None, light_time=0, event_type="Flare #"):
+def plot_lc_and_save(folder, _id, event_name, start_utc, end_utc,  overwrite=True, peak_utc=None, light_time=0, event_type="Flare #"):
     key='stixlc'
     if  mdb.get_flare_pipeline_products(_id, key) and overwrite == False:
         print(f'{event_type}{event_name} STIX LCs were not created!')
         return 
-    fig,ax=plot_stix_lc(start_utc, end_utc,peak_utc, light_time, event_type, event_name)
+    fig,ax=plot_lc(start_utc, end_utc,peak_utc, light_time, event_type, event_name)
     #fig.tight_layout()
     if not fig:
         return None
 
-    filename = os.path.join(folder, f'stix_ql_lc_{_id}_{event_name}.png')
+    filename = os.path.join(folder, f'ql_lc_{_id}_{event_name}.png')
     fig.savefig(filename, dpi=100)
     print(filename)
     mdb.update_flare_pipeline_products(_id, key, [filename])
     return filename
 
-def plot_stix_lc(start_utc, end_utc, peak_utc=None, light_time=0, event_type='', event_name='', ax=None):
+def plot_lc(start_utc, end_utc, peak_utc=None, light_time=0, event_type='', event_name='', ax=None):
     data=get_lightcurve_data(start_utc, end_utc)
     if data['num']==0:
 
         print('No LC data')
         return None, None
-    earth_dt = [stix_datetime.unix2datetime(x+light_time) for x in  data['time']]
+    earth_dt = [datetime.unix2datetime(x+light_time) for x in  data['time']]
     min_cnts=0
     max_cnts=0
     if ax is None:
@@ -97,7 +97,7 @@ def plot_stix_lc(start_utc, end_utc, peak_utc=None, light_time=0, event_type='',
             min_cnts=min_lc_cnt
 
     if peak_utc:
-        peak_dt=stix_datetime.utc2datetime(peak_utc)
+        peak_dt=datetime.utc2datetime(peak_utc)
         ax.vlines(peak_dt,min_cnts, max_cnts, linestyle='dotted')
     locator = mdates.AutoDateLocator(minticks=3, maxticks=7)
     formatter = mdates.ConciseDateFormatter(locator)
@@ -113,4 +113,4 @@ def plot_stix_lc(start_utc, end_utc, peak_utc=None, light_time=0, event_type='',
 
 
 if __name__=='__main__':
-    plot_stix_lc_and_save('.',0,0, '2021-03-01T08:50:00','2021-03-01T08:52:00')
+    plot_lc_and_save('.',0,0, '2021-03-01T08:50:00','2021-03-01T08:52:00')

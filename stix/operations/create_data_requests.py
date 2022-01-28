@@ -43,7 +43,7 @@ print(occurrences[-1])
 # In[50]:
 
 import sys
-from stix.spice import stix_datetime
+from stix.spice import datetime
 
 
 def create_request(_id, occ):
@@ -51,7 +51,7 @@ def create_request(_id, occ):
     param = occ['parameters']
     uid = int(param[0][1])
     print(int(param[2][1]))
-    print(str(stix_datetime.scet2utc(int(param[2][1]))))
+    print(str(datetime.scet2utc(int(param[2][1]))))
     doc = {
         "_id": _id,
         "author": "Robot",
@@ -60,7 +60,7 @@ def create_request(_id, occ):
         "execution_date": "IX5 Day 2",
         "unique_id": uid + 1,
         "request_type": "L" + param[1][1],
-        "start_utc": str(stix_datetime.scet2utc(int(param[2][1]))),
+        "start_utc": str(datetime.scet2utc(int(param[2][1]))),
         "duration": str(int(param[7][1]) / 10),
         "averaging": "",
         "time_bin": str(int(param[8][1]) / 10),
@@ -73,7 +73,7 @@ def create_request(_id, occ):
         "submit": "",
         "volume": "-1",
         "creation_time":
-        stix_datetime.utc2datetime("2020-10-23T19:05:46.280Z"),
+        datetime.utc2datetime("2020-10-23T19:05:46.280Z"),
         "status": '0',
         "hidden": False,
         "data_volume": "-1"

@@ -10,13 +10,13 @@ from datetime import datetime
 from dateutil import parser as dtparser
 from astropy.time import Time
 
-from stix.core import stix_logger
+from stix.core import logger
 from stix.core import config
 from stix.core import mongo_db 
 
 NUM_KERNEL_FILES_LIMIT=10
 
-logger = stix_logger.get_logger()
+logger = logger.get_logger()
 
 mdb=mongo_db.MongoDB()
 # SOLAR ORBITER naif identifier

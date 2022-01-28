@@ -9,7 +9,7 @@
 """
 import numpy as np
 from stix.core import mongo_db as db
-from stix.spice import stix_datetime
+from stix.spice import datetime
 from stix.core import config
 from stix.spice import solo
 threshold=0
@@ -18,8 +18,18 @@ mdb = db.MongoDB()
 
 flare_db=mdb.get_collection('flares')
 
-GOES_STIX_COEFFS=[-6.88, 0.05591, 0.07223]
+#GOES_STIX_COEFFS=[-6.88, 0.05591, 0.07223]
+GOES_STIX_COEFFS=[-6.90, 0.07505, 0.07064] #my result, must used with bkg subtracted counts
 GOES_STIX_ERROR_LUT={'bins':[(0,10)],'errors':[0.3]}
+"""
+Erica's data
+GOES_STIX_COEFFS=[-8.0780854936,0.6641698797] 
+GOES_STIX_ERROR_LUT={'bins':[
+(2.0,2.5),(2.5,3.0),(3.,3.5),(3.5,4.0),(4,4.5),(4.5 5.0)
+],
+'errors':[0.2404348065,0.2850726823,0.1928913381,0.277,0.139,0.273,0.217]
+}
+"""
 
 def get_first_element(obj):
     if not isinstance(obj, dict):
@@ -31,20 +41,20 @@ def get_first_element(obj):
         else:
             new_obj[key]=val
     return new_obj
-def goes_flux_to_class(x):
+def goes_flux_to_class(x, frac=True):
     x=float(f'{x:.1e}')
     if x==0:
         return 'NA'
     elif x<1e-7:
         return 'A'
     elif x<1e-6:
-        return f'B{x/1e-7:.1f}'
+        return f'B{x/1e-7:.1f}' if frac else f'B{x/1e-7:.0f}'
     elif x<1e-5:
-        return f'C{x/1e-6:.1f}'
+        return f'C{x/1e-6:.1f}'if frac else f'C{x/1e-6:.0f}'
     elif x<1e-4:
-        return f'M{x/1e-5:.1f}'
+        return f'M{x/1e-5:.1f}' if frac else f'M{x/1e-5:.0f}'
     else:
-        return f'X{x/1e-4:.1f}'
+        return f'X{x/1e-4:.1f}' if frac else f'X{x/1e-4:.0f}'
 def get_goes_info(start, end):
     data = mdb.get_goes_fluxes(start, end)
     last_time=0
@@ -55,12 +65,14 @@ def get_goes_info(start, end):
     peak_flux_low=0
     peak_flux_high=0
     peak_time_high=0
+    bkg_low=0
     for d in data:
         unix = d['unix_time']
         flux=d['flux']
         if d['energy']==low_name and flux>peak_flux_low:
             peak_flux_low=flux
             peak_time_low=unix
+            bkg_low=d.get('background',0)
 
         if d['energy']==high_name and flux>peak_flux_high:
             peak_flux_high=flux
@@ -68,7 +80,7 @@ def get_goes_info(start, end):
 
 
     goes_class=goes_flux_to_class(peak_flux_low)
-    return  (peak_time_low, peak_flux_low, peak_time_high, peak_flux_high, goes_class)
+    return  (peak_time_low, peak_flux_low, peak_time_high, peak_flux_high, goes_class, bkg_low)
 
 
 
@@ -113,13 +125,13 @@ def estimate_goes_class(counts:float,   dsun:float, coeffs:list, error_lut:dict,
         predicted GOES class and limts
     """
 
-    stix_cnts=counts*dsun**2
-    if stix_cnts<=0:
+    cnts=counts*dsun**2
+    if cnts<=0:
         return {'min':None,'max':None,'max':None}
-    x =np.log10(stix_cnts)
+    x =np.log10(cnts)
 
     g=lambda y: sum([coeffs[i] * y ** i for i in range(len(coeffs))])
-    f=lambda y: goes_flux_to_class(10 ** g(y))
+    f=lambda y: goes_flux_to_class(10 ** g(y), frac=False)
 
     error=default_error #default error
     try:
@@ -128,7 +140,7 @@ def estimate_goes_class(counts:float,   dsun:float, coeffs:list, error_lut:dict,
         for b,e in zip(bin_range, errors):
             if b[0] <= x <= b[1]:
                 error=e
-                print(error)
+                #print(error)
                 break
     except (KeyError, IndexError, TypeError):
         pass
@@ -142,8 +154,8 @@ def estimate_goes_class(counts:float,   dsun:float, coeffs:list, error_lut:dict,
 def get_flare_goes_class(doc):
     start_unix=doc['start_unix']
     end_unix=doc['end_unix']
-    start_utc=stix_datetime.unix2utc(start_unix)
-    end_utc=stix_datetime.unix2utc(end_unix)
+    start_utc=datetime.unix2utc(start_unix)
+    end_utc=datetime.unix2utc(end_unix)
     peak_utc=doc['peak_utc']
 
     
@@ -161,7 +173,7 @@ def get_flare_goes_class(doc):
         delta_lt=eph['light_time_diff']
     except (KeyError, IndexError):
         delta_lt=0
-    peak_time_low, peak_flux_low, peak_time_high, peak_flux_high, goes_class=get_goes_info(start_unix+delta_lt, end_unix+delta_lt)
+    peak_time_low, peak_flux_low, peak_time_high, peak_flux_high, goes_class, bkg_low=get_goes_info(start_unix+delta_lt, end_unix+delta_lt)
     bkg_subtracted_counts=peak_counts-doc['LC_statistics']['lc0']['bkg_median']
 
 
@@ -177,15 +189,15 @@ def get_flare_goes_class(doc):
             {'_id':doc['_id']},
             {'$set':{
                 'goes':{
-                    'low':{'unix_time':peak_time_low, 'utc': stix_datetime.unix2utc(peak_time_low), 'flux':peak_flux_low},
-                    'high':{'unix_time':peak_time_high, 'utc': stix_datetime.unix2utc(peak_time_high), 'flux':peak_flux_high},
+                    'low':{'unix_time':peak_time_low, 'utc': datetime.unix2utc(peak_time_low), 'flux':peak_flux_low, 'background':bkg_low},
+                    'high':{'unix_time':peak_time_high, 'utc': datetime.unix2utc(peak_time_high), 'flux':peak_flux_high},
                     'class':goes_class,
                     'estimated_class':estimated_class,
                     },
                 'ephemeris':eph
                 }
             })
-    return stix_datetime.unix2utc(peak_time_low), goes_class, estimated_class
+    return datetime.unix2utc(peak_time_low), goes_class, estimated_class
             
 
 if __name__ == '__main__':

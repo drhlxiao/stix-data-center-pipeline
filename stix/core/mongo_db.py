@@ -64,7 +64,7 @@ class MongoDB(object):
             self.collection_qlspectra=self.db['ql_spectra']
             self.collection_qllc=self.db['ql_lightcurves']
             self.collection_qloc=self.db['ql_flarelocations']
-            self.collection_stix_config=self.db['stix_config']
+            self.collection_config=self.db['config']
 
             self.col_user_groups=self.db['user_groups']
         except Exception as e:

@@ -14,13 +14,13 @@ import binascii
 from cBytesIO import BytesIO
 import xmltodict
 from core import idb
-from core import stix_logger
-from core import stix_telemetry_parser as tm_parser
+from core import logger
+from core import telemetry_parser as tm_parser
 from datetime import datetime
-from core import stix_parser
+from core import parser
 import xlwt
 
-LOGGER = stix_logger._stix_logger
+LOGGER = logger._logger
 
 
 def write_xls(sheet, tctm, row, packet_id, utc_timestamp, data_hex, header,
@@ -71,7 +71,7 @@ def parse_soc_ascii_file(in_filename, out_filename=None, selected_spid=0):
                     in_file, LOGGER)
             elif data_hex[0:2] == '1D':
                 tctm = 'tc'
-                header, parameter = stix_parser.parse_telecommand_packet(
+                header, parameter = parser.parse_telecommand_packet(
                     data_binary, LOGGER)
             if header:
                 header['time'] = utc_timestamp
@@ -89,7 +89,7 @@ def parse_soc_ascii_file(in_filename, out_filename=None, selected_spid=0):
 
 def main():
     in_filename = 'test/stix.ascii'
-    out_filename = 'stix_out.xlsx'
+    out_filename = 'out.xlsx'
     sel_spid = 0
     ap = argparse.ArgumentParser()
     ap.add_argument("-i", "--in", required=True, help="input file")

@@ -6,8 +6,8 @@
 import os
 import json
 from dateutil import parser as dtparser
-from stix.core import stix_logger
-logger = stix_logger.get_logger()
+from stix.core import logger
+logger = logger.get_logger()
 
 ASW_VERSION = 183
 HTTP_PREFIX = 'https://pub023.cs.technik.fhnw.ch'
@@ -31,14 +31,14 @@ parser_config = {
                     },
                 "log_path": "/data/log/",
                 "notification": {
-                    "file": "/data/log/stix_message.log"
+                    "file": "/data/log/message.log"
                     },
                 "fits_path": "/data/fits",
                 "flare_lc_snapshot_path": "/data/flare_lc",
                 "calibration_report_path": "/data/calibration/",
                 "level1_products_path": "/data/level1/",
                 "level2_products_path": "/data/level2/",
-                "ngnix_cache": "/data/nginx/stix_cache/*",
+                "ngnix_cache": "/data/nginx/cache/*",
                 "goes_lc_path": "/data/goes/",
                 "flare_pipeline_path":"/data/flare_pipeline"
                 },
@@ -64,7 +64,7 @@ parser_config = {
         'joint_obs':     '/data/flares/',
 "spice": "/data/pub/data/spice/latest/kernels",
         'mailer':    {
-                'sender':  'stix_obs@fhnw.ch',
+                'sender':  'obs@fhnw.ch',
                 'user': '',
                 'pwd': '',
                 'server': 'lmailer.fhnw.ch',

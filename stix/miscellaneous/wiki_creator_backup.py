@@ -43,7 +43,7 @@ class WikiCreator(object):
         # (https://www.mediawiki.org/wiki/Special:BotPasswords) for lgname & lgpassword
         PARAMS_1 = {
             "action": "login",
-            "lgname": "stix_data_center",
+            "lgname": "data_center",
             "lgpassword": "gostix2021",
             "lgtoken": LOGIN_TOKEN,
             "format": "json"

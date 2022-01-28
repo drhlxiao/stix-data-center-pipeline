@@ -3,10 +3,10 @@ import os
 import sys
 import numpy as np
 from datetime import datetime
-from stix.spice import stix_datetime
-from stix.core import stix_datatypes as sdt
+from stix.spice import datetime
+from stix.core import datatypes as sdt
 from stix.core import mongo_db as mgdb
-from stix.core import stix_metadata as md
+from stix.core import metadata as md
 mdb = mgdb.MongoDB()
 
 QLLC_SPID = 54118

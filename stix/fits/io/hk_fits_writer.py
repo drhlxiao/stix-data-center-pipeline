@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from stix.spice.stix_datetime import datetime_to_scet
+from stix.spice.datetime import datetime_to_scet
 def generate_primary_header(filename, scet_coarse, scet_fine, obs_beg, obs_avg, obs_end, version):
     """
     Generate primary header cards.

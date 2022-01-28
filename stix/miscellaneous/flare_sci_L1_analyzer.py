@@ -17,13 +17,13 @@ import os
 import json
 import numpy as np
 from datetime import datetime
-from stix.core import stix_datatypes as sdt
-from stix.spice import stix_datetime
+from stix.core import datatypes as sdt
+from stix.spice import datetime
 from stix.core import mongo_db as db
-from stix.core import stix_logger
+from stix.core import logger
 from stix.core import config
 mdb = db.MongoDB()
-logger = stix_logger.get_logger()
+logger = logger.get_logger()
 DET_ID_START = 20
 DET_ID_END = 32
 DET_SENSITVE_AREA = 80.96
@@ -184,7 +184,7 @@ class SciL1Analyzer(object):
             packet = sdt.Packet(pkt)
             self.request_id = packet[3].raw
             self.packet_unix = packet['unix_time']
-            T0 = stix_datetime.scet2unix(packet[12].raw)
+            T0 = datetime.scet2unix(packet[12].raw)
             num_structures = packet[13].raw
             self.eacc_SKM = (packet[5].raw, packet[6].raw, packet[7].raw)
             self.trig_SKM = (packet[9].raw, packet[10].raw, packet[11].raw)

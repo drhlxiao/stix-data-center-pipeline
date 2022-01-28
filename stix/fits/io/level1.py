@@ -10,14 +10,14 @@ import numpy as np
 from astropy.table.table import Table
 from bitstring import ConstBitArray
 
-from stix.core import stix_datatypes as sdt
-from stix.core.stix_parser import StixTCTMParser
+from stix.core import datatypes as sdt
+from stix.core.parser import StixTCTMParser
 from stix.fits.io.processors import FitsL1Processor
 from stix.fits.products.housekeeping import MiniReport, MaxiReport
 from stix.fits.products.quicklook import LightCurve, Background, Spectra, Variance, \
     FlareFlagAndLocation, CalibrationSpectra, TMManagementAndFlareList
 from stix.fits.products.science import XrayL0, Aspect, XrayL1, XrayL2, XrayL3, Spectrogram
-from stix.core.stix_logger import get_logger
+from stix.core.logger import get_logger
 logger = get_logger(__name__)
 
 

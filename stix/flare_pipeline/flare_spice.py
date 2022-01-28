@@ -10,7 +10,7 @@ from datetime import datetime
 import numpy as np
 import spiceypy as spice
 from sunpy.coordinates.frames import HeliocentricEarthEcliptic, HeliographicStonyhurst
-from stix.spice import stix_datetime
+from stix.spice import datetime as sdt
 from stix.spice import spice_manager
 from astropy import constants as const
 
@@ -27,7 +27,7 @@ def get_ang_vectors(v1, v2):
 
 def get_flare_spice(sun_x, sun_y, flare_utc, observer='earth'):
     #sun_x, sun_y in unites of arcsec
-    date_flare = stix_datetime.utc2datetime(flare_utc)
+    date_flare = sdt.utc2datetime(flare_utc)
     et_stix = spice.datetime2et(date_flare)
     flare_coord = [sun_x, sun_y]
     # Obtain the coordinates of Solar Orbiter

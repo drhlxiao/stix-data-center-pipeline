@@ -1,7 +1,7 @@
 import pymongo
 import sys
-from stix.core import stix_datatypes as sdt
-from stix.spice import stix_datetime
+from stix.core import datatypes as sdt
+from stix.spice import datetime
 connect = pymongo.MongoClient('localhost', 27017)
 stix = connect['stix']
 db = stix['packets']
@@ -99,8 +99,8 @@ HK = {
 
 def request_hk_packets(start_utc, end_utc):
     names = HK.keys()
-    start_unix = stix_datetime.utc2unix(start_utc)
-    end_unix = stix_datetime.utc2unix(end_utc)
+    start_unix = datetime.utc2unix(start_utc)
+    end_unix = datetime.utc2unix(end_utc)
     cur = db.find({
         'header.SPID': 54102,
         'header.unix_time': {
@@ -110,7 +110,7 @@ def request_hk_packets(start_utc, end_utc):
     }).sort('header.unix_time', 1)
     print(f'Number of packets:{cur.count()}')
     last_time = 0
-    csv_filename = f'stix_hk_{start_utc}_{end_utc}.csv'
+    csv_filename = f'hk_{start_utc}_{end_utc}.csv'
     csv_filename = csv_filename.replace(':', '')
     fcsv = open(csv_filename, 'w')
     print('request data...')

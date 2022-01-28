@@ -19,7 +19,6 @@ import numba
 import numpy as np
 import time
 from array import array
-from datetime import datetime
 
 
 from scipy.interpolate import interp1d
@@ -27,8 +26,7 @@ from pathlib import Path
 from matplotlib import pyplot as plt
 from scipy import stats
 
-from stix.spice import stix_datetime
-from stix.core import stix_datatypes as sdt
+from stix.core import datatypes as sdt
 from stix.core import mongo_db as db
 mdb = db.MongoDB()
 

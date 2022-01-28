@@ -3,7 +3,7 @@ import math
 from pprint import pprint
 import pymongo
 from datetime import datetime
-from stix.spice import stix_datetime as sdt
+from stix.spice import datetime as sdt
 from matplotlib import pyplot as plt
 
 connect = pymongo.MongoClient(port=9000)

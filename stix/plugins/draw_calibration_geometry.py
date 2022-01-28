@@ -9,7 +9,7 @@ import sys
 import numpy as np
 
 from datetime import datetime
-from stix.core import stix_datatypes as sdt
+from stix.core import datatypes as sdt
 SPID = 54124
 import detector_geometry as dg
 

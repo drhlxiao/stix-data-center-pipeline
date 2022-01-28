@@ -1,7 +1,7 @@
 import pymongo
 import json
 
-from stix.spice import stix_datetime as sdt
+from stix.spice import datetime as sdt
 from pprint import pprint
 connect = pymongo.MongoClient()
 db = connect['stix']['events']

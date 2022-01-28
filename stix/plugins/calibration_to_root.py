@@ -13,7 +13,7 @@ from tkinter import filedialog
 from tkinter import *
 from ROOT import TTree, TFile, TH1F, TH2F
 
-from stix.core import stix_datatypes as sdt
+from stix.core import datatypes as sdt
 SPID = 54124
 
 

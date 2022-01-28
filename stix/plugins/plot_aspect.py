@@ -1,6 +1,6 @@
 #plugin example
 import sys
-from stix.core import stix_datatypes as sdt
+from stix.core import datatypes as sdt
 from matplotlib import pyplot as plt
 
 

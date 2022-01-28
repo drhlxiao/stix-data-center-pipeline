@@ -5,13 +5,13 @@ from datetime import timedelta, datetime
 import astropy.units as u
 import numpy as np
 from astropy.io import fits
-# from stix_parser.io.fits.tm_to_fits import generate_filename
+# from parser.io.fits.tm_to_fits import generate_filename
 from astropy.table.operations import unique
 from astropy.table.table import QTable
 
-from stix.spice.stix_datetime import datetime_to_scet
+from stix.spice.datetime import datetime_to_scet
 
-from stix.core.stix_logger import get_logger
+from stix.core.logger import get_logger
 logger = get_logger(__name__)
 
 sec_in_day = 24 * 60 * 60
@@ -113,7 +113,7 @@ class FitsL0Processor:
 
         Parameters
         ----------
-        product : stix_parser.product.BaseProduct
+        product : parser.product.BaseProduct
             Product
         version : int
             Version of this product
@@ -239,7 +239,7 @@ class FitsL1Processor:
 
         Parameters
         ----------
-        product : stix_parser.product.BaseProduct
+        product : parser.product.BaseProduct
             Product
         version : int
             Version of this product

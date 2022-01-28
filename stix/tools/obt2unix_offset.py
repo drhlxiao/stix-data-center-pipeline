@@ -1,7 +1,7 @@
 # a script used to generate a list of differencess between OBT and UNIX epochs 
 # the list is used by web data browsers and Starlet
 
-from stix.spice import stix_datetime
+from stix.spice import datetime
 from datetime import datetime
 now=datetime.now()
 import pprint
@@ -20,13 +20,13 @@ chh_filename=export_directory+'SPICEData.h'
 T0=0
 
 while i < span + start:
-    obt = stix_datetime.unix2scet(i)
+    obt = datetime.unix2scet(i)
     difference = i - obt
     if abs(last_difference - difference) > 0.1:
         if T0==0:
             T0=i
-        print(i, stix_datetime.unix2utc(i), difference)
-        tdiff.append([i, difference, stix_datetime.unix2utc(i), obt])
+        print(i, datetime.unix2utc(i), difference)
+        tdiff.append([i, difference, datetime.unix2utc(i), obt])
         last_difference = difference
     i += 3600
 

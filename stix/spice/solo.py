@@ -1,15 +1,15 @@
 import os
 import math
 import numpy as np
-from datetime import datetime, timedelta
+#from datetime import datetime, timedelta
 import spiceypy as spice
 import astropy.units as u
 from astropy import constants as const
 from stix.spice import helio as hsp
-from stix.spice import stix_datetime
+from stix.spice import datetime as sdt
 from stix.utils import bson
 
-solo_spice_min_unix= stix_datetime.utc2unix('2020-02-10T05:00:00Z')
+solo_spice_min_unix= sdt.utc2unix('2020-02-10T05:00:00Z')
 
 
 def compute_earth_sun_so_angle(solo_sun):
@@ -50,9 +50,9 @@ def get_solo_ephemeris(start_utc,
     orbiter_earth= hsp.Trajectory(target)
     orbiter_sun= hsp.Trajectory(target)
     earth_hee= hsp.Trajectory('Earth')
-    #starttime = stix_datetime.utc2datetime(start_utc)
-    start_unix=stix_datetime.utc2unix(start_utc)
-    end_unix=stix_datetime.utc2unix(end_utc)
+    #starttime = datetime.utc2datetime(start_utc)
+    start_unix=sdt.utc2unix(start_utc)
+    end_unix=sdt.utc2unix(end_utc)
     if start_unix< solo_spice_min_unix:
         start_unix= solo_spice_min_unix
 
@@ -68,7 +68,7 @@ def get_solo_ephemeris(start_utc,
     times = []
     utc_times = []
     for t in ut_space:
-        dt=stix_datetime.unix2datetime(t)
+        dt=sdt.unix2datetime(t)
         times.append(dt)
         utc_times.append(dt.strftime("%Y-%m-%dT%H:%M:%SZ"))
     result = {}

@@ -6,13 +6,13 @@ import os
 import json
 import numpy as np
 from datetime import datetime
-from stix.core import stix_datatypes as sdt
-from stix.spice import stix_datetime
+from stix.core import datatypes as sdt
+from stix.spice import datetime
 from stix.core import mongo_db as db
-from stix.core import stix_logger
+from stix.core import logger
 from stix.core import config
 mdb = db.MongoDB()
-logger = stix_logger.get_logger()
+logger = logger.get_logger()
 level1_products_path = config.get_config(
     'pipeline.daemon.level1_products_path')
 

@@ -21,7 +21,7 @@ from gbm.background import BackgroundFitter
 from gbm.background.binned import Polynomial
 
 from stix.core import mongo_db as db
-from stix.spice.stix_datetime import unix2utc
+from stix.spice.datetime import unix2utc
 mdb = db.MongoDB()
 db = mdb.get_collection('flares')
 

@@ -5,11 +5,11 @@ import binascii
 import socket
 import time
 from datetime import datetime
-from stix_parser.core import stix_writer
+from parser.core import writer
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QThread, pyqtSignal, QTimer
-from stix_parser.core import stix_parser
-from stix_parser.core import stix_logger
+from parser.core import parser
+from parser.core import logger
 
 class StixSocketPacketReceiver(QThread):
     """
@@ -22,7 +22,7 @@ class StixSocketPacketReceiver(QThread):
         self.port = 9000
         self.host = 'localost'
 
-        #self.stix_tctm_parser.set_report_progress_enabled(False)
+        #self.tctm_parser.set_report_progress_enabled(False)
         self.s = None
 
     def connect(self, host, port):
@@ -58,7 +58,7 @@ class Main(QtCore.QObject):
     def __init__(self, parent=None):            
         super(Main, self).__init__(parent)   
 
-        self.parser= stix_parser.StixTCTMParser()
+        self.parser= parser.StixTCTMParser()
         self.parser.set_store_packet_enabled(False)
         self.parser.set_store_binary_enabled(False)
 

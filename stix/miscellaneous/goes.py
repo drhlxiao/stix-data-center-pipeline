@@ -10,7 +10,7 @@ import matplotlib.dates as mdates
 from datetime import datetime
 from matplotlib import pyplot as plt
 from stix.core import mongo_db as db
-from stix.spice import stix_datetime as sdt
+from stix.spice import datetime as sdt
 import matplotlib.ticker as mticker
 
 mdb = db.MongoDB()

@@ -1,1 +1,1 @@
-/usr/bin/python3 stix/apps/stix_parser_gui.py $@
+/usr/bin/python3 stix/apps/parser_gui.py $@

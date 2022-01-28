@@ -15,9 +15,9 @@ from PyQt5 import uic, QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtChart import QChart, QChartView, QLineSeries, QValueAxis, QBarSeries, QBarSet, QScatterSeries
 
-from core import stix_parser
-from core import stix_global
-from core import stix_writer
+from core import parser
+from core import global
+from core import writer
 from core import idb
 from datetime import datetime
 from UI import mainwindow_rc5
@@ -29,7 +29,7 @@ from UI import plugin
 from UI import raw_viewer
 from functools import partial
 from core import mongo_db as mgdb
-from core import stix_logger
+from core import logger
 
 SELECTED_SERVICES = [1, 3, 5, 6, 17, 21, 22, 236, 237, 238, 239]
 
@@ -47,8 +47,8 @@ class StixSocketPacketReceiver(QThread):
         super(StixSocketPacketReceiver, self).__init__()
         self.port = port
         self.host = host
-        self.stix_tctm_parser = stix_parser.StixTCTMParser()
-        stix_logger._stix_logger.set_signal(self.info, self.warn, self.error)
+        self.tctm_parser = parser.StixTCTMParser()
+        logger._logger.set_signal(self.info, self.warn, self.error)
 
     def run(self):
         try:
@@ -71,7 +71,7 @@ class StixSocketPacketReceiver(QThread):
                     if buf[0:9] == 'TM_PACKET'.encode():
                         data_hex = data2[-1][0:-4]
                         data_binary = binascii.unhexlify(data_hex)
-                        packets = self.stix_tctm_parser.parse_binary(
+                        packets = self.tctm_parser.parse_binary(
                             data_binary, 0, store_binary=True)
                         if packets:
                             packets[0]['header']['arrival'] = str(
@@ -99,8 +99,8 @@ class StixFileReader(QThread):
         super(StixFileReader, self).__init__()
         self.filename = filename
         self.data = []
-        self.stix_tctm_parser = stix_parser.StixTCTMParser()
-        stix_logger._stix_logger.set_signal(self.info, self.warn, self.error)
+        self.tctm_parser = parser.StixTCTMParser()
+        logger._logger.set_signal(self.info, self.warn, self.error)
 
     def run(self):
         self.data = []
@@ -134,7 +134,7 @@ class StixFileReader(QThread):
             for line in fd:
                 [utc_timestamp, data_hex] = line.strip().split()
                 data_binary = binascii.unhexlify(data_hex)
-                packets = self.stix_tctm_parser.parse_binary(
+                packets = self.tctm_parser.parse_binary(
                     data_binary, 0, store_binary=True)
                 if packets:
                     packets[0]['header']['utc'] = utc_timestamp
@@ -167,7 +167,7 @@ class StixFileReader(QThread):
             data_hex = xml_packet['raw']
             data_binary = binascii.unhexlify(data_hex)
             data = data_binary[76:]
-            packets = self.stix_tctm_parser.parse_binary(
+            packets = self.tctm_parser.parse_binary(
                 data, 0, store_binary=True)
             if i % freq == 0:
                 self.info.emit("{:.0f}% loaded".format(100 * i / num))
@@ -190,7 +190,7 @@ class StixFileReader(QThread):
             total_packets = 0
             self.data = []
             last_percent = 0
-            packets = self.stix_tctm_parser.parse_binary(
+            packets = self.tctm_parser.parse_binary(
                 buf, 0, store_binary=True)
             self.packetArrival.emit(packets)
 
@@ -199,7 +199,7 @@ class Ui(mainwindow.Ui_MainWindow):
     def __init__(self, MainWindow):
         super(Ui, self).setupUi(MainWindow)
         self.MainWindow = MainWindow
-        self.stix_tctm_parser = stix_parser.StixTCTMParser()
+        self.tctm_parser = parser.StixTCTMParser()
         self.initialize()
 
     def close(self):
@@ -279,15 +279,15 @@ class Ui(mainwindow.Ui_MainWindow):
 
         # IDB location
 
-        self.settings = QtCore.QSettings('FHNW', 'stix_parser')
+        self.settings = QtCore.QSettings('FHNW', 'parser')
         self.idb_filename = self.settings.value('idb_filename', [], str)
         if self.idb_filename:
-            idb._stix_idb.reload(self.idb_filename)
-        if not idb._stix_idb.is_connected():
+            idb._idb.reload(self.idb_filename)
+        if not idb._idb.is_connected():
             self.showMessage('IDB has not been set!')
         else:
             self.showMessage(
-                'IDB location: {} '.format(idb._stix_idb.get_idb_filename()),
+                'IDB location: {} '.format(idb._idb.get_idb_filename()),
                 1)
 
     def packetTreeContextMenuEvent(self, pos):
@@ -434,7 +434,7 @@ class Ui(mainwindow.Ui_MainWindow):
         data_hex = re.sub(r"\s+", "", raw_hex)
         try:
             data_binary = binascii.unhexlify(data_hex)
-            packets = self.stix_tctm_parser.parse_binary(
+            packets = self.tctm_parser.parse_binary(
                 data_binary, 0, store_binary=True)
             if not packets:
                 return
@@ -470,12 +470,12 @@ class Ui(mainwindow.Ui_MainWindow):
         if not self.idb_filename:
             return
 
-        idb._stix_idb.reload(self.idb_filename)
-        if idb._stix_idb.is_connected():
-            #settings = QtCore.QSettings('FHNW', 'stix_parser')
+        idb._idb.reload(self.idb_filename)
+        if idb._idb.is_connected():
+            #settings = QtCore.QSettings('FHNW', 'parser')
             self.settings.setValue('idb_filename', self.idb_filename)
         self.showMessage(
-            'IDB location: {} '.format(idb._stix_idb.get_idb_filename()), 1)
+            'IDB location: {} '.format(idb._idb.get_idb_filename()), 1)
 
     def save(self):
         filetypes = 'python compressed pickle (*.pklz);; python pickle file (*.pkl);; binary data (*.dat)'
@@ -492,12 +492,12 @@ class Ui(mainwindow.Ui_MainWindow):
         self.showMessage(msg)
 
         if self.output_filename.endswith(('.pklz', '.pkl')):
-            stw = stix_writer.StixPickleWriter(self.output_filename)
+            stw = writer.StixPickleWriter(self.output_filename)
             stw.register_run(str(self.input_filename))
             stw.write_all(self.data)
             #stw.done()
         elif self.output_filename.endswith('.dat'):
-            stw = stix_writer.StixBinaryWriter(self.output_filename)
+            stw = writer.StixBinaryWriter(self.output_filename)
             stw.write_all(self.data)
             num_ok = stw.get_num_sucess()
             msg = (
@@ -660,7 +660,7 @@ class Ui(mainwindow.Ui_MainWindow):
         diag = QtWidgets.QDialog()
         diag_ui = mongo_dialog.Ui_Dialog()
         diag_ui.setupUi(diag)
-        #self.settings = QtCore.QSettings('FHNW', 'stix_parser')
+        #self.settings = QtCore.QSettings('FHNW', 'parser')
         self.mongo_server = self.settings.value('mongo_server', [], str)
         self.mongo_port = self.settings.value('mongo_port', [], str)
         self.mongo_user = self.settings.value('mongo_user', [], str)
@@ -773,8 +773,8 @@ class Ui(mainwindow.Ui_MainWindow):
                 if 'desc' in p:
                     desc = p['desc']
                 if not desc:
-                    desc = idb._stix_idb.get_PCF_description(param_name)
-                scos_desc = idb._stix_idb.get_scos_description(param_name)
+                    desc = idb._idb.get_PCF_description(param_name)
+                scos_desc = idb._idb.get_scos_description(param_name)
                 if scos_desc:
                     root.setToolTip(1, scos_desc)
                 root.setText(0, param_name)

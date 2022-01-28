@@ -10,14 +10,14 @@ from __future__ import (absolute_import, unicode_literals)
 import argparse
 import pprint
 from core import idb
-from core import stix_global
-from core import stix_writer
-from core import stix_logger
-from core import stix_parser
-from core import stix_plotter
+from core import global
+from core import writer
+from core import logger
+from core import parser
+from core import plotter
 
-LOGGER = stix_logger.LOGGER
-_stix_idb = idb._stix_idb
+LOGGER = logger.LOGGER
+_idb = idb._idb
 
 
 def get_packet_type_stat_text(spid_list):
@@ -37,7 +37,7 @@ def get_packet_type_stat_text(spid_list):
         pid_type = 0
         pid_stype = 0
         try:
-            row = _stix_idb.get_spid_info(spid)
+            row = _idb.get_spid_info(spid)
             pid_type = row[0][1]
             pid_stype = row[0][2]
             desc = str(row[0][0])
@@ -51,7 +51,7 @@ def get_packet_type_stat_text(spid_list):
     return text
 
 
-def analyze_stix_raw_file(in_filename, noplot=False):
+def analyze_raw_file(in_filename, noplot=False):
     """
     Parse stix raw packets 
     Args:
@@ -67,12 +67,12 @@ def analyze_stix_raw_file(in_filename, noplot=False):
         num_bytes_read = 0
         timestamps = []
         while True:
-            status, header, header_raw, application_data_raw, bytes_read = stix_parser.read_one_packet(
+            status, header, header_raw, application_data_raw, bytes_read = parser.read_one_packet(
                 in_file, LOGGER)
             num_bytes_read += bytes_read
-            if status == stix_global.NEXT_PACKET:
+            if status == global.NEXT_PACKET:
                 continue
-            if status == stix_global.EOF:
+            if status == global.EOF:
                 break
 
             spid = header['SPID']
@@ -88,7 +88,7 @@ def analyze_stix_raw_file(in_filename, noplot=False):
 
         if not noplot:
             print('preparing timeline plot ...')
-            stix_plotter.plot_packet_header_timeline(timestamps, spid_list)
+            plotter.plot_packet_header_timeline(timestamps, spid_list)
 
 
 def main():
@@ -104,7 +104,7 @@ def main():
     if args['np'] is not None:
         noplot = args['np']
     in_filename = args['in']
-    analyze_stix_raw_file(in_filename, noplot)
+    analyze_raw_file(in_filename, noplot)
 
 
 if __name__ == '__main__':

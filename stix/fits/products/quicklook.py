@@ -11,7 +11,7 @@ from astropy.table import QTable, vstack, unique
 from astropy.time import Time
 
 from stix.fits.calibration.integer_compression import decompress
-from stix.spice.stix_datetime import scet_to_datetime
+from stix.spice.datetime import scet_to_datetime
 from stix.fits.products.common import _get_detector_mask, _get_pixel_mask, _get_energy_bins, \
     _get_compression_scheme, _get_num_energies, _get_sub_spectrum_mask
 
@@ -155,9 +155,9 @@ class Product:
         Generic product compose of control and data
         Parameters
         ----------
-        control : stix_parser.products.quicklook.Control
+        control : parser.products.quicklook.Control
             Table containing control information
-        data : stix_parser.products.quicklook.Data
+        data : parser.products.quicklook.Data
             Table containing data
         """
         self.type = 'ql'
@@ -175,11 +175,11 @@ class Product:
 
         Parameters
         ----------
-        other : A subclass of stix_parser.products.quicklook.Product
+        other : A subclass of parser.products.quicklook.Product
 
         Returns
         -------
-        A subclass of stix_parser.products.quicklook.Product
+        A subclass of parser.products.quicklook.Product
             The combined data product
         """
         if not isinstance(other, type(self)):

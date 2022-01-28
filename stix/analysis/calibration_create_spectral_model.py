@@ -10,7 +10,6 @@ import numba
 import numpy as np
 import time
 from array import array
-from datetime import datetime
 
 
 from scipy.interpolate import interp1d
@@ -18,10 +17,9 @@ from pathlib import Path
 from matplotlib import pyplot as plt
 from scipy import stats
 
-from stix.spice import stix_datetime
-from stix.core import stix_datatypes as sdt
+from stix.core import datatypes as sdt
 from stix.core import mongo_db as db
-from stix.analysis import stix_config 
+from stix.analysis import config 
 import pickle
 mdb = db.MongoDB()
 
@@ -208,7 +206,7 @@ class Calibration(object):
         print(f'Processing calibration run {calibration_id} ...')
 
         #from ELUT
-        #elut=stix_config.Elut.get_onboard_elut(ELUT_TIME)
+        #elut=config.Elut.get_onboard_elut(ELUT_TIME)
         #slope=np.array(elut['slopes']).reshape((32,12))
         #offset=np.array(elut['offsets']).reshape((32,12))
 

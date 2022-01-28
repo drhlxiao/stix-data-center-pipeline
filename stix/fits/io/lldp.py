@@ -13,12 +13,12 @@ from pathlib import Path
 import numpy as np
 from astropy.wcs import wcs
 
-from stix_parser.core import stix_datatypes as sdt
-from stix_parser.core.stix_parser import StixTCTMParser
-from stix_parser.datetime import datetime_to_scet
-from stix_parser.io.fits.processors import get_products, SPID_MAP
-from stix_parser.products.quicklook import LightCurve, FlareFlagAndLocation
-from stix_parser.utils import logger
+from parser.core import datatypes as sdt
+from parser.core.parser import StixTCTMParser
+from parser.datetime import datetime_to_scet
+from parser.io.fits.processors import get_products, SPID_MAP
+from parser.products.quicklook import LightCurve, FlareFlagAndLocation
+from parser.utils import logger
 
 Y_M_D_H_M = "%Y%m%d%H%M"
 DIR_ENVNAMES = [('requests', 'instr_input_requests'), ('output', 'instr_output')]
@@ -171,8 +171,8 @@ def process_request(request, outputdir):
         # packet_id = packet_node.attrib.get('packetID')
         packet_hex = list(packet_node.getiterator('Packet'))[0].text.strip()
         packet = parser.parse_hex(packet_hex)[0]
-        stix_packet = sdt.Packet(packet)
-        packets.append(stix_packet)
+        packet = sdt.Packet(packet)
+        packets.append(packet)
 
     packets.sort(key=lambda x: (x.seq_count, x.obt_utc))
 

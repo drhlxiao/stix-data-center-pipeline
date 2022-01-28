@@ -1,10 +1,10 @@
 import sys
 import os
 import pprint
-dirpath='../stix_parser'
+dirpath='../parser'
 idb_fname=dirpath+'/idb/idb.sqlite'
-from core import stix_idb
-idb = stix_idb.stix_idb(idb_fname)
+from core import idb
+idb = idb.idb(idb_fname)
 pprint.pprint(idb.get_fixed_packet_structure(54102))
 def get_fixed_telemetry_length(spid):
     rows=idb.get_fixed_packet_structure(int(spid))

@@ -10,10 +10,10 @@ from __future__ import (absolute_import, unicode_literals)
 import argparse
 import pprint
 from core import idb
-from core import stix_global
-from core import stix_parser
+from core import global
+from core import parser
 
-_stix_telmetry_parser = stix_parser.StixTCTMParser()
+_telmetry_parser = parser.StixTCTMParser()
 
 
 def packet_filter(in_filename, out_filename, selected_spid):
@@ -30,15 +30,15 @@ def packet_filter(in_filename, out_filename, selected_spid):
         num_selected_packets = 0
         num_total_packets = 0
         while True:
-            result = _stix_telmetry_parser.read_packet(fin)
+            result = _telmetry_parser.read_packet(fin)
             status = result['status']
             header = result['header']
             header_raw = result['header_raw']
             app_raw = result['app_raw']
             num_bytes_read = result['num_read']
-            if status == stix_global._next_packet:
+            if status == global._next_packet:
                 continue
-            if status == stix_global._eof:
+            if status == global._eof:
                 break
             spid = header['SPID']
             num_total_packets += 1
@@ -50,7 +50,7 @@ def packet_filter(in_filename, out_filename, selected_spid):
 
 def main():
     in_filename = 'test/stix.dat'
-    out_filename = 'stix_export.dat'
+    out_filename = 'export.dat'
     selected_spid = 0
     ap = argparse.ArgumentParser()
     ap.add_argument("-i", "--in", required=True, help="input file")

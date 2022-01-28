@@ -9,14 +9,14 @@ import os
 import json
 import numpy as np
 from datetime import datetime
-from stix.core import stix_datatypes as sdt
-from stix.spice import stix_datetime
+from stix.core import datatypes as sdt
+from stix.spice import datetime
 from stix.core import mongo_db as db
-from stix.core import stix_logger
+from stix.core import logger
 from stix.core import config
 from stix.analysis import sci_data_models as sdm
 mdb = db.MongoDB()
-logger = stix_logger.get_logger()
+logger = logger.get_logger()
 level1_products_path = config.get_config(
     'pipeline.daemon.level1_products_path')
 
@@ -105,7 +105,7 @@ class StixBulkL0Analyzer(object):
             self.request_id = packet[3].raw
             # print(self.request_id)
             self.packet_unix = packet['unix_time']
-            T0 = stix_datetime.scet2unix(packet[12].raw)
+            T0 = datetime.scet2unix(packet[12].raw)
 
             num_structures = packet[13].raw
             eacc_SKM = (packet[5].raw, packet[6].raw, packet[7].raw)
@@ -307,7 +307,7 @@ class StixBulkL1L2Analyzer(object):
             packet = sdt.Packet(pkt)
             self.request_id = packet[3].raw
             self.packet_unix = packet['unix_time']
-            T0 = stix_datetime.scet2unix(packet[12].raw)
+            T0 = datetime.scet2unix(packet[12].raw)
 
             if ipkt==0:
                 _, _, flare_start_times,flare_end_times, peak_counts=self.get_flare_times(T0, MAX_L1_REQ_DURATION)
@@ -451,7 +451,7 @@ class StixBulkL3Analyzer(object):
             packet = sdt.Packet(pkt)
             self.request_id = packet[3].raw
             self.packet_unix = packet['unix_time']
-            T0 = stix_datetime.scet2unix(packet[12].raw)
+            T0 = datetime.scet2unix(packet[12].raw)
             num_structures = packet[13].raw
             self.eacc_SKM = (packet[5].raw, packet[6].raw, packet[7].raw)
             self.trig_SKM = (packet[9].raw, packet[10].raw, packet[11].raw)
@@ -552,7 +552,7 @@ class StixBulkL4Analyzer(object):
             packet = sdt.Packet(pkt)
             self.request_id = packet[3].raw
             self.packet_unix = packet['unix_time']
-            T0 = stix_datetime.scet2unix(packet[12].raw)
+            T0 = datetime.scet2unix(packet[12].raw)
             num_structures = packet[13].raw
             self.eacc_SKM = (packet[5].raw, packet[6].raw, packet[7].raw)
             self.trig_SKM = (packet[9].raw, packet[10].raw, packet[11].raw)
@@ -632,7 +632,7 @@ class StixBulkAspectAnalyzer(object):
             hash_list.append(pkt['hash'])
             packet = sdt.Packet(pkt)
             packet_utc = packet['UTC']
-            T0 = stix_datetime.scet2unix(
+            T0 = datetime.scet2unix(
                 packet[1].raw) + packet[2].raw / 65536.
             if self.start_unix is None:
                 self.start_unix=T0

@@ -3,7 +3,7 @@
 import os
 
 import sys
-from stix.core import stix_packet_analyzer as sta
+from stix.core import packet_analyzer as sta
 analyzer = sta.analyzer()
 
 from PyQt5 import QtWidgets, QtCore, QtGui

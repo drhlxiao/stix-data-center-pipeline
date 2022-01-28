@@ -12,10 +12,10 @@ import sys
 import glob
 from datetime import datetime
 from stix.core import config
-from stix.spice import stix_datetime
+from stix.spice import datetime
 from stix.core import mongo_db
-from stix.core import stix_logger
-from stix.core import stix_parser
+from stix.core import logger
+from stix.core import parser as stp
 from stix.mailer import mailer
 from stix.fits import fits_creator
 from stix.analysis import calibration
@@ -44,7 +44,7 @@ actions={'calibration':True,
         }
         
 HOST = config.HTTP_PREFIX
-logger = stix_logger.get_logger()
+logger = logger.get_logger()
 goes=gdl.GOES()
 daemon_config = config.get_config('pipeline.daemon')
 mongodb_config = config.get_config('pipeline.mongodb')
@@ -97,8 +97,8 @@ class _Notification(object):
 
     def push_pipeline_message(self, raw_filename, service_5_headers, summary, num_flares, goes_class_list):
         file_id = summary['_id']
-        start = stix_datetime.unix2utc(summary['data_start_unix_time'])
-        end = stix_datetime.unix2utc(summary['data_stop_unix_time'])
+        start = datetime.unix2utc(summary['data_start_unix_time'])
+        end = datetime.unix2utc(summary['data_stop_unix_time'])
         content = f'New file: {raw_filename}\nObservation time: {start} - {end} \nRaw packets: {HOST}/view/packet/file/{file_id}\n'
         SCI_PACKET_SPIDS = ['54114', '54115', '54116', '54117', '54143', '54125']
         try:
@@ -171,7 +171,7 @@ def pipeline(instrument, filename, notification_enabled=True, debugging=False):
     if debugging:
         logger.enable_debugging()
         print('Start processing file ', filename)
-    parser = stix_parser.StixTCTMParser()
+    parser = stp.StixTCTMParser()
     parser.config_mongodb(mongodb_config['host'], mongodb_config['port'],
                               mongodb_config['user'],
                               mongodb_config['password'], '', filename,
@@ -186,7 +186,7 @@ def pipeline(instrument, filename, notification_enabled=True, debugging=False):
 
     try:
         parser.parse_file(filename)
-        service_5_headers = parser.get_stix_alerts()
+        service_5_headers = parser.get_alerts()
     except Exception as e:
         logger.error(str(e))
         return  None

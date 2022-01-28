@@ -5,7 +5,7 @@
 
 import sys
 from pprint import pprint
-from stix.spice import stix_datetime
+from stix.spice import datetime
 from datetime import datetime
 import pymongo
 import json
@@ -23,7 +23,7 @@ MAX_DURATION_PER_REQUEST = 6550.
 
 
 def get_uid(start_unix, level):
-    start_datetime = stix_datetime.unix2datetime(start_unix)
+    start_datetime = datetime.unix2datetime(start_unix)
     year = start_datetime.year
     month = start_datetime.month
     day = start_datetime.day
@@ -39,8 +39,8 @@ def get_uid(start_unix, level):
 
 
 def form_aspect_request(start_unix, stop_unix, summing):
-    start_obt = int(stix_datetime.unix2scet(start_unix))
-    stop_obt = int(stix_datetime.unix2scet(stop_unix))
+    start_obt = int(datetime.unix2scet(start_unix))
+    stop_obt = int(datetime.unix2scet(stop_unix))
     duration = stop_obt - start_obt
     tm_packets = math.ceil(8 * (64 / summing) * duration / 4096.)
 
@@ -75,7 +75,7 @@ def form_bsd_request(uid,
                      pixel_mask=0xfff,
                      action_time='00:00:10'):
     #uid = get_uid(start_unix, level)
-    start_obt = int(stix_datetime.unix2scet(start_unix))
+    start_obt = int(datetime.unix2scet(start_unix))
     num_detectors = sum([(detector_mask & (1 << i)) >> i
                          for i in range(0, 32)])
     num_pixels = sum([((pixel_mask & (1 << i)) >> i) for i in range(0, 12)])
@@ -126,7 +126,7 @@ def form_bsd_request_sequence(uid,
                               pixel_mask=0xfff,
                               action_time='00:00:10'):
     #uid = get_uid(start_unix, level)
-    start_obt = int(stix_datetime.unix2scet(start_unix))
+    start_obt = int(datetime.unix2scet(start_unix))
     num_detectors = sum([(detector_mask & (1 << i)) >> i
                          for i in range(0, 32)])
     num_pixels = sum([((pixel_mask & (1 << i)) >> i) for i in range(0, 12)])
@@ -218,7 +218,7 @@ def main(_ids, json_filename, server='localhost', port=27017):
         requests = {'occurrences': []}
         for form in requst_forms:
             start_utc = form['start_utc']
-            start_unix = stix_datetime.utc2unix(start_utc)
+            start_unix = datetime.utc2unix(start_utc)
             level = data_levels[form['request_type']]
             dt = int(form['duration'])
             subject = form['subject']

@@ -8,12 +8,12 @@ import binascii
 from io import BytesIO
 import xmltodict
 from core import idb
-from core import stix_global
-from core import stix_writer_sqlite as stw
-from core import stix_logger
-from core import stix_telemetry_parser as tm_parser
+from core import global
+from core import writer_sqlite as stw
+from core import logger
+from core import telemetry_parser as tm_parser
 
-LOGGER = stix_logger.LOGGER
+LOGGER = logger.LOGGER
 
 
 def parse_esa_xml_file(in_filename, out_filename=None, selected_spid=0):
@@ -28,7 +28,7 @@ def parse_esa_xml_file(in_filename, out_filename=None, selected_spid=0):
         num_fix_packets = 0
         num_variable_packets = 0
         num_bytes_read = 0
-        st_writer = stw.stix_writer(out_filename)
+        st_writer = stw.writer(out_filename)
         st_writer.register_run(in_filename)
         total_packets = 0
         for packet in packets:
@@ -57,7 +57,7 @@ def parse_esa_xml_file(in_filename, out_filename=None, selected_spid=0):
 
 def main():
     in_filename = 'test/stix.xml'
-    out_filename = 'stix_out.db'
+    out_filename = 'out.db'
     sel_spid = 0
     ap = argparse.ArgumentParser()
     ap.add_argument("-i", "--in", required=True, help="input file")

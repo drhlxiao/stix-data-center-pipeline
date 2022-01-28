@@ -14,7 +14,7 @@ from matplotlib.figure import Figure
 from datetime import datetime
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
-from stix.core import stix_datatypes as sdt
+from stix.core import datatypes as sdt
 SPID = 54124
 
 

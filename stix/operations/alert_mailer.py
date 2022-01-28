@@ -15,7 +15,7 @@ import time
 import requests
 
 config = {
-    'Email_from': 'stix_obs@fhnw.ch',
+    'Email_from': 'obs@fhnw.ch',
     'Email_user': '',
     'Email_pwd': '',
     'Email_server': 'lmailer.fhnw.ch',

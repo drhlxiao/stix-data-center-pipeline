@@ -1,12 +1,12 @@
-#test stix_datetypes
+#test datetypes
 import os
 
 import sys
 from pprint import pprint
 import numpy as np
 from matplotlib import pyplot as plt
-from stix.core import stix_datatypes as sdt
-from stix.spice import stix_datetime
+from stix.core import datatypes as sdt
+from stix.spice import datetime
 
 
 class Plugin:

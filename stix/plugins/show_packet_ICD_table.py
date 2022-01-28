@@ -1,7 +1,7 @@
 import sys
-from core import stix_idb
+from core import idb
 
-IDB = stix_idb.stix_idb()
+IDB = idb.idb()
 
 
 class Plugin:
