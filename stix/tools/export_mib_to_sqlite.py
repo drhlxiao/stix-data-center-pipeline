@@ -19,7 +19,7 @@ def start(folder=MIB_FOLDER, output=OUTPUT):
     try:
         cur.executescript(create_table)
     except Exception as e:
-        print( e)
+        print(e)
         raise
 
     for fname in file_list:
@@ -50,6 +50,7 @@ def start(folder=MIB_FOLDER, output=OUTPUT):
                 cur.execute(sql, cols)
 
     conn.commit()
+
 
 if __name__ == "__main__":
     start()

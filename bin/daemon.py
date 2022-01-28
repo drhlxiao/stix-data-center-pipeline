@@ -2,10 +2,16 @@
 # @author       : Hualin Xiao
 # @date         : May. 11, 2021
 
-import sys
 import os
+import sys
+
 import time
 import threading
+
+currentdir = os.path.dirname(os.path.realpath(__file__))
+parentdir = os.path.dirname(currentdir)
+sys.path.append(parentdir)
+
 from stix.pipeline import level1 as pd
 from stix.analysis import goes_downloader as gd
 
