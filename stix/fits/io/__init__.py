@@ -1,3 +1,0 @@
-"""
-Fits file IO
-"""
