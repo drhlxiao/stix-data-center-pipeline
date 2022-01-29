@@ -1,0 +1,1222 @@
+
+        <svg width="861" height="1020">
+    <rect x="10" y="10" width="840" height="1010"  style="fill:rgb(255,255,255); stroke-width:3;stroke:rgb(0,0,255)" />
+      <path  style="stroke-width:3;stroke:rgb(0,0,250)"  d="M420 10 L420 1020" />
+      <path  style="stroke-width:3;stroke:rgb(0,0,250)"  d="M10 525 L851 525" />
+        <g> <rect x="40.0" y="270.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="80.0" y="380.0" filled="red"> #1 </text>
+
+      <path id="id-0-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 46.0 274.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-0-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 68.0 274.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-0-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 90.0 274.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-0-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 112.0 274.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-0-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 46.0 366.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-0-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 68.0 366.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-0-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 90.0 366.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-0-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 112.0 366.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-0-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 46.0 315.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-0-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 68.0 315.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-0-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 90.0 315.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-0-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 112.0 315.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="40.0" y="390.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="80.0" y="500.0" filled="red"> #2 </text>
+
+      <path id="id-1-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 46.0 394.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-1-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 68.0 394.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-1-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 90.0 394.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-1-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 112.0 394.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-1-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 46.0 486.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-1-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 68.0 486.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-1-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 90.0 486.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-1-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 112.0 486.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-1-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 46.0 435.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-1-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 68.0 435.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-1-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 90.0 435.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-1-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 112.0 435.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="40.0" y="550.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="80.0" y="660.0" filled="red"> #3 </text>
+
+      <path id="id-2-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 46.0 554.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-2-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 68.0 554.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-2-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 90.0 554.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-2-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 112.0 554.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-2-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 46.0 646.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-2-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 68.0 646.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-2-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 90.0 646.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-2-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 112.0 646.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-2-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 46.0 595.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-2-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 68.0 595.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-2-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 90.0 595.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-2-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 112.0 595.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="40.0" y="670.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="80.0" y="780.0" filled="red"> #4 </text>
+
+      <path id="id-3-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 46.0 674.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-3-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 68.0 674.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-3-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 90.0 674.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-3-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 112.0 674.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-3-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 46.0 766.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-3-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 68.0 766.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-3-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 90.0 766.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-3-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 112.0 766.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-3-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 46.0 715.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-3-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 68.0 715.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-3-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 90.0 715.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-3-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 112.0 715.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="180.0" y="150.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="220.0" y="260.0" filled="red"> #5 </text>
+
+      <path id="id-4-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 186.0 154.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-4-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 208.0 154.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-4-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 230.0 154.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-4-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 252.0 154.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-4-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 186.0 246.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-4-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 208.0 246.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-4-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 230.0 246.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-4-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 252.0 246.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-4-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 186.0 195.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-4-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 208.0 195.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-4-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 230.0 195.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-4-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 252.0 195.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="180.0" y="270.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="220.0" y="380.0" filled="red"> #6 </text>
+
+      <path id="id-5-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 186.0 274.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-5-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 208.0 274.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-5-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 230.0 274.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-5-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 252.0 274.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-5-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 186.0 366.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-5-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 208.0 366.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-5-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 230.0 366.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-5-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 252.0 366.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-5-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 186.0 315.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-5-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 208.0 315.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-5-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 230.0 315.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-5-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 252.0 315.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="180.0" y="390.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="220.0" y="500.0" filled="red"> #7 </text>
+
+      <path id="id-6-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 186.0 394.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-6-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 208.0 394.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-6-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 230.0 394.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-6-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 252.0 394.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-6-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 186.0 486.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-6-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 208.0 486.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-6-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 230.0 486.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-6-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 252.0 486.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-6-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 186.0 435.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-6-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 208.0 435.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-6-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 230.0 435.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-6-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 252.0 435.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="180.0" y="550.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="220.0" y="660.0" filled="red"> #8 </text>
+
+      <path id="id-7-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 186.0 554.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-7-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 208.0 554.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-7-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 230.0 554.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-7-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 252.0 554.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-7-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 186.0 646.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-7-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 208.0 646.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-7-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 230.0 646.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-7-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 252.0 646.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-7-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 186.0 595.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-7-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 208.0 595.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-7-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 230.0 595.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-7-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 252.0 595.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="180.0" y="670.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="220.0" y="780.0" filled="red"> #9 </text>
+
+      <path id="id-8-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 186.0 674.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-8-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 208.0 674.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-8-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 230.0 674.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-8-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 252.0 674.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-8-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 186.0 766.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-8-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 208.0 766.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-8-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 230.0 766.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-8-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 252.0 766.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-8-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 186.0 715.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-8-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 208.0 715.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-8-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 230.0 715.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-8-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 252.0 715.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="180.0" y="790.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="220.0" y="900.0" filled="red"> #10 </text>
+
+      <path id="id-9-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 186.0 794.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-9-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 208.0 794.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-9-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 230.0 794.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-9-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 252.0 794.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-9-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 186.0 886.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-9-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 208.0 886.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-9-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 230.0 886.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-9-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 252.0 886.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-9-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 186.0 835.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-9-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 208.0 835.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-9-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 230.0 835.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-9-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 252.0 835.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="310.0" y="70.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="350.0" y="180.0" filled="red"> #11 </text>
+
+      <path id="id-10-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 316.0 74.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-10-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 338.0 74.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-10-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 360.0 74.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-10-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 382.0 74.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-10-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 316.0 166.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-10-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 338.0 166.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-10-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 360.0 166.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-10-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 382.0 166.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-10-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 316.0 115.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-10-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 338.0 115.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-10-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 360.0 115.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-10-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 382.0 115.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="310.0" y="190.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="350.0" y="300.0" filled="red"> #12 </text>
+
+      <path id="id-11-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 316.0 194.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-11-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 338.0 194.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-11-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 360.0 194.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-11-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 382.0 194.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-11-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 316.0 286.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-11-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 338.0 286.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-11-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 360.0 286.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-11-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 382.0 286.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-11-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 316.0 235.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-11-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 338.0 235.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-11-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 360.0 235.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-11-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 382.0 235.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="310.0" y="310.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="350.0" y="420.0" filled="red"> #13 </text>
+
+      <path id="id-12-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 316.0 314.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-12-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 338.0 314.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-12-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 360.0 314.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-12-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 382.0 314.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-12-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 316.0 406.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-12-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 338.0 406.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-12-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 360.0 406.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-12-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 382.0 406.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-12-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 316.0 355.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-12-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 338.0 355.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-12-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 360.0 355.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-12-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 382.0 355.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="310.0" y="630.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="350.0" y="740.0" filled="red"> #14 </text>
+
+      <path id="id-13-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 316.0 634.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-13-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 338.0 634.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-13-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 360.0 634.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-13-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 382.0 634.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-13-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 316.0 726.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-13-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 338.0 726.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-13-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 360.0 726.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-13-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 382.0 726.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-13-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 316.0 675.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-13-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 338.0 675.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-13-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 360.0 675.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-13-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 382.0 675.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="310.0" y="750.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="350.0" y="860.0" filled="red"> #15 </text>
+
+      <path id="id-14-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 316.0 754.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-14-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 338.0 754.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-14-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 360.0 754.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-14-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 382.0 754.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-14-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 316.0 846.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-14-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 338.0 846.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-14-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 360.0 846.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-14-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 382.0 846.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-14-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 316.0 795.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-14-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 338.0 795.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-14-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 360.0 795.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-14-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 382.0 795.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="310.0" y="870.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="350.0" y="980.0" filled="red"> #16 </text>
+
+      <path id="id-15-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 316.0 874.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-15-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 338.0 874.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-15-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 360.0 874.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-15-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 382.0 874.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-15-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 316.0 966.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-15-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 338.0 966.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-15-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 360.0 966.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-15-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 382.0 966.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-15-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 316.0 915.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-15-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 338.0 915.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-15-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 360.0 915.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-15-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 382.0 915.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="430.0" y="70.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="470.0" y="180.0" filled="red"> #17 </text>
+
+      <path id="id-16-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 436.0 74.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-16-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 458.0 74.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-16-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 480.0 74.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-16-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 502.0 74.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-16-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 436.0 166.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-16-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 458.0 166.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-16-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 480.0 166.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-16-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 502.0 166.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-16-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 436.0 115.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-16-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 458.0 115.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-16-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 480.0 115.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-16-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 502.0 115.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="430.0" y="190.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="470.0" y="300.0" filled="red"> #18 </text>
+
+      <path id="id-17-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 436.0 194.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-17-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 458.0 194.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-17-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 480.0 194.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-17-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 502.0 194.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-17-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 436.0 286.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-17-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 458.0 286.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-17-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 480.0 286.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-17-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 502.0 286.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-17-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 436.0 235.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-17-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 458.0 235.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-17-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 480.0 235.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-17-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 502.0 235.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="430.0" y="310.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="470.0" y="420.0" filled="red"> #19 </text>
+
+      <path id="id-18-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 436.0 314.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-18-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 458.0 314.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-18-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 480.0 314.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-18-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 502.0 314.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-18-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 436.0 406.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-18-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 458.0 406.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-18-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 480.0 406.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-18-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 502.0 406.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-18-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 436.0 355.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-18-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 458.0 355.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-18-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 480.0 355.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-18-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 502.0 355.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="430.0" y="630.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="470.0" y="740.0" filled="red"> #20 </text>
+
+      <path id="id-19-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 436.0 634.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-19-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 458.0 634.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-19-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 480.0 634.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-19-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 502.0 634.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-19-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 436.0 726.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-19-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 458.0 726.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-19-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 480.0 726.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-19-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 502.0 726.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-19-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 436.0 675.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-19-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 458.0 675.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-19-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 480.0 675.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-19-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 502.0 675.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="430.0" y="750.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="470.0" y="860.0" filled="red"> #21 </text>
+
+      <path id="id-20-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 436.0 754.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-20-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 458.0 754.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-20-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 480.0 754.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-20-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 502.0 754.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-20-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 436.0 846.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-20-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 458.0 846.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-20-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 480.0 846.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-20-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 502.0 846.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-20-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 436.0 795.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-20-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 458.0 795.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-20-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 480.0 795.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-20-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 502.0 795.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="430.0" y="870.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="470.0" y="980.0" filled="red"> #22 </text>
+
+      <path id="id-21-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 436.0 874.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-21-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 458.0 874.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-21-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 480.0 874.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-21-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 502.0 874.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-21-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 436.0 966.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-21-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 458.0 966.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-21-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 480.0 966.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-21-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 502.0 966.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-21-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 436.0 915.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-21-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 458.0 915.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-21-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 480.0 915.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-21-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 502.0 915.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="570.0" y="150.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="610.0" y="260.0" filled="red"> #23 </text>
+
+      <path id="id-22-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 576.0 154.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-22-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 598.0 154.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-22-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 620.0 154.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-22-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 642.0 154.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-22-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 576.0 246.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-22-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 598.0 246.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-22-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 620.0 246.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-22-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 642.0 246.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-22-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 576.0 195.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-22-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 598.0 195.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-22-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 620.0 195.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-22-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 642.0 195.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="570.0" y="270.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="610.0" y="380.0" filled="red"> #24 </text>
+
+      <path id="id-23-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 576.0 274.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-23-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 598.0 274.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-23-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 620.0 274.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-23-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 642.0 274.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-23-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 576.0 366.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-23-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 598.0 366.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-23-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 620.0 366.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-23-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 642.0 366.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-23-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 576.0 315.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-23-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 598.0 315.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-23-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 620.0 315.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-23-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 642.0 315.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="570.0" y="390.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="610.0" y="500.0" filled="red"> #25 </text>
+
+      <path id="id-24-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 576.0 394.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-24-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 598.0 394.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-24-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 620.0 394.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-24-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 642.0 394.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-24-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 576.0 486.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-24-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 598.0 486.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-24-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 620.0 486.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-24-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 642.0 486.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-24-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 576.0 435.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-24-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 598.0 435.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-24-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 620.0 435.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-24-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 642.0 435.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="570.0" y="550.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="610.0" y="660.0" filled="red"> #26 </text>
+
+      <path id="id-25-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 576.0 554.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-25-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 598.0 554.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-25-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 620.0 554.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-25-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 642.0 554.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-25-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 576.0 646.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-25-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 598.0 646.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-25-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 620.0 646.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-25-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 642.0 646.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-25-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 576.0 595.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-25-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 598.0 595.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-25-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 620.0 595.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-25-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 642.0 595.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="570.0" y="670.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="610.0" y="780.0" filled="red"> #27 </text>
+
+      <path id="id-26-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 576.0 674.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-26-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 598.0 674.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-26-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 620.0 674.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-26-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 642.0 674.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-26-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 576.0 766.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-26-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 598.0 766.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-26-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 620.0 766.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-26-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 642.0 766.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-26-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 576.0 715.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-26-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 598.0 715.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-26-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 620.0 715.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-26-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 642.0 715.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="570.0" y="790.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="610.0" y="900.0" filled="red"> #28 </text>
+
+      <path id="id-27-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 576.0 794.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-27-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 598.0 794.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-27-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 620.0 794.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-27-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 642.0 794.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-27-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 576.0 886.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-27-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 598.0 886.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-27-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 620.0 886.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-27-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 642.0 886.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-27-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 576.0 835.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-27-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 598.0 835.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-27-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 620.0 835.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-27-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 642.0 835.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="710.0" y="270.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="750.0" y="380.0" filled="red"> #29 </text>
+
+      <path id="id-28-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 716.0 274.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-28-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 738.0 274.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-28-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 760.0 274.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-28-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 782.0 274.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-28-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 716.0 366.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-28-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 738.0 366.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-28-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 760.0 366.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-28-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 782.0 366.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-28-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 716.0 315.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-28-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 738.0 315.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-28-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 760.0 315.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-28-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 782.0 315.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="710.0" y="390.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="750.0" y="500.0" filled="red"> #30 </text>
+
+      <path id="id-29-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 716.0 394.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-29-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 738.0 394.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-29-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 760.0 394.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-29-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 782.0 394.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-29-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 716.0 486.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-29-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 738.0 486.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-29-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 760.0 486.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-29-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 782.0 486.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-29-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 716.0 435.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-29-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 738.0 435.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-29-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 760.0 435.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-29-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 782.0 435.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="710.0" y="550.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="750.0" y="660.0" filled="red"> #31 </text>
+
+      <path id="id-30-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 716.0 554.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-30-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 738.0 554.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-30-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 760.0 554.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-30-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 782.0 554.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-30-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 716.0 646.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-30-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 738.0 646.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-30-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 760.0 646.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-30-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 782.0 646.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-30-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 716.0 595.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-30-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 738.0 595.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-30-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 760.0 595.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-30-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 782.0 595.5 h 11 v 9 h -11  Z" /> </g>
+<g> <rect x="710.0" y="670.0" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)" />
+<text x="750.0" y="780.0" filled="red"> #32 </text>
+
+      <path id="id-31-0" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 716.0 674.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-31-1" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 738.0 674.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-31-2" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 760.0 674.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-31-3" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 782.0 674.0 h 22 v 46 h -11 v -4.5 h -11 Z" />
+
+      <path id="id-31-4" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 716.0 766.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-31-5" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 738.0 766.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-31-6" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 760.0 766.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-31-7" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 782.0 766.0 h 22 v -46 h -11 v 4.5 h -11 Z" />
+
+      <path id="id-31-8" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 716.0 715.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-31-9" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 738.0 715.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-31-10" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 760.0 715.5 h 11 v 9 h -11  Z" />
+
+      <path id="id-31-11" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(200,200,200)"
+      d="M 782.0 715.5 h 11 v 9 h -11  Z" /> </g>
+        </svg>
