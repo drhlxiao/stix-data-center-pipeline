@@ -1,0 +1,2242 @@
+<?xml version="1.0" encoding="UTF-8"?><eventfile xmlns="http://soc.solarorbiter.org/efecs" xsi:schemaLocation="http://soc.solarorbiter.org/efecs EFECS_schema.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <header format_version="1" gen_time="2021-132T10:12:42Z" validity_start="2021-179T00:00:00Z" validity_end="2021-270T00:00:00Z" spacecraft="Solar Orbiter" icd_version="v2_5"/>
+  <header2 SPKT_plan_name="LTP04_Jun2021-Sep2021" SPKT_modified_date="2021-132T10:00:29Z" SPKT_baseline_number="8" SPKT_ltp_number="04" filename_version="2" filename_isPrime="YES"/>
+  <events>
+    <ATT_DIST time="2021-179T00:00:00Z" duration="11100"/>
+    <EMC_PREF_NOISY time="2021-179T00:00:00Z" duration="11100"/>
+    <LTP_BOUND time="2021-179T00:00:00Z" duration="7862400" first_stp="154" l_count="4" last_stp="167"/>
+    <POWER time="2021-179T00:00:00Z" duration="299" max="700"/>
+    <SLEW time="2021-179T00:00:00Z" duration="300"/>
+    <STP_START time="2021-179T00:00:00Z" stp_number="154"/>
+    <POWER time="2021-179T00:05:00Z" duration="10799" max="747"/>
+    <WOL time="2021-179T00:05:00Z" duration="10800"/>
+    <POWER time="2021-179T03:05:00Z" duration="10499" max="795"/>
+    <EMC_MAND_QUIET time="2021-179T05:00:00Z" duration="3600" comment="Not SWA compatible due to density of noisy events this day"/>
+    <POWER time="2021-179T06:00:00Z" duration="5257" max="797"/>
+    <POWER time="2021-179T07:27:37Z" duration="120" max="790"/>
+    <ATT_DIST time="2021-179T07:29:37Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-179T07:29:37Z" duration="2100"/>
+    <HGA_PT time="2021-179T07:29:37Z" duration="2100"/>
+    <POWER time="2021-179T07:29:37Z" duration="2100" max="746"/>
+    <PASS time="2021-179T08:04:37Z" duration="10800" dbcode="125" tm_rate="2.2635936720000001E+05" station="NNO"/>
+    <POWER time="2021-179T08:04:37Z" duration="120" max="791"/>
+    <SSMM_DUMP_1WAY time="2021-179T08:05:37Z" duration="1423" tm_rate="2.1525400685185185E+05"/>
+    <POWER time="2021-179T08:06:37Z" duration="22912" max="797"/>
+    <OMM_DUMP time="2021-179T08:36:20Z" duration="3132" tm_rate="2.1525400685185185E+05"/>
+    <SSMM_DUMP_2WAY time="2021-179T09:28:32Z" duration="5465" tm_rate="2.1525400685185185E+05"/>
+    <EMC_MAND_QUIET time="2021-179T11:30:00Z" duration="3600" comment="Added manually"/>
+    <IS_COORD_BURST time="2021-179T12:00:00Z"/>
+    <ATT_DIST time="2021-179T13:00:00Z" duration="1920"/>
+    <EMC_PREF_NOISY time="2021-179T13:00:00Z" duration="1860"/>
+    <HSD_PHI_HRT_CLOSE time="2021-179T13:00:00Z" duration="1800" comment="Closing PHI doors for MAINT"/>
+    <HSD_PHI_FDT_CLOSE time="2021-179T13:00:01Z" duration="1800" comment="Closing PHI doors for MAINT and NAV"/>
+    <POWER time="2021-179T14:28:29Z" duration="120" max="793"/>
+    <ATT_DIST time="2021-179T14:30:29Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-179T14:30:29Z" duration="2100"/>
+    <HGA_PT time="2021-179T14:30:29Z" duration="2100"/>
+    <POWER time="2021-179T14:30:29Z" duration="2100" max="749"/>
+    <PASS time="2021-179T15:05:29Z" duration="28800" dbcode="130" tm_rate="2.7666144880000001E+05" station="MLG"/>
+    <POWER time="2021-179T15:05:29Z" duration="120" max="794"/>
+    <SSMM_DUMP_1WAY time="2021-179T15:06:29Z" duration="1423" tm_rate="2.6383876166666666E+05"/>
+    <POWER time="2021-179T15:07:29Z" duration="621" max="800"/>
+    <ATT_DIST time="2021-179T15:17:51Z" duration="43200"/>
+    <EMC_PREF_NOISY time="2021-179T15:17:51Z" duration="43200"/>
+    <MAINT time="2021-179T15:17:51Z" duration="43200" comment="first slot after 2021.06.28" type="ANY"/>
+    <POWER time="2021-179T15:17:51Z" duration="9728" max="795"/>
+    <OMM_DUMP time="2021-179T15:37:12Z" duration="245" tm_rate="2.6383876166666666E+05"/>
+    <SSMM_DUMP_2WAY time="2021-179T15:41:17Z" duration="26352" tm_rate="2.6383876166666666E+05"/>
+    <POWER time="2021-179T18:00:00Z" duration="33470" max="796"/>
+    <POWER time="2021-180T03:17:51Z" duration="128" max="806"/>
+    <ATT_DIST time="2021-180T03:20:00Z" duration="21600"/>
+    <EMC_PREF_NOISY time="2021-180T03:20:00Z" duration="21600"/>
+    <POWER time="2021-180T03:20:00Z" duration="9599" max="766"/>
+    <TCM time="2021-180T03:20:00Z" duration="21600" comment="first slot after 2021.06.28" type="type-2"/>
+    <POWER time="2021-180T06:00:00Z" duration="11999" max="767"/>
+    <POWER time="2021-180T09:20:00Z" duration="6724" max="808"/>
+    <POWER time="2021-180T11:12:04Z" duration="120" max="802"/>
+    <ATT_DIST time="2021-180T11:14:04Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-180T11:14:04Z" duration="2100"/>
+    <HGA_PT time="2021-180T11:14:04Z" duration="2100"/>
+    <POWER time="2021-180T11:14:04Z" duration="2100" max="758"/>
+    <PASS time="2021-180T11:49:04Z" duration="27815" dbcode="130" tm_rate="2.7666144880000001E+05" station="CEB"/>
+    <POWER time="2021-180T11:49:04Z" duration="120" max="802"/>
+    <SSMM_DUMP_1WAY time="2021-180T11:50:04Z" duration="1421" tm_rate="2.6383876166666666E+05"/>
+    <POWER time="2021-180T11:51:04Z" duration="22135" max="809"/>
+    <OMM_DUMP time="2021-180T12:20:45Z" duration="845" tm_rate="2.6383876166666666E+05"/>
+    <SSMM_DUMP_2WAY time="2021-180T12:34:50Z" duration="24769" tm_rate="2.6383876166666666E+05"/>
+    <EMC_MAND_QUIET time="2021-180T16:00:00Z" duration="3600"/>
+    <POWER time="2021-180T18:00:00Z" duration="28201" max="812"/>
+    <PASS time="2021-180T19:47:39Z" duration="3600" dbcode="130" tm_rate="2.7666144880000001E+05" station="CEB"/>
+    <EMC_MAND_QUIET time="2021-180T23:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-180T23:30:00Z"/>
+    <POWER time="2021-181T01:50:01Z" duration="120" max="809"/>
+    <ATT_DIST time="2021-181T01:52:01Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-181T01:52:01Z" duration="2100"/>
+    <HGA_PT time="2021-181T01:52:01Z" duration="2100"/>
+    <POWER time="2021-181T01:52:01Z" duration="2100" max="764"/>
+    <PASS time="2021-181T02:27:01Z" duration="17587" dbcode="125" tm_rate="2.2635936720000001E+05" station="NNO"/>
+    <POWER time="2021-181T02:27:01Z" duration="120" max="809"/>
+    <SSMM_DUMP_1WAY time="2021-181T02:28:01Z" duration="1421" tm_rate="2.1525400685185185E+05"/>
+    <POWER time="2021-181T02:29:01Z" duration="12658" max="816"/>
+    <OMM_DUMP time="2021-181T02:58:42Z" duration="625" tm_rate="2.1525400685185185E+05"/>
+    <SSMM_DUMP_2WAY time="2021-181T03:09:07Z" duration="14761" tm_rate="2.1525400685185185E+05"/>
+    <POWER time="2021-181T06:00:00Z" duration="40388" max="817"/>
+    <EMC_MAND_QUIET time="2021-181T12:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-181T12:30:00Z"/>
+    <POWER time="2021-181T17:13:08Z" duration="120" max="816"/>
+    <ATT_DIST time="2021-181T17:15:08Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-181T17:15:08Z" duration="2100"/>
+    <HGA_PT time="2021-181T17:15:08Z" duration="2100"/>
+    <POWER time="2021-181T17:15:08Z" duration="2100" max="772"/>
+    <PASS time="2021-181T17:50:08Z" duration="18220" dbcode="130" tm_rate="2.7666144880000001E+05" station="MLG"/>
+    <POWER time="2021-181T17:50:08Z" duration="120" max="816"/>
+    <SSMM_DUMP_1WAY time="2021-181T17:51:08Z" duration="1419" tm_rate="2.6383876166666666E+05"/>
+    <POWER time="2021-181T17:52:08Z" duration="471" max="823"/>
+    <POWER time="2021-181T18:00:00Z" duration="43199" max="823"/>
+    <OMM_DUMP time="2021-181T18:21:47Z" duration="537" tm_rate="2.6383876166666666E+05"/>
+    <SSMM_DUMP_2WAY time="2021-181T18:30:44Z" duration="15484" tm_rate="2.6383876166666666E+05"/>
+    <EMC_MAND_QUIET time="2021-181T21:00:00Z" duration="3600"/>
+    <POWER time="2021-182T06:00:00Z" duration="11441" max="829"/>
+    <POWER time="2021-182T09:10:41Z" duration="120" max="823"/>
+    <ATT_DIST time="2021-182T09:12:41Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-182T09:12:41Z" duration="2100"/>
+    <HGA_PT time="2021-182T09:12:41Z" duration="2100"/>
+    <POWER time="2021-182T09:12:41Z" duration="2100" max="779"/>
+    <PASS time="2021-182T09:47:41Z" duration="3600" dbcode="130" tm_rate="2.7666144880000001E+05" station="NNO"/>
+    <POWER time="2021-182T09:47:41Z" duration="120" max="824"/>
+    <POWER time="2021-182T09:49:41Z" duration="29418" max="830"/>
+    <PASS time="2021-182T11:02:41Z" duration="31274" dbcode="130" tm_rate="2.7666144880000001E+05" station="CEB"/>
+    <SSMM_DUMP_1WAY time="2021-182T11:03:41Z" duration="1417" tm_rate="2.6383876166666666E+05"/>
+    <OMM_DUMP time="2021-182T11:34:18Z" duration="601" tm_rate="2.6383876166666666E+05"/>
+    <SSMM_DUMP_2WAY time="2021-182T11:44:19Z" duration="28476" tm_rate="2.6383876166666666E+05"/>
+    <EMC_MAND_QUIET time="2021-182T12:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-182T12:30:00Z"/>
+    <POWER time="2021-182T18:00:00Z" duration="43199" max="834"/>
+    <PASS time="2021-182T19:58:55Z" duration="3600" dbcode="130" tm_rate="2.7666144880000001E+05" station="CEB"/>
+    <EMC_MAND_QUIET time="2021-182T21:00:00Z" duration="3600"/>
+    <POWER time="2021-183T06:00:00Z" duration="30121" max="840"/>
+    <EMC_MAND_QUIET time="2021-183T12:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-183T12:30:00Z"/>
+    <POWER time="2021-183T14:22:01Z" duration="120" max="837"/>
+    <ATT_DIST time="2021-183T14:24:01Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-183T14:24:01Z" duration="2100"/>
+    <HGA_PT time="2021-183T14:24:01Z" duration="2100"/>
+    <POWER time="2021-183T14:24:01Z" duration="2100" max="793"/>
+    <PASS time="2021-183T14:59:01Z" duration="28801" dbcode="130" tm_rate="2.7666144880000001E+05" station="MLG"/>
+    <POWER time="2021-183T14:59:01Z" duration="120" max="838"/>
+    <SSMM_DUMP_1WAY time="2021-183T15:00:01Z" duration="1415" tm_rate="2.6383876166666666E+05"/>
+    <POWER time="2021-183T15:01:01Z" duration="10738" max="845"/>
+    <OMM_DUMP time="2021-183T15:30:36Z" duration="975" tm_rate="2.6383876166666666E+05"/>
+    <SSMM_DUMP_2WAY time="2021-183T15:46:51Z" duration="25631" tm_rate="2.6383876166666666E+05"/>
+    <POWER time="2021-183T18:00:00Z" duration="43199" max="846"/>
+    <EMC_MAND_QUIET time="2021-183T21:00:00Z" duration="3600"/>
+    <POWER time="2021-184T06:00:00Z" duration="7236" max="852"/>
+    <POWER time="2021-184T08:00:36Z" duration="120" max="846"/>
+    <ATT_DIST time="2021-184T08:02:36Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-184T08:02:36Z" duration="2100"/>
+    <HGA_PT time="2021-184T08:02:36Z" duration="2100"/>
+    <POWER time="2021-184T08:02:36Z" duration="2100" max="802"/>
+    <PASS time="2021-184T08:37:36Z" duration="3600" dbcode="130" tm_rate="2.7666144880000001E+05" station="NNO"/>
+    <POWER time="2021-184T08:37:36Z" duration="120" max="847"/>
+    <POWER time="2021-184T08:39:36Z" duration="29774" max="854"/>
+    <PASS time="2021-184T09:52:36Z" duration="21308" dbcode="130" tm_rate="2.7666144880000001E+05" station="CEB"/>
+    <SSMM_DUMP_1WAY time="2021-184T09:53:36Z" duration="1413" tm_rate="2.6383876166666666E+05"/>
+    <OMM_DUMP time="2021-184T10:24:09Z" duration="659" tm_rate="2.6383876166666666E+05"/>
+    <SSMM_DUMP_2WAY time="2021-184T10:35:08Z" duration="18456" tm_rate="2.6383876166666666E+05"/>
+    <EMC_MAND_QUIET time="2021-184T12:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-184T12:30:00Z"/>
+    <POWER time="2021-184T16:55:50Z" duration="120" max="851"/>
+    <ATT_DIST time="2021-184T16:57:50Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-184T16:57:50Z" duration="2100"/>
+    <HGA_PT time="2021-184T16:57:50Z" duration="2100"/>
+    <POWER time="2021-184T16:57:50Z" duration="2100" max="807"/>
+    <PASS time="2021-184T17:32:50Z" duration="11283" dbcode="130" tm_rate="2.7666144880000001E+05" station="MLG"/>
+    <POWER time="2021-184T17:32:50Z" duration="120" max="851"/>
+    <SSMM_DUMP_1WAY time="2021-184T17:33:50Z" duration="1411" tm_rate="2.6383876166666666E+05"/>
+    <POWER time="2021-184T17:34:50Z" duration="1509" max="858"/>
+    <POWER time="2021-184T18:00:00Z" duration="43199" max="858"/>
+    <OMM_DUMP time="2021-184T18:04:21Z" duration="268" tm_rate="2.6383876166666666E+05"/>
+    <SSMM_DUMP_2WAY time="2021-184T18:08:49Z" duration="8824" tm_rate="2.6383876166666666E+05"/>
+    <EMC_MAND_QUIET time="2021-184T21:00:00Z" duration="3600"/>
+    <POWER time="2021-185T06:00:00Z" duration="11841" max="738"/>
+    <POWER time="2021-185T09:17:21Z" duration="120" max="699"/>
+    <ATT_DIST time="2021-185T09:19:21Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-185T09:19:21Z" duration="2100"/>
+    <HGA_PT time="2021-185T09:19:21Z" duration="2100"/>
+    <POWER time="2021-185T09:19:21Z" duration="2100" max="654"/>
+    <PASS time="2021-185T09:54:21Z" duration="39600" dbcode="130" tm_rate="2.7666144880000001E+05" station="CEB"/>
+    <POWER time="2021-185T09:54:21Z" duration="120" max="692"/>
+    <SSMM_DUMP_1WAY time="2021-185T09:55:21Z" duration="1409" tm_rate="2.6383876166666666E+05"/>
+    <POWER time="2021-185T09:56:21Z" duration="9850" max="699"/>
+    <OMM_DUMP time="2021-185T10:25:50Z" duration="572" tm_rate="2.6383876166666666E+05"/>
+    <SSMM_DUMP_2WAY time="2021-185T10:35:22Z" duration="36839" tm_rate="2.6383876166666666E+05"/>
+    <EMC_MAND_QUIET time="2021-185T11:00:00Z" duration="4589" comment="moved manually"/>
+    <IS_COORD_BURST time="2021-185T11:30:00Z"/>
+    <ATT_DIST time="2021-185T12:40:31Z" duration="1200"/>
+    <EMC_PREF_NOISY time="2021-185T12:40:31Z" duration="1200"/>
+    <POWER time="2021-185T12:40:31Z" duration="1200" max="658"/>
+    <SA_ROT time="2021-185T12:40:31Z" duration="1200" end_angle_deg="30" start_angle_deg="0"/>
+    <POWER time="2021-185T13:00:31Z" duration="17968" max="668"/>
+    <POWER time="2021-185T18:00:00Z" duration="21599" max="618"/>
+    <EMC_MAND_QUIET time="2021-185T21:00:00Z" duration="3600"/>
+    <ATT_DIST time="2021-186T00:00:00Z" duration="11100"/>
+    <EMC_PREF_NOISY time="2021-186T00:00:00Z" duration="11100"/>
+    <POWER time="2021-186T00:00:00Z" duration="299" max="527"/>
+    <SLEW time="2021-186T00:00:00Z" duration="300"/>
+    <STP_START time="2021-186T00:00:00Z" stp_number="155"/>
+    <POWER time="2021-186T00:05:00Z" duration="10799" max="574"/>
+    <WOL time="2021-186T00:05:00Z" duration="10800"/>
+    <POWER time="2021-186T03:05:00Z" duration="10246" max="623"/>
+    <POWER time="2021-186T05:55:46Z" duration="120" max="617"/>
+    <ATT_DIST time="2021-186T05:57:46Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-186T05:57:46Z" duration="2100"/>
+    <HGA_PT time="2021-186T05:57:46Z" duration="2100"/>
+    <POWER time="2021-186T05:57:46Z" duration="133" max="573"/>
+    <POWER time="2021-186T06:00:00Z" duration="1966" max="573"/>
+    <PASS time="2021-186T06:32:46Z" duration="16550" dbcode="125" tm_rate="2.2635936720000001E+05" station="NNO"/>
+    <POWER time="2021-186T06:32:46Z" duration="120" max="617"/>
+    <SSMM_DUMP_1WAY time="2021-186T06:33:46Z" duration="1407" tm_rate="2.1525400685185185E+05"/>
+    <POWER time="2021-186T06:34:46Z" duration="27732" max="624"/>
+    <OMM_DUMP time="2021-186T07:04:13Z" duration="957" tm_rate="2.1525400685185185E+05"/>
+    <SSMM_DUMP_2WAY time="2021-186T07:20:10Z" duration="13406" tm_rate="2.1525400685185185E+05"/>
+    <EMC_MAND_QUIET time="2021-186T11:40:31Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-186T12:10:31Z"/>
+    <POWER time="2021-186T14:16:58Z" duration="120" max="621"/>
+    <ATT_DIST time="2021-186T14:18:58Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-186T14:18:58Z" duration="2100"/>
+    <HGA_PT time="2021-186T14:18:58Z" duration="2100"/>
+    <POWER time="2021-186T14:18:58Z" duration="2100" max="577"/>
+    <PASS time="2021-186T14:53:58Z" duration="16736" dbcode="130" tm_rate="2.7666144880000001E+05" station="MLG"/>
+    <POWER time="2021-186T14:53:58Z" duration="120" max="621"/>
+    <SSMM_DUMP_1WAY time="2021-186T14:54:58Z" duration="1407" tm_rate="2.6383876166666666E+05"/>
+    <POWER time="2021-186T14:55:58Z" duration="11041" max="628"/>
+    <OMM_DUMP time="2021-186T15:25:25Z" duration="291" tm_rate="2.6383876166666666E+05"/>
+    <SSMM_DUMP_2WAY time="2021-186T15:30:16Z" duration="14258" tm_rate="2.6383876166666666E+05"/>
+    <POWER time="2021-186T18:00:00Z" duration="43199" max="630"/>
+    <PASS time="2021-186T19:47:54Z" duration="3593" dbcode="130" tm_rate="2.7666144880000001E+05" station="CEB"/>
+    <EMC_MAND_QUIET time="2021-186T21:00:00Z" duration="3600"/>
+    <ATT_DIST time="2021-187T00:00:00Z" duration="1863"/>
+    <EMC_PREF_NOISY time="2021-187T00:00:00Z" duration="1803"/>
+    <HSD_EUI_HRI_OPEN time="2021-187T00:00:02Z" duration="1800" comment="EUI opening doors for event-detection test."/>
+    <HSD_EUI_FSI_OPEN time="2021-187T00:00:03Z" duration="1800" comment="EUI opening doors for event-detection test."/>
+    <POWER time="2021-187T06:00:00Z" duration="1640" max="636"/>
+    <POWER time="2021-187T06:27:20Z" duration="120" max="629"/>
+    <ATT_DIST time="2021-187T06:29:20Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-187T06:29:20Z" duration="2100"/>
+    <HGA_PT time="2021-187T06:29:20Z" duration="2100"/>
+    <POWER time="2021-187T06:29:20Z" duration="2100" max="585"/>
+    <PASS time="2021-187T07:04:20Z" duration="14690" dbcode="125" tm_rate="2.2635936720000001E+05" station="NNO"/>
+    <POWER time="2021-187T07:04:20Z" duration="120" max="629"/>
+    <SSMM_DUMP_1WAY time="2021-187T07:05:20Z" duration="1405" tm_rate="2.1525400685185185E+05"/>
+    <POWER time="2021-187T07:06:20Z" duration="25736" max="636"/>
+    <OMM_DUMP time="2021-187T07:35:45Z" duration="691" tm_rate="2.1525400685185185E+05"/>
+    <SSMM_DUMP_2WAY time="2021-187T07:47:16Z" duration="11814" tm_rate="2.1525400685185185E+05"/>
+    <EMC_MAND_QUIET time="2021-187T11:40:31Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-187T12:10:31Z"/>
+    <POWER time="2021-187T14:15:16Z" duration="120" max="633"/>
+    <ATT_DIST time="2021-187T14:17:16Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-187T14:17:16Z" duration="2100"/>
+    <HGA_PT time="2021-187T14:17:16Z" duration="2100"/>
+    <POWER time="2021-187T14:17:16Z" duration="2100" max="589"/>
+    <PASS time="2021-187T14:52:16Z" duration="21190" dbcode="130" tm_rate="2.7666144880000001E+05" station="MLG"/>
+    <POWER time="2021-187T14:52:16Z" duration="120" max="633"/>
+    <SSMM_DUMP_1WAY time="2021-187T14:53:16Z" duration="1403" tm_rate="2.6383876166666666E+05"/>
+    <POWER time="2021-187T14:54:16Z" duration="11143" max="640"/>
+    <OMM_DUMP time="2021-187T15:23:39Z" duration="273" tm_rate="2.6383876166666666E+05"/>
+    <SSMM_DUMP_2WAY time="2021-187T15:28:12Z" duration="18734" tm_rate="2.6383876166666666E+05"/>
+    <POWER time="2021-187T18:00:00Z" duration="43199" max="642"/>
+    <EMC_MAND_QUIET time="2021-187T21:00:00Z" duration="3600"/>
+    <POWER time="2021-188T06:00:00Z" duration="4420" max="648"/>
+    <POWER time="2021-188T07:13:40Z" duration="120" max="642"/>
+    <ATT_DIST time="2021-188T07:15:40Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-188T07:15:40Z" duration="2100"/>
+    <HGA_PT time="2021-188T07:15:40Z" duration="2100"/>
+    <POWER time="2021-188T07:15:40Z" duration="2100" max="598"/>
+    <PASS time="2021-188T07:50:40Z" duration="11943" dbcode="125" tm_rate="2.2635936720000001E+05" station="NNO"/>
+    <POWER time="2021-188T07:50:40Z" duration="120" max="642"/>
+    <SSMM_DUMP_1WAY time="2021-188T07:51:40Z" duration="1401" tm_rate="2.1525400685185185E+05"/>
+    <POWER time="2021-188T07:52:40Z" duration="22851" max="649"/>
+    <OMM_DUMP time="2021-188T08:22:01Z" duration="726" tm_rate="2.1525400685185185E+05"/>
+    <SSMM_DUMP_2WAY time="2021-188T08:34:07Z" duration="9036" tm_rate="2.1525400685185185E+05"/>
+    <EMC_MAND_QUIET time="2021-188T11:40:31Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-188T12:10:31Z"/>
+    <POWER time="2021-188T14:13:31Z" duration="120" max="645"/>
+    <ATT_DIST time="2021-188T14:15:31Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-188T14:15:31Z" duration="2100"/>
+    <HGA_PT time="2021-188T14:15:31Z" duration="2100"/>
+    <POWER time="2021-188T14:15:31Z" duration="2100" max="601"/>
+    <PASS time="2021-188T14:50:31Z" duration="21387" dbcode="130" tm_rate="2.7666144880000001E+05" station="MLG"/>
+    <POWER time="2021-188T14:50:31Z" duration="120" max="646"/>
+    <SSMM_DUMP_1WAY time="2021-188T14:51:31Z" duration="1401" tm_rate="2.6383876166666666E+05"/>
+    <POWER time="2021-188T14:52:31Z" duration="11248" max="653"/>
+    <OMM_DUMP time="2021-188T15:21:52Z" duration="244" tm_rate="2.6383876166666666E+05"/>
+    <SSMM_DUMP_2WAY time="2021-188T15:25:56Z" duration="18962" tm_rate="2.6383876166666666E+05"/>
+    <POWER time="2021-188T18:00:00Z" duration="43199" max="654"/>
+    <EMC_MAND_QUIET time="2021-188T21:00:00Z" duration="3600"/>
+    <RSW_EXT_EUI time="2021-188T21:00:00Z" duration="43200" comment="Extension around event-detection campaign."/>
+    <POWER time="2021-189T06:00:00Z" duration="11457" max="661"/>
+    <POWER time="2021-189T09:10:57Z" duration="120" max="656"/>
+    <ATT_DIST time="2021-189T09:12:57Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-189T09:12:57Z" duration="2100"/>
+    <HGA_PT time="2021-189T09:12:57Z" duration="2100"/>
+    <POWER time="2021-189T09:12:57Z" duration="2100" max="611"/>
+    <PASS time="2021-189T09:47:57Z" duration="39600" dbcode="130" tm_rate="2.7666144880000001E+05" station="CEB"/>
+    <POWER time="2021-189T09:47:57Z" duration="120" max="656"/>
+    <SSMM_DUMP_1WAY time="2021-189T09:48:57Z" duration="1397" tm_rate="2.6383876166666666E+05"/>
+    <POWER time="2021-189T09:49:57Z" duration="29402" max="663"/>
+    <OMM_DUMP time="2021-189T10:19:14Z" duration="662" tm_rate="2.6383876166666666E+05"/>
+    <SSMM_DUMP_2WAY time="2021-189T10:30:16Z" duration="36761" tm_rate="2.6383876166666666E+05"/>
+    <ATT_DIST time="2021-189T12:00:00Z" duration="1861"/>
+    <EMC_PREF_NOISY time="2021-189T12:00:00Z" duration="1801"/>
+    <HSD_EUI_HRI_CLOSE time="2021-189T12:00:00Z" duration="1800" comment="Close HRI and FSI after event-detection campaign"/>
+    <HSD_EUI_FSI_CLOSE time="2021-189T12:00:01Z" duration="1800" comment="Close HRI and FSI after event-detection campaign"/>
+    <EMC_MAND_QUIET time="2021-189T14:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-189T14:30:00Z"/>
+    <POWER time="2021-189T18:00:00Z" duration="43199" max="667"/>
+    <EMC_MAND_QUIET time="2021-189T21:00:00Z" duration="3600"/>
+    <POWER time="2021-190T06:00:00Z" duration="2438" max="674"/>
+    <POWER time="2021-190T06:40:38Z" duration="120" max="667"/>
+    <ATT_DIST time="2021-190T06:42:38Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-190T06:42:38Z" duration="2100"/>
+    <HGA_PT time="2021-190T06:42:38Z" duration="2100"/>
+    <POWER time="2021-190T06:42:38Z" duration="2100" max="623"/>
+    <PASS time="2021-190T07:17:38Z" duration="13990" dbcode="125" tm_rate="2.2635936720000001E+05" station="NNO"/>
+    <POWER time="2021-190T07:17:38Z" duration="120" max="668"/>
+    <SSMM_DUMP_1WAY time="2021-190T07:18:38Z" duration="1395" tm_rate="2.1525400685185185E+05"/>
+    <POWER time="2021-190T07:19:38Z" duration="26713" max="675"/>
+    <OMM_DUMP time="2021-190T07:48:53Z" duration="919" tm_rate="2.1525400685185185E+05"/>
+    <SSMM_DUMP_2WAY time="2021-190T08:04:12Z" duration="10896" tm_rate="2.1525400685185185E+05"/>
+    <EMC_MAND_QUIET time="2021-190T11:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-190T11:30:00Z"/>
+    <POWER time="2021-190T14:44:51Z" duration="120" max="672"/>
+    <ATT_DIST time="2021-190T14:46:51Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-190T14:46:51Z" duration="2100"/>
+    <HGA_PT time="2021-190T14:46:51Z" duration="2100"/>
+    <POWER time="2021-190T14:46:51Z" duration="2100" max="628"/>
+    <PASS time="2021-190T15:21:51Z" duration="19692" dbcode="130" tm_rate="2.7666144880000001E+05" station="MLG"/>
+    <POWER time="2021-190T15:21:51Z" duration="120" max="672"/>
+    <SSMM_DUMP_1WAY time="2021-190T15:22:51Z" duration="1393" tm_rate="2.6383876166666666E+05"/>
+    <POWER time="2021-190T15:23:51Z" duration="9368" max="679"/>
+    <OMM_DUMP time="2021-190T15:53:04Z" duration="282" tm_rate="2.6383876166666666E+05"/>
+    <SSMM_DUMP_2WAY time="2021-190T15:57:46Z" duration="17237" tm_rate="2.6383876166666666E+05"/>
+    <POWER time="2021-190T18:00:00Z" duration="43199" max="681"/>
+    <EMC_MAND_QUIET time="2021-190T21:00:00Z" duration="3600"/>
+    <POWER time="2021-191T06:00:00Z" duration="11257" max="687"/>
+    <POWER time="2021-191T09:07:37Z" duration="120" max="682"/>
+    <ATT_DIST time="2021-191T09:09:37Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-191T09:09:37Z" duration="2100"/>
+    <HGA_PT time="2021-191T09:09:37Z" duration="2100"/>
+    <POWER time="2021-191T09:09:37Z" duration="2100" max="638"/>
+    <PASS time="2021-191T09:44:37Z" duration="39601" dbcode="133" tm_rate="3.1124412990000000E+05" station="CEB"/>
+    <POWER time="2021-191T09:44:37Z" duration="120" max="683"/>
+    <SSMM_DUMP_1WAY time="2021-191T09:45:37Z" duration="1391" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-191T09:46:37Z" duration="29602" max="690"/>
+    <OMM_DUMP time="2021-191T10:15:48Z" duration="570" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-191T10:25:18Z" duration="36860" tm_rate="2.9743213888888888E+05"/>
+    <EMC_MAND_QUIET time="2021-191T11:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-191T11:30:00Z"/>
+    <POWER time="2021-191T18:00:00Z" duration="43199" max="695"/>
+    <EMC_MAND_QUIET time="2021-191T21:00:00Z" duration="3600"/>
+    <EMC_MAND_QUIET time="2021-192T06:00:00Z" duration="3600"/>
+    <POWER time="2021-192T06:00:00Z" duration="11156" max="702"/>
+    <POWER time="2021-192T09:05:56Z" duration="120" max="697"/>
+    <ATT_DIST time="2021-192T09:07:56Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-192T09:07:56Z" duration="2100"/>
+    <HGA_PT time="2021-192T09:07:56Z" duration="2100"/>
+    <POWER time="2021-192T09:07:56Z" duration="2100" max="653"/>
+    <PASS time="2021-192T09:42:56Z" duration="39601" dbcode="133" tm_rate="3.1124412990000000E+05" station="CEB"/>
+    <POWER time="2021-192T09:42:56Z" duration="120" max="697"/>
+    <SSMM_DUMP_1WAY time="2021-192T09:43:56Z" duration="1387" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-192T09:44:56Z" duration="29703" max="704"/>
+    <OMM_DUMP time="2021-192T10:14:03Z" duration="743" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-192T10:26:26Z" duration="36691" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-192T18:00:00Z" duration="14399" max="709"/>
+    <EMC_MAND_QUIET time="2021-192T19:00:00Z" duration="3600" comment="Added manually"/>
+    <IS_COORD_BURST time="2021-192T19:30:00Z"/>
+    <ATT_DIST time="2021-192T22:00:00Z" duration="11100"/>
+    <EMC_PREF_NOISY time="2021-192T22:00:00Z" duration="11100"/>
+    <NAV time="2021-192T22:00:00Z" duration="3636000"/>
+    <POWER time="2021-192T22:00:00Z" duration="299" max="617"/>
+    <SLEW time="2021-192T22:00:00Z" duration="300"/>
+    <STP_START time="2021-192T22:00:00Z" stp_number="156"/>
+    <POWER time="2021-192T22:05:00Z" duration="10799" max="664"/>
+    <WOL time="2021-192T22:05:00Z" duration="10800"/>
+    <POWER time="2021-193T01:05:00Z" duration="1626" max="714"/>
+    <POWER time="2021-193T01:32:06Z" duration="120" max="707"/>
+    <ATT_DIST time="2021-193T01:34:06Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-193T01:34:06Z" duration="2100"/>
+    <HGA_PT time="2021-193T01:34:06Z" duration="2100"/>
+    <POWER time="2021-193T01:34:06Z" duration="2100" max="663"/>
+    <PASS time="2021-193T02:09:06Z" duration="32599" dbcode="125" tm_rate="2.2635936720000001E+05" station="NNO"/>
+    <POWER time="2021-193T02:09:06Z" duration="120" max="707"/>
+    <SSMM_DUMP_1WAY time="2021-193T02:10:06Z" duration="1385" tm_rate="2.1525400685185185E+05"/>
+    <POWER time="2021-193T02:11:06Z" duration="13733" max="714"/>
+    <OMM_DUMP time="2021-193T02:40:11Z" duration="776" tm_rate="2.1525400685185185E+05"/>
+    <SSMM_DUMP_2WAY time="2021-193T02:53:07Z" duration="29658" tm_rate="2.1525400685185185E+05"/>
+    <POWER time="2021-193T06:00:00Z" duration="10199" max="717"/>
+    <EMC_MAND_QUIET time="2021-193T07:00:00Z" duration="3600" comment="Not SWA compatible due to density of noisy events this day"/>
+    <IS_COORD_BURST time="2021-193T07:30:00Z"/>
+    <ATT_DIST time="2021-193T08:50:00Z" duration="10800"/>
+    <EMC_PREF_NOISY time="2021-193T08:50:00Z" duration="10800"/>
+    <POWER time="2021-193T08:50:00Z" duration="10799" max="671"/>
+    <WOL time="2021-193T08:50:00Z" duration="10800"/>
+    <POWER time="2021-193T11:50:00Z" duration="599" max="720"/>
+    <ATT_DIST time="2021-193T12:00:00Z" duration="21600"/>
+    <EMC_PREF_NOISY time="2021-193T12:00:00Z" duration="21600"/>
+    <POWER time="2021-193T12:00:00Z" duration="21599" max="681"/>
+    <TCM time="2021-193T12:00:00Z" duration="21600" comment="TCM -4W" type="type-2"/>
+    <POWER time="2021-193T18:00:00Z" duration="43199" max="724"/>
+    <EMC_MAND_QUIET time="2021-193T22:45:00Z" duration="3600" comment="Not SWA compatible due to density of noisy events this day"/>
+    <POWER time="2021-194T06:00:00Z" duration="7860" max="732"/>
+    <POWER time="2021-194T08:11:00Z" duration="120" max="726"/>
+    <ATT_DIST time="2021-194T08:13:00Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-194T08:13:00Z" duration="2100"/>
+    <HGA_PT time="2021-194T08:13:00Z" duration="2100"/>
+    <POWER time="2021-194T08:13:00Z" duration="2100" max="682"/>
+    <PASS time="2021-194T08:48:00Z" duration="3600" dbcode="125" tm_rate="2.2635936720000001E+05" station="NNO"/>
+    <POWER time="2021-194T08:48:00Z" duration="120" max="727"/>
+    <POWER time="2021-194T08:50:00Z" duration="32999" max="734"/>
+    <EMC_MAND_QUIET time="2021-194T10:00:00Z" duration="3600"/>
+    <PASS time="2021-194T10:03:00Z" duration="38190" dbcode="133" tm_rate="3.1124412990000000E+05" station="CEB"/>
+    <SSMM_DUMP_1WAY time="2021-194T10:04:00Z" duration="1379" tm_rate="2.9743213888888888E+05"/>
+    <OMM_DUMP time="2021-194T10:33:59Z" duration="1150" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-194T10:53:09Z" duration="34881" tm_rate="2.9743213888888888E+05"/>
+    <EMC_MAND_QUIET time="2021-194T16:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-194T16:30:00Z"/>
+    <POWER time="2021-194T18:00:00Z" duration="43199" max="740"/>
+    <POWER time="2021-195T06:00:00Z" duration="5789" max="748"/>
+    <POWER time="2021-195T07:36:29Z" duration="120" max="742"/>
+    <ATT_DIST time="2021-195T07:38:29Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-195T07:38:29Z" duration="2100"/>
+    <HGA_PT time="2021-195T07:38:29Z" duration="2100"/>
+    <POWER time="2021-195T07:38:29Z" duration="2100" max="698"/>
+    <PASS time="2021-195T08:13:29Z" duration="10800" dbcode="125" tm_rate="2.2635936720000001E+05" station="NNO"/>
+    <POWER time="2021-195T08:13:29Z" duration="120" max="742"/>
+    <SSMM_DUMP_1WAY time="2021-195T08:14:29Z" duration="1375" tm_rate="2.1525400685185185E+05"/>
+    <POWER time="2021-195T08:15:29Z" duration="20731" max="749"/>
+    <OMM_DUMP time="2021-195T08:44:24Z" duration="948" tm_rate="2.1525400685185185E+05"/>
+    <SSMM_DUMP_2WAY time="2021-195T09:00:12Z" duration="7697" tm_rate="2.1525400685185185E+05"/>
+    <EMC_MAND_QUIET time="2021-195T10:00:00Z" duration="3600"/>
+    <POWER time="2021-195T14:01:00Z" duration="120" max="746"/>
+    <ATT_DIST time="2021-195T14:03:00Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-195T14:03:00Z" duration="2100"/>
+    <HGA_PT time="2021-195T14:03:00Z" duration="2100"/>
+    <POWER time="2021-195T14:03:00Z" duration="2100" max="702"/>
+    <PASS time="2021-195T14:38:00Z" duration="14943" dbcode="133" tm_rate="3.1124412990000000E+05" station="MLG"/>
+    <POWER time="2021-195T14:38:00Z" duration="120" max="747"/>
+    <SSMM_DUMP_1WAY time="2021-195T14:39:00Z" duration="1375" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-195T14:40:00Z" duration="11999" max="753"/>
+    <OMM_DUMP time="2021-195T15:08:55Z" duration="198" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-195T15:12:13Z" duration="12590" tm_rate="2.9743213888888888E+05"/>
+    <EMC_MAND_QUIET time="2021-195T16:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-195T16:30:00Z"/>
+    <POWER time="2021-195T18:00:00Z" duration="3363" max="756"/>
+    <POWER time="2021-195T18:56:03Z" duration="120" max="749"/>
+    <ATT_DIST time="2021-195T18:58:03Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-195T18:58:03Z" duration="2100"/>
+    <HGA_PT time="2021-195T18:58:03Z" duration="2100"/>
+    <POWER time="2021-195T18:58:03Z" duration="2100" max="705"/>
+    <PASS time="2021-195T19:33:03Z" duration="3600" dbcode="133" tm_rate="3.1124412990000000E+05" station="CEB"/>
+    <POWER time="2021-195T19:33:03Z" duration="120" max="750"/>
+    <POWER time="2021-195T19:35:03Z" duration="21136" max="757"/>
+    <POWER time="2021-196T01:27:19Z" duration="120" max="754"/>
+    <ATT_DIST time="2021-196T01:29:19Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-196T01:29:19Z" duration="2100"/>
+    <HGA_PT time="2021-196T01:29:19Z" duration="2100"/>
+    <POWER time="2021-196T01:29:19Z" duration="2100" max="710"/>
+    <PASS time="2021-196T02:04:19Z" duration="32981" dbcode="130" tm_rate="2.7666144880000001E+05" station="NNO"/>
+    <POWER time="2021-196T02:04:19Z" duration="120" max="754"/>
+    <SSMM_DUMP_1WAY time="2021-196T02:05:19Z" duration="1373" tm_rate="2.6383876166666666E+05"/>
+    <POWER time="2021-196T02:06:19Z" duration="14020" max="761"/>
+    <OMM_DUMP time="2021-196T02:35:12Z" duration="399" tm_rate="2.6383876166666666E+05"/>
+    <SSMM_DUMP_2WAY time="2021-196T02:41:51Z" duration="30429" tm_rate="2.6383876166666666E+05"/>
+    <POWER time="2021-196T06:00:00Z" duration="43199" max="764"/>
+    <EMC_MAND_QUIET time="2021-196T10:00:00Z" duration="3600"/>
+    <EMC_MAND_QUIET time="2021-196T15:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-196T15:30:00Z"/>
+    <POWER time="2021-196T18:00:00Z" duration="1565" max="772"/>
+    <POWER time="2021-196T18:26:05Z" duration="120" max="766"/>
+    <ATT_DIST time="2021-196T18:28:05Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-196T18:28:05Z" duration="2100"/>
+    <HGA_PT time="2021-196T18:28:05Z" duration="2100"/>
+    <POWER time="2021-196T18:28:05Z" duration="2100" max="721"/>
+    <PASS time="2021-196T19:03:05Z" duration="3600" dbcode="130" tm_rate="2.7666144880000001E+05" station="CEB"/>
+    <POWER time="2021-196T19:03:05Z" duration="120" max="766"/>
+    <POWER time="2021-196T19:05:05Z" duration="22837" max="773"/>
+    <POWER time="2021-197T01:25:42Z" duration="120" max="771"/>
+    <ATT_DIST time="2021-197T01:27:42Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-197T01:27:42Z" duration="2100"/>
+    <HGA_PT time="2021-197T01:27:42Z" duration="2100"/>
+    <POWER time="2021-197T01:27:42Z" duration="2100" max="726"/>
+    <PASS time="2021-197T02:02:42Z" duration="33110" dbcode="130" tm_rate="2.7666144880000001E+05" station="NNO"/>
+    <POWER time="2021-197T02:02:42Z" duration="120" max="771"/>
+    <SSMM_DUMP_1WAY time="2021-197T02:03:42Z" duration="1367" tm_rate="2.6383876166666666E+05"/>
+    <POWER time="2021-197T02:04:42Z" duration="14117" max="778"/>
+    <OMM_DUMP time="2021-197T02:33:29Z" duration="837" tm_rate="2.6383876166666666E+05"/>
+    <SSMM_DUMP_2WAY time="2021-197T02:47:26Z" duration="30127" tm_rate="2.6383876166666666E+05"/>
+    <POWER time="2021-197T06:00:00Z" duration="43199" max="781"/>
+    <EMC_MAND_QUIET time="2021-197T10:00:00Z" duration="3600"/>
+    <EMC_MAND_QUIET time="2021-197T15:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-197T15:30:00Z"/>
+    <POWER time="2021-197T18:00:00Z" duration="43199" max="789"/>
+    <POWER time="2021-198T06:00:00Z" duration="28528" max="798"/>
+    <EMC_MAND_QUIET time="2021-198T10:00:00Z" duration="3600"/>
+    <POWER time="2021-198T13:55:28Z" duration="120" max="797"/>
+    <ATT_DIST time="2021-198T13:57:28Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-198T13:57:28Z" duration="2100"/>
+    <HGA_PT time="2021-198T13:57:28Z" duration="2100"/>
+    <POWER time="2021-198T13:57:28Z" duration="2100" max="753"/>
+    <PASS time="2021-198T14:32:28Z" duration="32125" dbcode="133" tm_rate="3.1124412990000000E+05" station="MLG"/>
+    <POWER time="2021-198T14:32:28Z" duration="120" max="798"/>
+    <SSMM_DUMP_1WAY time="2021-198T14:33:28Z" duration="1361" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-198T14:34:28Z" duration="12331" max="804"/>
+    <OMM_DUMP time="2021-198T15:03:09Z" duration="1131" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-198T15:22:00Z" duration="28853" tm_rate="2.9743213888888888E+05"/>
+    <EMC_MAND_QUIET time="2021-198T17:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-198T17:30:00Z"/>
+    <POWER time="2021-198T18:00:00Z" duration="43199" max="807"/>
+    <POWER time="2021-199T06:00:00Z" duration="35772" max="816"/>
+    <EMC_MAND_QUIET time="2021-199T10:00:00Z" duration="3600"/>
+    <POWER time="2021-199T15:56:12Z" duration="120" max="817"/>
+    <ATT_DIST time="2021-199T15:58:12Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-199T15:58:12Z" duration="2100"/>
+    <HGA_PT time="2021-199T15:58:12Z" duration="2100"/>
+    <POWER time="2021-199T15:58:12Z" duration="2100" max="772"/>
+    <PASS time="2021-199T16:33:12Z" duration="14244" dbcode="133" tm_rate="3.1124412990000000E+05" station="CEB"/>
+    <POWER time="2021-199T16:33:12Z" duration="120" max="817"/>
+    <SSMM_DUMP_1WAY time="2021-199T16:34:12Z" duration="1355" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-199T16:35:12Z" duration="5087" max="824"/>
+    <OMM_DUMP time="2021-199T17:03:47Z" duration="807" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-199T17:17:14Z" duration="11302" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-199T18:00:00Z" duration="14399" max="825"/>
+    <EMC_MAND_QUIET time="2021-199T19:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-199T19:30:00Z"/>
+    <ATT_DIST time="2021-199T22:00:00Z" duration="11100"/>
+    <EMC_PREF_NOISY time="2021-199T22:00:00Z" duration="11100"/>
+    <POWER time="2021-199T22:00:00Z" duration="299" max="734"/>
+    <SLEW time="2021-199T22:00:00Z" duration="300"/>
+    <STP_START time="2021-199T22:00:00Z" stp_number="157"/>
+    <POWER time="2021-199T22:05:00Z" duration="10799" max="781"/>
+    <WOL time="2021-199T22:05:00Z" duration="10800"/>
+    <POWER time="2021-200T01:05:00Z" duration="947" max="831"/>
+    <POWER time="2021-200T01:20:47Z" duration="120" max="824"/>
+    <ATT_DIST time="2021-200T01:22:47Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-200T01:22:47Z" duration="2100"/>
+    <HGA_PT time="2021-200T01:22:47Z" duration="2100"/>
+    <POWER time="2021-200T01:22:47Z" duration="2100" max="780"/>
+    <PASS time="2021-200T01:57:47Z" duration="33499" dbcode="130" tm_rate="2.7666144880000001E+05" station="NNO"/>
+    <POWER time="2021-200T01:57:47Z" duration="120" max="824"/>
+    <SSMM_DUMP_1WAY time="2021-200T01:58:47Z" duration="1353" tm_rate="2.6383876166666666E+05"/>
+    <POWER time="2021-200T01:59:47Z" duration="14412" max="831"/>
+    <OMM_DUMP time="2021-200T02:28:20Z" duration="389" tm_rate="2.6383876166666666E+05"/>
+    <SSMM_DUMP_2WAY time="2021-200T02:34:49Z" duration="30977" tm_rate="2.6383876166666666E+05"/>
+    <POWER time="2021-200T06:00:00Z" duration="39931" max="834"/>
+    <EMC_MAND_QUIET time="2021-200T10:00:00Z" duration="3600"/>
+    <EMC_MAND_QUIET time="2021-200T14:58:12Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-200T15:28:12Z"/>
+    <ATT_DIST time="2021-200T17:05:31Z" duration="600"/>
+    <EMC_PREF_NOISY time="2021-200T17:05:31Z" duration="600"/>
+    <MAINT time="2021-200T17:05:31Z" duration="600" type="SA_RELUBRICATION"/>
+    <POWER time="2021-200T17:05:31Z" duration="600" max="824"/>
+    <POWER time="2021-200T17:15:31Z" duration="2668" max="843"/>
+    <POWER time="2021-200T18:00:00Z" duration="43199" max="844"/>
+    <POWER time="2021-201T06:00:00Z" duration="8476" max="853"/>
+    <POWER time="2021-201T08:21:16Z" duration="120" max="848"/>
+    <ATT_DIST time="2021-201T08:23:16Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-201T08:23:16Z" duration="2100"/>
+    <HGA_PT time="2021-201T08:23:16Z" duration="2100"/>
+    <POWER time="2021-201T08:23:16Z" duration="2100" max="804"/>
+    <PASS time="2021-201T08:58:16Z" duration="3600" dbcode="130" tm_rate="2.7666144880000001E+05" station="NNO"/>
+    <POWER time="2021-201T08:58:16Z" duration="120" max="849"/>
+    <POWER time="2021-201T09:00:16Z" duration="32383" max="856"/>
+    <EMC_MAND_QUIET time="2021-201T10:00:00Z" duration="3600"/>
+    <PASS time="2021-201T10:13:16Z" duration="36819" dbcode="133" tm_rate="3.1124412990000000E+05" station="CEB"/>
+    <SSMM_DUMP_1WAY time="2021-201T10:14:16Z" duration="1347" tm_rate="2.9743213888888888E+05"/>
+    <OMM_DUMP time="2021-201T10:43:43Z" duration="1000" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-201T11:00:23Z" duration="33693" tm_rate="2.9743213888888888E+05"/>
+    <EMC_MAND_QUIET time="2021-201T14:58:12Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-201T15:28:12Z"/>
+    <POWER time="2021-201T18:00:00Z" duration="26248" max="863"/>
+    <POWER time="2021-202T01:17:28Z" duration="120" max="862"/>
+    <ATT_DIST time="2021-202T01:19:28Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-202T01:19:28Z" duration="2100"/>
+    <HGA_PT time="2021-202T01:19:28Z" duration="2100"/>
+    <POWER time="2021-202T01:19:28Z" duration="2100" max="818"/>
+    <PASS time="2021-202T01:54:28Z" duration="33760" dbcode="130" tm_rate="2.7666144880000001E+05" station="NNO"/>
+    <POWER time="2021-202T01:54:28Z" duration="120" max="863"/>
+    <SSMM_DUMP_1WAY time="2021-202T01:55:28Z" duration="1343" tm_rate="2.6383876166666666E+05"/>
+    <POWER time="2021-202T01:56:28Z" duration="14611" max="870"/>
+    <OMM_DUMP time="2021-202T02:24:51Z" duration="548" tm_rate="2.6383876166666666E+05"/>
+    <SSMM_DUMP_2WAY time="2021-202T02:33:59Z" duration="31089" tm_rate="2.6383876166666666E+05"/>
+    <POWER time="2021-202T06:00:00Z" duration="43199" max="873"/>
+    <EMC_MAND_QUIET time="2021-202T10:00:00Z" duration="3600"/>
+    <EMC_MAND_QUIET time="2021-202T14:58:12Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-202T15:28:12Z"/>
+    <POWER time="2021-202T18:00:00Z" duration="43199" max="883"/>
+    <POWER time="2021-203T06:00:00Z" duration="27963" max="893"/>
+    <EMC_MAND_QUIET time="2021-203T10:00:00Z" duration="3600"/>
+    <POWER time="2021-203T13:46:03Z" duration="120" max="893"/>
+    <ATT_DIST time="2021-203T13:48:03Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-203T13:48:03Z" duration="2100"/>
+    <HGA_PT time="2021-203T13:48:03Z" duration="2100"/>
+    <POWER time="2021-203T13:48:03Z" duration="2100" max="849"/>
+    <PASS time="2021-203T14:23:03Z" duration="12320" dbcode="133" tm_rate="3.1124412990000000E+05" station="MLG"/>
+    <POWER time="2021-203T14:23:03Z" duration="120" max="894"/>
+    <SSMM_DUMP_1WAY time="2021-203T14:24:03Z" duration="1335" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-203T14:25:03Z" duration="12896" max="900"/>
+    <OMM_DUMP time="2021-203T14:53:18Z" duration="1131" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-203T15:12:09Z" duration="9074" tm_rate="2.9743213888888888E+05"/>
+    <EMC_MAND_QUIET time="2021-203T17:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-203T17:30:00Z"/>
+    <POWER time="2021-203T18:00:00Z" duration="41964" max="904"/>
+    <POWER time="2021-204T05:39:24Z" duration="120" max="907"/>
+    <ATT_DIST time="2021-204T05:41:24Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-204T05:41:24Z" duration="2100"/>
+    <HGA_PT time="2021-204T05:41:24Z" duration="2100"/>
+    <POWER time="2021-204T05:41:24Z" duration="1115" max="863"/>
+    <POWER time="2021-204T06:00:00Z" duration="984" max="863"/>
+    <PASS time="2021-204T06:16:24Z" duration="18107" dbcode="130" tm_rate="2.7666144880000001E+05" station="NNO"/>
+    <POWER time="2021-204T06:16:24Z" duration="120" max="907"/>
+    <SSMM_DUMP_1WAY time="2021-204T06:17:24Z" duration="1331" tm_rate="2.6383876166666666E+05"/>
+    <POWER time="2021-204T06:18:24Z" duration="26744" max="914"/>
+    <OMM_DUMP time="2021-204T06:46:35Z" duration="554" tm_rate="2.6383876166666666E+05"/>
+    <SSMM_DUMP_2WAY time="2021-204T06:55:49Z" duration="15442" tm_rate="2.6383876166666666E+05"/>
+    <EMC_MAND_QUIET time="2021-204T10:00:00Z" duration="3600"/>
+    <POWER time="2021-204T13:44:08Z" duration="120" max="914"/>
+    <ATT_DIST time="2021-204T13:46:08Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-204T13:46:08Z" duration="2100"/>
+    <HGA_PT time="2021-204T13:46:08Z" duration="2100"/>
+    <POWER time="2021-204T13:46:08Z" duration="2100" max="870"/>
+    <PASS time="2021-204T14:21:08Z" duration="33072" dbcode="133" tm_rate="3.1124412990000000E+05" station="MLG"/>
+    <POWER time="2021-204T14:21:08Z" duration="120" max="915"/>
+    <SSMM_DUMP_1WAY time="2021-204T14:22:08Z" duration="1329" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-204T14:23:08Z" duration="13011" max="921"/>
+    <OMM_DUMP time="2021-204T14:51:17Z" duration="250" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-204T14:55:27Z" duration="30713" tm_rate="2.9743213888888888E+05"/>
+    <EMC_MAND_QUIET time="2021-204T14:58:12Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-204T15:28:12Z"/>
+    <POWER time="2021-204T18:00:00Z" duration="43199" max="925"/>
+    <POWER time="2021-205T06:00:00Z" duration="9741" max="935"/>
+    <POWER time="2021-205T08:42:21Z" duration="120" max="931"/>
+    <ATT_DIST time="2021-205T08:44:21Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-205T08:44:21Z" duration="2100"/>
+    <HGA_PT time="2021-205T08:44:21Z" duration="2100"/>
+    <POWER time="2021-205T08:44:21Z" duration="2100" max="887"/>
+    <PASS time="2021-205T09:19:21Z" duration="31748" dbcode="133" tm_rate="3.1124412990000000E+05" station="CEB"/>
+    <POWER time="2021-205T09:19:21Z" duration="120" max="932"/>
+    <SSMM_DUMP_1WAY time="2021-205T09:20:21Z" duration="1323" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-205T09:21:21Z" duration="31118" max="939"/>
+    <OMM_DUMP time="2021-205T09:49:24Z" duration="589" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-205T09:59:13Z" duration="29056" tm_rate="2.9743213888888888E+05"/>
+    <EMC_MAND_QUIET time="2021-205T10:00:00Z" duration="3600"/>
+    <EMC_MAND_QUIET time="2021-205T14:58:12Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-205T15:28:12Z"/>
+    <POWER time="2021-205T18:00:00Z" duration="43199" max="946"/>
+    <EMC_MAND_QUIET time="2021-206T04:00:00Z" duration="3600"/>
+    <POWER time="2021-206T06:00:00Z" duration="15125" max="958"/>
+    <POWER time="2021-206T10:12:05Z" duration="120" max="955"/>
+    <ATT_DIST time="2021-206T10:14:05Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-206T10:14:05Z" duration="2100"/>
+    <HGA_PT time="2021-206T10:14:05Z" duration="2100"/>
+    <POWER time="2021-206T10:14:05Z" duration="2100" max="910"/>
+    <PASS time="2021-206T10:49:05Z" duration="26367" dbcode="133" tm_rate="3.1124412990000000E+05" station="CEB"/>
+    <POWER time="2021-206T10:49:05Z" duration="120" max="955"/>
+    <SSMM_DUMP_1WAY time="2021-206T10:50:05Z" duration="1317" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-206T10:51:05Z" duration="25734" max="962"/>
+    <OMM_DUMP time="2021-206T11:19:02Z" duration="791" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-206T11:32:13Z" duration="23479" tm_rate="2.9743213888888888E+05"/>
+    <EMC_MAND_QUIET time="2021-206T14:58:12Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-206T15:28:12Z"/>
+    <POWER time="2021-206T18:00:00Z" duration="14399" max="969"/>
+    <ATT_DIST time="2021-206T22:00:00Z" duration="11100"/>
+    <EMC_PREF_NOISY time="2021-206T22:00:00Z" duration="11100"/>
+    <POWER time="2021-206T22:00:00Z" duration="299" max="878"/>
+    <SLEW time="2021-206T22:00:00Z" duration="300"/>
+    <STP_START time="2021-206T22:00:00Z" stp_number="158"/>
+    <POWER time="2021-206T22:05:00Z" duration="10799" max="925"/>
+    <WOL time="2021-206T22:05:00Z" duration="10800"/>
+    <POWER time="2021-207T01:05:00Z" duration="599" max="976"/>
+    <ATT_DIST time="2021-207T01:15:00Z" duration="21600"/>
+    <EMC_PREF_NOISY time="2021-207T01:15:00Z" duration="21600"/>
+    <POWER time="2021-207T01:15:00Z" duration="17099" max="936"/>
+    <TCM time="2021-207T01:15:00Z" duration="21600" comment="TCM -2W" type="type-2"/>
+    <POWER time="2021-207T06:00:00Z" duration="4499" max="941"/>
+    <POWER time="2021-207T07:15:00Z" duration="38699" max="982"/>
+    <EMC_MAND_QUIET time="2021-207T16:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-207T16:30:00Z"/>
+    <POWER time="2021-207T18:00:00Z" duration="1694" max="992"/>
+    <POWER time="2021-207T18:28:14Z" duration="120" max="986"/>
+    <ATT_DIST time="2021-207T18:30:14Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-207T18:30:14Z" duration="2100"/>
+    <HGA_PT time="2021-207T18:30:14Z" duration="2100"/>
+    <POWER time="2021-207T18:30:14Z" duration="2100" max="941"/>
+    <PASS time="2021-207T19:05:14Z" duration="3600" dbcode="133" tm_rate="3.1124412990000000E+05" station="CEB"/>
+    <POWER time="2021-207T19:05:14Z" duration="120" max="986"/>
+    <POWER time="2021-207T19:07:14Z" duration="39165" max="993"/>
+    <EMC_MAND_QUIET time="2021-207T22:00:00Z" duration="3600"/>
+    <RSW_EXT_SOLOHI time="2021-208T00:00:00Z" duration="1166400" comment="SoloHI's Venus observations"/>
+    <POWER time="2021-208T06:00:00Z" duration="8221" max="1004"/>
+    <POWER time="2021-208T08:17:01Z" duration="120" max="999"/>
+    <ATT_DIST time="2021-208T08:19:01Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-208T08:19:01Z" duration="2100"/>
+    <HGA_PT time="2021-208T08:19:01Z" duration="2100"/>
+    <POWER time="2021-208T08:19:01Z" duration="2100" max="955"/>
+    <PASS time="2021-208T08:54:01Z" duration="3600" dbcode="133" tm_rate="3.1124412990000000E+05" station="NNO"/>
+    <POWER time="2021-208T08:54:01Z" duration="120" max="1000"/>
+    <POWER time="2021-208T08:56:01Z" duration="16827" max="1007"/>
+    <POWER time="2021-208T13:36:28Z" duration="120" max="1004"/>
+    <ATT_DIST time="2021-208T13:38:28Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-208T13:38:28Z" duration="2100"/>
+    <HGA_PT time="2021-208T13:38:28Z" duration="2100"/>
+    <POWER time="2021-208T13:38:28Z" duration="2100" max="960"/>
+    <PASS time="2021-208T14:13:28Z" duration="33711" dbcode="133" tm_rate="3.1124412990000000E+05" station="MLG"/>
+    <POWER time="2021-208T14:13:28Z" duration="120" max="1005"/>
+    <SSMM_DUMP_1WAY time="2021-208T14:14:28Z" duration="1303" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-208T14:15:28Z" duration="13471" max="1012"/>
+    <OMM_DUMP time="2021-208T14:43:11Z" duration="1755" tm_rate="2.9743213888888888E+05"/>
+    <EMC_MAND_QUIET time="2021-208T14:58:12Z" duration="3600"/>
+    <SSMM_DUMP_2WAY time="2021-208T15:12:26Z" duration="29873" tm_rate="2.9743213888888888E+05"/>
+    <IS_COORD_BURST time="2021-208T15:28:12Z"/>
+    <POWER time="2021-208T18:00:00Z" duration="43199" max="1016"/>
+    <EMC_MAND_QUIET time="2021-208T22:00:00Z" duration="3600"/>
+    <POWER time="2021-209T06:00:00Z" duration="8267" max="1028"/>
+    <POWER time="2021-209T08:17:47Z" duration="120" max="1023"/>
+    <ATT_DIST time="2021-209T08:19:47Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-209T08:19:47Z" duration="2100"/>
+    <HGA_PT time="2021-209T08:19:47Z" duration="2100"/>
+    <POWER time="2021-209T08:19:47Z" duration="2100" max="979"/>
+    <POWER time="2021-209T08:54:47Z" duration="120" max="1024"/>
+    <PASS time="2021-209T08:54:48Z" duration="3600" dbcode="133" tm_rate="3.1124412990000000E+05" station="NNO"/>
+    <POWER time="2021-209T08:56:47Z" duration="16665" max="1031"/>
+    <POWER time="2021-209T13:34:32Z" duration="120" max="1029"/>
+    <ATT_DIST time="2021-209T13:36:32Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-209T13:36:32Z" duration="2100"/>
+    <HGA_PT time="2021-209T13:36:32Z" duration="2100"/>
+    <POWER time="2021-209T13:36:32Z" duration="2100" max="985"/>
+    <PASS time="2021-209T14:11:32Z" duration="14999" dbcode="133" tm_rate="3.1124412990000000E+05" station="MLG"/>
+    <POWER time="2021-209T14:11:32Z" duration="120" max="1029"/>
+    <SSMM_DUMP_1WAY time="2021-209T14:12:32Z" duration="1297" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-209T14:13:32Z" duration="13587" max="1036"/>
+    <OMM_DUMP time="2021-209T14:41:09Z" duration="743" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-209T14:53:32Z" duration="12179" tm_rate="2.9743213888888888E+05"/>
+    <EMC_MAND_QUIET time="2021-209T16:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-209T16:30:00Z"/>
+    <POWER time="2021-209T18:00:00Z" duration="1831" max="1040"/>
+    <POWER time="2021-209T18:30:31Z" duration="120" max="1034"/>
+    <ATT_DIST time="2021-209T18:32:31Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-209T18:32:31Z" duration="2100"/>
+    <HGA_PT time="2021-209T18:32:31Z" duration="2100"/>
+    <POWER time="2021-209T18:32:31Z" duration="2100" max="990"/>
+    <PASS time="2021-209T19:07:31Z" duration="3600" dbcode="133" tm_rate="3.1124412990000000E+05" station="CEB"/>
+    <POWER time="2021-209T19:07:31Z" duration="120" max="1034"/>
+    <POWER time="2021-209T19:09:31Z" duration="39028" max="1041"/>
+    <EMC_MAND_QUIET time="2021-209T22:00:00Z" duration="3600"/>
+    <POWER time="2021-210T06:00:00Z" duration="5204" max="1052"/>
+    <POWER time="2021-210T07:26:44Z" duration="120" max="1046"/>
+    <ATT_DIST time="2021-210T07:28:44Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-210T07:28:44Z" duration="2100"/>
+    <HGA_PT time="2021-210T07:28:44Z" duration="2100"/>
+    <POWER time="2021-210T07:28:44Z" duration="2100" max="1002"/>
+    <PASS time="2021-210T08:03:44Z" duration="11853" dbcode="133" tm_rate="3.1124412990000000E+05" station="NNO"/>
+    <POWER time="2021-210T08:03:44Z" duration="120" max="1047"/>
+    <SSMM_DUMP_1WAY time="2021-210T08:04:44Z" duration="1291" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-210T08:05:44Z" duration="19612" max="1054"/>
+    <OMM_DUMP time="2021-210T08:33:15Z" duration="554" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-210T08:42:29Z" duration="9228" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-210T13:32:36Z" duration="120" max="1052"/>
+    <ATT_DIST time="2021-210T13:34:36Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-210T13:34:36Z" duration="2100"/>
+    <HGA_PT time="2021-210T13:34:36Z" duration="2100"/>
+    <POWER time="2021-210T13:34:36Z" duration="2100" max="1008"/>
+    <PASS time="2021-210T14:09:36Z" duration="34033" dbcode="133" tm_rate="3.1124412990000000E+05" station="MLG"/>
+    <POWER time="2021-210T14:09:36Z" duration="120" max="1053"/>
+    <SSMM_DUMP_1WAY time="2021-210T14:10:36Z" duration="1289" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-210T14:11:36Z" duration="13703" max="1060"/>
+    <OMM_DUMP time="2021-210T14:39:05Z" duration="189" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-210T14:42:14Z" duration="31775" tm_rate="2.9743213888888888E+05"/>
+    <EMC_MAND_QUIET time="2021-210T17:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-210T17:30:00Z"/>
+    <POWER time="2021-210T18:00:00Z" duration="43155" max="1063"/>
+    <EMC_MAND_QUIET time="2021-210T22:00:00Z" duration="3600"/>
+    <POWER time="2021-211T05:59:15Z" duration="44" max="1070"/>
+    <POWER time="2021-211T06:00:00Z" duration="75" max="1070"/>
+    <ATT_DIST time="2021-211T06:01:15Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-211T06:01:15Z" duration="2100"/>
+    <HGA_PT time="2021-211T06:01:15Z" duration="2100"/>
+    <POWER time="2021-211T06:01:15Z" duration="2100" max="1025"/>
+    <PASS time="2021-211T06:36:15Z" duration="17134" dbcode="133" tm_rate="3.1124412990000000E+05" station="NNO"/>
+    <POWER time="2021-211T06:36:15Z" duration="120" max="1070"/>
+    <SSMM_DUMP_1WAY time="2021-211T06:37:15Z" duration="1285" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-211T06:38:15Z" duration="40774" max="1077"/>
+    <OMM_DUMP time="2021-211T07:05:40Z" duration="510" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-211T07:14:10Z" duration="14559" tm_rate="2.9743213888888888E+05"/>
+    <EMC_MAND_QUIET time="2021-211T14:58:12Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-211T15:28:12Z"/>
+    <POWER time="2021-211T17:57:49Z" duration="120" max="1083"/>
+    <ATT_DIST time="2021-211T17:59:49Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-211T17:59:49Z" duration="2100"/>
+    <HGA_PT time="2021-211T17:59:49Z" duration="2100"/>
+    <POWER time="2021-211T17:59:49Z" duration="10" max="1038"/>
+    <POWER time="2021-211T18:00:00Z" duration="2089" max="1039"/>
+    <PASS time="2021-211T18:34:49Z" duration="18165" dbcode="133" tm_rate="3.1124412990000000E+05" station="MLG"/>
+    <POWER time="2021-211T18:34:49Z" duration="120" max="1083"/>
+    <SSMM_DUMP_1WAY time="2021-211T18:35:49Z" duration="1281" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-211T18:36:49Z" duration="23021" max="1090"/>
+    <OMM_DUMP time="2021-211T19:04:10Z" duration="371" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-211T19:10:21Z" duration="15733" tm_rate="2.9743213888888888E+05"/>
+    <EMC_MAND_QUIET time="2021-211T22:00:00Z" duration="3600"/>
+    <POWER time="2021-212T01:00:30Z" duration="120" max="1091"/>
+    <ATT_DIST time="2021-212T01:02:30Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-212T01:02:30Z" duration="2100"/>
+    <HGA_PT time="2021-212T01:02:30Z" duration="2100"/>
+    <POWER time="2021-212T01:02:30Z" duration="2100" max="1046"/>
+    <PASS time="2021-212T01:37:30Z" duration="27806" dbcode="133" tm_rate="3.1124412990000000E+05" station="NNO"/>
+    <POWER time="2021-212T01:37:30Z" duration="120" max="1091"/>
+    <SSMM_DUMP_1WAY time="2021-212T01:38:30Z" duration="1279" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-212T01:39:30Z" duration="15629" max="1098"/>
+    <OMM_DUMP time="2021-212T02:06:49Z" duration="218" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-212T02:10:27Z" duration="25529" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-212T06:00:00Z" duration="43199" max="1103"/>
+    <EMC_MAND_QUIET time="2021-212T14:58:12Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-212T15:28:12Z"/>
+    <POWER time="2021-212T18:00:00Z" duration="1976" max="1117"/>
+    <POWER time="2021-212T18:32:56Z" duration="120" max="1110"/>
+    <ATT_DIST time="2021-212T18:34:56Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-212T18:34:56Z" duration="2100"/>
+    <HGA_PT time="2021-212T18:34:56Z" duration="2100"/>
+    <POWER time="2021-212T18:34:56Z" duration="2100" max="1066"/>
+    <PASS time="2021-212T19:09:56Z" duration="16103" dbcode="133" tm_rate="3.1124412990000000E+05" station="MLG"/>
+    <POWER time="2021-212T19:09:56Z" duration="120" max="1111"/>
+    <SSMM_DUMP_1WAY time="2021-212T19:10:56Z" duration="1273" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-212T19:11:56Z" duration="20812" max="1118"/>
+    <OMM_DUMP time="2021-212T19:39:09Z" duration="544" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-212T19:48:13Z" duration="13506" tm_rate="2.9743213888888888E+05"/>
+    <EMC_MAND_QUIET time="2021-212T22:00:00Z" duration="3600"/>
+    <POWER time="2021-213T00:58:48Z" duration="120" max="1118"/>
+    <ATT_DIST time="2021-213T01:00:48Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-213T01:00:48Z" duration="2100"/>
+    <HGA_PT time="2021-213T01:00:48Z" duration="2100"/>
+    <POWER time="2021-213T01:00:48Z" duration="2100" max="1073"/>
+    <PASS time="2021-213T01:35:48Z" duration="27960" dbcode="133" tm_rate="3.1124412990000000E+05" station="NNO"/>
+    <POWER time="2021-213T01:35:48Z" duration="120" max="1118"/>
+    <SSMM_DUMP_1WAY time="2021-213T01:36:48Z" duration="1271" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-213T01:37:48Z" duration="15731" max="1125"/>
+    <OMM_DUMP time="2021-213T02:04:59Z" duration="199" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-213T02:08:18Z" duration="25710" tm_rate="2.9743213888888888E+05"/>
+    <EMC_MAND_QUIET time="2021-213T04:00:00Z" duration="3600"/>
+    <POWER time="2021-213T06:00:00Z" duration="27116" max="1130"/>
+    <POWER time="2021-213T13:31:56Z" duration="120" max="1132"/>
+    <ATT_DIST time="2021-213T13:33:56Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-213T13:33:56Z" duration="2100"/>
+    <HGA_PT time="2021-213T13:33:56Z" duration="2100"/>
+    <POWER time="2021-213T13:33:56Z" duration="2100" max="1088"/>
+    <PASS time="2021-213T14:08:56Z" duration="3600" dbcode="133" tm_rate="3.1124412990000000E+05" station="CEB"/>
+    <POWER time="2021-213T14:08:56Z" duration="120" max="1133"/>
+    <POWER time="2021-213T14:10:56Z" duration="12061" max="1140"/>
+    <EMC_MAND_QUIET time="2021-213T15:30:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-213T16:00:00Z"/>
+    <POWER time="2021-213T17:31:57Z" duration="120" max="1137"/>
+    <ATT_DIST time="2021-213T17:33:57Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-213T17:33:57Z" duration="2100"/>
+    <HGA_PT time="2021-213T17:33:57Z" duration="2100"/>
+    <POWER time="2021-213T17:33:57Z" duration="1562" max="1093"/>
+    <POWER time="2021-213T18:00:00Z" duration="537" max="1093"/>
+    <PASS time="2021-213T18:08:57Z" duration="19807" dbcode="133" tm_rate="3.1124412990000000E+05" station="MLG"/>
+    <POWER time="2021-213T18:08:57Z" duration="120" max="1138"/>
+    <SSMM_DUMP_1WAY time="2021-213T18:09:57Z" duration="1265" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-213T18:10:57Z" duration="2942" max="1144"/>
+    <OMM_DUMP time="2021-213T18:38:02Z" duration="514" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-213T18:46:36Z" duration="17248" tm_rate="2.9743213888888888E+05"/>
+    <ATT_DIST time="2021-213T19:00:00Z" duration="11100"/>
+    <EMC_PREF_NOISY time="2021-213T19:00:00Z" duration="11100"/>
+    <POWER time="2021-213T19:00:00Z" duration="299" max="1051"/>
+    <SLEW time="2021-213T19:00:00Z" duration="300"/>
+    <STP_START time="2021-213T19:00:00Z" stp_number="159"/>
+    <POWER time="2021-213T19:05:00Z" duration="10799" max="1098"/>
+    <WOL time="2021-213T19:05:00Z" duration="10800"/>
+    <POWER time="2021-213T22:05:00Z" duration="6899" max="1149"/>
+    <ATT_DIST time="2021-214T00:00:00Z" duration="48300"/>
+    <EMC_PREF_NOISY time="2021-214T00:00:00Z" duration="48300"/>
+    <POWER time="2021-214T00:00:00Z" duration="21599" max="1112"/>
+    <TCM time="2021-214T00:00:00Z" duration="48300" comment="TCM -1W" type="type-2"/>
+    <POWER time="2021-214T06:00:00Z" duration="26689" max="1119"/>
+    <POWER time="2021-214T13:24:49Z" duration="10" max="1121"/>
+    <POWER time="2021-214T13:25:00Z" duration="109" max="1160"/>
+    <ATT_DIST time="2021-214T13:26:49Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-214T13:26:49Z" duration="2100"/>
+    <HGA_PT time="2021-214T13:26:49Z" duration="2100"/>
+    <POWER time="2021-214T13:26:49Z" duration="2100" max="1116"/>
+    <PASS time="2021-214T14:01:49Z" duration="15072" dbcode="133" tm_rate="3.1124412990000000E+05" station="MLG"/>
+    <POWER time="2021-214T14:01:49Z" duration="120" max="1161"/>
+    <SSMM_DUMP_1WAY time="2021-214T14:02:49Z" duration="1259" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-214T14:03:49Z" duration="14170" max="1168"/>
+    <OMM_DUMP time="2021-214T14:30:48Z" duration="910" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-214T14:45:58Z" duration="12123" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-214T18:00:00Z" duration="1321" max="1173"/>
+    <POWER time="2021-214T18:22:01Z" duration="120" max="1166"/>
+    <ATT_DIST time="2021-214T18:24:01Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-214T18:24:01Z" duration="2100"/>
+    <HGA_PT time="2021-214T18:24:01Z" duration="2100"/>
+    <POWER time="2021-214T18:24:01Z" duration="2100" max="1122"/>
+    <PASS time="2021-214T18:59:01Z" duration="3600" dbcode="133" tm_rate="3.1124412990000000E+05" station="CEB"/>
+    <POWER time="2021-214T18:59:01Z" duration="120" max="1167"/>
+    <POWER time="2021-214T19:01:01Z" duration="39538" max="1174"/>
+    <EMC_MAND_QUIET time="2021-214T21:00:00Z" duration="3600"/>
+    <EMC_MAND_QUIET time="2021-214T22:45:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-214T23:15:00Z"/>
+    <EMC_MAND_QUIET time="2021-215T06:00:00Z" duration="3600"/>
+    <POWER time="2021-215T06:00:00Z" duration="8823" max="1187"/>
+    <POWER time="2021-215T08:27:03Z" duration="120" max="1183"/>
+    <ATT_DIST time="2021-215T08:29:03Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-215T08:29:03Z" duration="2100"/>
+    <HGA_PT time="2021-215T08:29:03Z" duration="2100"/>
+    <POWER time="2021-215T08:29:03Z" duration="2100" max="1139"/>
+    <PASS time="2021-215T09:04:03Z" duration="3600" dbcode="133" tm_rate="3.1124412990000000E+05" station="NNO"/>
+    <POWER time="2021-215T09:04:03Z" duration="120" max="1184"/>
+    <POWER time="2021-215T09:06:03Z" duration="15408" max="1191"/>
+    <POWER time="2021-215T13:22:51Z" duration="120" max="1190"/>
+    <ATT_DIST time="2021-215T13:24:51Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-215T13:24:51Z" duration="2100"/>
+    <HGA_PT time="2021-215T13:24:51Z" duration="2100"/>
+    <POWER time="2021-215T13:24:51Z" duration="2100" max="1145"/>
+    <PASS time="2021-215T13:59:51Z" duration="34844" dbcode="133" tm_rate="3.1124412990000000E+05" station="MLG"/>
+    <POWER time="2021-215T13:59:51Z" duration="120" max="1190"/>
+    <SSMM_DUMP_1WAY time="2021-215T14:00:51Z" duration="1251" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-215T14:01:51Z" duration="14288" max="1197"/>
+    <OMM_DUMP time="2021-215T14:28:42Z" duration="743" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-215T14:41:05Z" duration="32070" tm_rate="2.9743213888888888E+05"/>
+    <EMC_MAND_QUIET time="2021-215T18:00:00Z" duration="3600"/>
+    <POWER time="2021-215T18:00:00Z" duration="24817" max="1202"/>
+    <IS_COORD_BURST time="2021-215T18:30:00Z"/>
+    <POWER time="2021-216T00:53:37Z" duration="120" max="1028"/>
+    <ATT_DIST time="2021-216T00:55:37Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-216T00:55:37Z" duration="2100"/>
+    <HGA_PT time="2021-216T00:55:37Z" duration="2100"/>
+    <POWER time="2021-216T00:55:37Z" duration="2100" max="983"/>
+    <PASS time="2021-216T01:30:37Z" duration="14310" dbcode="133" tm_rate="3.1124412990000000E+05" station="NNO"/>
+    <POWER time="2021-216T01:30:37Z" duration="120" max="1014"/>
+    <SSMM_DUMP_1WAY time="2021-216T01:31:37Z" duration="1247" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-216T01:32:37Z" duration="16042" max="1020"/>
+    <OMM_DUMP time="2021-216T01:59:24Z" duration="357" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-216T02:05:21Z" duration="11926" tm_rate="2.9743213888888888E+05"/>
+    <EMC_MAND_QUIET time="2021-216T06:00:00Z" duration="3600"/>
+    <POWER time="2021-216T06:00:00Z" duration="26408" max="912"/>
+    <POWER time="2021-216T13:20:08Z" duration="120" max="726"/>
+    <ATT_DIST time="2021-216T13:22:08Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-216T13:22:08Z" duration="2100"/>
+    <HGA_PT time="2021-216T13:22:08Z" duration="2100"/>
+    <POWER time="2021-216T13:22:08Z" duration="2100" max="681"/>
+    <PASS time="2021-216T13:57:08Z" duration="10801" dbcode="133" tm_rate="3.1124412990000000E+05" station="MLG"/>
+    <POWER time="2021-216T13:57:08Z" duration="120" max="711"/>
+    <SSMM_DUMP_1WAY time="2021-216T13:58:08Z" duration="1243" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-216T13:59:08Z" duration="14451" max="717"/>
+    <OMM_DUMP time="2021-216T14:25:51Z" duration="386" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-216T14:32:17Z" duration="8392" tm_rate="2.9743213888888888E+05"/>
+    <PASS time="2021-216T17:12:09Z" duration="3600" dbcode="133" tm_rate="3.1124412990000000E+05" station="CEB"/>
+    <EMC_MAND_QUIET time="2021-216T18:00:00Z" duration="3600"/>
+    <POWER time="2021-216T18:00:00Z" duration="20194" max="619"/>
+    <IS_COORD_BURST time="2021-216T18:30:00Z"/>
+    <ATT_DIST time="2021-216T23:36:34Z" duration="1200"/>
+    <EMC_PREF_NOISY time="2021-216T23:36:34Z" duration="1200"/>
+    <POWER time="2021-216T23:36:34Z" duration="1200" max="611"/>
+    <SA_ROT time="2021-216T23:36:34Z" duration="1200" end_angle_deg="56" start_angle_deg="30"/>
+    <POWER time="2021-216T23:56:34Z" duration="18937" max="625"/>
+    <POWER time="2021-217T05:12:11Z" duration="120" max="623"/>
+    <ATT_DIST time="2021-217T05:14:11Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-217T05:14:11Z" duration="2100"/>
+    <HGA_PT time="2021-217T05:14:11Z" duration="2100"/>
+    <POWER time="2021-217T05:14:11Z" duration="2100" max="579"/>
+    <PASS time="2021-217T05:49:11Z" duration="20147" dbcode="133" tm_rate="3.1124412990000000E+05" station="NNO"/>
+    <POWER time="2021-217T05:49:11Z" duration="120" max="623"/>
+    <SSMM_DUMP_1WAY time="2021-217T05:50:11Z" duration="1237" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-217T05:51:11Z" duration="528" max="630"/>
+    <POWER time="2021-217T06:00:00Z" duration="26336" max="630"/>
+    <OMM_DUMP time="2021-217T06:17:48Z" duration="492" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-217T06:26:00Z" duration="17638" tm_rate="2.9743213888888888E+05"/>
+    <EMC_MAND_QUIET time="2021-217T08:00:00Z" duration="3600"/>
+    <POWER time="2021-217T13:18:56Z" duration="120" max="630"/>
+    <ATT_DIST time="2021-217T13:20:56Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-217T13:20:56Z" duration="2100"/>
+    <HGA_PT time="2021-217T13:20:56Z" duration="2100"/>
+    <POWER time="2021-217T13:20:56Z" duration="2100" max="586"/>
+    <POWER time="2021-217T13:55:56Z" duration="120" max="631"/>
+    <POWER time="2021-217T13:57:56Z" duration="14523" max="638"/>
+    <PASS time="2021-217T14:49:43Z" duration="18342" dbcode="133" tm_rate="3.1124412990000000E+05" station="CEB"/>
+    <SSMM_DUMP_1WAY time="2021-217T14:50:43Z" duration="1233" tm_rate="2.9743213888888888E+05"/>
+    <OMM_DUMP time="2021-217T15:18:16Z" duration="280" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-217T15:22:56Z" duration="16050" tm_rate="2.9743213888888888E+05"/>
+    <EMC_MAND_QUIET time="2021-217T18:00:00Z" duration="3600"/>
+    <POWER time="2021-217T18:00:00Z" duration="10799" max="641"/>
+    <IS_COORD_BURST time="2021-217T18:30:00Z"/>
+    <ATT_DIST time="2021-217T21:00:00Z" duration="11100"/>
+    <EMC_PREF_NOISY time="2021-217T21:00:00Z" duration="11100"/>
+    <POWER time="2021-217T21:00:00Z" duration="299" max="552"/>
+    <SLEW time="2021-217T21:00:00Z" duration="300"/>
+    <STP_START time="2021-217T21:00:00Z" stp_number="160"/>
+    <POWER time="2021-217T21:05:00Z" duration="10799" max="598"/>
+    <WOL time="2021-217T21:05:00Z" duration="10800"/>
+    <POWER time="2021-218T00:05:00Z" duration="3899" max="650"/>
+    <ATT_DIST time="2021-218T01:10:00Z" duration="26100"/>
+    <EMC_PREF_NOISY time="2021-218T01:10:00Z" duration="26100"/>
+    <POWER time="2021-218T01:10:00Z" duration="17399" max="612"/>
+    <TCM time="2021-218T01:10:00Z" duration="26100" comment="TCM -3d" type="type-2"/>
+    <POWER time="2021-218T06:00:00Z" duration="8699" max="619"/>
+    <POWER time="2021-218T08:25:00Z" duration="14" max="662"/>
+    <POWER time="2021-218T08:25:14Z" duration="120" max="655"/>
+    <ATT_DIST time="2021-218T08:27:14Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-218T08:27:14Z" duration="2100"/>
+    <HGA_PT time="2021-218T08:27:14Z" duration="2100"/>
+    <POWER time="2021-218T08:27:14Z" duration="2100" max="611"/>
+    <PASS time="2021-218T09:02:14Z" duration="16203" dbcode="133" tm_rate="3.1124412990000000E+05" station="CEB"/>
+    <POWER time="2021-218T09:02:14Z" duration="120" max="656"/>
+    <SSMM_DUMP_1WAY time="2021-218T09:03:14Z" duration="1227" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-218T09:04:14Z" duration="32145" max="663"/>
+    <OMM_DUMP time="2021-218T09:30:41Z" duration="748" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-218T09:43:09Z" duration="13448" tm_rate="2.9743213888888888E+05"/>
+    <PASS time="2021-218T13:53:17Z" duration="3600" dbcode="133" tm_rate="3.1124412990000000E+05" station="CEB"/>
+    <EMC_MAND_QUIET time="2021-218T18:00:00Z" duration="3600"/>
+    <POWER time="2021-218T18:00:00Z" duration="24505" max="676"/>
+    <IS_COORD_BURST time="2021-218T18:30:00Z"/>
+    <EMC_MAND_QUIET time="2021-218T22:00:00Z" duration="3600"/>
+    <POWER time="2021-219T00:48:25Z" duration="120" max="676"/>
+    <ATT_DIST time="2021-219T00:50:25Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-219T00:50:25Z" duration="2100"/>
+    <HGA_PT time="2021-219T00:50:25Z" duration="2100"/>
+    <POWER time="2021-219T00:50:25Z" duration="2100" max="632"/>
+    <PASS time="2021-219T01:25:25Z" duration="26562" dbcode="133" tm_rate="3.1124412990000000E+05" station="NNO"/>
+    <POWER time="2021-219T01:25:25Z" duration="120" max="677"/>
+    <SSMM_DUMP_1WAY time="2021-219T01:26:25Z" duration="1221" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-219T01:27:25Z" duration="16354" max="684"/>
+    <OMM_DUMP time="2021-219T01:53:46Z" duration="508" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-219T02:02:14Z" duration="24053" tm_rate="2.9743213888888888E+05"/>
+    <EMC_MAND_QUIET time="2021-219T06:00:00Z" duration="3600"/>
+    <POWER time="2021-219T06:00:00Z" duration="32182" max="688"/>
+    <PASS time="2021-219T09:03:07Z" duration="3601" dbcode="133" tm_rate="3.1124412990000000E+05" station="NNO"/>
+    <POWER time="2021-219T14:56:22Z" duration="120" max="690"/>
+    <ATT_DIST time="2021-219T14:58:22Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-219T14:58:22Z" duration="2100"/>
+    <HGA_PT time="2021-219T14:58:22Z" duration="2100"/>
+    <POWER time="2021-219T14:58:22Z" duration="2100" max="646"/>
+    <PASS time="2021-219T15:33:22Z" duration="10972" dbcode="133" tm_rate="3.1124412990000000E+05" station="CEB"/>
+    <POWER time="2021-219T15:33:22Z" duration="120" max="691"/>
+    <SSMM_DUMP_1WAY time="2021-219T15:34:22Z" duration="1215" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-219T15:35:22Z" duration="8677" max="698"/>
+    <OMM_DUMP time="2021-219T16:01:37Z" duration="439" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-219T16:08:56Z" duration="8538" tm_rate="2.9743213888888888E+05"/>
+    <EMC_MAND_QUIET time="2021-219T16:58:22Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-219T17:28:22Z"/>
+    <POWER time="2021-219T18:00:00Z" duration="24400" max="700"/>
+    <PASS time="2021-219T18:51:14Z" duration="17542" dbcode="133" tm_rate="3.1124412990000000E+05" station="MLG"/>
+    <SSMM_DUMP_1WAY time="2021-219T18:52:14Z" duration="1215" tm_rate="2.9743213888888888E+05"/>
+    <OMM_DUMP time="2021-219T19:19:29Z" duration="102" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-219T19:21:11Z" duration="15445" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-220T00:46:40Z" duration="120" max="700"/>
+    <ATT_DIST time="2021-220T00:48:40Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-220T00:48:40Z" duration="2100"/>
+    <HGA_PT time="2021-220T00:48:40Z" duration="2100"/>
+    <POWER time="2021-220T00:48:40Z" duration="2100" max="656"/>
+    <POWER time="2021-220T01:23:40Z" duration="120" max="701"/>
+    <PASS time="2021-220T01:23:41Z" duration="29040" dbcode="133" tm_rate="3.1124412990000000E+05" station="NNO"/>
+    <SSMM_DUMP_1WAY time="2021-220T01:24:41Z" duration="1211" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-220T01:25:40Z" duration="16459" max="708"/>
+    <OMM_DUMP time="2021-220T01:51:52Z" duration="203" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-220T01:55:15Z" duration="26846" tm_rate="2.9743213888888888E+05"/>
+    <EMC_MAND_QUIET time="2021-220T06:00:00Z" duration="3600"/>
+    <POWER time="2021-220T06:00:00Z" duration="21042" max="712"/>
+    <POWER time="2021-220T11:50:42Z" duration="120" max="711"/>
+    <ATT_DIST time="2021-220T11:52:42Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-220T11:52:42Z" duration="2100"/>
+    <HGA_PT time="2021-220T11:52:42Z" duration="2100"/>
+    <POWER time="2021-220T11:52:42Z" duration="2100" max="667"/>
+    <PASS time="2021-220T12:27:42Z" duration="9404" dbcode="133" tm_rate="3.1124412990000000E+05" station="CEB"/>
+    <POWER time="2021-220T12:27:42Z" duration="120" max="712"/>
+    <SSMM_DUMP_1WAY time="2021-220T12:28:42Z" duration="1207" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-220T12:29:42Z" duration="9917" max="719"/>
+    <OMM_DUMP time="2021-220T12:55:49Z" duration="343" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-220T13:01:32Z" duration="7074" tm_rate="2.9743213888888888E+05"/>
+    <ATT_DIST time="2021-220T15:15:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-220T15:15:00Z" duration="300"/>
+    <POWER time="2021-220T15:15:00Z" duration="299" max="627"/>
+    <SLEW time="2021-220T15:15:00Z" duration="300"/>
+    <STP_START time="2021-220T15:15:00Z" stp_number="161"/>
+    <POWER time="2021-220T15:20:00Z" duration="9599" max="722"/>
+    <EMC_MAND_QUIET time="2021-220T16:58:22Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-220T17:28:22Z"/>
+    <POWER time="2021-220T18:00:00Z" duration="5099" max="725"/>
+    <ATT_DIST time="2021-220T19:25:00Z" duration="21900"/>
+    <EMC_PREF_NOISY time="2021-220T19:25:00Z" duration="21900"/>
+    <POWER time="2021-220T19:25:00Z" duration="19679" max="685"/>
+    <TCM time="2021-220T19:25:00Z" duration="19800" comment="TCM -6h" type="type-2"/>
+    <POWER time="2021-221T00:53:00Z" duration="119" max="680"/>
+    <HGA_PT time="2021-221T00:55:00Z" duration="2100"/>
+    <POWER time="2021-221T00:55:00Z" duration="2099" max="675"/>
+    <PASS time="2021-221T01:21:55Z" duration="36314" dbcode="133" tm_rate="3.1124412990000000E+05" station="NNO"/>
+    <SSMM_DUMP_1WAY time="2021-221T01:22:55Z" duration="1203" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-221T01:30:00Z" duration="119" max="719"/>
+    <POWER time="2021-221T01:32:00Z" duration="1679" max="726"/>
+    <OMM_DUMP time="2021-221T01:49:58Z" duration="498" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-221T01:58:16Z" duration="8238" tm_rate="2.9743213888888888E+05"/>
+    <ATT_DIST time="2021-221T02:00:00Z" duration="23700"/>
+    <EMC_PREF_NOISY time="2021-221T02:00:00Z" duration="23700"/>
+    <MAINT time="2021-221T02:00:00Z" duration="23700" comment="VGAM-2" type="ANY"/>
+    <POWER time="2021-221T02:00:00Z" duration="14399" max="721"/>
+    <OMM_DUMP time="2021-221T04:45:28Z" duration="90" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-221T04:46:58Z" duration="23711" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-221T06:00:00Z" duration="9299" max="722"/>
+    <POWER time="2021-221T08:35:00Z" duration="16568" max="728"/>
+    <POWER time="2021-221T13:11:08Z" duration="120" max="722"/>
+    <ATT_DIST time="2021-221T13:13:08Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-221T13:13:08Z" duration="2100"/>
+    <HGA_PT time="2021-221T13:13:08Z" duration="2100"/>
+    <POWER time="2021-221T13:13:08Z" duration="2100" max="678"/>
+    <PASS time="2021-221T13:48:08Z" duration="25285" dbcode="136" tm_rate="4.1499217320000002E+05" station="MLG"/>
+    <POWER time="2021-221T13:48:08Z" duration="120" max="722"/>
+    <SSMM_DUMP_1WAY time="2021-221T13:49:08Z" duration="1197" tm_rate="3.9883707240740740E+05"/>
+    <POWER time="2021-221T13:50:08Z" duration="14991" max="729"/>
+    <OMM_DUMP time="2021-221T14:16:05Z" duration="221" tm_rate="3.9883707240740740E+05"/>
+    <SSMM_DUMP_2WAY time="2021-221T14:19:46Z" duration="23087" tm_rate="3.9883707240740740E+05"/>
+    <EMC_MAND_QUIET time="2021-221T16:58:22Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-221T17:28:22Z"/>
+    <POWER time="2021-221T18:00:00Z" duration="33154" max="730"/>
+    <EMC_MAND_QUIET time="2021-221T22:30:00Z" duration="3600"/>
+    <POWER time="2021-222T03:12:34Z" duration="120" max="733"/>
+    <ATT_DIST time="2021-222T03:14:34Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-222T03:14:34Z" duration="2100"/>
+    <HGA_PT time="2021-222T03:14:34Z" duration="2100"/>
+    <POWER time="2021-222T03:14:34Z" duration="2100" max="689"/>
+    <PASS time="2021-222T03:49:34Z" duration="27502" dbcode="133" tm_rate="3.1124412990000000E+05" station="NNO"/>
+    <POWER time="2021-222T03:49:34Z" duration="120" max="734"/>
+    <SSMM_DUMP_1WAY time="2021-222T03:50:34Z" duration="1191" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-222T03:51:34Z" duration="7705" max="741"/>
+    <OMM_DUMP time="2021-222T04:17:25Z" duration="434" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-222T04:24:39Z" duration="25097" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-222T06:00:00Z" duration="40358" max="743"/>
+    <EMC_MAND_QUIET time="2021-222T08:00:00Z" duration="3600"/>
+    <EMC_MAND_QUIET time="2021-222T15:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-222T15:30:00Z"/>
+    <POWER time="2021-222T17:12:38Z" duration="120" max="748"/>
+    <ATT_DIST time="2021-222T17:14:38Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-222T17:14:38Z" duration="2100"/>
+    <HGA_PT time="2021-222T17:14:38Z" duration="2100"/>
+    <POWER time="2021-222T17:14:38Z" duration="2100" max="704"/>
+    <PASS time="2021-222T17:49:38Z" duration="6930" dbcode="136" tm_rate="4.1499217320000002E+05" station="CEB"/>
+    <POWER time="2021-222T17:49:38Z" duration="120" max="748"/>
+    <SSMM_DUMP_1WAY time="2021-222T17:50:38Z" duration="1183" tm_rate="3.9883707240740740E+05"/>
+    <POWER time="2021-222T17:51:38Z" duration="501" max="755"/>
+    <POWER time="2021-222T18:00:00Z" duration="24106" max="756"/>
+    <OMM_DUMP time="2021-222T18:17:21Z" duration="325" tm_rate="3.9883707240740740E+05"/>
+    <SSMM_DUMP_2WAY time="2021-222T18:22:46Z" duration="4642" tm_rate="3.9883707240740740E+05"/>
+    <POWER time="2021-223T00:41:46Z" duration="120" max="756"/>
+    <ATT_DIST time="2021-223T00:43:46Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-223T00:43:46Z" duration="2100"/>
+    <HGA_PT time="2021-223T00:43:46Z" duration="2100"/>
+    <POWER time="2021-223T00:43:46Z" duration="2100" max="712"/>
+    <PASS time="2021-223T01:18:46Z" duration="14454" dbcode="133" tm_rate="3.1124412990000000E+05" station="NNO"/>
+    <POWER time="2021-223T01:18:46Z" duration="120" max="756"/>
+    <SSMM_DUMP_1WAY time="2021-223T01:19:46Z" duration="1181" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-223T01:20:46Z" duration="16753" max="763"/>
+    <OMM_DUMP time="2021-223T01:46:27Z" duration="232" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-223T01:50:19Z" duration="12261" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-223T06:00:00Z" duration="25652" max="768"/>
+    <EMC_MAND_QUIET time="2021-223T08:00:00Z" duration="3600"/>
+    <POWER time="2021-223T13:07:32Z" duration="120" max="769"/>
+    <ATT_DIST time="2021-223T13:09:32Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-223T13:09:32Z" duration="2100"/>
+    <HGA_PT time="2021-223T13:09:32Z" duration="2100"/>
+    <POWER time="2021-223T13:09:32Z" duration="2100" max="725"/>
+    <PASS time="2021-223T13:44:32Z" duration="19212" dbcode="136" tm_rate="4.1499217320000002E+05" station="MLG"/>
+    <POWER time="2021-223T13:44:32Z" duration="120" max="770"/>
+    <SSMM_DUMP_1WAY time="2021-223T13:45:33Z" duration="1174" tm_rate="3.9883707240740740E+05"/>
+    <POWER time="2021-223T13:46:32Z" duration="15207" max="776"/>
+    <OMM_DUMP time="2021-223T14:12:07Z" duration="288" tm_rate="3.9883707240740740E+05"/>
+    <SSMM_DUMP_2WAY time="2021-223T14:16:55Z" duration="16969" tm_rate="3.9883707240740740E+05"/>
+    <EMC_MAND_QUIET time="2021-223T16:58:22Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-223T17:28:22Z"/>
+    <POWER time="2021-223T18:00:00Z" duration="43199" max="781"/>
+    <POWER time="2021-224T06:00:00Z" duration="25545" max="723"/>
+    <EMC_MAND_QUIET time="2021-224T08:00:00Z" duration="3600"/>
+    <POWER time="2021-224T13:05:45Z" duration="120" max="682"/>
+    <ATT_DIST time="2021-224T13:07:45Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-224T13:07:45Z" duration="2100"/>
+    <HGA_PT time="2021-224T13:07:45Z" duration="2100"/>
+    <POWER time="2021-224T13:07:45Z" duration="2100" max="638"/>
+    <PASS time="2021-224T13:42:45Z" duration="36344" dbcode="136" tm_rate="4.1499217320000002E+05" station="MLG"/>
+    <POWER time="2021-224T13:42:45Z" duration="120" max="679"/>
+    <SSMM_DUMP_1WAY time="2021-224T13:43:45Z" duration="1163" tm_rate="3.9883707240740740E+05"/>
+    <POWER time="2021-224T13:44:45Z" duration="15314" max="686"/>
+    <OMM_DUMP time="2021-224T14:10:08Z" duration="556" tm_rate="3.9883707240740740E+05"/>
+    <SSMM_DUMP_2WAY time="2021-224T14:19:24Z" duration="33845" tm_rate="3.9883707240740740E+05"/>
+    <EMC_MAND_QUIET time="2021-224T15:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-224T15:30:00Z"/>
+    <POWER time="2021-224T18:00:00Z" duration="1482" max="665"/>
+    <ATT_DIST time="2021-224T18:24:42Z" duration="12000"/>
+    <EMC_PREF_NOISY time="2021-224T18:24:42Z" duration="12000"/>
+    <POWER time="2021-224T18:24:42Z" duration="10800" max="618"/>
+    <WOL time="2021-224T18:24:42Z" duration="10800"/>
+    <POWER time="2021-224T21:24:42Z" duration="1200" max="655"/>
+    <SA_ROT time="2021-224T21:24:42Z" duration="1200" end_angle_deg="60" start_angle_deg="56"/>
+    <POWER time="2021-224T21:44:42Z" duration="10438" max="669"/>
+    <POWER time="2021-225T00:38:40Z" duration="120" max="665"/>
+    <ATT_DIST time="2021-225T00:40:40Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-225T00:40:40Z" duration="2100"/>
+    <HGA_PT time="2021-225T00:40:40Z" duration="2100"/>
+    <POWER time="2021-225T00:40:40Z" duration="2100" max="621"/>
+    <PASS time="2021-225T01:15:40Z" duration="14470" dbcode="133" tm_rate="3.1124412990000000E+05" station="NNO"/>
+    <POWER time="2021-225T01:15:40Z" duration="120" max="665"/>
+    <SSMM_DUMP_1WAY time="2021-225T01:16:40Z" duration="1157" tm_rate="2.9743213888888888E+05"/>
+    <POWER time="2021-225T01:17:40Z" duration="16939" max="672"/>
+    <OMM_DUMP time="2021-225T01:42:57Z" duration="412" tm_rate="2.9743213888888888E+05"/>
+    <SSMM_DUMP_2WAY time="2021-225T01:49:49Z" duration="12121" tm_rate="2.9743213888888888E+05"/>
+    <EMC_MAND_QUIET time="2021-225T04:30:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-225T05:00:00Z"/>
+    <ATT_DIST time="2021-225T06:00:00Z" duration="11100"/>
+    <EMC_PREF_NOISY time="2021-225T06:00:00Z" duration="11100"/>
+    <POWER time="2021-225T06:00:00Z" duration="299" max="583"/>
+    <SLEW time="2021-225T06:00:00Z" duration="300"/>
+    <STP_START time="2021-225T06:00:00Z" stp_number="162"/>
+    <POWER time="2021-225T06:05:00Z" duration="10799" max="629"/>
+    <WOL time="2021-225T06:05:00Z" duration="10800"/>
+    <POWER time="2021-225T09:05:00Z" duration="1679" max="681"/>
+    <POWER time="2021-225T09:33:00Z" duration="119" max="675"/>
+    <ATT_DIST time="2021-225T09:35:00Z" duration="45600"/>
+    <EMC_PREF_NOISY time="2021-225T09:35:00Z" duration="45600"/>
+    <HGA_PT time="2021-225T09:35:00Z" duration="2100"/>
+    <POWER time="2021-225T09:35:00Z" duration="2099" max="631"/>
+    <POWER time="2021-225T10:10:00Z" duration="119" max="637"/>
+    <TCM time="2021-225T10:10:00Z" duration="41400" comment="TCM +1W" type="type-2"/>
+    <POWER time="2021-225T10:12:00Z" duration="28079" max="643"/>
+    <PASS time="2021-225T13:40:57Z" duration="36516" dbcode="136" tm_rate="4.1499217320000002E+05" station="MLG"/>
+    <POWER time="2021-225T18:00:00Z" duration="13079" max="655"/>
+    <POWER time="2021-225T21:38:00Z" duration="119" max="654"/>
+    <HGA_PT time="2021-225T21:40:00Z" duration="2100"/>
+    <POWER time="2021-225T21:40:00Z" duration="2099" max="649"/>
+    <POWER time="2021-225T22:15:00Z" duration="119" max="694"/>
+    <POWER time="2021-225T22:17:00Z" duration="27779" max="701"/>
+    <OMM_DUMP time="2021-225T22:22:00Z" duration="673" tm_rate="3.9883707240740740E+05"/>
+    <SSMM_DUMP_2WAY time="2021-225T22:33:13Z" duration="4280" tm_rate="3.9883707240740740E+05"/>
+    <POWER time="2021-226T06:00:00Z" duration="25331" max="712"/>
+    <EMC_MAND_QUIET time="2021-226T08:30:00Z" duration="3600"/>
+    <POWER time="2021-226T13:02:11Z" duration="120" max="713"/>
+    <ATT_DIST time="2021-226T13:04:11Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-226T13:04:11Z" duration="2100"/>
+    <HGA_PT time="2021-226T13:04:11Z" duration="2100"/>
+    <POWER time="2021-226T13:04:11Z" duration="2100" max="668"/>
+    <PASS time="2021-226T13:39:11Z" duration="36688" dbcode="136" tm_rate="4.1499217320000002E+05" station="MLG"/>
+    <POWER time="2021-226T13:39:11Z" duration="120" max="713"/>
+    <SSMM_DUMP_1WAY time="2021-226T13:40:11Z" duration="1139" tm_rate="3.9883707240740740E+05"/>
+    <POWER time="2021-226T13:41:11Z" duration="15528" max="720"/>
+    <OMM_DUMP time="2021-226T14:06:10Z" duration="365" tm_rate="3.9883707240740740E+05"/>
+    <SSMM_DUMP_2WAY time="2021-226T14:12:15Z" duration="34404" tm_rate="3.9883707240740740E+05"/>
+    <EMC_MAND_QUIET time="2021-226T16:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-226T16:30:00Z"/>
+    <POWER time="2021-226T18:00:00Z" duration="43199" max="724"/>
+    <POWER time="2021-227T06:00:00Z" duration="25224" max="736"/>
+    <EMC_MAND_QUIET time="2021-227T08:30:00Z" duration="3600"/>
+    <POWER time="2021-227T13:00:24Z" duration="120" max="736"/>
+    <ATT_DIST time="2021-227T13:02:24Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-227T13:02:24Z" duration="2100"/>
+    <HGA_PT time="2021-227T13:02:24Z" duration="2100"/>
+    <POWER time="2021-227T13:02:24Z" duration="2100" max="692"/>
+    <POWER time="2021-227T13:37:24Z" duration="120" max="737"/>
+    <PASS time="2021-227T13:37:25Z" duration="36860" dbcode="136" tm_rate="4.1499217320000002E+05" station="MLG"/>
+    <SSMM_DUMP_1WAY time="2021-227T13:38:25Z" duration="1125" tm_rate="3.9883707240740740E+05"/>
+    <POWER time="2021-227T13:39:24Z" duration="15635" max="744"/>
+    <OMM_DUMP time="2021-227T14:04:10Z" duration="557" tm_rate="3.9883707240740740E+05"/>
+    <SSMM_DUMP_2WAY time="2021-227T14:13:27Z" duration="34398" tm_rate="3.9883707240740740E+05"/>
+    <EMC_MAND_QUIET time="2021-227T16:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-227T16:30:00Z"/>
+    <POWER time="2021-227T18:00:00Z" duration="28799" max="748"/>
+    <ATT_DIST time="2021-228T00:00:00Z" duration="1862"/>
+    <EMC_PREF_NOISY time="2021-228T00:00:00Z" duration="1802"/>
+    <HSD_SPICE_OPEN time="2021-228T00:00:00Z" duration="1800" comment="Opening SPICE and EUI doors together after consultation with EUI."/>
+    <RSW_EXT_SPICE time="2021-228T00:00:00Z" duration="604800" comment="Cross-calibration during quadrature + synoptics"/>
+    <HSD_EUI_HRI_OPEN time="2021-228T00:00:01Z" duration="1800" comment="Opening SPICE and EUI doors together after consultation with EUI."/>
+    <HSD_EUI_FSI_OPEN time="2021-228T00:00:02Z" duration="1800" comment="Opening SPICE and EUI doors together after consultation with EUI."/>
+    <ATT_DIST time="2021-228T02:00:00Z" duration="3300"/>
+    <EMC_PREF_NOISY time="2021-228T02:00:00Z" duration="3000"/>
+    <POWER time="2021-228T02:00:00Z" duration="2999" max="655"/>
+    <ROLL time="2021-228T02:00:00Z" duration="3000" start_roll_deg="0" end_roll_deg="-20"/>
+    <POWER time="2021-228T02:50:00Z" duration="11399" max="749"/>
+    <POWER time="2021-228T06:00:00Z" duration="25118" max="750"/>
+    <EMC_MAND_QUIET time="2021-228T08:30:00Z" duration="3600"/>
+    <POWER time="2021-228T12:58:38Z" duration="120" max="745"/>
+    <ATT_DIST time="2021-228T13:00:38Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-228T13:00:38Z" duration="2100"/>
+    <HGA_PT time="2021-228T13:00:38Z" duration="2100"/>
+    <POWER time="2021-228T13:00:38Z" duration="2100" max="700"/>
+    <PASS time="2021-228T13:35:38Z" duration="37035" dbcode="136" tm_rate="4.1499217320000002E+05" station="MLG"/>
+    <POWER time="2021-228T13:35:38Z" duration="120" max="745"/>
+    <SSMM_DUMP_1WAY time="2021-228T13:36:38Z" duration="1113" tm_rate="3.9883707240740740E+05"/>
+    <POWER time="2021-228T13:37:38Z" duration="15741" max="751"/>
+    <OMM_DUMP time="2021-228T14:02:11Z" duration="557" tm_rate="3.9883707240740740E+05"/>
+    <SSMM_DUMP_2WAY time="2021-228T14:11:28Z" duration="34585" tm_rate="3.9883707240740740E+05"/>
+    <EMC_MAND_QUIET time="2021-228T16:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-228T16:30:00Z"/>
+    <POWER time="2021-228T18:00:00Z" duration="43199" max="752"/>
+    <RSW_EXT_EUI time="2021-229T00:00:00Z" duration="568800" comment="Cross-calibration during quadrature + synoptics"/>
+    <RSW_EXT_METIS time="2021-229T00:00:00Z" duration="2246400" comment="Synoptics and star calibration. Simplifed to a single RSW_EXT_METIS"/>
+    <ATT_DIST time="2021-229T01:00:00Z" duration="420"/>
+    <CALIB_OFFPOI_ALIGNMENT time="2021-229T01:00:00Z" duration="31800"/>
+    <EMC_PREF_NOISY time="2021-229T01:00:00Z" duration="300"/>
+    <SLEW time="2021-229T01:00:00Z" duration="300"/>
+    <POINT_CENTRE time="2021-229T01:05:00Z" duration="6000" metis_compatible="YES" boresight="SC"/>
+    <ATT_DIST time="2021-229T02:45:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-229T02:45:00Z" duration="300"/>
+    <SLEW time="2021-229T02:45:00Z" duration="300"/>
+    <POINT_LIMB time="2021-229T02:50:00Z" duration="6000" metis_compatible="YES" boresight="SC" comment="off-point to limb along SC +Z" limb_direction="NORTH"/>
+    <ATT_DIST time="2021-229T04:30:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-229T04:30:00Z" duration="300"/>
+    <SLEW time="2021-229T04:30:00Z" duration="300"/>
+    <POINT_LIMB time="2021-229T04:35:00Z" duration="6000" metis_compatible="YES" boresight="SC" comment="off-point to limb along SC -Z" limb_direction="SOUTH"/>
+    <POWER time="2021-229T06:00:00Z" duration="25012" max="764"/>
+    <ATT_DIST time="2021-229T06:15:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-229T06:15:00Z" duration="300"/>
+    <SLEW time="2021-229T06:15:00Z" duration="300"/>
+    <POINT_LIMB time="2021-229T06:20:00Z" duration="6000" metis_compatible="YES" boresight="SC" comment="off-point to limb along SC -Y" limb_direction="WEST"/>
+    <ATT_DIST time="2021-229T08:00:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-229T08:00:00Z" duration="300"/>
+    <SLEW time="2021-229T08:00:00Z" duration="300"/>
+    <POINT_LIMB time="2021-229T08:05:00Z" duration="6000" metis_compatible="YES" boresight="SC" comment="off-point to limb along SC +Y" limb_direction="EAST"/>
+    <ATT_DIST time="2021-229T09:45:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-229T09:45:00Z" duration="300"/>
+    <SLEW time="2021-229T09:45:00Z" duration="300"/>
+    <ATT_DIST time="2021-229T12:00:00Z" duration="960"/>
+    <EMC_PREF_NOISY time="2021-229T12:00:00Z" duration="900"/>
+    <HSD_METIS_OPEN time="2021-229T12:00:00Z" duration="900"/>
+    <POWER time="2021-229T12:56:52Z" duration="120" max="764"/>
+    <ATT_DIST time="2021-229T12:58:52Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-229T12:58:52Z" duration="2100"/>
+    <HGA_PT time="2021-229T12:58:52Z" duration="2100"/>
+    <POWER time="2021-229T12:58:52Z" duration="2100" max="720"/>
+    <PASS time="2021-229T13:33:52Z" duration="37208" dbcode="136" tm_rate="4.1499217320000002E+05" station="MLG"/>
+    <POWER time="2021-229T13:33:52Z" duration="120" max="765"/>
+    <SSMM_DUMP_1WAY time="2021-229T13:34:52Z" duration="1101" tm_rate="3.9883707240740740E+05"/>
+    <POWER time="2021-229T13:35:52Z" duration="15847" max="772"/>
+    <OMM_DUMP time="2021-229T14:00:13Z" duration="556" tm_rate="3.9883707240740740E+05"/>
+    <SSMM_DUMP_2WAY time="2021-229T14:09:29Z" duration="34771" tm_rate="3.9883707240740740E+05"/>
+    <EMC_MAND_QUIET time="2021-229T16:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-229T16:30:00Z"/>
+    <POWER time="2021-229T18:00:00Z" duration="43199" max="776"/>
+    <EMC_MAND_QUIET time="2021-229T22:00:00Z" duration="3600"/>
+    <POWER time="2021-230T06:00:00Z" duration="1044" max="788"/>
+    <POWER time="2021-230T06:17:24Z" duration="120" max="781"/>
+    <ATT_DIST time="2021-230T06:19:24Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-230T06:19:24Z" duration="2100"/>
+    <HGA_PT time="2021-230T06:19:24Z" duration="2100"/>
+    <POWER time="2021-230T06:19:24Z" duration="2100" max="737"/>
+    <PASS time="2021-230T06:54:24Z" duration="16821" dbcode="136" tm_rate="4.1499217320000002E+05" station="NNO"/>
+    <POWER time="2021-230T06:54:24Z" duration="120" max="782"/>
+    <SSMM_DUMP_1WAY time="2021-230T06:55:24Z" duration="1091" tm_rate="3.9883707240740740E+05"/>
+    <POWER time="2021-230T06:56:24Z" duration="36123" max="789"/>
+    <OMM_DUMP time="2021-230T07:20:35Z" duration="403" tm_rate="3.9883707240740740E+05"/>
+    <SSMM_DUMP_2WAY time="2021-230T07:27:18Z" duration="14547" tm_rate="3.9883707240740740E+05"/>
+    <EMC_MAND_QUIET time="2021-230T08:30:00Z" duration="3600"/>
+    <EMC_MAND_QUIET time="2021-230T14:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-230T14:30:00Z"/>
+    <POWER time="2021-230T16:58:27Z" duration="120" max="792"/>
+    <ATT_DIST time="2021-230T17:00:27Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-230T17:00:27Z" duration="2100"/>
+    <HGA_PT time="2021-230T17:00:27Z" duration="2100"/>
+    <POWER time="2021-230T17:00:27Z" duration="2100" max="748"/>
+    <PASS time="2021-230T17:35:27Z" duration="22782" dbcode="139" tm_rate="4.9799060790000000E+05" station="MLG"/>
+    <POWER time="2021-230T17:35:27Z" duration="120" max="793"/>
+    <SSMM_DUMP_1WAY time="2021-230T17:36:27Z" duration="1085" tm_rate="4.8010710481481481E+05"/>
+    <POWER time="2021-230T17:37:27Z" duration="1352" max="799"/>
+    <POWER time="2021-230T18:00:00Z" duration="23368" max="800"/>
+    <OMM_DUMP time="2021-230T18:01:32Z" duration="207" tm_rate="4.8010710481481481E+05"/>
+    <SSMM_DUMP_2WAY time="2021-230T18:04:59Z" duration="20710" tm_rate="4.8010710481481481E+05"/>
+    <POWER time="2021-231T00:29:28Z" duration="120" max="799"/>
+    <ATT_DIST time="2021-231T00:31:28Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-231T00:31:28Z" duration="2100"/>
+    <HGA_PT time="2021-231T00:31:28Z" duration="2100"/>
+    <POWER time="2021-231T00:31:28Z" duration="2100" max="755"/>
+    <PASS time="2021-231T01:06:28Z" duration="37751" dbcode="136" tm_rate="4.1499217320000002E+05" station="NNO"/>
+    <POWER time="2021-231T01:06:28Z" duration="120" max="800"/>
+    <SSMM_DUMP_1WAY time="2021-231T01:07:28Z" duration="1081" tm_rate="3.9883707240740740E+05"/>
+    <POWER time="2021-231T01:08:28Z" duration="17491" max="807"/>
+    <OMM_DUMP time="2021-231T01:32:29Z" duration="175" tm_rate="3.9883707240740740E+05"/>
+    <SSMM_DUMP_2WAY time="2021-231T01:35:24Z" duration="35715" tm_rate="3.9883707240740740E+05"/>
+    <POWER time="2021-231T06:00:00Z" duration="43199" max="812"/>
+    <EMC_MAND_QUIET time="2021-231T08:30:00Z" duration="3600"/>
+    <EMC_MAND_QUIET time="2021-231T16:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-231T16:30:00Z"/>
+    <POWER time="2021-231T18:00:00Z" duration="11099" max="823"/>
+    <ATT_DIST time="2021-231T21:05:00Z" duration="10800"/>
+    <EMC_PREF_NOISY time="2021-231T21:05:00Z" duration="10800"/>
+    <POWER time="2021-231T21:05:00Z" duration="10799" max="779"/>
+    <WOL time="2021-231T21:05:00Z" duration="10800"/>
+    <POWER time="2021-232T00:05:00Z" duration="21299" max="829"/>
+    <POWER time="2021-232T06:00:00Z" duration="24694" max="835"/>
+    <EMC_MAND_QUIET time="2021-232T08:30:00Z" duration="3600"/>
+    <POWER time="2021-232T12:51:34Z" duration="120" max="835"/>
+    <ATT_DIST time="2021-232T12:53:34Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-232T12:53:34Z" duration="2100"/>
+    <HGA_PT time="2021-232T12:53:34Z" duration="2100"/>
+    <POWER time="2021-232T12:53:34Z" duration="2100" max="791"/>
+    <PASS time="2021-232T13:28:34Z" duration="37732" dbcode="139" tm_rate="4.9799060790000000E+05" station="MLG"/>
+    <POWER time="2021-232T13:28:34Z" duration="120" max="836"/>
+    <SSMM_DUMP_1WAY time="2021-232T13:29:34Z" duration="1061" tm_rate="4.8010710481481481E+05"/>
+    <POWER time="2021-232T13:30:34Z" duration="16165" max="843"/>
+    <OMM_DUMP time="2021-232T13:54:15Z" duration="736" tm_rate="4.8010710481481481E+05"/>
+    <SSMM_DUMP_2WAY time="2021-232T14:06:31Z" duration="35155" tm_rate="4.8010710481481481E+05"/>
+    <EMC_MAND_QUIET time="2021-232T16:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-232T16:30:00Z"/>
+    <POWER time="2021-232T18:00:00Z" duration="43199" max="847"/>
+    <ATT_DIST time="2021-233T00:00:00Z" duration="1861"/>
+    <EMC_PREF_NOISY time="2021-233T00:00:00Z" duration="1801"/>
+    <HSD_PHI_HRT_OPEN time="2021-233T00:00:00Z" duration="1800" comment="SC at 0.65AU from Sun (should be beyond 0.6AU)"/>
+    <HSD_PHI_FDT_OPEN time="2021-233T00:00:01Z" duration="1800" comment="Placeholder door opening: SC at 0.65AU from Sun (should be beyond 0.6AU)"/>
+    <EMC_MAND_QUIET time="2021-233T06:00:00Z" duration="3600"/>
+    <POWER time="2021-233T06:00:00Z" duration="24589" max="859"/>
+    <TAC_METIS time="2021-233T09:15:00Z" duration="13500" comment="For Metis IOM observation" volume_MiB="39"/>
+    <POWER time="2021-233T12:49:49Z" duration="120" max="859"/>
+    <ATT_DIST time="2021-233T12:51:49Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-233T12:51:49Z" duration="2100"/>
+    <HGA_PT time="2021-233T12:51:49Z" duration="2100"/>
+    <POWER time="2021-233T12:51:49Z" duration="2100" max="814"/>
+    <PASS time="2021-233T13:26:49Z" duration="34430" dbcode="139" tm_rate="4.9799060790000000E+05" station="MLG"/>
+    <POWER time="2021-233T13:26:49Z" duration="120" max="859"/>
+    <SSMM_DUMP_1WAY time="2021-233T13:27:49Z" duration="1047" tm_rate="4.8010710481481481E+05"/>
+    <POWER time="2021-233T13:28:49Z" duration="16270" max="866"/>
+    <OMM_DUMP time="2021-233T13:52:16Z" duration="463" tm_rate="4.8010710481481481E+05"/>
+    <SSMM_DUMP_2WAY time="2021-233T13:59:59Z" duration="32140" tm_rate="4.8010710481481481E+05"/>
+    <EMC_MAND_QUIET time="2021-233T16:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-233T16:30:00Z"/>
+    <POWER time="2021-233T18:00:00Z" duration="43199" max="871"/>
+    <POWER time="2021-234T06:00:00Z" duration="43199" max="882"/>
+    <EMC_MAND_QUIET time="2021-234T08:30:00Z" duration="3600"/>
+    <ATT_DIST time="2021-234T11:30:00Z" duration="960"/>
+    <EMC_PREF_NOISY time="2021-234T11:30:00Z" duration="900"/>
+    <HSD_SPICE_CLOSE time="2021-234T11:30:00Z" duration="900"/>
+    <EMC_MAND_QUIET time="2021-234T16:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-234T16:30:00Z"/>
+    <POWER time="2021-234T18:00:00Z" duration="21599" max="894"/>
+    <ATT_DIST time="2021-235T00:00:00Z" duration="11100"/>
+    <EMC_PREF_NOISY time="2021-235T00:00:00Z" duration="11100"/>
+    <POWER time="2021-235T00:00:00Z" duration="299" max="805"/>
+    <SLEW time="2021-235T00:00:00Z" duration="300"/>
+    <STP_START time="2021-235T00:00:00Z" stp_number="163"/>
+    <POWER time="2021-235T00:05:00Z" duration="10799" max="852"/>
+    <WOL time="2021-235T00:05:00Z" duration="10800"/>
+    <POWER time="2021-235T03:05:00Z" duration="10499" max="902"/>
+    <POWER time="2021-235T06:00:00Z" duration="30232" max="905"/>
+    <EMC_MAND_QUIET time="2021-235T08:30:00Z" duration="3600"/>
+    <POWER time="2021-235T14:23:52Z" duration="120" max="906"/>
+    <ATT_DIST time="2021-235T14:25:52Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-235T14:25:52Z" duration="2100"/>
+    <HGA_PT time="2021-235T14:25:52Z" duration="2100"/>
+    <POWER time="2021-235T14:25:52Z" duration="2100" max="862"/>
+    <PASS time="2021-235T15:00:52Z" duration="32403" dbcode="139" tm_rate="4.9799060790000000E+05" station="MLG"/>
+    <POWER time="2021-235T15:00:52Z" duration="120" max="907"/>
+    <SSMM_DUMP_1WAY time="2021-235T15:01:52Z" duration="1019" tm_rate="4.8010710481481481E+05"/>
+    <POWER time="2021-235T15:02:52Z" duration="10627" max="914"/>
+    <OMM_DUMP time="2021-235T15:25:51Z" duration="991" tm_rate="4.8010710481481481E+05"/>
+    <SSMM_DUMP_2WAY time="2021-235T15:42:22Z" duration="29613" tm_rate="4.8010710481481481E+05"/>
+    <EMC_MAND_QUIET time="2021-235T16:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-235T16:30:00Z"/>
+    <POWER time="2021-235T18:00:00Z" duration="34199" max="916"/>
+    <ATT_DIST time="2021-236T03:10:00Z" duration="960"/>
+    <EMC_PREF_NOISY time="2021-236T03:10:00Z" duration="900"/>
+    <HSD_METIS_CLOSE time="2021-236T03:10:00Z" duration="900" comment="Closing for TCM"/>
+    <ATT_DIST time="2021-236T03:30:00Z" duration="22560"/>
+    <EMC_PREF_NOISY time="2021-236T03:30:00Z" duration="22500"/>
+    <POWER time="2021-236T03:30:00Z" duration="8999" max="886"/>
+    <TCM time="2021-236T03:30:00Z" duration="21600" comment="first slot after 2021.08.23" type="type-2"/>
+    <POWER time="2021-236T06:00:00Z" duration="12599" max="888"/>
+    <HSD_METIS_OPEN time="2021-236T09:30:00Z" duration="900" comment="Open after TCM"/>
+    <POWER time="2021-236T09:30:00Z" duration="30599" max="931"/>
+    <EMC_MAND_QUIET time="2021-236T16:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-236T16:30:00Z"/>
+    <POWER time="2021-236T18:00:00Z" duration="43199" max="939"/>
+    <EMC_MAND_QUIET time="2021-236T22:00:00Z" duration="3600"/>
+    <POWER time="2021-237T06:00:00Z" duration="25348" max="949"/>
+    <EMC_MAND_QUIET time="2021-237T10:00:00Z" duration="3600"/>
+    <POWER time="2021-237T13:02:28Z" duration="120" max="949"/>
+    <ATT_DIST time="2021-237T13:04:28Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-237T13:04:28Z" duration="2100"/>
+    <HGA_PT time="2021-237T13:04:28Z" duration="2100"/>
+    <POWER time="2021-237T13:04:28Z" duration="2100" max="905"/>
+    <PASS time="2021-237T13:39:28Z" duration="32403" dbcode="139" tm_rate="4.9799060790000000E+05" station="MLG"/>
+    <POWER time="2021-237T13:39:28Z" duration="120" max="949"/>
+    <SSMM_DUMP_1WAY time="2021-237T13:40:28Z" duration="991" tm_rate="4.8010710481481481E+05"/>
+    <POWER time="2021-237T13:41:28Z" duration="15511" max="956"/>
+    <OMM_DUMP time="2021-237T14:03:59Z" duration="968" tm_rate="4.8010710481481481E+05"/>
+    <SSMM_DUMP_2WAY time="2021-237T14:20:07Z" duration="29664" tm_rate="4.8010710481481481E+05"/>
+    <EMC_MAND_QUIET time="2021-237T16:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-237T16:30:00Z"/>
+    <POWER time="2021-237T18:00:00Z" duration="43199" max="960"/>
+    <POWER time="2021-238T06:00:00Z" duration="43199" max="971"/>
+    <EMC_MAND_QUIET time="2021-238T10:00:00Z" duration="3600"/>
+    <EMC_MAND_QUIET time="2021-238T16:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-238T16:30:00Z"/>
+    <POWER time="2021-238T18:00:00Z" duration="11099" max="981"/>
+    <ATT_DIST time="2021-238T21:05:00Z" duration="10800"/>
+    <EMC_PREF_NOISY time="2021-238T21:05:00Z" duration="10800"/>
+    <POWER time="2021-238T21:05:00Z" duration="10799" max="936"/>
+    <WOL time="2021-238T21:05:00Z" duration="10800"/>
+    <POWER time="2021-239T00:05:00Z" duration="21299" max="986"/>
+    <POWER time="2021-239T06:00:00Z" duration="30511" max="991"/>
+    <EMC_MAND_QUIET time="2021-239T10:00:00Z" duration="3600"/>
+    <POWER time="2021-239T14:28:31Z" duration="120" max="992"/>
+    <ATT_DIST time="2021-239T14:30:31Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-239T14:30:31Z" duration="2100"/>
+    <HGA_PT time="2021-239T14:30:31Z" duration="2100"/>
+    <POWER time="2021-239T14:30:31Z" duration="2100" max="947"/>
+    <PASS time="2021-239T15:05:31Z" duration="19802" dbcode="141" tm_rate="6.2248825989999995E+05" station="MLG"/>
+    <POWER time="2021-239T15:05:31Z" duration="120" max="992"/>
+    <SSMM_DUMP_1WAY time="2021-239T15:06:31Z" duration="961" tm_rate="6.0212887129629625E+05"/>
+    <POWER time="2021-239T15:07:31Z" duration="10348" max="999"/>
+    <OMM_DUMP time="2021-239T15:29:32Z" duration="790" tm_rate="6.0212887129629625E+05"/>
+    <SSMM_DUMP_2WAY time="2021-239T15:42:42Z" duration="17271" tm_rate="6.0212887129629625E+05"/>
+    <EMC_MAND_QUIET time="2021-239T16:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-239T16:30:00Z"/>
+    <POWER time="2021-239T18:00:00Z" duration="43199" max="1001"/>
+    <POWER time="2021-240T06:00:00Z" duration="2211" max="1011"/>
+    <POWER time="2021-240T06:36:51Z" duration="120" max="1005"/>
+    <ATT_DIST time="2021-240T06:38:51Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-240T06:38:51Z" duration="2100"/>
+    <HGA_PT time="2021-240T06:38:51Z" duration="2100"/>
+    <POWER time="2021-240T06:38:51Z" duration="2100" max="961"/>
+    <PASS time="2021-240T07:13:51Z" duration="16201" dbcode="139" tm_rate="4.9799060790000000E+05" station="NNO"/>
+    <POWER time="2021-240T07:13:51Z" duration="120" max="1005"/>
+    <SSMM_DUMP_1WAY time="2021-240T07:14:51Z" duration="951" tm_rate="4.8010710481481481E+05"/>
+    <POWER time="2021-240T07:15:51Z" duration="38648" max="1012"/>
+    <OMM_DUMP time="2021-240T07:37:42Z" duration="312" tm_rate="4.8010710481481481E+05"/>
+    <SSMM_DUMP_2WAY time="2021-240T07:42:54Z" duration="14159" tm_rate="4.8010710481481481E+05"/>
+    <EMC_MAND_QUIET time="2021-240T10:00:00Z" duration="3600"/>
+    <EMC_MAND_QUIET time="2021-240T16:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-240T16:30:00Z"/>
+    <POWER time="2021-240T18:00:00Z" duration="43199" max="1021"/>
+    <RSW_EXT_PHI time="2021-241T00:00:00Z" duration="1209600" comment="Synoptics before RSCW4"/>
+    <POWER time="2021-241T06:00:00Z" duration="43199" max="1030"/>
+    <EMC_MAND_QUIET time="2021-241T10:00:00Z" duration="3600"/>
+    <ATT_DIST time="2021-241T16:00:00Z" duration="960"/>
+    <EMC_PREF_NOISY time="2021-241T16:00:00Z" duration="900"/>
+    <HSD_SPICE_OPEN time="2021-241T16:00:00Z" duration="900"/>
+    <RSW_EXT_SPICE time="2021-241T16:00:00Z" duration="1152000"/>
+    <EMC_MAND_QUIET time="2021-241T18:00:00Z" duration="3600"/>
+    <POWER time="2021-241T18:00:00Z" duration="21599" max="1039"/>
+    <IS_COORD_BURST time="2021-241T18:30:00Z"/>
+    <ATT_DIST time="2021-242T00:00:00Z" duration="11100"/>
+    <EMC_PREF_NOISY time="2021-242T00:00:00Z" duration="11100"/>
+    <POWER time="2021-242T00:00:00Z" duration="299" max="950"/>
+    <RSW_EXT_EUI time="2021-242T00:00:00Z" duration="1123200"/>
+    <RSW_EXT_SOLOHI time="2021-242T00:00:00Z" duration="1123200"/>
+    <SLEW time="2021-242T00:00:00Z" duration="300"/>
+    <STP_START time="2021-242T00:00:00Z" stp_number="164"/>
+    <POWER time="2021-242T00:05:00Z" duration="10799" max="996"/>
+    <WOL time="2021-242T00:05:00Z" duration="10800"/>
+    <POWER time="2021-242T03:05:00Z" duration="10499" max="1046"/>
+    <POWER time="2021-242T06:00:00Z" duration="30714" max="1048"/>
+    <EMC_MAND_QUIET time="2021-242T10:00:00Z" duration="3600"/>
+    <POWER time="2021-242T14:31:54Z" duration="120" max="1048"/>
+    <ATT_DIST time="2021-242T14:33:54Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-242T14:33:54Z" duration="2100"/>
+    <HGA_PT time="2021-242T14:33:54Z" duration="2100"/>
+    <POWER time="2021-242T14:33:54Z" duration="2100" max="1003"/>
+    <POWER time="2021-242T15:08:54Z" duration="120" max="1048"/>
+    <PASS time="2021-242T15:08:55Z" duration="32402" dbcode="141" tm_rate="6.2248825989999995E+05" station="MLG"/>
+    <SSMM_DUMP_1WAY time="2021-242T15:09:55Z" duration="915" tm_rate="6.0212887129629625E+05"/>
+    <POWER time="2021-242T15:10:54Z" duration="10145" max="1055"/>
+    <OMM_DUMP time="2021-242T15:32:10Z" duration="891" tm_rate="6.0212887129629625E+05"/>
+    <SSMM_DUMP_2WAY time="2021-242T15:47:01Z" duration="29816" tm_rate="6.0212887129629625E+05"/>
+    <POWER time="2021-242T18:00:00Z" duration="23399" max="1057"/>
+    <EMC_MAND_QUIET time="2021-242T19:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-242T19:30:00Z"/>
+    <ATT_DIST time="2021-243T00:30:00Z" duration="1631"/>
+    <CALIB_ROLL_RS time="2021-243T00:30:00Z" duration="54558" dwell_duration="1800" angle_1_deg="20" angle_8_deg="160" angle_6_deg="120" angle_12_deg="240" angle_3_deg="60" angle_10_deg="200" angle_13_deg="260" angle_0_deg="0" angle_9_deg="180" angle_15_deg="300" angle_17_deg="340" angle_11_deg="220" angle_16_deg="320" angle_2_deg="40" angle_7_deg="140" angle_4_deg="80" angle_5_deg="100" angle_14_deg="280"/>
+    <EMC_PREF_NOISY time="2021-243T00:30:00Z" duration="1331"/>
+    <POWER time="2021-243T00:30:00Z" duration="19799" max="967"/>
+    <ROLL time="2021-243T00:30:00Z" duration="1331" start_roll_deg="-20" comment="added (-20 deg) to account for prior roll angle" end_roll_deg="0"/>
+    <ATT_DIST time="2021-243T01:22:11Z" duration="1631"/>
+    <EMC_PREF_NOISY time="2021-243T01:22:11Z" duration="1331"/>
+    <ROLL time="2021-243T01:22:11Z" duration="1331" start_roll_deg="0" comment="added (-20 deg) to account for prior roll angle" end_roll_deg="20"/>
+    <ATT_DIST time="2021-243T02:14:22Z" duration="1631"/>
+    <EMC_PREF_NOISY time="2021-243T02:14:22Z" duration="1331"/>
+    <ROLL time="2021-243T02:14:22Z" duration="1331" start_roll_deg="20" comment="added (-20 deg) to account for prior roll angle" end_roll_deg="40"/>
+    <ATT_DIST time="2021-243T03:06:33Z" duration="1631"/>
+    <EMC_PREF_NOISY time="2021-243T03:06:33Z" duration="1331"/>
+    <ROLL time="2021-243T03:06:33Z" duration="1331" start_roll_deg="40" comment="added (-20 deg) to account for prior roll angle" end_roll_deg="60"/>
+    <ATT_DIST time="2021-243T03:58:44Z" duration="1631"/>
+    <EMC_PREF_NOISY time="2021-243T03:58:44Z" duration="1331"/>
+    <ROLL time="2021-243T03:58:44Z" duration="1331" start_roll_deg="60" comment="added (-20 deg) to account for prior roll angle" end_roll_deg="80"/>
+    <ATT_DIST time="2021-243T04:50:55Z" duration="1631"/>
+    <EMC_PREF_NOISY time="2021-243T04:50:55Z" duration="1331"/>
+    <ROLL time="2021-243T04:50:55Z" duration="1331" start_roll_deg="80" comment="added (-20 deg) to account for prior roll angle" end_roll_deg="100"/>
+    <ATT_DIST time="2021-243T05:43:06Z" duration="1631"/>
+    <EMC_PREF_NOISY time="2021-243T05:43:06Z" duration="1331"/>
+    <ROLL time="2021-243T05:43:06Z" duration="1331" start_roll_deg="100" comment="added (-20 deg) to account for prior roll angle" end_roll_deg="120"/>
+    <POWER time="2021-243T06:00:00Z" duration="34757" max="971"/>
+    <ATT_DIST time="2021-243T06:35:17Z" duration="1631"/>
+    <EMC_PREF_NOISY time="2021-243T06:35:17Z" duration="1331"/>
+    <ROLL time="2021-243T06:35:17Z" duration="1331" start_roll_deg="120" comment="added (-20 deg) to account for prior roll angle" end_roll_deg="140"/>
+    <ATT_DIST time="2021-243T07:27:28Z" duration="1631"/>
+    <EMC_PREF_NOISY time="2021-243T07:27:28Z" duration="1331"/>
+    <ROLL time="2021-243T07:27:28Z" duration="1331" start_roll_deg="140" comment="added (-20 deg) to account for prior roll angle" end_roll_deg="160"/>
+    <ATT_DIST time="2021-243T08:19:39Z" duration="1631"/>
+    <EMC_PREF_NOISY time="2021-243T08:19:39Z" duration="1331"/>
+    <ROLL time="2021-243T08:19:39Z" duration="1331" start_roll_deg="160" comment="added (-20 deg) to account for prior roll angle" end_roll_deg="180"/>
+    <ATT_DIST time="2021-243T09:11:50Z" duration="1631"/>
+    <EMC_PREF_NOISY time="2021-243T09:11:50Z" duration="1331"/>
+    <ROLL time="2021-243T09:11:50Z" duration="1331" start_roll_deg="180" comment="added (-20 deg) to account for prior roll angle" end_roll_deg="200"/>
+    <ATT_DIST time="2021-243T10:04:01Z" duration="1631"/>
+    <EMC_PREF_NOISY time="2021-243T10:04:01Z" duration="1331"/>
+    <ROLL time="2021-243T10:04:01Z" duration="1331" start_roll_deg="200" comment="added (-20 deg) to account for prior roll angle" end_roll_deg="220"/>
+    <ATT_DIST time="2021-243T10:56:12Z" duration="1631"/>
+    <EMC_PREF_NOISY time="2021-243T10:56:12Z" duration="1331"/>
+    <ROLL time="2021-243T10:56:12Z" duration="1331" start_roll_deg="220" comment="added (-20 deg) to account for prior roll angle" end_roll_deg="240"/>
+    <ATT_DIST time="2021-243T11:48:23Z" duration="1631"/>
+    <EMC_PREF_NOISY time="2021-243T11:48:23Z" duration="1331"/>
+    <ROLL time="2021-243T11:48:23Z" duration="1331" start_roll_deg="240" comment="added (-20 deg) to account for prior roll angle" end_roll_deg="260"/>
+    <ATT_DIST time="2021-243T12:40:34Z" duration="1631"/>
+    <EMC_PREF_NOISY time="2021-243T12:40:34Z" duration="1331"/>
+    <ROLL time="2021-243T12:40:34Z" duration="1331" start_roll_deg="260" comment="added (-20 deg) to account for prior roll angle" end_roll_deg="280"/>
+    <ATT_DIST time="2021-243T13:32:45Z" duration="1631"/>
+    <EMC_PREF_NOISY time="2021-243T13:32:45Z" duration="1331"/>
+    <ROLL time="2021-243T13:32:45Z" duration="1331" start_roll_deg="280" comment="added (-20 deg) to account for prior roll angle" end_roll_deg="300"/>
+    <ATT_DIST time="2021-243T14:24:56Z" duration="1631"/>
+    <EMC_PREF_NOISY time="2021-243T14:24:56Z" duration="1331"/>
+    <ROLL time="2021-243T14:24:56Z" duration="1331" start_roll_deg="300" comment="added (-20 deg) to account for prior roll angle" end_roll_deg="320"/>
+    <ATT_DIST time="2021-243T15:17:07Z" duration="1631"/>
+    <EMC_PREF_NOISY time="2021-243T15:17:07Z" duration="1331"/>
+    <ROLL time="2021-243T15:17:07Z" duration="1331" start_roll_deg="320" comment="added (-20 deg) to account for prior roll angle. This end point now matches -20 deg of ongoing SA radiation-pressure campaign" end_roll_deg="340"/>
+    <POWER time="2021-243T15:39:18Z" duration="8441" max="1072"/>
+    <POWER time="2021-243T18:00:00Z" duration="43199" max="1074"/>
+    <EMC_MAND_QUIET time="2021-243T19:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-243T19:30:00Z"/>
+    <EMC_MAND_QUIET time="2021-243T22:30:00Z" duration="3600"/>
+    <POWER time="2021-244T06:00:00Z" duration="30847" max="1081"/>
+    <EMC_MAND_QUIET time="2021-244T10:00:00Z" duration="3600"/>
+    <POWER time="2021-244T14:34:07Z" duration="120" max="1080"/>
+    <ATT_DIST time="2021-244T14:36:07Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-244T14:36:07Z" duration="2100"/>
+    <HGA_PT time="2021-244T14:36:07Z" duration="2100"/>
+    <POWER time="2021-244T14:36:07Z" duration="2100" max="1036"/>
+    <PASS time="2021-244T15:11:07Z" duration="32403" dbcode="141" tm_rate="6.2248825989999995E+05" station="MLG"/>
+    <POWER time="2021-244T15:11:07Z" duration="120" max="1080"/>
+    <SSMM_DUMP_1WAY time="2021-244T15:12:07Z" duration="885" tm_rate="6.0212887129629625E+05"/>
+    <POWER time="2021-244T15:13:07Z" duration="10012" max="1087"/>
+    <OMM_DUMP time="2021-244T15:33:52Z" duration="742" tm_rate="6.0212887129629625E+05"/>
+    <SSMM_DUMP_2WAY time="2021-244T15:46:14Z" duration="29996" tm_rate="6.0212887129629625E+05"/>
+    <POWER time="2021-244T18:00:00Z" duration="43199" max="1089"/>
+    <EMC_MAND_QUIET time="2021-244T19:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-244T19:30:00Z"/>
+    <POWER time="2021-245T06:00:00Z" duration="43199" max="1096"/>
+    <EMC_MAND_QUIET time="2021-245T10:00:00Z" duration="3600"/>
+    <POWER time="2021-245T18:00:00Z" duration="11100" max="1103"/>
+    <EMC_MAND_QUIET time="2021-245T19:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-245T19:30:00Z"/>
+    <ATT_DIST time="2021-245T21:05:00Z" duration="10800"/>
+    <EMC_PREF_NOISY time="2021-245T21:05:00Z" duration="10800"/>
+    <POWER time="2021-245T21:05:00Z" duration="10800" max="1057"/>
+    <WOL time="2021-245T21:05:00Z" duration="10800"/>
+    <POWER time="2021-246T00:05:00Z" duration="18420" max="1106"/>
+    <POWER time="2021-246T05:12:00Z" duration="120" max="1102"/>
+    <ATT_DIST time="2021-246T05:14:00Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-246T05:14:00Z" duration="2100"/>
+    <HGA_PT time="2021-246T05:14:00Z" duration="2100"/>
+    <POWER time="2021-246T05:14:00Z" duration="2100" max="1058"/>
+    <PASS time="2021-246T05:49:00Z" duration="18002" dbcode="141" tm_rate="6.2248825989999995E+05" station="NNO"/>
+    <POWER time="2021-246T05:49:00Z" duration="120" max="1103"/>
+    <SSMM_DUMP_1WAY time="2021-246T05:50:01Z" duration="860" tm_rate="6.0212887129629625E+05"/>
+    <POWER time="2021-246T05:51:00Z" duration="539" max="1110"/>
+    <POWER time="2021-246T06:00:00Z" duration="20317" max="1110"/>
+    <OMM_DUMP time="2021-246T06:11:21Z" duration="623" tm_rate="6.0212887129629625E+05"/>
+    <SSMM_DUMP_2WAY time="2021-246T06:21:44Z" duration="15738" tm_rate="6.0212887129629625E+05"/>
+    <EMC_MAND_QUIET time="2021-246T08:00:00Z" duration="3600"/>
+    <ATT_DIST time="2021-246T11:38:37Z" duration="600"/>
+    <EMC_PREF_NOISY time="2021-246T11:38:37Z" duration="600"/>
+    <MAINT time="2021-246T11:38:37Z" duration="600" type="SA_RELUBRICATION"/>
+    <POWER time="2021-246T11:38:37Z" duration="600" max="1093"/>
+    <POWER time="2021-246T11:48:37Z" duration="20857" max="1113"/>
+    <POWER time="2021-246T17:36:14Z" duration="120" max="1109"/>
+    <ATT_DIST time="2021-246T17:38:14Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-246T17:38:14Z" duration="2100"/>
+    <HGA_PT time="2021-246T17:38:14Z" duration="2100"/>
+    <POWER time="2021-246T17:38:14Z" duration="1305" max="1065"/>
+    <POWER time="2021-246T18:00:00Z" duration="794" max="1065"/>
+    <POWER time="2021-246T18:13:14Z" duration="120" max="1109"/>
+    <PASS time="2021-246T18:13:15Z" duration="21601" dbcode="141" tm_rate="6.2248825989999995E+05" station="MLG"/>
+    <SSMM_DUMP_1WAY time="2021-246T18:14:15Z" duration="851" tm_rate="6.0212887129629625E+05"/>
+    <POWER time="2021-246T18:15:14Z" duration="42285" max="1116"/>
+    <OMM_DUMP time="2021-246T18:35:26Z" duration="192" tm_rate="6.0212887129629625E+05"/>
+    <SSMM_DUMP_2WAY time="2021-246T18:38:38Z" duration="19779" tm_rate="6.0212887129629625E+05"/>
+    <EMC_MAND_QUIET time="2021-246T19:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-246T19:30:00Z"/>
+    <EMC_MAND_QUIET time="2021-247T00:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-247T00:30:00Z"/>
+    <TAC_RPW time="2021-247T01:00:00Z" duration="86400" volume_MiB="90"/>
+    <POWER time="2021-247T06:00:00Z" duration="43199" max="1122"/>
+    <POWER time="2021-247T18:00:00Z" duration="43199" max="1127"/>
+    <EMC_MAND_QUIET time="2021-247T20:00:00Z" duration="3600"/>
+    <POWER time="2021-248T06:00:00Z" duration="43199" max="1133"/>
+    <EMC_MAND_QUIET time="2021-248T10:00:00Z" duration="3600"/>
+    <POWER time="2021-248T18:00:00Z" duration="21599" max="1138"/>
+    <EMC_MAND_QUIET time="2021-248T19:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-248T19:30:00Z"/>
+    <ATT_DIST time="2021-248T21:30:00Z" duration="1861"/>
+    <EMC_PREF_NOISY time="2021-248T21:30:00Z" duration="1801"/>
+    <HSD_METIS_CLOSE time="2021-248T21:30:00Z" duration="1800" comment="Close Metis before MAINT, TCM, and WOL series."/>
+    <HSD_SPICE_CLOSE time="2021-248T21:30:01Z" duration="1800" comment="Close SPICE and Metis before MAINT window (LUT update)"/>
+    <ATT_DIST time="2021-249T00:00:00Z" duration="11100"/>
+    <EMC_PREF_NOISY time="2021-249T00:00:00Z" duration="11100"/>
+    <POWER time="2021-249T00:00:00Z" duration="299" max="1045"/>
+    <SLEW time="2021-249T00:00:00Z" duration="300"/>
+    <STP_START time="2021-249T00:00:00Z" stp_number="165"/>
+    <POWER time="2021-249T00:05:00Z" duration="10799" max="1092"/>
+    <WOL time="2021-249T00:05:00Z" duration="10800"/>
+    <POWER time="2021-249T03:05:00Z" duration="599" max="1141"/>
+    <ATT_DIST time="2021-249T03:15:00Z" duration="21600"/>
+    <EMC_PREF_NOISY time="2021-249T03:15:00Z" duration="21600"/>
+    <POWER time="2021-249T03:15:00Z" duration="9899" max="1101"/>
+    <TCM time="2021-249T03:15:00Z" duration="21600" comment="first slot after 2021.09.06" type="type-2"/>
+    <POWER time="2021-249T06:00:00Z" duration="11699" max="1102"/>
+    <POWER time="2021-249T09:15:00Z" duration="15103" max="1143"/>
+    <EMC_MAND_QUIET time="2021-249T11:00:00Z" duration="3600" comment="Not SWA compatible due to density of noisy events this day"/>
+    <IS_COORD_BURST time="2021-249T11:30:00Z"/>
+    <EMC_MAND_QUIET time="2021-249T12:15:00Z" duration="3600" comment="Not SWA compatible due to density of noisy events this day"/>
+    <POWER time="2021-249T13:26:43Z" duration="120" max="1138"/>
+    <ATT_DIST time="2021-249T13:28:43Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-249T13:28:43Z" duration="2100"/>
+    <HGA_PT time="2021-249T13:28:43Z" duration="2100"/>
+    <POWER time="2021-249T13:28:43Z" duration="2100" max="1093"/>
+    <PASS time="2021-249T14:03:43Z" duration="32403" dbcode="145" tm_rate="8.2998434649999999E+05" station="MLG"/>
+    <POWER time="2021-249T14:03:43Z" duration="120" max="1138"/>
+    <SSMM_DUMP_1WAY time="2021-249T14:04:43Z" duration="807" tm_rate="8.0588530296296300E+05"/>
+    <POWER time="2021-249T14:05:43Z" duration="313" max="1145"/>
+    <ATT_DIST time="2021-249T14:10:57Z" duration="43200"/>
+    <EMC_PREF_NOISY time="2021-249T14:10:57Z" duration="43200"/>
+    <MAINT time="2021-249T14:10:57Z" duration="43200" comment="first slot after 2021.09.06" type="ANY"/>
+    <POWER time="2021-249T14:10:57Z" duration="13742" max="1139"/>
+    <OMM_DUMP time="2021-249T14:25:10Z" duration="846" tm_rate="8.0588530296296300E+05"/>
+    <SSMM_DUMP_2WAY time="2021-249T14:39:16Z" duration="29970" tm_rate="8.0588530296296300E+05"/>
+    <POWER time="2021-249T18:00:00Z" duration="29456" max="1140"/>
+    <POWER time="2021-250T02:10:57Z" duration="13742" max="1149"/>
+    <ATT_DIST time="2021-250T02:15:00Z" duration="1861"/>
+    <EMC_PREF_NOISY time="2021-250T02:15:00Z" duration="1801"/>
+    <HSD_METIS_OPEN time="2021-250T02:15:00Z" duration="1800" comment="Aligned with SPICE opening, and after MAINT window"/>
+    <HSD_SPICE_OPEN time="2021-250T02:15:01Z" duration="1800" comment="Open after MAINT window (LUT update)"/>
+    <POWER time="2021-250T06:00:00Z" duration="43199" max="1150"/>
+    <EMC_MAND_QUIET time="2021-250T08:30:00Z" duration="3600"/>
+    <POWER time="2021-250T18:00:00Z" duration="43199" max="1153"/>
+    <EMC_MAND_QUIET time="2021-250T19:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-250T19:30:00Z"/>
+    <POWER time="2021-251T06:00:00Z" duration="31258" max="1156"/>
+    <EMC_MAND_QUIET time="2021-251T08:30:00Z" duration="3600"/>
+    <POWER time="2021-251T14:40:58Z" duration="120" max="1151"/>
+    <ATT_DIST time="2021-251T14:42:58Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-251T14:42:58Z" duration="2100"/>
+    <HGA_PT time="2021-251T14:42:58Z" duration="2100"/>
+    <POWER time="2021-251T14:42:58Z" duration="2100" max="1107"/>
+    <PASS time="2021-251T15:17:58Z" duration="32403" dbcode="145" tm_rate="8.2998434649999999E+05" station="MLG"/>
+    <POWER time="2021-251T15:17:58Z" duration="120" max="1151"/>
+    <SSMM_DUMP_1WAY time="2021-251T15:18:58Z" duration="775" tm_rate="8.0588530296296300E+05"/>
+    <POWER time="2021-251T15:19:58Z" duration="9601" max="1158"/>
+    <OMM_DUMP time="2021-251T15:38:53Z" duration="570" tm_rate="8.0588530296296300E+05"/>
+    <SSMM_DUMP_2WAY time="2021-251T15:48:23Z" duration="30278" tm_rate="8.0588530296296300E+05"/>
+    <POWER time="2021-251T18:00:00Z" duration="43199" max="1159"/>
+    <EMC_MAND_QUIET time="2021-251T19:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-251T19:30:00Z"/>
+    <POWER time="2021-252T06:00:00Z" duration="43199" max="1161"/>
+    <EMC_MAND_QUIET time="2021-252T08:30:00Z" duration="3600"/>
+    <POWER time="2021-252T18:00:00Z" duration="10799" max="1162"/>
+    <EMC_MAND_QUIET time="2021-252T19:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-252T19:30:00Z"/>
+    <ATT_DIST time="2021-252T21:00:00Z" duration="14100"/>
+    <EMC_PREF_NOISY time="2021-252T21:00:00Z" duration="13800"/>
+    <POWER time="2021-252T21:00:00Z" duration="10799" max="1115"/>
+    <WOL time="2021-252T21:00:00Z" duration="10800"/>
+    <POWER time="2021-253T00:00:00Z" duration="2999" max="1069"/>
+    <ROLL time="2021-253T00:00:00Z" duration="3000" start_roll_deg="-20" end_roll_deg="-4"/>
+    <POWER time="2021-253T00:50:00Z" duration="18599" max="1163"/>
+    <POWER time="2021-253T06:00:00Z" duration="2815" max="1164"/>
+    <POWER time="2021-253T06:46:55Z" duration="120" max="1157"/>
+    <ATT_DIST time="2021-253T06:48:55Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-253T06:48:55Z" duration="2100"/>
+    <HGA_PT time="2021-253T06:48:55Z" duration="2100"/>
+    <POWER time="2021-253T06:48:55Z" duration="2100" max="1113"/>
+    <PASS time="2021-253T07:23:55Z" duration="16195" dbcode="145" tm_rate="8.2998434649999999E+05" station="NNO"/>
+    <POWER time="2021-253T07:23:55Z" duration="120" max="1157"/>
+    <SSMM_DUMP_1WAY time="2021-253T07:24:55Z" duration="747" tm_rate="8.0588530296296300E+05"/>
+    <POWER time="2021-253T07:25:55Z" duration="26199" max="1164"/>
+    <OMM_DUMP time="2021-253T07:44:22Z" duration="484" tm_rate="8.0588530296296300E+05"/>
+    <SSMM_DUMP_2WAY time="2021-253T07:52:26Z" duration="14184" tm_rate="8.0588530296296300E+05"/>
+    <EMC_MAND_QUIET time="2021-253T08:30:00Z" duration="3600"/>
+    <POWER time="2021-253T14:42:34Z" duration="120" max="1157"/>
+    <ATT_DIST time="2021-253T14:44:34Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-253T14:44:34Z" duration="2100"/>
+    <HGA_PT time="2021-253T14:44:34Z" duration="2100"/>
+    <POWER time="2021-253T14:44:34Z" duration="2100" max="1113"/>
+    <PASS time="2021-253T15:19:34Z" duration="28127" dbcode="145" tm_rate="8.2998434649999999E+05" station="MLG"/>
+    <POWER time="2021-253T15:19:34Z" duration="120" max="1157"/>
+    <SSMM_DUMP_1WAY time="2021-253T15:20:34Z" duration="743" tm_rate="8.0588530296296300E+05"/>
+    <POWER time="2021-253T15:21:34Z" duration="9505" max="1164"/>
+    <OMM_DUMP time="2021-253T15:39:57Z" duration="91" tm_rate="8.0588530296296300E+05"/>
+    <SSMM_DUMP_2WAY time="2021-253T15:41:28Z" duration="26513" tm_rate="8.0588530296296300E+05"/>
+    <POWER time="2021-253T18:00:00Z" duration="43199" max="1164"/>
+    <EMC_MAND_QUIET time="2021-253T19:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-253T19:30:00Z"/>
+    <POWER time="2021-254T06:00:00Z" duration="21805" max="1165"/>
+    <EMC_MAND_QUIET time="2021-254T08:30:00Z" duration="3600"/>
+    <POWER time="2021-254T12:03:25Z" duration="120" max="1158"/>
+    <ATT_DIST time="2021-254T12:05:25Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-254T12:05:25Z" duration="2100"/>
+    <HGA_PT time="2021-254T12:05:25Z" duration="2100"/>
+    <POWER time="2021-254T12:05:25Z" duration="2100" max="1114"/>
+    <POWER time="2021-254T12:40:25Z" duration="120" max="1158"/>
+    <PASS time="2021-254T12:40:26Z" duration="13921" dbcode="145" tm_rate="8.2998434649999999E+05" station="MLG"/>
+    <SSMM_DUMP_1WAY time="2021-254T12:41:26Z" duration="727" tm_rate="8.0588530296296300E+05"/>
+    <POWER time="2021-254T12:42:25Z" duration="19054" max="1165"/>
+    <OMM_DUMP time="2021-254T13:00:33Z" duration="247" tm_rate="8.0588530296296300E+05"/>
+    <SSMM_DUMP_2WAY time="2021-254T13:04:40Z" duration="12167" tm_rate="8.0588530296296300E+05"/>
+    <POWER time="2021-254T18:00:00Z" duration="43199" max="1165"/>
+    <EMC_MAND_QUIET time="2021-254T19:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-254T19:30:00Z"/>
+    <RSW_START time="2021-255T00:00:00Z"/>
+    <TAC_EUI time="2021-255T00:00:00Z" duration="540" volume_MiB="31"/>
+    <TAC_SPICE time="2021-255T03:00:00Z" duration="3600" comment="Covering FIRST_LIGHT and FLAT_COLD" volume_MiB="37"/>
+    <POWER time="2021-255T06:00:00Z" duration="17913" max="1165"/>
+    <EMC_MAND_QUIET time="2021-255T08:30:00Z" duration="3600"/>
+    <POWER time="2021-255T10:58:33Z" duration="120" max="1157"/>
+    <ATT_DIST time="2021-255T11:00:33Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-255T11:00:33Z" duration="2100"/>
+    <HGA_PT time="2021-255T11:00:33Z" duration="2100"/>
+    <POWER time="2021-255T11:00:33Z" duration="2100" max="1113"/>
+    <PASS time="2021-255T11:35:33Z" duration="17642" dbcode="145" tm_rate="8.2998434649999999E+05" station="CEB"/>
+    <POWER time="2021-255T11:35:33Z" duration="120" max="1157"/>
+    <SSMM_DUMP_1WAY time="2021-255T11:36:33Z" duration="713" tm_rate="8.0588530296296300E+05"/>
+    <POWER time="2021-255T11:37:33Z" duration="22946" max="1164"/>
+    <OMM_DUMP time="2021-255T11:55:26Z" duration="265" tm_rate="8.0588530296296300E+05"/>
+    <SSMM_DUMP_2WAY time="2021-255T11:59:51Z" duration="15884" tm_rate="8.0588530296296300E+05"/>
+    <POWER time="2021-255T18:00:00Z" duration="43199" max="1164"/>
+    <EMC_MAND_QUIET time="2021-255T19:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-255T19:30:00Z"/>
+    <TAC_PHI time="2021-256T01:00:00Z" duration="3600" volume_MiB="30"/>
+    <CALIB_OFFPOI_FLATFIELD time="2021-256T06:00:00Z" duration="3300" variant="full-disk"/>
+    <POINT_CENTRE time="2021-256T06:00:00Z" duration="60" metis_compatible="YES" boresight="SC"/>
+    <POWER time="2021-256T06:00:00Z" duration="22029" max="1163"/>
+    <ATT_DIST time="2021-256T06:01:00Z" duration="3300"/>
+    <EMC_PREF_NOISY time="2021-256T06:01:00Z" duration="300"/>
+    <SLEW time="2021-256T06:01:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-256T06:06:00Z" duration="60" metis_compatible="YES" boresight="SC" pattern="EUI_PHI_flat_field_cal" comment="full-disk variant, offpoint documented in TN"/>
+    <EMC_PREF_NOISY time="2021-256T06:07:00Z" duration="300"/>
+    <SLEW time="2021-256T06:07:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-256T06:12:00Z" duration="60" metis_compatible="YES" boresight="SC" pattern="EUI_PHI_flat_field_cal" comment="full-disk variant, offpoint documented in TN"/>
+    <EMC_PREF_NOISY time="2021-256T06:13:00Z" duration="300"/>
+    <SLEW time="2021-256T06:13:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-256T06:18:00Z" duration="60" metis_compatible="YES" boresight="SC" pattern="EUI_PHI_flat_field_cal" comment="full-disk variant, offpoint documented in TN"/>
+    <EMC_PREF_NOISY time="2021-256T06:19:00Z" duration="300"/>
+    <SLEW time="2021-256T06:19:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-256T06:24:00Z" duration="60" metis_compatible="YES" boresight="SC" pattern="EUI_PHI_flat_field_cal" comment="full-disk variant, offpoint documented in TN"/>
+    <EMC_PREF_NOISY time="2021-256T06:25:00Z" duration="300"/>
+    <SLEW time="2021-256T06:25:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-256T06:30:00Z" duration="60" metis_compatible="YES" boresight="SC" pattern="EUI_PHI_flat_field_cal" comment="full-disk variant, offpoint documented in TN"/>
+    <EMC_PREF_NOISY time="2021-256T06:31:00Z" duration="300"/>
+    <SLEW time="2021-256T06:31:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-256T06:36:00Z" duration="60" metis_compatible="YES" boresight="SC" pattern="EUI_PHI_flat_field_cal" comment="full-disk variant, offpoint documented in TN"/>
+    <EMC_PREF_NOISY time="2021-256T06:37:00Z" duration="300"/>
+    <SLEW time="2021-256T06:37:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-256T06:42:00Z" duration="60" metis_compatible="YES" boresight="SC" pattern="EUI_PHI_flat_field_cal" comment="full-disk variant, offpoint documented in TN"/>
+    <EMC_PREF_NOISY time="2021-256T06:43:00Z" duration="300"/>
+    <SLEW time="2021-256T06:43:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-256T06:48:00Z" duration="60" metis_compatible="YES" boresight="SC" pattern="EUI_PHI_flat_field_cal" comment="full-disk variant, offpoint documented in TN"/>
+    <EMC_PREF_NOISY time="2021-256T06:49:00Z" duration="300"/>
+    <SLEW time="2021-256T06:49:00Z" duration="300"/>
+    <POINT_CENTRE time="2021-256T06:54:00Z" duration="60" metis_compatible="YES" boresight="SC"/>
+    <CALIB_OFFPOI_FLATFIELD time="2021-256T07:00:00Z" duration="3300" variant="EUI-HRI"/>
+    <POINT_CENTRE time="2021-256T07:00:00Z" duration="60" metis_compatible="YES" boresight="SC"/>
+    <ATT_DIST time="2021-256T07:01:00Z" duration="3300"/>
+    <EMC_PREF_NOISY time="2021-256T07:01:00Z" duration="300"/>
+    <SLEW time="2021-256T07:01:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-256T07:06:00Z" duration="60" metis_compatible="YES" boresight="SC" pattern="EUI_PHI_flat_field_cal" comment="EUI-HRI variant, offpoint documented in TN"/>
+    <EMC_PREF_NOISY time="2021-256T07:07:00Z" duration="300"/>
+    <SLEW time="2021-256T07:07:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-256T07:12:00Z" duration="60" metis_compatible="YES" boresight="SC" pattern="EUI_PHI_flat_field_cal" comment="EUI-HRI variant, offpoint documented in TN"/>
+    <EMC_PREF_NOISY time="2021-256T07:13:00Z" duration="300"/>
+    <SLEW time="2021-256T07:13:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-256T07:18:00Z" duration="60" metis_compatible="YES" boresight="SC" pattern="EUI_PHI_flat_field_cal" comment="EUI-HRI variant, offpoint documented in TN"/>
+    <EMC_PREF_NOISY time="2021-256T07:19:00Z" duration="300"/>
+    <SLEW time="2021-256T07:19:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-256T07:24:00Z" duration="60" metis_compatible="YES" boresight="SC" pattern="EUI_PHI_flat_field_cal" comment="EUI-HRI variant, offpoint documented in TN"/>
+    <EMC_PREF_NOISY time="2021-256T07:25:00Z" duration="300"/>
+    <SLEW time="2021-256T07:25:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-256T07:30:00Z" duration="60" metis_compatible="YES" boresight="SC" pattern="EUI_PHI_flat_field_cal" comment="EUI-HRI variant, offpoint documented in TN"/>
+    <EMC_PREF_NOISY time="2021-256T07:31:00Z" duration="300"/>
+    <SLEW time="2021-256T07:31:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-256T07:36:00Z" duration="60" metis_compatible="YES" boresight="SC" pattern="EUI_PHI_flat_field_cal" comment="EUI-HRI variant, offpoint documented in TN"/>
+    <EMC_PREF_NOISY time="2021-256T07:37:00Z" duration="300"/>
+    <SLEW time="2021-256T07:37:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-256T07:42:00Z" duration="60" metis_compatible="YES" boresight="SC" pattern="EUI_PHI_flat_field_cal" comment="EUI-HRI variant, offpoint documented in TN"/>
+    <EMC_PREF_NOISY time="2021-256T07:43:00Z" duration="300"/>
+    <SLEW time="2021-256T07:43:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-256T07:48:00Z" duration="60" metis_compatible="YES" boresight="SC" pattern="EUI_PHI_flat_field_cal" comment="EUI-HRI variant, offpoint documented in TN"/>
+    <EMC_PREF_NOISY time="2021-256T07:49:00Z" duration="300"/>
+    <SLEW time="2021-256T07:49:00Z" duration="300"/>
+    <POINT_CENTRE time="2021-256T07:54:00Z" duration="60" metis_compatible="YES" boresight="SC"/>
+    <EMC_MAND_QUIET time="2021-256T09:30:00Z" duration="3600"/>
+    <POWER time="2021-256T12:07:09Z" duration="120" max="1155"/>
+    <ATT_DIST time="2021-256T12:09:09Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-256T12:09:09Z" duration="2100"/>
+    <HGA_PT time="2021-256T12:09:09Z" duration="2100"/>
+    <POWER time="2021-256T12:09:09Z" duration="2100" max="1111"/>
+    <POWER time="2021-256T12:44:09Z" duration="120" max="1155"/>
+    <PASS time="2021-256T12:44:10Z" duration="41796" dbcode="145" tm_rate="8.2998434649999999E+05" station="MLG"/>
+    <SSMM_DUMP_1WAY time="2021-256T12:45:10Z" duration="695" tm_rate="8.0588530296296300E+05"/>
+    <POWER time="2021-256T12:46:09Z" duration="18830" max="1162"/>
+    <OMM_DUMP time="2021-256T13:03:45Z" duration="291" tm_rate="8.0588530296296300E+05"/>
+    <SSMM_DUMP_2WAY time="2021-256T13:08:36Z" duration="40030" tm_rate="8.0588530296296300E+05"/>
+    <POWER time="2021-256T18:00:00Z" duration="43199" max="1161"/>
+    <EMC_MAND_QUIET time="2021-256T22:30:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-256T23:00:00Z"/>
+    <ATT_DIST time="2021-257T01:00:00Z" duration="420"/>
+    <CALIB_OFFPOI_ALIGNMENT time="2021-257T01:00:00Z" duration="31800"/>
+    <EMC_PREF_NOISY time="2021-257T01:00:00Z" duration="300"/>
+    <SLEW time="2021-257T01:00:00Z" duration="300"/>
+    <POINT_CENTRE time="2021-257T01:05:00Z" duration="6000" metis_compatible="YES" boresight="SC"/>
+    <ATT_DIST time="2021-257T02:45:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-257T02:45:00Z" duration="300"/>
+    <SLEW time="2021-257T02:45:00Z" duration="300"/>
+    <POINT_LIMB time="2021-257T02:50:00Z" duration="6000" metis_compatible="YES" boresight="SC" comment="off-point to limb along SC +Z" limb_direction="NORTH"/>
+    <ATT_DIST time="2021-257T04:30:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-257T04:30:00Z" duration="300"/>
+    <SLEW time="2021-257T04:30:00Z" duration="300"/>
+    <POINT_LIMB time="2021-257T04:35:00Z" duration="6000" metis_compatible="YES" boresight="SC" comment="off-point to limb along SC -Z" limb_direction="SOUTH"/>
+    <POWER time="2021-257T06:00:00Z" duration="21902" max="1159"/>
+    <ATT_DIST time="2021-257T06:15:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-257T06:15:00Z" duration="300"/>
+    <SLEW time="2021-257T06:15:00Z" duration="300"/>
+    <POINT_LIMB time="2021-257T06:20:00Z" duration="6000" metis_compatible="YES" boresight="SC" comment="off-point to limb along SC -Y" limb_direction="WEST"/>
+    <ATT_DIST time="2021-257T08:00:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-257T08:00:00Z" duration="300"/>
+    <SLEW time="2021-257T08:00:00Z" duration="300"/>
+    <POINT_LIMB time="2021-257T08:05:00Z" duration="6000" metis_compatible="YES" boresight="SC" comment="off-point to limb along SC +Y" limb_direction="EAST"/>
+    <ATT_DIST time="2021-257T09:45:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-257T09:45:00Z" duration="300"/>
+    <SLEW time="2021-257T09:45:00Z" duration="300"/>
+    <TAC_PHI time="2021-257T11:59:30Z" duration="2550" comment="corrected to avoid start of pass" volume_MiB="30"/>
+    <POWER time="2021-257T12:05:02Z" duration="120" max="1151"/>
+    <ATT_DIST time="2021-257T12:07:02Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-257T12:07:02Z" duration="2100"/>
+    <HGA_PT time="2021-257T12:07:02Z" duration="2100"/>
+    <POWER time="2021-257T12:07:02Z" duration="2100" max="1107"/>
+    <POWER time="2021-257T12:42:02Z" duration="120" max="1151"/>
+    <PASS time="2021-257T12:42:03Z" duration="37850" dbcode="145" tm_rate="8.2998434649999999E+05" station="MLG"/>
+    <SSMM_DUMP_1WAY time="2021-257T12:43:03Z" duration="679" tm_rate="8.0588530296296300E+05"/>
+    <POWER time="2021-257T12:44:02Z" duration="18957" max="1158"/>
+    <OMM_DUMP time="2021-257T13:01:22Z" duration="278" tm_rate="8.0588530296296300E+05"/>
+    <SSMM_DUMP_2WAY time="2021-257T13:06:00Z" duration="36113" tm_rate="8.0588530296296300E+05"/>
+    <EMC_MAND_QUIET time="2021-257T16:00:00Z" duration="3600"/>
+    <POWER time="2021-257T18:00:00Z" duration="21599" max="1156"/>
+    <EMC_MAND_QUIET time="2021-257T19:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-257T19:30:00Z"/>
+    <ATT_DIST time="2021-258T00:00:00Z" duration="11520" comment="Covers slew+WOL+slew"/>
+    <EMC_PREF_NOISY time="2021-258T00:00:00Z" duration="11400"/>
+    <POWER time="2021-258T00:00:00Z" duration="299" max="1061"/>
+    <PTR_START time="2021-258T00:00:00Z" rsw_number="0"/>
+    <SLEW time="2021-258T00:00:00Z" duration="300"/>
+    <STP_START time="2021-258T00:00:00Z" stp_number="166"/>
+    <POWER time="2021-258T00:05:00Z" duration="10799" max="1108"/>
+    <WOL time="2021-258T00:05:00Z" duration="10800"/>
+    <POWER time="2021-258T03:05:00Z" duration="6027" max="1154"/>
+    <SLEW time="2021-258T03:05:00Z" duration="300" comment="INSERTED BY SOC before the POINT_CENTRE event"/>
+    <POINT_CENTRE time="2021-258T03:10:00Z" duration="28200" metis_compatible="YES" boresight="SC" comment="Delayed start until WOL finishes"/>
+    <POWER time="2021-258T04:45:27Z" duration="120" max="1147"/>
+    <ATT_DIST time="2021-258T04:47:27Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-258T04:47:27Z" duration="2100"/>
+    <HGA_PT time="2021-258T04:47:27Z" duration="2100"/>
+    <POWER time="2021-258T04:47:27Z" duration="2100" max="1103"/>
+    <PASS time="2021-258T05:22:27Z" duration="19459" dbcode="145" tm_rate="8.2998434649999999E+05" station="NNO"/>
+    <POWER time="2021-258T05:22:27Z" duration="120" max="1147"/>
+    <SSMM_DUMP_1WAY time="2021-258T05:23:27Z" duration="669" tm_rate="8.0588530296296300E+05"/>
+    <POWER time="2021-258T05:24:27Z" duration="2132" max="1154"/>
+    <OMM_DUMP time="2021-258T05:41:36Z" duration="213" tm_rate="8.0588530296296300E+05"/>
+    <SSMM_DUMP_2WAY time="2021-258T05:45:09Z" duration="17797" tm_rate="8.0588530296296300E+05"/>
+    <POWER time="2021-258T06:00:00Z" duration="41926" max="1154"/>
+    <EMC_MAND_QUIET time="2021-258T08:30:00Z" duration="3600"/>
+    <ATT_DIST time="2021-258T11:00:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-258T11:00:00Z" duration="300"/>
+    <VSTP_UPDATE time="2021-258T11:00:00Z" duration="300" rsw_number="0" sync_number="1"/>
+    <POINT_FEATURE time="2021-258T11:05:00Z" duration="86100" feature_class="QUIET" metis_compatible="YES" boresight="SC" comment="For RSW Dress rehearsal, Slow Solar wind SOOP. VSTP_UPDATE is time of slew."/>
+    <POWER time="2021-258T17:38:46Z" duration="120" max="1144"/>
+    <ATT_DIST time="2021-258T17:40:46Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-258T17:40:46Z" duration="2100"/>
+    <HGA_PT time="2021-258T17:40:46Z" duration="2100"/>
+    <POWER time="2021-258T17:40:46Z" duration="1153" max="1099"/>
+    <POWER time="2021-258T18:00:00Z" duration="946" max="1099"/>
+    <POWER time="2021-258T18:15:46Z" duration="120" max="1144"/>
+    <PASS time="2021-258T18:15:47Z" duration="21602" dbcode="145" tm_rate="8.2998434649999999E+05" station="MLG"/>
+    <SSMM_DUMP_1WAY time="2021-258T18:16:47Z" duration="659" tm_rate="8.0588530296296300E+05"/>
+    <POWER time="2021-258T18:17:46Z" duration="42133" max="1150"/>
+    <OMM_DUMP time="2021-258T18:34:46Z" duration="150" tm_rate="8.0588530296296300E+05"/>
+    <SSMM_DUMP_2WAY time="2021-258T18:37:16Z" duration="20013" tm_rate="8.0588530296296300E+05"/>
+    <EMC_MAND_QUIET time="2021-258T20:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-258T20:30:00Z"/>
+    <PASS time="2021-259T00:20:49Z" duration="37516" dbcode="145" tm_rate="8.2998434649999999E+05" station="NNO"/>
+    <SSMM_DUMP_1WAY time="2021-259T00:21:49Z" duration="655" tm_rate="8.0588530296296300E+05"/>
+    <OMM_DUMP time="2021-259T00:39:44Z" duration="71" tm_rate="8.0588530296296300E+05"/>
+    <SSMM_DUMP_2WAY time="2021-259T00:40:55Z" duration="36010" tm_rate="8.0588530296296300E+05"/>
+    <POWER time="2021-259T06:00:00Z" duration="43199" max="1147"/>
+    <EMC_MAND_QUIET time="2021-259T08:30:00Z" duration="3600"/>
+    <ATT_DIST time="2021-259T11:00:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-259T11:00:00Z" duration="300"/>
+    <VSTP_UPDATE time="2021-259T11:00:00Z" duration="300" rsw_number="0" sync_number="2"/>
+    <POINT_FEATURE time="2021-259T11:05:00Z" duration="215700" feature_class="QUIET" metis_compatible="YES" boresight="SC" comment="For RSW Dress rehearsal, Slow Solar wind SOOP. VSTP_UPDATE is time of slew."/>
+    <POWER time="2021-259T18:00:00Z" duration="43199" max="1143"/>
+    <EMC_MAND_QUIET time="2021-259T19:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-259T19:30:00Z"/>
+    <POWER time="2021-260T06:00:00Z" duration="21508" max="1138"/>
+    <EMC_MAND_QUIET time="2021-260T08:30:00Z" duration="3600"/>
+    <POWER time="2021-260T11:58:28Z" duration="120" max="1129"/>
+    <ATT_DIST time="2021-260T12:00:28Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-260T12:00:28Z" duration="2100"/>
+    <HGA_PT time="2021-260T12:00:28Z" duration="2100"/>
+    <POWER time="2021-260T12:00:28Z" duration="2100" max="1085"/>
+    <POWER time="2021-260T12:35:28Z" duration="120" max="1129"/>
+    <PASS time="2021-260T12:35:29Z" duration="38448" dbcode="146" tm_rate="9.9598121580000001E+05" station="MLG"/>
+    <SSMM_DUMP_1WAY time="2021-260T12:36:29Z" duration="631" tm_rate="9.6897079740740743E+05"/>
+    <POWER time="2021-260T12:37:28Z" duration="19351" max="1136"/>
+    <OMM_DUMP time="2021-260T12:54:00Z" duration="350" tm_rate="9.6897079740740743E+05"/>
+    <SSMM_DUMP_2WAY time="2021-260T12:59:50Z" duration="36687" tm_rate="9.6897079740740743E+05"/>
+    <POWER time="2021-260T18:00:00Z" duration="20387" max="1134"/>
+    <EMC_MAND_QUIET time="2021-260T19:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-260T19:30:00Z"/>
+    <POWER time="2021-260T23:39:47Z" duration="120" max="1124"/>
+    <ATT_DIST time="2021-260T23:41:47Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-260T23:41:47Z" duration="2100"/>
+    <HGA_PT time="2021-260T23:41:47Z" duration="2100"/>
+    <POWER time="2021-260T23:41:47Z" duration="2100" max="1080"/>
+    <PASS time="2021-261T00:16:47Z" duration="32403" dbcode="145" tm_rate="8.2998434649999999E+05" station="NNO"/>
+    <POWER time="2021-261T00:16:47Z" duration="120" max="1124"/>
+    <SSMM_DUMP_1WAY time="2021-261T00:17:48Z" duration="624" tm_rate="8.0588530296296300E+05"/>
+    <POWER time="2021-261T00:18:47Z" duration="20472" max="1131"/>
+    <OMM_DUMP time="2021-261T00:35:12Z" duration="135" tm_rate="8.0588530296296300E+05"/>
+    <SSMM_DUMP_2WAY time="2021-261T00:37:27Z" duration="30864" tm_rate="8.0588530296296300E+05"/>
+    <POWER time="2021-261T06:00:00Z" duration="43199" max="1128"/>
+    <EMC_MAND_QUIET time="2021-261T08:30:00Z" duration="3600"/>
+    <POWER time="2021-261T18:00:00Z" duration="17999" max="1123"/>
+    <EMC_MAND_QUIET time="2021-261T19:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-261T19:30:00Z"/>
+    <ATT_DIST time="2021-261T23:00:00Z" duration="11100"/>
+    <EMC_PREF_NOISY time="2021-261T23:00:00Z" duration="11100"/>
+    <POWER time="2021-261T23:00:00Z" duration="299" max="1026"/>
+    <PTR_END time="2021-261T23:00:00Z"/>
+    <SLEW time="2021-261T23:00:00Z" duration="300"/>
+    <STP_START time="2021-261T23:00:00Z" stp_number="167"/>
+    <POWER time="2021-261T23:05:00Z" duration="10799" max="1073"/>
+    <WOL time="2021-261T23:05:00Z" duration="10800"/>
+    <POWER time="2021-262T02:05:00Z" duration="86" max="1119"/>
+    <POWER time="2021-262T02:06:26Z" duration="120" max="1112"/>
+    <ATT_DIST time="2021-262T02:08:26Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-262T02:08:26Z" duration="2100"/>
+    <HGA_PT time="2021-262T02:08:26Z" duration="2100"/>
+    <POWER time="2021-262T02:08:26Z" duration="2100" max="1068"/>
+    <PASS time="2021-262T02:43:26Z" duration="23479" dbcode="145" tm_rate="8.2998434649999999E+05" station="NNO"/>
+    <POWER time="2021-262T02:43:26Z" duration="120" max="1112"/>
+    <SSMM_DUMP_1WAY time="2021-262T02:44:26Z" duration="607" tm_rate="8.0588530296296300E+05"/>
+    <POWER time="2021-262T02:45:26Z" duration="11673" max="1119"/>
+    <OMM_DUMP time="2021-262T03:01:33Z" duration="326" tm_rate="8.0588530296296300E+05"/>
+    <SSMM_DUMP_2WAY time="2021-262T03:06:59Z" duration="21766" tm_rate="8.0588530296296300E+05"/>
+    <POWER time="2021-262T06:00:00Z" duration="43199" max="1117"/>
+    <EMC_MAND_QUIET time="2021-262T07:30:00Z" duration="3600"/>
+    <ATT_DIST time="2021-262T09:30:00Z" duration="420"/>
+    <CALIB_OFFPOI_STRAYLIGHT time="2021-262T09:30:00Z" duration="20100" N="5"/>
+    <EMC_PREF_NOISY time="2021-262T09:30:00Z" duration="300"/>
+    <SLEW time="2021-262T09:30:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-262T09:35:00Z" duration="600" metis_compatible="STRAYLIGHT" boresight="SC" pattern="METIS_SOLOHI_straylight_cal"/>
+    <ATT_DIST time="2021-262T09:45:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-262T09:45:00Z" duration="300"/>
+    <SLEW time="2021-262T09:45:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-262T09:50:00Z" duration="600" metis_compatible="STRAYLIGHT" boresight="SC" pattern="METIS_SOLOHI_straylight_cal"/>
+    <ATT_DIST time="2021-262T10:00:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-262T10:00:00Z" duration="300"/>
+    <SLEW time="2021-262T10:00:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-262T10:05:00Z" duration="600" metis_compatible="STRAYLIGHT" boresight="SC" pattern="METIS_SOLOHI_straylight_cal"/>
+    <ATT_DIST time="2021-262T10:15:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-262T10:15:00Z" duration="300"/>
+    <SLEW time="2021-262T10:15:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-262T10:20:00Z" duration="600" metis_compatible="STRAYLIGHT" boresight="SC" pattern="METIS_SOLOHI_straylight_cal"/>
+    <ATT_DIST time="2021-262T10:30:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-262T10:30:00Z" duration="300"/>
+    <SLEW time="2021-262T10:30:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-262T10:35:00Z" duration="600" metis_compatible="STRAYLIGHT" boresight="SC" pattern="METIS_SOLOHI_straylight_cal"/>
+    <ATT_DIST time="2021-262T10:45:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-262T10:45:00Z" duration="300"/>
+    <SLEW time="2021-262T10:45:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-262T10:50:00Z" duration="600" metis_compatible="STRAYLIGHT" boresight="SC" pattern="METIS_SOLOHI_straylight_cal"/>
+    <ATT_DIST time="2021-262T11:00:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-262T11:00:00Z" duration="300"/>
+    <SLEW time="2021-262T11:00:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-262T11:05:00Z" duration="600" metis_compatible="STRAYLIGHT" boresight="SC" pattern="METIS_SOLOHI_straylight_cal"/>
+    <ATT_DIST time="2021-262T11:15:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-262T11:15:00Z" duration="300"/>
+    <SLEW time="2021-262T11:15:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-262T11:20:00Z" duration="600" metis_compatible="STRAYLIGHT" boresight="SC" pattern="METIS_SOLOHI_straylight_cal"/>
+    <ATT_DIST time="2021-262T11:30:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-262T11:30:00Z" duration="300"/>
+    <SLEW time="2021-262T11:30:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-262T11:35:00Z" duration="600" metis_compatible="STRAYLIGHT" boresight="SC" pattern="METIS_SOLOHI_straylight_cal"/>
+    <ATT_DIST time="2021-262T11:45:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-262T11:45:00Z" duration="300"/>
+    <SLEW time="2021-262T11:45:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-262T11:50:00Z" duration="600" metis_compatible="STRAYLIGHT" boresight="SC" pattern="METIS_SOLOHI_straylight_cal"/>
+    <ATT_DIST time="2021-262T12:00:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-262T12:00:00Z" duration="300"/>
+    <SLEW time="2021-262T12:00:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-262T12:05:00Z" duration="600" metis_compatible="STRAYLIGHT" boresight="SC" pattern="METIS_SOLOHI_straylight_cal"/>
+    <ATT_DIST time="2021-262T12:15:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-262T12:15:00Z" duration="300"/>
+    <SLEW time="2021-262T12:15:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-262T12:20:00Z" duration="600" metis_compatible="STRAYLIGHT" boresight="SC" pattern="METIS_SOLOHI_straylight_cal"/>
+    <ATT_DIST time="2021-262T12:30:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-262T12:30:00Z" duration="300"/>
+    <SLEW time="2021-262T12:30:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-262T12:35:00Z" duration="600" metis_compatible="STRAYLIGHT" boresight="SC" pattern="METIS_SOLOHI_straylight_cal"/>
+    <ATT_DIST time="2021-262T12:45:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-262T12:45:00Z" duration="300"/>
+    <SLEW time="2021-262T12:45:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-262T12:50:00Z" duration="600" metis_compatible="STRAYLIGHT" boresight="SC" pattern="METIS_SOLOHI_straylight_cal"/>
+    <ATT_DIST time="2021-262T13:00:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-262T13:00:00Z" duration="300"/>
+    <SLEW time="2021-262T13:00:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-262T13:05:00Z" duration="600" metis_compatible="STRAYLIGHT" boresight="SC" pattern="METIS_SOLOHI_straylight_cal"/>
+    <ATT_DIST time="2021-262T13:15:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-262T13:15:00Z" duration="300"/>
+    <SLEW time="2021-262T13:15:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-262T13:20:00Z" duration="600" metis_compatible="STRAYLIGHT" boresight="SC" pattern="METIS_SOLOHI_straylight_cal"/>
+    <ATT_DIST time="2021-262T13:30:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-262T13:30:00Z" duration="300"/>
+    <SLEW time="2021-262T13:30:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-262T13:35:00Z" duration="600" metis_compatible="STRAYLIGHT" boresight="SC" pattern="METIS_SOLOHI_straylight_cal"/>
+    <ATT_DIST time="2021-262T13:45:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-262T13:45:00Z" duration="300"/>
+    <SLEW time="2021-262T13:45:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-262T13:50:00Z" duration="600" metis_compatible="STRAYLIGHT" boresight="SC" pattern="METIS_SOLOHI_straylight_cal"/>
+    <ATT_DIST time="2021-262T14:00:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-262T14:00:00Z" duration="300"/>
+    <SLEW time="2021-262T14:00:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-262T14:05:00Z" duration="600" metis_compatible="STRAYLIGHT" boresight="SC" pattern="METIS_SOLOHI_straylight_cal"/>
+    <ATT_DIST time="2021-262T14:15:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-262T14:15:00Z" duration="300"/>
+    <SLEW time="2021-262T14:15:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-262T14:20:00Z" duration="600" metis_compatible="STRAYLIGHT" boresight="SC" pattern="METIS_SOLOHI_straylight_cal"/>
+    <ATT_DIST time="2021-262T14:30:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-262T14:30:00Z" duration="300"/>
+    <SLEW time="2021-262T14:30:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-262T14:35:00Z" duration="600" metis_compatible="STRAYLIGHT" boresight="SC" pattern="METIS_SOLOHI_straylight_cal"/>
+    <ATT_DIST time="2021-262T14:45:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-262T14:45:00Z" duration="300"/>
+    <SLEW time="2021-262T14:45:00Z" duration="300"/>
+    <POINT_PATTERN time="2021-262T14:50:00Z" duration="600" metis_compatible="STRAYLIGHT" boresight="SC" pattern="METIS_SOLOHI_straylight_cal"/>
+    <ATT_DIST time="2021-262T15:00:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-262T15:00:00Z" duration="300"/>
+    <SLEW time="2021-262T15:00:00Z" duration="300"/>
+    <ATT_DIST time="2021-262T16:30:00Z" duration="420"/>
+    <CALIB_OFFPOI_OOF time="2021-262T16:30:00Z" duration="11400" limb_direction="EAST"/>
+    <EMC_PREF_NOISY time="2021-262T16:30:00Z" duration="300"/>
+    <SLEW time="2021-262T16:30:00Z" duration="300"/>
+    <POINT_LIMB time="2021-262T16:35:00Z" duration="10800" metis_compatible="YES" boresight="SC" comment="off-point to limb along SC +Y" limb_direction="EAST"/>
+    <POWER time="2021-262T18:00:00Z" duration="21599" max="1111"/>
+    <ATT_DIST time="2021-262T19:35:00Z" duration="420"/>
+    <EMC_PREF_NOISY time="2021-262T19:35:00Z" duration="300"/>
+    <SLEW time="2021-262T19:35:00Z" duration="300"/>
+    <EMC_MAND_QUIET time="2021-262T22:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-262T22:30:00Z"/>
+    <ATT_DIST time="2021-263T00:00:00Z" duration="3300"/>
+    <EMC_PREF_NOISY time="2021-263T00:00:00Z" duration="3000"/>
+    <POWER time="2021-263T00:00:00Z" duration="2999" max="1013"/>
+    <ROLL time="2021-263T00:00:00Z" duration="3000" start_roll_deg="-4" end_roll_deg="20"/>
+    <RSW_END time="2021-263T00:00:00Z"/>
+    <RSW_EXT_EUI time="2021-263T00:00:00Z" duration="604800"/>
+    <RSW_EXT_METIS time="2021-263T00:00:00Z" duration="604800"/>
+    <RSW_EXT_PHI time="2021-263T00:00:00Z" duration="604800"/>
+    <RSW_EXT_SOLOHI time="2021-263T00:00:00Z" duration="604800"/>
+    <RSW_EXT_SPICE time="2021-263T00:00:00Z" duration="604800"/>
+    <POWER time="2021-263T00:50:00Z" duration="18599" max="1107"/>
+    <ATT_DIST time="2021-263T04:00:00Z" duration="960"/>
+    <EMC_PREF_NOISY time="2021-263T04:00:00Z" duration="900"/>
+    <HSD_EUI_HRI_CLOSE time="2021-263T04:00:00Z" duration="900" comment="close HRI door after RSCW#4 (FSI stays open for synoptics)"/>
+    <POWER time="2021-263T06:00:00Z" duration="30801" max="1104"/>
+    <EMC_MAND_QUIET time="2021-263T08:30:00Z" duration="3600"/>
+    <POWER time="2021-263T14:33:21Z" duration="120" max="1093"/>
+    <ATT_DIST time="2021-263T14:35:21Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-263T14:35:21Z" duration="2100"/>
+    <HGA_PT time="2021-263T14:35:21Z" duration="2100"/>
+    <POWER time="2021-263T14:35:21Z" duration="2100" max="1048"/>
+    <PASS time="2021-263T15:10:21Z" duration="32403" dbcode="146" tm_rate="9.9598121580000001E+05" station="MLG"/>
+    <POWER time="2021-263T15:10:21Z" duration="120" max="1092"/>
+    <SSMM_DUMP_1WAY time="2021-263T15:11:21Z" duration="583" tm_rate="9.6897079740740743E+05"/>
+    <POWER time="2021-263T15:12:21Z" duration="10058" max="1099"/>
+    <OMM_DUMP time="2021-263T15:28:04Z" duration="351" tm_rate="9.6897079740740743E+05"/>
+    <SSMM_DUMP_2WAY time="2021-263T15:33:55Z" duration="30689" tm_rate="9.6897079740740743E+05"/>
+    <POWER time="2021-263T18:00:00Z" duration="43199" max="1097"/>
+    <EMC_MAND_QUIET time="2021-263T22:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-263T22:30:00Z"/>
+    <POWER time="2021-264T06:00:00Z" duration="43199" max="1090"/>
+    <EMC_MAND_QUIET time="2021-264T08:30:00Z" duration="3600"/>
+    <POWER time="2021-264T18:00:00Z" duration="43199" max="1083"/>
+    <EMC_MAND_QUIET time="2021-264T22:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-264T22:30:00Z"/>
+    <POWER time="2021-265T06:00:00Z" duration="30530" max="1075"/>
+    <EMC_MAND_QUIET time="2021-265T08:30:00Z" duration="3600"/>
+    <POWER time="2021-265T14:28:50Z" duration="120" max="1062"/>
+    <ATT_DIST time="2021-265T14:30:50Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-265T14:30:50Z" duration="2100"/>
+    <HGA_PT time="2021-265T14:30:50Z" duration="2100"/>
+    <POWER time="2021-265T14:30:50Z" duration="2100" max="1018"/>
+    <PASS time="2021-265T15:05:50Z" duration="32403" dbcode="146" tm_rate="9.9598121580000001E+05" station="MLG"/>
+    <POWER time="2021-265T15:05:50Z" duration="120" max="1062"/>
+    <SSMM_DUMP_1WAY time="2021-265T15:06:50Z" duration="553" tm_rate="9.6897079740740743E+05"/>
+    <POWER time="2021-265T15:07:50Z" duration="10329" max="1069"/>
+    <OMM_DUMP time="2021-265T15:23:03Z" duration="462" tm_rate="9.6897079740740743E+05"/>
+    <SSMM_DUMP_2WAY time="2021-265T15:30:45Z" duration="30608" tm_rate="9.6897079740740743E+05"/>
+    <POWER time="2021-265T18:00:00Z" duration="43199" max="1067"/>
+    <EMC_MAND_QUIET time="2021-265T22:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-265T22:30:00Z"/>
+    <POWER time="2021-266T06:00:00Z" duration="43199" max="1059"/>
+    <EMC_MAND_QUIET time="2021-266T08:30:00Z" duration="3600"/>
+    <POWER time="2021-266T18:00:00Z" duration="43199" max="1050"/>
+    <EMC_MAND_QUIET time="2021-266T22:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-266T22:30:00Z"/>
+    <POWER time="2021-267T06:00:00Z" duration="1086" max="1041"/>
+    <POWER time="2021-267T06:18:06Z" duration="120" max="1034"/>
+    <ATT_DIST time="2021-267T06:20:06Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-267T06:20:06Z" duration="2100"/>
+    <HGA_PT time="2021-267T06:20:06Z" duration="2100"/>
+    <POWER time="2021-267T06:20:06Z" duration="2100" max="990"/>
+    <PASS time="2021-267T06:55:06Z" duration="17996" dbcode="146" tm_rate="9.9598121580000001E+05" station="NNO"/>
+    <POWER time="2021-267T06:55:06Z" duration="120" max="1034"/>
+    <SSMM_DUMP_1WAY time="2021-267T06:56:06Z" duration="527" tm_rate="9.6897079740740743E+05"/>
+    <POWER time="2021-267T06:57:06Z" duration="39773" max="1040"/>
+    <OMM_DUMP time="2021-267T07:11:53Z" duration="384" tm_rate="9.6897079740740743E+05"/>
+    <SSMM_DUMP_2WAY time="2021-267T07:18:17Z" duration="16305" tm_rate="9.6897079740740743E+05"/>
+    <EMC_MAND_QUIET time="2021-267T08:30:00Z" duration="3600"/>
+    <POWER time="2021-267T18:00:00Z" duration="3246" max="1032"/>
+    <POWER time="2021-267T18:54:06Z" duration="120" max="1024"/>
+    <ATT_DIST time="2021-267T18:56:06Z" duration="2100"/>
+    <EMC_PREF_NOISY time="2021-267T18:56:06Z" duration="2100"/>
+    <HGA_PT time="2021-267T18:56:06Z" duration="2100"/>
+    <POWER time="2021-267T18:56:06Z" duration="2100" max="980"/>
+    <POWER time="2021-267T19:31:06Z" duration="120" max="1024"/>
+    <PASS time="2021-267T19:31:07Z" duration="16201" dbcode="146" tm_rate="9.9598121580000001E+05" station="MLG"/>
+    <SSMM_DUMP_1WAY time="2021-267T19:32:07Z" duration="519" tm_rate="9.6897079740740743E+05"/>
+    <POWER time="2021-267T19:33:06Z" duration="37613" max="1031"/>
+    <OMM_DUMP time="2021-267T19:47:46Z" duration="122" tm_rate="9.6897079740740743E+05"/>
+    <SSMM_DUMP_2WAY time="2021-267T19:49:48Z" duration="14780" tm_rate="9.6897079740740743E+05"/>
+    <EMC_MAND_QUIET time="2021-267T22:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-267T22:30:00Z"/>
+    <POWER time="2021-268T06:00:00Z" duration="43199" max="1023"/>
+    <EMC_MAND_QUIET time="2021-268T08:30:00Z" duration="3600"/>
+    <POWER time="2021-268T18:00:00Z" duration="18299" max="1013"/>
+    <EMC_MAND_QUIET time="2021-268T20:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-268T20:30:00Z"/>
+    <ATT_DIST time="2021-268T23:05:00Z" duration="10800"/>
+    <EMC_PREF_NOISY time="2021-268T23:05:00Z" duration="10800"/>
+    <POWER time="2021-268T23:05:00Z" duration="10799" max="961"/>
+    <WOL time="2021-268T23:05:00Z" duration="10800"/>
+    <POWER time="2021-269T02:05:00Z" duration="14099" max="1006"/>
+    <POWER time="2021-269T06:00:00Z" duration="43199" max="1003"/>
+    <EMC_MAND_QUIET time="2021-269T08:30:00Z" duration="3600"/>
+    <EMC_MAND_QUIET time="2021-269T22:00:00Z" duration="3600"/>
+    <IS_COORD_BURST time="2021-269T22:30:00Z"/>
+  </events>
+</eventfile>
