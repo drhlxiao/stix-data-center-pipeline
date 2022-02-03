@@ -1,8 +1,7 @@
 import os
 import sys
 import numpy as np
-from datetime import datetime
-from stix.spice import datetime
+from stix.spice import time_utils
 from stix.core import datatypes as sdt
 
 QLLC_SPID = 54118
@@ -80,7 +79,7 @@ class LightCurveAnalyzer(QLAnalyzer):
                     lightcurves[i] = []
                 lightcurves[i].extend(lc[i])
             unix_time.extend([
-                datetime.scet2unix(start_scet + x * int_duration)
+                time_utils.scet2unix(start_scet + x * int_duration)
                 for x in range(num_lc_points[0])
             ])
 
@@ -101,7 +100,7 @@ class BackgroundReportAnalyzer(QLAnalyzer):
                 continue
             scet_coarse = packet[1].raw
             scet_fine = packet[2].raw
-            start_unix=datetime.scet2unix(scet_coarse, scet_fine)
+            start_unix=time_utils.scet2unix(scet_coarse, scet_fine)
             tbin= (packet[3].raw + 1)*0.1
             num_samples=packet[14].raw
             samples=packet[14].children

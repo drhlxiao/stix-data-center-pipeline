@@ -9,8 +9,9 @@ from astropy.io import fits
 from astropy.table.operations import unique
 from astropy.table.table import QTable
 
-from stix.spice.datetime import datetime_to_scet
-
+from stix.spice.time_utils import datetime_to_scet
+from stix.spice.spice_manager import spice
+from astropy.time import Time
 from stix.core.logger import get_logger
 logger = get_logger(__name__)
 
@@ -204,6 +205,25 @@ class FitsL1Processor:
             primary_header = self.generate_primary_header(filename, prod)
             primary_hdu = fits.PrimaryHDU()
             primary_hdu.header.update(primary_header)
+            
+            start_dt=prod.obs_beg.to_datetime()
+            end_dt=prod.obs_end.to_datetime()
+            dur=(end_dt-start_dt).total_seconds()
+            center_dt=start_dt + timedelta(seconds=dur)
+            start_dt= Time(start_dt)
+            center_dt= Time(center_dt)
+
+            try:
+                eph_header= spice.get_fits_headers(start_time=start_dt,
+                                                average_time=center_dt)
+                primary_hdu.header.update(eph_header)
+                #added on Feb 03, 2022
+            except Exception as e:
+                pass
+
+            primary_hdu.header.update(primary_header)
+
+
             primary_hdu.header.update({'HISTORY': 'Processed by STIX'})
 
             control_hdu = fits.BinTableHDU(control)
@@ -330,6 +350,9 @@ class FitsL1Processor:
             ('OBS_ID', 'obs_id'),
             ('TARGET', 'Sun')
         )
+
+
+        
         return headers
 
 # def energy_bands(num_energies):

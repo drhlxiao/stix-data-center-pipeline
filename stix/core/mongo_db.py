@@ -51,19 +51,19 @@ class MongoDB(object):
             self.collection_calibration = self.db['calibration_runs']
             self.collection_ql = self.db['quick_look']
             self.collection_data_requests = self.db['bsd']
-            self.col_bsd_forms = self.db['bsd_req_forms']
+            self.col_bsd_forms = self.db['data_requests']
             self.collection_fits = self.db['fits']
             self.collection_events = self.db['events']
             self.col_goes = self.db['goes_fluxes']
             #self.col_flare_tbc= self.db['flare_tbc']
             self.collection_flares = self.db['flares']
-            self.collection_qllc_statistics = self.db['qllc_statistics']
+            self.collection_lc_stats = self.db['lc_stats']
             self.collection_notifications = self.db['notifications']
             self.collection_time_bins= self.db['time_bins']
             self.collection_aspect_solutions= self.db['aspect_solutions']
             self.collection_qlspectra=self.db['ql_spectra']
             self.collection_qllc=self.db['ql_lightcurves']
-            self.collection_qloc=self.db['ql_flarelocations']
+            self.collection_qloc=self.db['ql_flare_locs']
             self.collection_config=self.db['config']
 
             self.col_user_groups=self.db['user_groups']
@@ -224,8 +224,8 @@ class MongoDB(object):
             cursor = self.collection_calibration.delete_many(
                 {'run_id': run_id})
 
-        if self.collection_qllc_statistics:
-            self.collection_qllc_statistics.delete_many({'file_id': run_id})
+        if self.collection_lc_stats:
+            self.collection_lc_stats.delete_many({'file_id': run_id})
 
         if self.collection_ql:
             cursor = self.collection_ql.delete_many({'run_id': run_id})
@@ -510,21 +510,21 @@ class MongoDB(object):
                 'peak_unix_time', -1).limit(num)
         return results
 
-    def insert_qllc_statistics(self, doc):
+    def insert_lc_stats(self, doc):
         next_id = 0
         try:
-            next_id = self.collection_qllc_statistics.find({}).sort(
+            next_id = self.collection_lc_stats.find({}).sort(
                 '_id', -1).limit(1)[0]['_id'] + 1
         except IndexError:
             pass
         doc['_id'] = next_id
-        self.collection_qllc_statistics.save(doc)
+        self.collection_lc_stats.save(doc)
 
  
-    def get_nearest_qllc_statistics(self, start_unix, max_limit=500):
+    def get_nearest_lc_stats(self, start_unix, max_limit=500):
         try:
             right_closest = list(
-                self.collection_qllc_statistics.find({
+                self.collection_lc_stats.find({
                     'start_unix': {
                         '$gte': start_unix
                     },
@@ -534,7 +534,7 @@ class MongoDB(object):
                     }
                 }).sort('start_unix', 1).limit(1))
             left_closest = list(
-                self.collection_qllc_statistics.find({
+                self.collection_lc_stats.find({
                     'start_unix': {
                         '$lte': start_unix
                     },

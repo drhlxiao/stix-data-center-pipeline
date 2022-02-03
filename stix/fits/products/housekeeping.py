@@ -3,7 +3,7 @@ House Keeping data products
 """
 import numpy as np
 
-from stix.spice.datetime import scet_to_datetime
+from stix.spice.time_utils import scet_to_datetime
 from stix.fits.io.housekeeping import mini, maxi
 SKIP_ATTRS = {'scet_coarse', 'scet_fine', 'obs_utc', 'obs_beg', 'period', 'obs_avg', 'obs_end',
               'num_samples'}

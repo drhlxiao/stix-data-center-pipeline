@@ -201,7 +201,7 @@ def main(_ids, json_filename, server='localhost', port=27017):
     try:
         connect = pymongo.MongoClient(server, port)
         db = connect["stix"]
-        collection = db['bsd_req_forms']
+        collection = db['data_requests']
     except Exception as e:
         print('request')
         print(str(e))

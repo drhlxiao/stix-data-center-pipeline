@@ -224,7 +224,7 @@ def coordinates_SOLO(date_solo):
 
 
     # Observing time (to get the SOLO coordinates)
-    et_solo = spice.datetime2et(date_solo)
+    et_solo = spice.time_utils2et(date_solo)
 
     # Obtain the coordinates of Solar Orbiter
     solo_hee_spice, _ = spice.spkpos('SOLO', et_solo, 'SOLO_HEE_NASA', 'NONE', 'SUN')

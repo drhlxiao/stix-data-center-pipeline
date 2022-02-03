@@ -25,7 +25,7 @@ from stix.core import io
 from stix.core import context
 from stix.core.datatypes import Parameter
 from stix.core import decompressor
-from stix.spice import datetime as sdt
+from stix.spice import time_utils as sdt
 
 CONTEXT_UNPACK_FORMAT = ['B', '>H', 'BBB', '>I']
 UNSIGNED_UNPACK_FORMAT = ['B', '>H', 'BBB', '>I', 'BBBBB', '>IH']
@@ -1354,12 +1354,6 @@ class StixTCTMParser(StixParameterParser):
         if self.packet_io:
             self.packet_io.set_summary(summary)
         return packets
-
-    #def set_pickle_io(self, out_filename, comment=''):
-    #    self.packet_io = io.StixPickleio(out_filename)
-    #    idb_version = STIX_IDB.get_idb_version()
-    #    self.packet_io.register_run(self.raw_filename, self.raw_filename,
-    #                                    comment, idb_version)
 
     def config_mongodb(self,
                            server,

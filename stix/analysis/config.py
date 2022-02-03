@@ -7,7 +7,7 @@ import sys
 sys.path.append('.')
 import numpy as np
 from stix.core import mongo_db as sdb
-from stix.spice import datetime as sdt
+from stix.spice import time_utils as sdt
 mdb = sdb.MongoDB()
 scdb=mdb.get_collection('config')
 caldb=mdb.get_collection('calibration_runs')

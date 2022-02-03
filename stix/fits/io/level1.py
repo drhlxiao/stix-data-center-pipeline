@@ -81,10 +81,10 @@ def get_products(packet_list, spids=None):
     for key, packets in filtered_packets.items():
         sequences = extract_sequences(packets[:])
         for seq in sequences:
-            if len(seq) == 1 and seq[0]['header']['segmentation'] == 'stand-alone packet':
+            if len(seq) == 1 and seq[0]['header']['seg_flag'] == 3:
                 complete[key].append(seq)
-            elif (seq[0]['header']['segmentation'] == 'first packet'
-                  and seq[-1]['header']['segmentation'] == 'last packet'):
+            elif (seq[0]['header']['seg_flag'] == 1
+                  and seq[-1]['header']['seg_flag'] == 2):
                 complete[key].append(seq)
             else:
                 incomplete[key].append(seq)
@@ -115,17 +115,17 @@ def extract_sequences(packets):
     cur_seq = None
     while i < len(packets):
         cur_packet = packets.pop(i)
-        cur_flag = cur_packet['header']['segmentation']
-        if cur_flag == 'stand-alone packet':
+        cur_flag = cur_packet['header']['seg_flag']
+        if cur_flag == 3: #'stand-alone packet':
             out.append([cur_packet])
-        elif cur_flag == 'first packet':
+        elif cur_flag ==1: # 'first packet':
             cur_seq = [cur_packet]
-        if cur_flag == 'continuation packet':
+        if cur_flag == 0:#'continuation packet':
             if cur_seq:
                 cur_seq.append(cur_packet)
             else:
                 cur_seq = [cur_packet]
-        if cur_flag == 'last packet':
+        if cur_flag == 2:#'last packet':
             if cur_seq:
                 cur_seq.append(cur_packet)
                 out.append(cur_seq)

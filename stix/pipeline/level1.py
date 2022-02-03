@@ -12,7 +12,7 @@ import sys
 import glob
 from datetime import datetime
 from stix.core import config
-from stix.spice import datetime
+from stix.spice import time_utils as sdt
 from stix.core import mongo_db
 from stix.core import logger
 from stix.core import parser as stp
@@ -97,8 +97,8 @@ class _Notification(object):
 
     def push_pipeline_message(self, raw_filename, service_5_headers, summary, num_flares, goes_class_list):
         file_id = summary['_id']
-        start = datetime.unix2utc(summary['data_start_unix_time'])
-        end = datetime.unix2utc(summary['data_stop_unix_time'])
+        start = sdt.unix2utc(summary['data_start_unix_time'])
+        end = sdt.unix2utc(summary['data_stop_unix_time'])
         content = f'New file: {raw_filename}\nObservation time: {start} - {end} \nRaw packets: {HOST}/view/packet/file/{file_id}\n'
         SCI_PACKET_SPIDS = ['54114', '54115', '54116', '54117', '54143', '54125']
         try:

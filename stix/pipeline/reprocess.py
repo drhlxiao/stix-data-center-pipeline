@@ -10,9 +10,8 @@ import os
 import sys
 import glob
 import time
-from datetime import datetime
 from stix.core import config
-from stix.spice import datetime
+from stix.spice import time_utils as sdt
 from stix.core import mongo_db 
 from stix.core import logger, idb, parser
 from stix.fits import fits_creator
@@ -89,8 +88,8 @@ def find_and_fix_raw_files(start_run, end_run=-1,  min_delta_time=0):
 
 
         print(start_unix, start_scet)
-        new_start_unix=datetime.scet2unix(start_scet)
-        new_end_unix=datetime.scet2unix(end_scet)
+        new_start_unix=sdt.scet2unix(start_scet)
+        new_end_unix=sdt.scet2unix(end_scet)
         delta_start=abs(start_unix-new_start_unix)
         delta_end=abs(end_unix-new_end_unix)
         print('_id',', Delta Time:', delta_start, ', ' , delta_end)
@@ -105,7 +104,7 @@ def find_and_fix_raw_files(start_run, end_run=-1,  min_delta_time=0):
             'data_start_unix_time': new_start_unix,
             'data_stop_unix_time': new_end_unix,
             'spice_kernel': spice_fname,
-            'update_time': datetime.get_now(),
+            'update_time': sdt.get_now(),
             'version': doc.get('version',0)+1
             }
             }
@@ -127,20 +126,20 @@ def fix_packets(run_id):
                 coarse=header['coarse_time']
                 fine=header['fine_time']
                 scet=header['SCET']
-                utc=datetime.scet2utc(coarse,fine)
-                unix=datetime.scet2unix(scet)
+                utc=sdt.scet2utc(coarse,fine)
+                unix=sdt.scet2unix(scet)
                 updates['header.UTC']=utc
                 updates['header.obt_utc']=utc
                 updates['header.unix_time']=unix
             if header.get('SPID',0) in  QL_SPIDS:
                 if pkt['parameters'][1][0]=='NIX00445':
                     scet_t0=pkt['parameters'][1][1]
-                    utc=datetime.scet2utc(scet_t0)
+                    utc=sdt.scet2utc(scet_t0)
                     updates['parameters.1.2']=utc
             if header.get('SPID',0) in  SCI_SPIDS:
                 if pkt['parameters'][12][0]=='NIX00402':
                     scet_t0=pkt['parameters'][12][1]
-                    utc=datetime.scet2utc(scet_t0)
+                    utc=sdt.scet2utc(scet_t0)
                     updates['parameters.12.2']=utc
             if updates:
                 pkt_db.update_one({'_id':_id},{'$set':updates}, upsert=False)

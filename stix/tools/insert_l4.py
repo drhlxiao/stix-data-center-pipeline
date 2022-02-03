@@ -6,7 +6,7 @@ from stix.spice import datetime as sdt
 import pymongo
 connect = pymongo.MongoClient()
 db = connect["stix"]
-bsd_req= db['bsd_req_forms']
+bsd_req= db['data_requests']
 
 def update_request(doc, new_id):
     T=float(doc['duration'])

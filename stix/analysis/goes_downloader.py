@@ -23,7 +23,7 @@ import numpy as np
 from datetime import datetime, timedelta
 from dateutil import parser as dtparser
 from stix.core import config
-from stix.spice import datetime as sdt 
+from stix.spice import time_utils as sdt 
 from stix.core import mongo_db as db
 from matplotlib import pyplot as plt
 import math

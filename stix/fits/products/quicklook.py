@@ -11,7 +11,7 @@ from astropy.table import QTable, vstack, unique
 from astropy.time import Time
 
 from stix.fits.calibration.integer_compression import decompress
-from stix.spice.datetime import scet_to_datetime
+from stix.spice.time_utils import scet_to_datetime
 from stix.fits.products.common import _get_detector_mask, _get_pixel_mask, _get_energy_bins, \
     _get_compression_scheme, _get_num_energies, _get_sub_spectrum_mask
 

@@ -28,7 +28,7 @@ def get_ang_vectors(v1, v2):
 def get_flare_spice(sun_x, sun_y, flare_utc, observer='earth'):
     #sun_x, sun_y in unites of arcsec
     date_flare = sdt.utc2datetime(flare_utc)
-    et_stix = spice.datetime2et(date_flare)
+    et_stix = spice.time_utils2et(date_flare)
     flare_coord = [sun_x, sun_y]
     # Obtain the coordinates of Solar Orbiter
     earth_hee_spice, ltime_earth_sun = spice.spkpos(

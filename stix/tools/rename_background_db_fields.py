@@ -2,7 +2,7 @@ import sys
 import pymongo
 connect = pymongo.MongoClient()
 db = connect["stix"]
-db= self.db['qllc_statistics']
+db= self.db['lc_stats']
 def main():
     cursor=db.find({'run_id':{'$gte': 555}})
     for raw in cursor:

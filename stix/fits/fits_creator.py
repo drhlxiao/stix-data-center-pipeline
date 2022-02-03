@@ -9,7 +9,7 @@ from pathlib import Path
 from stix.core import datatypes as sdt
 from stix.fits.io.processors import FitsL1Processor
 from stix.fits.io import hk_fits_writer as hkw
-from stix.spice import datetime as st
+from stix.spice import time_utils as st
 from stix.fits.products.housekeeping import MiniReport, MaxiReport
 from stix.fits.products.quicklook import LightCurve, Background, Spectra, Variance, \
     FlareFlagAndLocation, CalibrationSpectra, TMManagementAndFlareList
@@ -251,7 +251,7 @@ def create_continous_low_latency_fits(start_unix, end_unix,  output_path=FITS_PA
         elif spid==54102:
             packets=pkt_col.find({'header.unix_time':{'$gte':start_unix,
                 '$lte':end_unix},
-                'header.SPID':spid}).sort('header.unix_time',1)
+                'header.SPID':spid}).sort('header.unix_time',1).max_time_ms(300*1000)
         create_fits_for_packets(file_id, packets, spid, 
                 product, is_complete=True,  
                 base_path_name=output_path, 
@@ -297,10 +297,10 @@ def create_fits_for_bulk_science(bsd_id_start, bsd_id_end, output_path, overwrit
         bsd_id_end:  bulk science data end id
     """
     bsd_db=db.get_collection('bsd')
-    bsd_docs=bsd_db.find({'_id':{'$gte':bsd_id_start, '$lte':bsd_id_end}})
+    bsd_docs=bsd_db.find({'_id':{'$gte':bsd_id_start, '$lte':bsd_id_end}}).max_time_ms(300*1000)
     for bsd in bsd_docs:
         pids=bsd['packet_ids']
-        pkts=db.get_collection('packets').find({'_id':{'$in':pids}}).sort('header.unix_time',1)
+        pkts=db.get_collection('packets').find({'_id':{'$in':pids}}).sort('header.unix_time',1).max_time_ms(300*1000)
         logger.info(f'Creating fits file for bsd #{bsd["_id"]}')
         file_id=bsd['run_id']
         spid=bsd['SPID']
@@ -339,7 +339,7 @@ def create_fits(file_id, output_path, overwrite=True,  version=1):
             bsd_docs=db.get_bsd_docs_by_run_id(file_id, spid)
             for bsd in bsd_docs:
                 pids=bsd['packet_ids']
-                pkts=db.get_collection('packets').find({'_id':{'$in':pids}}).sort('header.unix_time',1)
+                pkts=db.get_collection('packets').find({'_id':{'$in':pids}}).sort('header.unix_time',1).max_time_ms(300*1000)
                 logger.info(f'Creating fits file for bsd #{bsd["_id"]}')
                 create_fits_for_packets(file_id, pkts, spid, product, True, output_path, overwrite, version, remove_duplicates=True)
             continue

@@ -7,7 +7,7 @@
 import sys
 
 import os
-from stix.spice import datetime
+from stix.spice import time_utils
 import numpy as np
 
 STIX_CONFIG_TC_NAMES = [
@@ -38,8 +38,8 @@ ELUT_ENERGY_BINS = [
 #4:15 keV
 def attach_timestamp(header, result):
     utc = header['UTC']
-    dt = datetime.utc2datetime(utc)
-    unix = datetime.utc2unix(utc)
+    dt = time_utils.utc2time_utils(utc)
+    unix = time_utils.utc2unix(utc)
     date = dt.strftime('%Y%m%d')
     result.update({
         'execution_utc': utc,

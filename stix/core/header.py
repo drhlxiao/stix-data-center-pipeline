@@ -16,7 +16,7 @@ TELEMETRY_RAW_STRUCTURE = [  # each dictionary
         'version': (13, 3),
         'packet_type': (12, 1),
         'header_flag': (11, 1),
-        'process_id': (4, 11)
+        #'process_id': (4, 11)
     },
     {  #second byte
         'seg_flag': (14, 2),
@@ -54,6 +54,7 @@ TELEMETRY_HEADER_CONSTRAINTS = {
 
 PACKET_SEG = [
     'continuation packet', 'first packet', 'last packet', 'stand-alone packet'
+    # 0                          1            2               3
 ]
 ACK_MAPPING = {
     0: 'no response',

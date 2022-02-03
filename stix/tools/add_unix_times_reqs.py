@@ -2,7 +2,7 @@ import pymongo
 from stix.spice import datetime
 connect = pymongo.MongoClient()
 db = connect["stix"]
-packet_db= db['bsd_req_forms']
+packet_db= db['data_requests']
 cursor=packet_db.find()
 for doc in cursor:
     doc['start_unix']=datetime.utc2unix(doc['start_utc'])

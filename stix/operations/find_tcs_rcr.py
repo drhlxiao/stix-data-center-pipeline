@@ -3,7 +3,7 @@ connect = pymongo.MongoClient()
 #('localhost',9000)
 stix = connect['stix']
 collection = stix['iors']
-dreq_collection = stix['bsd_req_forms']
+dreq_collection = stix['data_requests']
 
 
 def search_occurrences(start_parameter_id, end_parameter_id):

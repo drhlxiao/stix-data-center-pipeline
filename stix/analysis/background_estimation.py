@@ -16,7 +16,7 @@ from scipy import signal
 import numpy as np
 from stix.core import datatypes as sdt
 from stix.core import mongo_db as db
-from stix.spice import datetime as st
+from stix.spice import time_utils as st
 
 mdb = db.MongoDB()
 
@@ -54,7 +54,7 @@ def process_file(file_id):
 
 def get_QL_background(start, end, file_id):
     span = end - start
-    bkg_db = mdb.get_collection('qllc_statistics')
+    bkg_db = mdb.get_collection('lc_stats')
     if bkg_db.find({
             'start_unix': {
                 '$lt': (start + end) / 2
@@ -140,7 +140,7 @@ def get_QL_background(start, end, file_id):
         'max': amax,
         'min': amin,
     }
-    mdb.insert_qllc_statistics(doc)
+    mdb.insert_lc_stats(doc)
 
 
 if __name__ == '__main__':

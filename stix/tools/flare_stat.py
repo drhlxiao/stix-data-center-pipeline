@@ -71,7 +71,7 @@ def update_flare_stat(_id):
     baseline = med
 
     height = med + 3 * np.sqrt(med)
-    stat = mdb.get_nearest_qllc_statistics(unix_time[0], max_limit=500)
+    stat = mdb.get_nearest_lc_stats(unix_time[0], max_limit=500)
     result = {}
     LC_statistics = []
     if not stat:

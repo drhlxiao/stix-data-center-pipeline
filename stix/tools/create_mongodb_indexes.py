@@ -6,7 +6,7 @@ try:
     collection_raw_files = db['raw_files']
     collection_calibration = db['calibration_runs']
     collection_ql= db['quick_look']
-    collection_data_request_forms= db['bsd_req_forms']
+    collection_data_request_forms= db['data_requests']
     collection_fits= db['fits']
     collection_goes= db['goes_fluxes']
     collection_qllc= db['ql_lightcurves']

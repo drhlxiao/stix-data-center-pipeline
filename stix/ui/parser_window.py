@@ -25,7 +25,6 @@ from stix.core import parser
 from stix.core import io as stixio
 from stix.core import idb
 from stix.core import mongo_db as mgdb
-from stix.spice import datetime 
 from stix.core import logger
 from stix.ui import mainwindow
 from stix.ui import mongo_dialog

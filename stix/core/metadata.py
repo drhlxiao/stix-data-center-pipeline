@@ -10,7 +10,7 @@
 import sys
 import numpy as np
 from stix.core import datatypes as sdt
-from stix.spice import datetime
+from stix.spice import time_utils
 from stix.core import logger
 
 logger = logger.get_logger()
@@ -155,7 +155,7 @@ class StixCalibrationReportAnalyzer(object):
             self.report['duration'] = param_dict['NIX00122'][0].raw
             scet = param_dict['NIX00445'][0].raw
             self.report['SCET'] = scet
-            self.report['start_unix_time'] = datetime.scet2unix(scet)
+            self.report['start_unix_time'] = time_utils.scet2unix(scet)
             spectra_index = packet.index('NIX00159')
             self.report['auxiliary'] = packet['parameters'][0:spectra_index]
             #Don't copy repeaters
@@ -186,7 +186,7 @@ class StixQuickLookReportAnalyzer(object):
         self.db=db
         self.qlspec_db=db.get_collection('ql_spectra')
         self.qllc_db=db.get_collection('ql_lightcurves')
-        self.qlloc_db=db.get_collection('ql_flarelocations')
+        self.qlloc_db=db.get_collection('ql_flare_locs')
         self.ql_db_collection = db.get_collection('quick_look')
         self.report = None
         try:
@@ -246,7 +246,7 @@ class StixQuickLookReportAnalyzer(object):
                 lightcurves[str(i)] = []
             lightcurves[str(i)].extend(lc[i])
         unix_time.extend([
-            datetime.scet2unix(start_scet + x * int_duration)
+            time_utils.scet2unix(start_scet + x * int_duration)
             for x in range(num_lc_points[0])
         ])
 
@@ -265,7 +265,7 @@ class StixQuickLookReportAnalyzer(object):
 
         scet_coarse = packet[1].raw
         scet_fine = packet[2].raw
-        start_unix=datetime.scet2unix(scet_coarse, scet_fine)
+        start_unix=time_utils.scet2unix(scet_coarse, scet_fine)
         tbin= (packet[3].raw + 1)*0.1
         num_samples=packet[14].raw
         samples=packet[14].children
@@ -292,7 +292,7 @@ class StixQuickLookReportAnalyzer(object):
             return
         scet_coarse = packet[1].raw
         scet_fine = packet[2].raw
-        start_unix=datetime.scet2unix(scet_coarse, scet_fine)
+        start_unix=time_utils.scet2unix(scet_coarse, scet_fine)
         tbin= (packet[3].raw + 1)*0.1
         num_samples=packet[4].raw
         samples=packet[4].children
@@ -365,7 +365,7 @@ class StixQuickLookReportAnalyzer(object):
             #flare flag report
 
         duration = points * 0.1 * (integrations + 1)
-        start_unix_time = datetime.scet2unix(start_coarse_time,
+        start_unix_time = time_utils.scet2unix(start_coarse_time,
                                                   start_fine_time)
         start_scet = start_coarse_time + start_fine_time / 65536.
         report = {
@@ -390,7 +390,7 @@ class StixQuickLookReportAnalyzer(object):
 class StixUserDataRequestReportAnalyzer(object):
     def __init__(self, db):
         self.bsd_db = db['bsd']
-        self.db_bsd_forms = db['bsd_req_forms']
+        self.db_bsd_forms = db['data_requests']
         self.last_unique_id = -1
         self.last_request_spid = -1
         self.packet_ids = []
@@ -502,7 +502,7 @@ class StixUserDataRequestReportAnalyzer(object):
             self.report={}
             self.packet_ids = []
 
-        start_unix=datetime.scet2unix(start)
+        start_unix=time_utils.scet2unix(start)
         self.report.update({
                 'start_unix_time': start_unix,
                 'start_scet': start,
@@ -549,8 +549,8 @@ class StixUserDataRequestReportAnalyzer(object):
             #the last or standalone
             self.report = {
                 'start_unix_time':
-                datetime.scet2unix(self.start_obt_time),
-                'end_unix_time': datetime.scet2unix(end_time),
+                time_utils.scet2unix(self.start_obt_time),
+                'end_unix_time': time_utils.scet2unix(end_time),
                 'start_scet': self.start_obt_time,
                 'unique_id':unique_id,
                 'end_scet': end_time,

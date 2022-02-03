@@ -9,7 +9,7 @@
 """
 import numpy as np
 from stix.core import mongo_db as db
-from stix.spice import datetime
+from stix.spice import time_utils
 from stix.core import config
 from stix.spice import solo
 threshold=0
@@ -154,8 +154,8 @@ def estimate_goes_class(counts:float,   dsun:float, coeffs:list, error_lut:dict,
 def get_flare_goes_class(doc):
     start_unix=doc['start_unix']
     end_unix=doc['end_unix']
-    start_utc=datetime.unix2utc(start_unix)
-    end_utc=datetime.unix2utc(end_unix)
+    start_utc=time_utils.unix2utc(start_unix)
+    end_utc=time_utils.unix2utc(end_unix)
     peak_utc=doc['peak_utc']
 
     
@@ -189,15 +189,15 @@ def get_flare_goes_class(doc):
             {'_id':doc['_id']},
             {'$set':{
                 'goes':{
-                    'low':{'unix_time':peak_time_low, 'utc': datetime.unix2utc(peak_time_low), 'flux':peak_flux_low, 'background':bkg_low},
-                    'high':{'unix_time':peak_time_high, 'utc': datetime.unix2utc(peak_time_high), 'flux':peak_flux_high},
+                    'low':{'unix_time':peak_time_low, 'utc': time_utils.unix2utc(peak_time_low), 'flux':peak_flux_low, 'background':bkg_low},
+                    'high':{'unix_time':peak_time_high, 'utc': time_utils.unix2utc(peak_time_high), 'flux':peak_flux_high},
                     'class':goes_class,
                     'estimated_class':estimated_class,
                     },
                 'ephemeris':eph
                 }
             })
-    return datetime.unix2utc(peak_time_low), goes_class, estimated_class
+    return time_utils.unix2utc(peak_time_low), goes_class, estimated_class
             
 
 if __name__ == '__main__':

@@ -8,8 +8,8 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from stix.spice import datetime 
-from PyQt5.QtCore import QDateTime,Qt
+from stix.spice import time_utils 
+from PyQt5.QtCore import Qtime_utils,Qt
 
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
@@ -40,7 +40,7 @@ class Ui_Dialog(object):
         self.buttonBox.setObjectName("buttonBox")
         self.gridLayout.addWidget(self.buttonBox, 2, 1, 1, 2)
         self.verticalLayout.addLayout(self.gridLayout)
-        now = QDateTime.currentDateTime()
+        now = Qtime_utils.currenttime_utils()
         self.lineEdit.setText(now.toUTC().toString(Qt.ISODate)[0:-1])
         self.pushButton.clicked.connect(self.convertTimestamp)
 
@@ -59,20 +59,20 @@ class Ui_Dialog(object):
         try:
             if inputType == 'UTC':
                 utc=inputData
-                unix=datetime.utc2unix(inputData)
-                scet=datetime.utc2scet(inputData)
+                unix=time_utils.utc2unix(inputData)
+                scet=time_utils.utc2scet(inputData)
             elif inputType=='SCET':
                 scet=int(inputData)
-                unix=datetime.scet2unix(inputData)
-                utc=datetime.scet2utc(inputData)
+                unix=time_utils.scet2unix(inputData)
+                utc=time_utils.scet2utc(inputData)
             else:
                 unix=int(inputData)
-                utc=datetime.unix2utc(unix)
-                scet=datetime.utc2scet(utc)
+                utc=time_utils.unix2utc(unix)
+                scet=time_utils.utc2scet(utc)
                 
             gap=946728000
             J2000=unix-gap
-            scet_utc=datetime.unix2utc(scet+gap)
+            scet_utc=time_utils.unix2utc(scet+gap)
             outputText='''UTC: {}\nUNIX:{}\nSCET:{}\nJ2000 (calculated from UNIX epoch):{}\n UTC(calculated from SCET):{}
             '''.format(utc, unix,scet,J2000, scet_utc)
         except Exception as e:

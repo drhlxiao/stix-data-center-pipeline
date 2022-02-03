@@ -4,7 +4,7 @@ from dateutil import parser as dtparser
 connect = pymongo.MongoClient()
 mdb = connect["stix"]
 bsd_db= mdb['bsd']
-req_db= mdb['bsd_req_forms']
+req_db= mdb['data_requests']
 
 bsd_docs=bsd_db.find({})
 for d in bsd_docs:

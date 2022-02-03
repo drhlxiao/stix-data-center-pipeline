@@ -19,7 +19,7 @@ from matplotlib import pyplot as plt
 import config
 bsd_lc_path= config.get_path('bsd_lcs')
 STIX_MDB = mongodb_api.MongoDB()
-collection=STIX_MDB.get_collection('bsd_req_forms')
+collection=STIX_MDB.get_collection('data_requests')
 
 data_levels={'L0':0, 'L1':1,'L2':2,'L3':3,'Spectrogram':4, 'Aspect':5}
 MAX_DURATION_PER_REQUEST=6550.

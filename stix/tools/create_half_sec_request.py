@@ -15,7 +15,7 @@ mdb = db.MongoDB()
 
 def run():
     start_id=4201
-    db= mdb.get_collection('bsd_req_forms')
+    db= mdb.get_collection('data_requests')
     docs= db.find({'start_utc':{'$gt': '2021-09-06T13:11:08'}, 'request_type':'Spectrogram','time_bin':'1'})
     for doc in docs:
         print('find ', doc['_id'])

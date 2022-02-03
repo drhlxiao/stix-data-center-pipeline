@@ -14,9 +14,8 @@ from scipy import signal
 import numpy as np
 import math
 from matplotlib import pyplot as plt
-from stix.core import datatypes as sdt
 from stix.core import mongo_db as db
-from stix.spice import datetime
+from stix.spice import time_utils
 from stix.core import logger
 from stix.spice import solo
 from stix.analysis import ql_analyzer as qla
@@ -97,8 +96,8 @@ def process_file(file_id):
 
     res['start_unix']=res['t'][0][0]
     res['end_unix']=res['t'][-1][1]
-    res['start_utc']=datetime.unix2utc(res['t'][0][0])
-    res['end_utc']=datetime.unix2utc(res['t'][-1][1])
+    res['start_utc']=time_utils.unix2utc(res['t'][0][0])
+    res['end_utc']=time_utils.unix2utc(res['t'][-1][1])
     res['file_id']=file_id
     mdb.insert_time_bins(res, delete_existing=True)
 

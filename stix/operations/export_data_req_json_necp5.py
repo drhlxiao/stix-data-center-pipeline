@@ -4,7 +4,7 @@ sys.path.append('/home/xiaohl/web')
 from core import mongodb_api
 from core import user_request_export as ure
 mdb = mongodb_api.MongoDB()
-data_request_database = mdb.get_collection('bsd_req_forms')
+data_request_database = mdb.get_collection('data_requests')
 MiB = 1024 * 1024
 
 STP = 169

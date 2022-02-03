@@ -4,7 +4,7 @@
 # @description  : write decoded packets to mongodb, binary data files or python pickle files
 # @author       : Hualin Xiao
 # @date         : Feb. 27, 2019
-import datetime
+from datetime import datetime
 import gzip
 import os
 import pickle
@@ -15,7 +15,7 @@ import pymongo
 
 from stix.core import const
 from stix.core import config
-from stix.spice import datetime
+from stix.spice import time_utils
 from stix.core import logger
 from stix.core import metadata as meta
 from stix.spice import spice_manager as spm
@@ -69,7 +69,7 @@ class StixPickleWriter(StixPacketWriter):
             'filsize': filesize,
             'comment': comment,
             'idb_version': idb_version,
-            'Date': datetime.datetime.now().isoformat()
+            'Date': datetime.now().isoformat()
         }
 
     def write_all(self, packets):
@@ -213,7 +213,7 @@ class StixMongoDB(StixPacketWriter):
             'comment': comment,
             'log': log_filename,
             'hidden': False,
-            'creation_time': datetime.datetime.now(),
+            'creation_time': datetime.now(),
             'run_start_unix_time': time.time(),
             'data_start_scet': 0,
             'data_end_scet': 0,
@@ -249,12 +249,12 @@ class StixMongoDB(StixPacketWriter):
         header_unix = packet['header']['unix_time']
         scet = packet['header'].get('SCET', 0)
 
-        if datetime.is_scet_valid(scet):
+        if time_utils.is_scet_valid(scet):
             if scet < self.start_scet:
                 self.start_scet = scet
             if scet > self.end_scet:
                 self.end_scet = scet
-        if datetime.is_unix_time_valid(header_unix):
+        if time_utils.is_unix_time_valid(header_unix):
             if header_unix < self.start_unix:
                 self.start_unix = header_unix
             if header_unix > self.end_unix:

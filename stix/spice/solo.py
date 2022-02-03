@@ -6,7 +6,7 @@ import spiceypy as spice
 import astropy.units as u
 from astropy import constants as const
 from stix.spice import helio as hsp
-from stix.spice import datetime as sdt
+from stix.spice import time_utils as sdt
 from stix.utils import bson
 
 solo_spice_min_unix= sdt.utc2unix('2020-02-10T05:00:00Z')

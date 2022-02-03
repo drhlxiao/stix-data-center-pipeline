@@ -20,7 +20,7 @@ EMAX_MAP = [8, 13, 17, 23,
             28]  # emax if there are prominence the corresponding lightcurve
 
 db = mdb.get_db()
-bsd_form = db['bsd_req_forms']
+bsd_form = db['data_requests']
 flare_collection = db['flares']
 conf={
         'flare_min_points_above_threshold': 7,  #  peak duration must be greater than 28 seconds, used to determine energy range upper limit,

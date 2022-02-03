@@ -175,7 +175,7 @@ def find_flares(run_id,
     baseline = med
 
     height = med + 3 * np.sqrt(med)
-    stat = mdb.get_nearest_qllc_statistics(unix_time[0], max_limit=500)
+    stat = mdb.get_nearest_lc_stats(unix_time[0], max_limit=500)
     if stat:
         #only use the lowest lightcurve
         if stat['std'][0] < 2 * math.sqrt(

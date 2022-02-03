@@ -6,7 +6,7 @@ from stix.spice import datetime as sdt
 import pymongo
 connect = pymongo.MongoClient()
 db = connect["stix"]
-bsd_req= db['bsd_req_forms']
+bsd_req= db['data_requests']
 docs=bsd_req.find({}).sort('_id',1)
 for  doc in docs:
     doc['start_unix']=sdt.utc2unix(doc['start_utc'])
