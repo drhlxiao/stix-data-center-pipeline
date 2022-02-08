@@ -112,12 +112,12 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
 
     #spectrum in the predefined range
     if x.size==0:
-        print('Can not find sub spectrum of ERROR:', detector, pixel)
+        #print('Can not find sub spectrum of ERROR:', detector, pixel)
         return None, None
 
     total_counts = np.sum(y)
     if total_counts < MIN_COUNTS:
-        print('Too less counts:', detector, pixel)
+        #print('Too less counts:', detector, pixel)
         return None, None
 
     name = '{}_{}_{}'.format(detector, pixel, subspec)
@@ -369,7 +369,7 @@ def process_one_run(calibration_id, create_pdf=True, pdf_path=DEFAULT_OUTPUT_DIR
 
         end = start + num_summed * num_points #end ADC 
 
-        print(detector, pixel)
+        #print(detector, pixel)
         if slope[detector][pixel] > 0 and offset[detector][pixel] > 0:
             energies = (np.linspace(start, end - num_summed, num_points) - offset[detector][pixel]) / slope[detector][pixel]
             if sbspec_id not in sum_spectra:
