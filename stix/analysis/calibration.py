@@ -24,6 +24,12 @@ from ROOT import TGraph, TFile, TCanvas, TH1F, gROOT, TBrowser, gSystem, TH2F, g
 
 from scipy.interpolate import interp1d
 
+gROOT.SetBatch(True)
+
+gROOT.ProcessLine("""
+gErrorIgnoreLevel = kWarning;
+        """)
+
 FIT_MIN_X = 252
 FIT_MAX_X = 448
 FIRST_PEAK_XMAX=350
@@ -167,7 +173,6 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
     par1 = fgaus1.GetParameters()
     par2 = fgaus2.GetParameters()
     par3 = fcrystalball.GetParameters()
-    print("peak to max_x:",par3[1]-peak3_max_x)
     par3_errors = fcrystalball.GetParErrors()
 
     fgaus12 = TF1('fgaus12_{}'.format(name), 'gaus(0)+gaus(3)', par1[1] - 2,
