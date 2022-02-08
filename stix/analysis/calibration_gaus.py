@@ -50,13 +50,19 @@ class PeakFitting(object):
     #    """1-d gaussian: gaussian(x, amp, cen, wid)"""
         return amp*np.exp(-(x-cen)**2 / (2*wid**2))
     @staticmethod
-    def asym_gaussian(x, amp, cen, wid, B, C):
-        psup = (x >= cen).nonzero()
-        pinf = (x < cen).nonzero()
-        T_i = np.arange(len(x))
-        T_i= (np.exp(B*(x-cen-C)))*(1-np.exp(-(x-cen - C)**2 / (2*wid**2)))
-        T_i[psup] = 0.
-        return amp*np.exp(-(x-cen)**2 / (2*wid**2)) + amp*T_i
+    def asym_gaussian(x, amp, cen, wid, B):
+        #def asym(x, p):
+        p=[amp, cen,wid, B]
+        _amp = (p[0] / (p[2] * np.sqrt(2 * np.pi)))
+        spread = np.exp((-(x - p[1]) ** 2.0) / (2 * p[2] ** 2.0))
+        skew = (1 + erf((p[3] * (x - p[1])) / (p[2] * np.sqrt(2))))
+        return _amp * spread * skew
+        #psup = (x >= cen).nonzero()
+        #pinf = (x < cen).nonzero()
+        #T_i = np.arange(len(x))
+        #T_i= (np.exp(B*(x-cen-C)))*(1-np.exp(-(x-cen - C)**2 / (2*wid**2)))
+        #T_i[psup] = 0.
+        #return amp*np.exp(-(x-cen)**2 / (2*wid**2)) + amp*T_i
     @staticmethod
     def fit_asym_gaus(x,y, offset=0.1, bw=1):
         moda = Model(PeakFitting.asym_gaussian)+Model(PeakFitting.constant)
@@ -87,7 +93,8 @@ class PeakFitting(object):
 
 
     @staticmethod
-    def fit_double_gaus(x, y,  const,  a_amp, a_cen, a_wid, b_amp, b_cen, b_wid, bw):
+    def fit_double_gaus(x, y,  const=1,  a_amp=1, a_cen=1, a_wid=1, b_amp=1, b_cen=1, b_wid=1, bw=1):
+        #low_e_result=PeakFitting.fit_double_gaus(peak1_x,peak1_y, peak1_pos,  peak2_x, peak2_y, peak2_pos, peak12_x, peak12_y)
         #0, 1, peak1_x, 2, 1, peak2_pos, 1
         moda = Model(PeakFitting.gaussian, prefix='a_') + Model(PeakFitting.gaussian, prefix='b_')+Model(PeakFitting.constant)
         pars = moda.make_params()
@@ -238,6 +245,7 @@ class Calibration(object):
 
 
         low_e_result=PeakFitting.fit_double_gaus(peak1_x,peak1_y, peak1_pos,  peak2_x, peak2_y, peak2_pos, peak12_x, peak12_y)
+        print(low_e_result)
 
 
         peak3_x, peak3_y, peak3_pos=select_near_max(spec_x,spec_y, 

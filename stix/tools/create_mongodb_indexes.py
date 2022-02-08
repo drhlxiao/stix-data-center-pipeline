@@ -20,7 +20,7 @@ try:
     for index in indexes:
         collection_goes.create_index(index)
 
-    indexes=[[('start_unix_time',1)], [('unique_id',1)], [('name',1)]]
+    indexes=[[('start_unix_time',1)], [('unique_id',1)], [('name',1),('SPID',1),('header_unix_time',1)]]
     for index in indexes:
         collection_bsd.create_index(index)
 
@@ -75,12 +75,12 @@ try:
         for index in indexes:
             print(index)
             collection_data_request_forms.create_index(index)
-    #if collection_fits:
-    #    print('creating indexes for fits')
-    #    indexes=[[('request_type',1), ('detector_mask',1),('pixel_mask',1)],[('request_type',1)], [('detector_mask',1)],[('pixel_mask',1)]]
-    #    for index in indexes:
-    #        print(index)
-    #        collection_fits.create_index(index)
+    if collection_fits:
+        print('creating indexes for fits')
+        indexes=[[('request_id',1), ('request_id',1)]#,('pixel_mask',1)],[('detector_mask',1)], [('detector_mask',1)],[('pixel_mask',1)]]
+        for index in indexes:
+            print(index)
+            collection_fits.create_index(index)
 
 
 

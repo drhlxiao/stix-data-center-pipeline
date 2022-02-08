@@ -128,7 +128,8 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
     # max conversion factor = 2.5 ADC/keV
     fit_range_x_left = 5
     fit_range_x_right = 15
-    fit_range_peak3_x_left = 2
+    fit_range_peak3_x_left = 10
+    fit_range_peak3_x_right= 20
 
 
     peak3_sel = (x > peak1_x + 0.9 * x_shift) & (x<peak1_x + 1.1 * x_shift)
@@ -140,24 +141,34 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
     peak2_x = peak1_x + 4.2 * MEAN_ENERGY_CONVERSION_FACTOR
 
 
-    fgaus1 = TF1('fgaus1_{}'.format(name), 'gaus', peak1_x - fit_range_x_left,
+    fgaus1 = TF1(f'fgaus1_{name}', 'gaus', peak1_x - fit_range_x_left,
                  peak1_x + fit_range_x_right)
-    fgaus2 = TF1('fgaus2_{}'.format(name), 'gaus', peak2_x - fit_range_x_left,
+    fgaus2 = TF1(f'fgaus2_{name}', 'gaus', peak2_x - fit_range_x_left,
                  peak2_x + fit_range_x_right)
-    fgaus3 = TF1('fgaus3_{}'.format(name), 'gaus',
+    fcrystalball = TF1(f'fcrystalball_{name}', 'crystalball',
                  peak3_max_x - fit_range_peak3_x_left,
                  peak3_max_x + fit_range_x_right)
+
+    fcrystalball.SetParNames('constant','mean','sigma','alpha','N')
+    peak3_defaults = array('d', [peak3_max_y, peak3_max_x, 1.2, 0.24, 2.12])
+    fcrystalball.SetParameters(peak3_defaults)
+    fcrystalball.SetParLimits(0, 0, 2*peak3_max_y)
+    fcrystalball.SetParLimits(1, peak3_max_x-fit_range_peak3_x_left, peak3_max_x+fit_range_peak3_x_right)
+    fcrystalball.SetParLimits(2, 0,10)
+    fcrystalball.SetParLimits(3, 0,10)
+    fcrystalball.SetParLimits(4, 0,10)
 
     gspec = create_graph(x, y, 'Spectrum - {}'.format(title), 'ADC channel',
                    'Counts')
 
     gspec.Fit(fgaus1, 'RQ')
     gspec.Fit(fgaus2, 'RQ+')
-    gspec.Fit(fgaus3, 'RQ')
+    gspec.Fit(fcrystalball, 'RQ')
     par1 = fgaus1.GetParameters()
     par2 = fgaus2.GetParameters()
-    par3 = fgaus3.GetParameters()
-    par3_errors = fgaus3.GetParErrors()
+    par3 = fcrystalball.GetParameters()
+    print("peak to max_x:",par3[1]-peak3_max_x)
+    par3_errors = fcrystalball.GetParErrors()
 
     fgaus12 = TF1('fgaus12_{}'.format(name), 'gaus(0)+gaus(3)', par1[1] - 2,
                   par2[1] + 3, 6)
@@ -176,10 +187,10 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
         result['peaks'] = {
             'peak1': (param[0], param[1], param[2]),
             'peak2': (param[3], param[4], param[5]),
-            'peak3': (par3[0], par3[1], par3[2]),
+            'peak3': [par3[0] for i in range(5)], #convert to list
             'peak1error': (param_errors[0], param_errors[1], param_errors[2]),
             'peak2error': (param_errors[3], param_errors[4], param_errors[5]),
-            'peak3error': (par3_errors[0], par3_errors[1], par3_errors[2])
+            'peak3error': [par3_errors[i] for i in range(5)]
         }
     except Exception as e:
         print(str(e))
@@ -194,10 +205,10 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
         peak_ey.append(param_errors[1])
     if par3_errors[2] < MAX_ALLOWED_SIGMA_ERROR:
         #compensation=0.5 #we observed that there is about 0.5 adc channels shift if it  is fitting with single gaussian function
-        compensation=0
+        #compensation=0
         peak_x.append(PHOTO_PEAKS_POS[2])
         peak_ex.append(0.125)
-        peak_y.append(par3[1]+compensation)
+        peak_y.append(par3[1])
         peak_ey.append(par3_errors[1])
     #peak_x=[30.8, 34.9, 81]
     #peak_ex=[.0, 0., 0.]
@@ -220,7 +231,7 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
             'p1error': round(fcal_errors[1], 5),
         }
 
-    return result, [g_full_spec, gspec, gpeaks, fgaus12, fgaus3]
+    return result, [g_full_spec, gspec, gpeaks, fgaus12, fcrystalball]
 
 
 def process_one_run(calibration_id, create_pdf=True, pdf_path=DEFAULT_OUTPUT_DIR):

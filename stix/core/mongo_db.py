@@ -433,9 +433,9 @@ class MongoDB(object):
         doc = self.collection_flares.find_one({'_id': _id})
         if doc:
             if key != 'wiki':
-                if 'pipeline' not in doc:
-                    doc['pipeline'] = {}
-                doc['pipeline'][key] = value
+                if 'helio_pipeline' not in doc:
+                    doc['helio_pipeline'] = {}
+                doc['helio_pipeline'][key] = value
             else:
                 doc['wiki'] = value
             self.collection_flares.replace_one({'_id': _id}, doc)
