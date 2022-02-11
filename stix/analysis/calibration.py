@@ -203,14 +203,20 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
     peak_ex = []
     peak_y = []
     peak_ey = []
+
     if param_errors[2] < MAX_ALLOWED_SIGMA_ERROR:
         peak_x.append(PHOTO_PEAKS_POS[0])
         peak_ex.append(0.)
         peak_y.append(param[1])
         peak_ey.append(param_errors[1])
+
+    if param_errors[5] < MAX_ALLOWED_SIGMA_ERROR:
+        peak_x.append(PHOTO_PEAKS_POS[1])
+        peak_ex.append(0.)
+        peak_y.append(param[4])
+        peak_ey.append(param_errors[4])
+
     if par3_errors[2] < MAX_ALLOWED_SIGMA_ERROR:
-        #compensation=0.5 #we observed that there is about 0.5 adc channels shift if it  is fitting with single gaussian function
-        #compensation=0
         peak_x.append(PHOTO_PEAKS_POS[2])
         peak_ex.append(0.125)
         peak_y.append(par3[1])

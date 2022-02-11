@@ -289,7 +289,7 @@ def create_low_latency_fits_relative_days(relative_start, relative_end, path=FIT
 
 
 
-def create_fits_for_bulk_science(bsd_id_start, bsd_id_end, output_path, overwrite=True, version=1):
+def create_fits_for_bulk_science(bsd_id_start, bsd_id_end, output_path=FITS_PATH, overwrite=True, version=1):
     """
         create fits file for bulk science data 
         Parameters:
@@ -469,7 +469,6 @@ if  __name__ == '__main__':
     if args['bsd_id']:
         bsd_id_start=int(args['bsd_id'])
         bsd_id_end=bsd_id_start
-
         create_fits_for_bulk_science(bsd_id_start, bsd_id_end, path, overwrite=True, version=1)
     if args['bsd_id_range']:
         bsd_id_start=int(args['bsd_id_range'][0])

@@ -64,7 +64,7 @@ parser_config = {
         'joint_obs':     '/data/flares/',
 "spice": "/data/pub/data/spice/latest/kernels",
         'mailer':    {
-                'sender':  'obs@fhnw.ch',
+                'sender':  'noreply@fhnw.ch',
                 'user': '',
                 'pwd': '',
                 'server': 'lmailer.fhnw.ch',

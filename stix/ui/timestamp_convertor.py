@@ -9,7 +9,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from stix.spice import time_utils 
-from PyQt5.QtCore import Qtime_utils,Qt
+from PyQt5.QtCore import QTime,Qt
 
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
@@ -40,7 +40,7 @@ class Ui_Dialog(object):
         self.buttonBox.setObjectName("buttonBox")
         self.gridLayout.addWidget(self.buttonBox, 2, 1, 1, 2)
         self.verticalLayout.addLayout(self.gridLayout)
-        now = Qtime_utils.currenttime_utils()
+        now = QTime.currentTime()
         self.lineEdit.setText(now.toUTC().toString(Qt.ISODate)[0:-1])
         self.pushButton.clicked.connect(self.convertTimestamp)
 

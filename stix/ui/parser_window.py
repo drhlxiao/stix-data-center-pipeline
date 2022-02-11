@@ -13,6 +13,7 @@ import socket
 import signal
 import webbrowser
 from functools import partial
+from spice import time_utils as tu
 from datetime import datetime
 import numpy as np
 
@@ -829,7 +830,7 @@ class Ui(mainwindow.Ui_MainWindow):
                                 QtGui.QColor(
                                     colors[header['service_subtype']])))
 
-            timestamp_str = datetime.format_datetime(header['unix_time'])
+            timestamp_str = tu.format_datetime(header['unix_time'])
             root.setText(0, timestamp_str)
             description = '{}({},{}) - {}'.format(
                 header['TMTC'], header['service_type'],
@@ -956,9 +957,9 @@ class Ui(mainwindow.Ui_MainWindow):
             root = QtWidgets.QTreeWidgetItem(dui.treeWidget)
             root.setText(0, str(run['_id']))
             root.setText(1, run['filename'])
-            root.setText(2, datetime.format_datetime(run['date']))
-            root.setText(3, datetime.format_datetime(run['data_start_unix_time']))
-            root.setText(4, datetime.format_datetime(run['data_stop_unix_time']))
+            root.setText(2, tu.format_datetime(run['date']))
+            root.setText(3, tu.format_datetime(run['data_start_unix_time']))
+            root.setText(4, tu.format_datetime(run['data_stop_unix_time']))
 
     def loadDataFromMongoDB(self, dui, diag):
         self.showMessage('Loading packets ...')

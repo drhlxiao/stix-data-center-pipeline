@@ -952,7 +952,7 @@ class StixTCTMParser(StixParameterParser):
             logger.error(str(e))
             return const.HEADER_RAW_LENGTH_VALID, None, None
         header = {}
-        for h, s in zip(header_raw, header.TELECOMMAND_RAW_STRUCTURE):
+        for h, s in zip(header_raw, stxhd.TELECOMMAND_RAW_STRUCTURE):
             header.update(unpack_integer(h, s))
         status = self.check_header(header, 'tc')
 
@@ -986,7 +986,7 @@ class StixTCTMParser(StixParameterParser):
         })
         if status == const.OK:
             try:
-                header['ack_desc'] = header.ACK_MAPPING[header['ack']]
+                header['ack_desc'] = stxhd.ACK_MAPPING[header['ack']]
             except KeyError:
                 logger.error('Error occurs when  getting ack value')
                 status = const.HEADER_KEY_ERROR

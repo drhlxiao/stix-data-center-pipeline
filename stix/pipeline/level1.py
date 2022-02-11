@@ -91,6 +91,8 @@ class _Notification(object):
         title = 'STIX operational message'
         bt='\n'+'='*50+'\n'
         content=str(bt).join(self.messages)
+        print('sending message')
+        print(content)
         mailer.send_email(receivers, title, content)
         self.messages=[]
         #empty list
