@@ -13,7 +13,7 @@ import socket
 import signal
 import webbrowser
 from functools import partial
-from spice import time_utils as tu
+from stix.spice import time_utils as tu
 from datetime import datetime
 import numpy as np
 
