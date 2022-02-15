@@ -10,6 +10,7 @@
 import os
 import sys
 import glob
+import argparse
 from datetime import datetime
 from stix.core import config
 from stix.spice import time_utils as sdt
