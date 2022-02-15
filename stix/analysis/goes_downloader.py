@@ -18,7 +18,6 @@ import json
 import time
 import requests
 import pymongo
-import ROOT
 import numpy as np
 from datetime import datetime, timedelta
 from dateutil import parser as dtparser
@@ -30,6 +29,11 @@ import math
 
 mdb = db.MongoDB()
 
+try:
+    import ROOT
+    ROOT_EXISTS=True
+except ImportError:
+    ROOT_EXISTS=False
 
 
 
@@ -119,10 +123,8 @@ class GOES(object):
         print(f'Last timestamp: {sdt.unix2utc(self.last_unix_time)}')
 
         duration=7*86400
-        try:
+        if ROOT_EXISTS:
             self.estimate_goes_background(self.last_unix_time - duration, duration, w=900 )
-        except Exception as e:
-            print(e)
 
     def download(self, max_unix=math.inf):
         if max_unix<self.last_unix_time:

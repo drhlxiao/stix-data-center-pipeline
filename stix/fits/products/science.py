@@ -202,7 +202,10 @@ class XrayL0(Product):
 
         data = Data()
         data['start_time'] = (np.array(packets.get('NIX00404'), np.uint16)) * 0.1 * u.s
-        data['rcr'] = np.array(packets.get('NIX00401')[0], np.ubyte)
+        try:
+            data['rcr'] = np.array(packets.get('NIX00401'), np.ubyte)
+        except Exception as e:
+            data['rcr'] = np.array(packets.get('NIX00401')[0], np.ubyte)
         data['integration_time'] = (np.array(packets.get('NIX00405')[0], np.int16)) * 0.1 * u.s
         data['pixel_masks'] = _get_pixel_mask(packets, 'NIXD0407')
         data['detector_masks'] = _get_detector_mask(packets)
@@ -650,14 +653,17 @@ class Spectrogram(Product):
 
         control['pixel_mask'] = np.unique(_get_pixel_mask(packets), axis=0)
         control['detector_mask'] = np.unique(_get_detector_mask(packets), axis=0)
-        #try:
-        #    rcr=np.unique(packets['NIX00401']).astype(np.int16)
+
+        raw_rcr=np.array(packets.get('NIX00401'), np.ubyte)
+        #print(rcr)
+        num_times = np.array(packets.get('NIX00089'))
         #    #raise an exception for  data  acquired on Oct 28, 2021
         #except ValueError:
-        rcr=np.array(packets.get('NIX00401')[0], np.int16)
         #print(rcr)
         #print(control['pixel_mask'])
-        control['rcr'] =rcr
+        rcr = np.hstack([np.full(nt, rcr) for rcr, nt in zip(raw_rcr, num_times)]).astype(np.ubyte)
+
+        #control['rcr'] =rcr
         control['index'] = range(len(control))
 
         e_min = np.array(packets['NIXD0442'])
@@ -742,10 +748,17 @@ class Spectrogram(Product):
         deltas = np.hstack(deltas)
 
         # Data
+        #print("RCR shape:", rcr.shape)
+        #print("detla shape:", deltas.shape)
+
+
         data = Data()
         data['time'] = Time(scet_to_datetime(f'{int(control["time_stamp"][0])}:0')) \
             + centers
         data['timedel'] = deltas
+        data['rcr']=rcr
+
+
 
         ts, tk, tm = control['compression_scheme_triggers_skm'][0]
         triggers, triggers_var = decompress(packets['NIX00267'], s=ts, k=tk, m=tm,
@@ -781,11 +794,11 @@ class Aspect(Product):
         control['summing_value'] = packets['NIX00088']
         control['averaging_value'] = packets['NIX00490']
         control['index'] = range(len(control))
-        try:
-            control['request_id'] = np.array(packets.get('NIX00037'), np.uint32)
+        if 'NIX00037' in packets:
+            control['request_id'] = np.array(packets['NIX00037'], np.uint32)
             #request id introduced after FSW v183, 2021-12-09
-        except KeyError:
-            pass
+        #except KeyError:
+        #    pass
 
         delta_time = ((control['summing_value'] * control['averaging_value']) / 1000.0)
         samples = packets['NIX00089']

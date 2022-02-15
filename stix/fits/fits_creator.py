@@ -305,6 +305,7 @@ def create_fits_for_bulk_science(bsd_id_start, bsd_id_end, output_path=FITS_PATH
         file_id=bsd['run_id']
         spid=bsd['SPID']
         product = SPID_MAP[spid]
+        print(spid,product)
         create_fits_for_packets(file_id, pkts, spid, product, True, output_path, overwrite, version, remove_duplicates=True)
 
 

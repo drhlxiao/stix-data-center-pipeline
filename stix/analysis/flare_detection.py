@@ -55,7 +55,41 @@ def merge_intervals(x):
             m.append(pm)
             m.append(x[i])
     return m
+def find_flare_time_ranges(lc_times, lc_counts,peaks,props,threshold=270):
+    """
+     calculate peak width at height 
+    """
+    print('----')
+    print("Threshold:",threshold)
 
+
+    i_mins = props['left_bases']
+    i_maxs = props['right_bases']
+    num_peaks=peaks.size
+    imax=len(lc_counts)
+
+    left_ips, right_ips, start_times, end_times=[],[],[],[]
+
+    for k in  range(num_peaks):
+        i_min=i_mins[k]
+        i_max=i_maxs[k]
+        peak = peaks[k]
+        i = peak
+        while i>0 and threshold <= lc_counts[i]:
+            i -= 1
+        left_ip = i
+        i = peak
+        while i<imax and threshold <= lc_counts[i]:
+            i += 1
+        right_ip = i
+
+        #print(i_min, i_max, left_ip, right_ip)
+        left_ips.append(int(left_ip))
+        right_ips.append(int(right_ip))
+        start_times.append(lc_times[int(left_ip)])
+        end_times.append(lc_times[int(right_ip)])
+
+    return start_times,end_times, np.array(left_ips,np.int32), np.array(right_ips,np.int32)
 
 def smooth(y, N=15):
 
@@ -102,7 +136,7 @@ def make_lightcurve_snapshot(data, docs, snapshot_path):
         lc = data['lcs'][0][where]
         peak_counts = docs['peak_counts'][i]
 
-        fig = plt.figure(figsize=(6, 2))
+        fig = plt.figure()
         plt.plot(t_since_t0, lc, label="4-10 keV LC")
         plt.plot(t_since_t0,
                  data['lc_smoothed'][where],
@@ -110,34 +144,39 @@ def make_lightcurve_snapshot(data, docs, snapshot_path):
         T0 = st.unix2utc(docs['peak_unix_time'][i])
         xmin = docs['start_unix'][i] - docs['peak_unix_time'][i]
         xmax = docs['end_unix'][i] - docs['peak_unix_time'][i]
-        t70=[docs['PH70_unix'][i][0]-docs['peak_unix_time'][i],
-                docs['PH70_unix'][i][1]-docs['peak_unix_time'][i]]
+        #t10=[docs['time_ranges'][i]['PH10_unix'][0]-docs['peak_unix_time'][i],
+        #        docs['time_ranges'][i]['PH10_unix'][1]-docs['peak_unix_time'][i]]
 
         plt.plot([0], [peak_counts], marker='+', color='cyan', markersize=15)
 
         ylow = peak_counts - 1.1 * docs['properties']['prominences'][i]
+        
+        #plt.ylim(np.min(lc), np.max
+        #        , peak_counts * 1.3)
 
-        plt.axvline(xmin, linestyle='dashed', color='C3')
-        plt.axvline(xmax, linestyle='dashed', color='C3')
+        #plt.axvline(xmin, linestyle='dashed', color='C3')
+        #plt.axvline(xmax, linestyle='dashed', color='C3')
+        threshold=docs['threshold']
 
-        plt.vlines(t70, ymin= 0.4 * peak_counts, ymax=0.9*peak_counts, linestyle='dashed', color='b')
+        plt.vlines(xmin, ymin= 0.8 *threshold, ymax=1.2*threshold, linestyle='dashed', color='b')
+        plt.vlines(xmax, ymin= 0.8 *threshold, ymax=1.2*threshold, linestyle='dashed', color='b')
 
-        plt.text(xmin, 0.9 * peak_counts, 'Start', color='C3')
-        plt.text(0.8 * xmax, 0.9 * peak_counts, 'End', color='C3')
-        baseline = docs['baseline']
-        plt.hlines(docs['properties']['width_heights'][i],
+        #plt.text(xmin, docs['baseline'], f'BKG counts: {docs["baseline"]}', color='C3')
+        #baseline = docs['baseline']
+        plt.hlines(threshold,
                    xmin=xmin,
                    xmax=xmax,
                    linewidth=2,
                    color='C2')
 
-        plt.xlabel(f'Seconds since {T0}')
-        plt.ylabel('Counts in 4 s')
+        plt.xlabel(f'T [s] - Start at {T0}')
+        plt.ylabel('Counts')
         plt.title(f'Flare #{flare_id}')
         filename = os.path.join(snapshot_path,
                                 f'flare_lc_{_id}_{flare_id}.png')
+        plt.yscale('log')
         fig.tight_layout()
-        #print(filename)
+        print(filename)
         plt.savefig(filename, dpi=300)
         mdb.set_flare_lc_filename(_id, filename)
         plt.close()
@@ -146,7 +185,10 @@ def make_lightcurve_snapshot(data, docs, snapshot_path):
 
 def major_peaks(lefts, rights):
     #remove small peaks
+    #print("LEFTS:")
+    #print(lefts, rights)
     num = lefts.size
+    #print("NUM:", num)
     major = [True] * num
     for i in range(num):
         a = (lefts[i], rights[i])
@@ -162,7 +204,7 @@ def major_peaks(lefts, rights):
 
 def find_flares_in_one_file(run_id,
            peak_min_width=15,
-           peak_min_distance=150,
+           peak_min_distance=75,
            rel_height=0.9,
            snapshot_path='.'):
     data = get_lightcurve_data(run_id)
@@ -221,6 +263,7 @@ def find_flares_in_data(data,
     }
     doc = {}
 
+    #threshold=height
 
     peak_values = properties['peak_heights']
     peak_unix_times = unix_time[xpeaks]
@@ -229,12 +272,13 @@ def find_flares_in_data(data,
         st.unix2datetime(x).strftime("%y%m%d%H%M")
         for x in peak_unix_times
     ]
+    threshold=baseline+noise_rms
+    flare_start_times, flare_end_times,left_ips, right_ips=find_flare_time_ranges(unix_time, lc_smoothed, xpeaks,properties, threshold)
 
-    majors = major_peaks(properties['left_ips'], properties['right_ips'])
-    range_indexs = [(int(properties['left_ips'][i]),
-                     int(properties['right_ips'][i]))
-                    for i in range(xpeaks.size)]
-    total_counts = [int(np.sum(lightcurve[r[0]:r[1]])) for r in range_indexs]
+    majors = major_peaks(left_ips, right_ips)
+
+    range_indexs = np.vstack((left_ips, right_ips)).T
+    total_counts = [int(np.sum(lightcurve[r0:r1])) for r0,r1 in zip(left_ips, right_ips)]
     LC_statistics = []
     if stat:#calculate statistics for all light curves, used for data requests
         for ipeak in range(xpeaks.size):
@@ -275,10 +319,17 @@ def find_flares_in_data(data,
                 i] / seconds_per_bin
         total_signal_counts.append(sig_cnts)
 
-    flare_start_unix=unix_time[properties['left_ips'].astype(int)].tolist()
+
+    peak_width_T90=np.vstack((unix_time[properties['left_ips'].astype(int)], unix_time[properties['right_ips'].astype(int)])).T
+
+    
+
+
+    unix_time[properties['left_ips'].astype(int)].tolist()
     flare_end_unix=unix_time[properties['right_ips'].astype(int)].tolist()
 
-    #peak_width_T90=np.vstack((unix_time[properties['left_ips'].astype(int)], unix_time[properties['right_ips'].astype(int)])).T
+    H10_res= signal.peak_widths(lc_smoothed, xpeaks, rel_height=0.1) #H10 calculation
+    peak_width_H10= np.vstack((unix_time[H10_res[2].astype(int)], unix_time[H10_res[3].astype(int)])).T
 
     H70_res= signal.peak_widths(lc_smoothed, xpeaks, rel_height=0.7) #H70 calculation
     peak_width_H70= np.vstack((unix_time[H70_res[2].astype(int)], unix_time[H70_res[3].astype(int)])).T
@@ -297,6 +348,7 @@ def find_flares_in_data(data,
         'peak_utc': peaks_utc,
         'flare_id': flare_ids,
         'baseline': baseline,
+        'threshold': threshold,
         'noise_rms': noise_rms,
         'total_counts': total_counts,
         'total_signal_counts': total_signal_counts,
@@ -307,12 +359,13 @@ def find_flares_in_data(data,
         'width_height': properties['width_heights'].tolist(
         ),  # height of the width, background level
         'peak_prominence': properties['prominences'].tolist(),
-        #'peak_T90_widths': peak_width_T90.tolist(),
-        'PH70_unix': peak_width_H70.tolist(),
-        'PH80_unix': peak_width_H80.tolist(),
-        'PH50_unix': peak_width_H50.tolist(),
-        'start_unix':flare_start_unix,
-        'end_unix': flare_end_unix,
+        'time_ranges': {'PH70': peak_width_H70.tolist(),
+                        'PH80': peak_width_H80.tolist(),
+                        'PH50': peak_width_H50.tolist(),
+                        'PH10': peak_width_H10.tolist()
+                        },
+        'start_unix':flare_start_times,
+        'end_unix': flare_end_times,
         'is_major': majors,
         'LC_statistics': LC_statistics,
     }
@@ -330,7 +383,7 @@ def find_flares_in_files(fid_start, fid_end, img_path='/data/flare_lc'):
         print(f'deleting flares of Files {i}')
         mdb.delete_flares_of_file(i)
     for i in range(fid_start, fid_end + 1):
-        search_flares(i, snapshot_path=img_path)
+        find_flares_in_one_file(i, snapshot_path=img_path)
 
 
 if __name__ == '__main__':
@@ -339,7 +392,7 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         print('flare_detection file_number')
     elif len(sys.argv) == 2:
-        res = search_flares(int(sys.argv[1]), snapshot_path='/data/flare_lc')
+        res = find_flares_in_one_file(int(sys.argv[1]), snapshot_path='/data/flare_lc')
         print('Number of peaks:', res)
     else:
         find_flares_in_files(int(sys.argv[1]),

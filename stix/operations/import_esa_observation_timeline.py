@@ -1,15 +1,15 @@
 import pymongo
+import sys
 import json
-
-from stix.spice import datetime as sdt
+from stix.spice import time_utils as sdt
 from pprint import pprint
 connect = pymongo.MongoClient()
 db = connect['stix']['events']
 
-timeline_file_id='LTP06_v1'
+#ltp_id='LTP07_v1'
 
 
-def create_report(_id, subject, start, end, descr):
+def create_report(_id, subject, start, end, descr, ltp_id):
     report={
     "_id" : _id,
     "author" : "Hualin",
@@ -20,7 +20,7 @@ def create_report(_id, subject, start, end, descr):
     "description" : descr,
     "submit" : "",
     "creation_time" : sdt.now(),
-    "timeline_file_id":timeline_file_id,
+    "ltp_id":ltp_id,
     "status" : 0,
     "hidden" : False
     }
@@ -33,7 +33,7 @@ name_map={
         }
 
 
-def import_timeline(filename):
+def import_timeline(filename, ltp_id ):
     f=open(filename)
     data = json.load(f)
     observations=data['observations']
@@ -53,11 +53,15 @@ def import_timeline(filename):
         data_vol=f"Max science data volume: {vol['value']} {vol['unit']}"
         subject=name_map.get(name, name)
 
-        create_report(next_id, subject, start, end, descr=data_vol)
+        create_report(next_id, subject, start, end, descr=data_vol, ltp_id=ltp_id)
         next_id+=1
 
 
 
-    
-filename='SSTX_observation_timeline_export_M06_V01.json'
-import_timeline(filename)
+if __name__=='__main__':
+    if len(sys.argv)==3:
+        filename=sys.argv[1]
+        ltp_id=sys.argv[2]
+        import_timeline(filename, ltp_id)
+    else:
+        print('./import  <filename> <LTP_ID>')

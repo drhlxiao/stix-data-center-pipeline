@@ -138,7 +138,7 @@ class _Notification(object):
                 except (IndexError, KeyError):
                     est_goes=''
 
-                content+=f'{fl[0]}  -  {fl[1]}  {est_goes} \n'
+                content+=f'{fl[0]}  -  {fl[1]}{est_goes} \n'
         self.messages.append(content)
 
 Notification=_Notification()
