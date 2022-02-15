@@ -21,7 +21,7 @@ goes=gd.GOES()
 
 def parser_loop(wait=60):
     while True:
-        num_new=pd.main()
+        pd.main()
         time.sleep(wait)
 
 def main_threading():
