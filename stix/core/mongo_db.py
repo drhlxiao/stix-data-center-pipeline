@@ -373,7 +373,7 @@ class MongoDB(object):
                 continue
 
             peak_unix = float(result['peak_unix_time'][i])
-            time_window = 300
+            time_window = 90
             hidden = False
             exists = self.collection_flares.find_one({
                 'peak_unix_time': {

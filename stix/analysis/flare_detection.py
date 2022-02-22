@@ -41,20 +41,20 @@ def info(msg):
     logger.info(msg)
 
 
-def merge_intervals(x):
-    #sort the intervals by its first value
-    x.sort(key=lambda x: x[0])
-    m = []
-    m.append(x[0])
-    overlaps = lambda a, b: b[0] > a[0] and b[0] < a[1]
-    for i in range(1, len(x)):
-        pm = m.pop()
-        if overlaps(pm, x[i]):
-            m.append((pm[0], max(pm[1], x[i][1])))
-        else:
-            m.append(pm)
-            m.append(x[i])
-    return m
+#def merge_intervals(x):
+#    #sort the intervals by its first value
+#    x.sort(key=lambda x: x[0])
+#    m = []
+#    m.append(x[0])
+#    overlaps = lambda a, b: b[0] > a[0] and b[0] < a[1]
+#    for i in range(1, len(x)):
+#        pm = m.pop()
+#        if overlaps(pm, x[i]):
+#            m.append((pm[0], max(pm[1], x[i][1])))
+#        else:
+#            m.append(pm)
+#            m.append(x[i])
+#    return m
 def find_flare_time_ranges(lc_times, lc_counts,peaks,props,threshold=270):
     """
      calculate peak width at height 
@@ -63,19 +63,18 @@ def find_flare_time_ranges(lc_times, lc_counts,peaks,props,threshold=270):
     print("Threshold:",threshold)
 
 
-    i_mins = props['left_bases']
-    i_maxs = props['right_bases']
     num_peaks=peaks.size
     imax=len(lc_counts)
+    
+    boundaries=[]
+    
 
     left_ips, right_ips, start_times, end_times=[],[],[],[]
 
     for k in  range(num_peaks):
-        i_min=i_mins[k]
-        i_max=i_maxs[k]
         peak = peaks[k]
         i = peak
-        while i>0 and threshold <= lc_counts[i]:
+        while i>=0 and threshold <= lc_counts[i]:
             i -= 1
         left_ip = i
         i = peak
@@ -83,13 +82,20 @@ def find_flare_time_ranges(lc_times, lc_counts,peaks,props,threshold=270):
             i += 1
         right_ip = i
 
-        #print(i_min, i_max, left_ip, right_ip)
-        left_ips.append(int(left_ip))
-        right_ips.append(int(right_ip))
-        start_times.append(lc_times[int(left_ip)])
-        end_times.append(lc_times[int(right_ip)])
+        boundaries.append(True if left_ip<=0 or right_ip>=imax else False)
 
-    return start_times,end_times, np.array(left_ips,np.int32), np.array(right_ips,np.int32)
+        right_ip=min(right_ip, imax-1)
+        left_ip=max(0, left_ip) #falls at the edge
+        
+
+
+        #print(i_min, i_max, left_ip, right_ip)
+        left_ips.append(left_ip)
+        right_ips.append(right_ip)
+        start_times.append(lc_times[left_ip])
+        end_times.append(lc_times[right_ip])
+
+    return start_times,end_times, left_ips, right_ips,boundaries 
 
 def smooth(y, N=15):
 
@@ -124,6 +130,7 @@ def make_lightcurve_snapshot(data, docs, snapshot_path):
         _id = inserted_id
         #print('_id', inserted_id)
         min_height = docs['conditions']['min_height']
+        is_major=docs['is_major']
 
         start_unix = docs['start_unix'][i]
         end_unix = docs['end_unix'][i]
@@ -147,7 +154,7 @@ def make_lightcurve_snapshot(data, docs, snapshot_path):
         #t10=[docs['time_ranges'][i]['PH10_unix'][0]-docs['peak_unix_time'][i],
         #        docs['time_ranges'][i]['PH10_unix'][1]-docs['peak_unix_time'][i]]
 
-        plt.plot([0], [peak_counts], marker='+', color='cyan', markersize=15)
+        plt.plot([0], [peak_counts], marker='+', color='red', markersize=15)
 
         ylow = peak_counts - 1.1 * docs['properties']['prominences'][i]
         
@@ -171,23 +178,23 @@ def make_lightcurve_snapshot(data, docs, snapshot_path):
 
         plt.xlabel(f'T [s] - Start at {T0}')
         plt.ylabel('Counts')
-        plt.title(f'Flare #{flare_id}')
+        plt.title(f'Flare #{flare_id} (major: {is_major[i]})')
         filename = os.path.join(snapshot_path,
                                 f'flare_lc_{_id}_{flare_id}.png')
         plt.yscale('log')
         fig.tight_layout()
-        print(filename)
+        #print(filename)
         plt.savefig(filename, dpi=300)
         mdb.set_flare_lc_filename(_id, filename)
         plt.close()
         plt.clf()
 
 
-def major_peaks(lefts, rights):
-    #remove small peaks
-    #print("LEFTS:")
-    #print(lefts, rights)
-    num = lefts.size
+def major_peaks(lefts, rights, peak_values):
+    """
+        merge time range overlapped  flares
+    """
+    num = len(lefts)
     #print("NUM:", num)
     major = [True] * num
     for i in range(num):
@@ -197,7 +204,7 @@ def major_peaks(lefts, rights):
                 continue
             b = (lefts[j], rights[j])
 
-            if a[0] >= b[0] and a[1] <= b[1]:  #a in b
+            if a[0] <= b[1] and a[1] >= b[0] and  peak_values[i] < peak_values[j]:
                 major[i] = False
     return major
 
@@ -209,7 +216,7 @@ def find_flares_in_one_file(run_id,
            snapshot_path='.'):
     data = get_lightcurve_data(run_id)
     print(f'Deleting flares in file #{run_id}')
-    mdb.delete_flares_of_file(run_id)
+    #mdb.delete_flares_of_file(run_id)
     if not data:
         info(f'No QL LC packets found for file {run_id}')
         return 0
@@ -272,12 +279,17 @@ def find_flares_in_data(data,
         st.unix2datetime(x).strftime("%y%m%d%H%M")
         for x in peak_unix_times
     ]
+    #print('\n'.join(flare_ids))
+    
     threshold=baseline+noise_rms
-    flare_start_times, flare_end_times,left_ips, right_ips=find_flare_time_ranges(unix_time, lc_smoothed, xpeaks,properties, threshold)
+    flare_start_times, flare_end_times,left_ips, right_ips, boundaries=find_flare_time_ranges(unix_time, 
+            lc_smoothed, xpeaks,properties, threshold)
 
-    majors = major_peaks(left_ips, right_ips)
 
-    range_indexs = np.vstack((left_ips, right_ips)).T
+    is_major_flags = major_peaks(left_ips, right_ips, peak_values)
+    #print(majors)
+
+    #range_indexs = np.vstack((left_ips, right_ips)).T
     total_counts = [int(np.sum(lightcurve[r0:r1])) for r0,r1 in zip(left_ips, right_ips)]
     LC_statistics = []
     if stat:#calculate statistics for all light curves, used for data requests
@@ -288,8 +300,8 @@ def find_flares_in_data(data,
                 flare_stat = {}
                 flare_stat['bkg_median'] = stat['median'][ilc]
                 flare_stat['bkg_sigma'] = stat['std'][ilc]
-                r = range_indexs[ipeak]
-                lc_cnts = data['lcs'][ilc][r[0]:r[1]]
+                
+                lc_cnts = data['lcs'][ilc][ left_ips[ipeak]:right_ips[ipeak]]
                 flare_stat['signal_median'] = int(np.median(lc_cnts))
                 flare_stat['signal_max'] = int(np.max(lc_cnts))
                 flare_stat['signal_min'] = int(np.min(lc_cnts))
@@ -308,7 +320,7 @@ def find_flares_in_data(data,
 
     seconds_per_bin = 4
     durations = np.array([(r[1] - r[0]) * seconds_per_bin
-                          for r in range_indexs])
+                          for r in zip(left_ips, right_ips) ])
     cps = total_counts / durations
 
     total_signal_counts = []
@@ -355,6 +367,7 @@ def find_flares_in_data(data,
         'duration': durations.tolist(),
         'mean_cps': cps.tolist(),
         'conditions': conditions,
+        'is_boundary': boundaries,
         'peak_width_bins': properties['widths'].tolist(),  #width of height
         'width_height': properties['width_heights'].tolist(
         ),  # height of the width, background level
@@ -366,11 +379,12 @@ def find_flares_in_data(data,
                         },
         'start_unix':flare_start_times,
         'end_unix': flare_end_times,
-        'is_major': majors,
+        'is_major': is_major_flags,
         'LC_statistics': LC_statistics,
     }
     if isinstance(auxilary, dict):
         doc.update(auxilary)
+
 
     mdb.save_flare_info(doc)
     doc['properties'] = properties
