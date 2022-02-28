@@ -216,7 +216,7 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
         peak_y.append(param[4])
         peak_ey.append(param_errors[4])
 
-    if par3_errors[2] < MAX_ALLOWED_SIGMA_ERROR:
+    if peak3_max_x-fit_range_peak3_x_left<=par3[1]<=peak3_max_x+fit_range_peak3_x_right:
         peak_x.append(PHOTO_PEAKS_POS[2])
         peak_ex.append(0.125)
         peak_y.append(par3[1])

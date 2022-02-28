@@ -317,7 +317,8 @@ class XrayL1(Product):
 
         if len(control) != 1:
             #print(packets[0])
-            raise ValueError('Creating a science product form packets from multiple products')
+            #raise ValueError('Creating a science product form packets from multiple products')
+            print('Control is not unique')
             
 
         control['index'] = 0
