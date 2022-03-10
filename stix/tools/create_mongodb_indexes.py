@@ -13,8 +13,17 @@ try:
     collection_qlspec= db['ql_spectra']
     collection_bsd= db['bsd']
     collection_flares= db['flares']
+    collection_iors= db['iors']
 
     print('creating indexes for goes')
+    ior_indexes=[("startTime", 1),
+                ("stopTime",1),
+                  ("data_request_unique_ids",1),
+                  ("md5",1),
+                  ]
+    for index in ior_indexes:
+        collection_iors.create_index(index)
+
 
     indexes=[[('unix_time',1)]]
     for index in indexes:
@@ -71,7 +80,7 @@ try:
             collection_packets.create_index(index)
     if collection_data_request_forms:
         print('creating indexes for user data requests')
-        indexes=[[('request_type',1), ('detector_mask',1),('pixel_mask',1)],[('request_type',1)], [('detector_mask',1)],[('pixel_mask',1)]]
+        indexes=[[('request_type',1), ('detector_mask',1),('pixel_mask',1)],[('request_type',1)], [('detector_mask',1)],[('pixel_mask',1),('ior_id',1),('hidden',1)]]
         for index in indexes:
             print(index)
             collection_data_request_forms.create_index(index)

@@ -173,12 +173,15 @@ class StixBulkL1L2Analyzer(object):
         self.dt = []
         self.pixel_mask = []
         self.detector_mask = []
+        self.pixel_indexes=None
+        self.extract_masks=True
         self.triggers = []
         self.pixel_rate_spec= np.zeros((12*32, 32))  # total hits
         self.pixel_time_int_spectra= np.zeros((12*32, 32))  # total hits
 
         self.flare_peak_pixel_spectra=np.zeros((12*32, 32))  # spectrum of each pixel near flare peaks
         self.flare_pixel_counts=[0]*384
+        self.energy_bins=[]
         #self.hits_time_ene_int = np.zeros(
         #    (33, 12))  # energy integrated total hits
         # self.T0=[]
@@ -189,7 +192,7 @@ class StixBulkL1L2Analyzer(object):
         self.groups = []
         self.pixel_total_counts = [0] * 384
         self.sci_ebins=[]
-        self.num_time_bins = []
+        self.num_time_bins = 0
         self.start_unix=None
         self.end_unix=None
         self.spectrogram=sdm.Spectrogram()
@@ -223,16 +226,23 @@ class StixBulkL1L2Analyzer(object):
         if duration >0:
             self.pixel_rate_spec = self.pixel_time_int_spectra/duration
         #print(duration, len(self.groups))
+        self.sci_ebins.sort()
         report = {
             'request_id': self.request_id,
             'packet_unix': self.packet_unix,
-            'groups': self.groups,
+            'boxes': self.groups,
             'trig_skm': self.trig_SKM,
             'eacc_skm': self.eacc_SKM,
             'start_unix': self.start_unix,
+            'energy_bins':self.sci_ebins,
+            'pixel_indexes':self.pixel_indexes,
+            'detector_mask':self.detector_mask,
+            'num_time_bins': self.num_time_bins,
+            'pixel_mask':self.pixel_mask,
             'end_unix': self.end_unix,
             'pixel_total_counts': self.pixel_total_counts,
             }
+        #print('time bins',self.num_time_bins)
         emin,emax=-1,-1
         if self.sci_ebins:
             emin=min([x[0] for x in self.sci_ebins])
@@ -299,7 +309,11 @@ class StixBulkL1L2Analyzer(object):
         ipkt=0
         flare_start_times, flare_end_times=[],[]
         hash_list=[]
+        group = {}
+        last_time_bin = 0
+        #print('start processing packets', cursor.count())
         for pkt in cursor:
+            #print('flare start')
             if pkt['hash'] in hash_list:
                 continue
             hash_list.append(pkt['hash'])
@@ -329,14 +343,11 @@ class StixBulkL1L2Analyzer(object):
             if sum(self.eacc_SKM) > 0:
                 counts_idx = 2
             children = packet[13].children
-            group = {}
-            last_time_bin = 0
-            self.num_time_bins = 0
             self.end_time=0
             for i in range(0, num_structures):
+                #print("i:",i)
                 offset = i * 22
                 time = children[offset][1] * 0.1 + T0
-
                 is_flare_data=self.is_near_flare_peak(flare_start_times, flare_end_times,time)
                 #not all are for requested for flares
                 #check if current time stamp fall between the start/end time of a flare in the preload flare list
@@ -352,23 +363,30 @@ class StixBulkL1L2Analyzer(object):
                 if time != last_time_bin:
                     self.num_time_bins += 1
                     last_time_bin = time
+                    if group:
+                        self.groups.append(group)
+                        group={}
+
+                if self.extract_masks:
+                    #only extract once
+                    self.pixel_mask = [
+                        e[1] for e in children[offset + 2][3] if 'NIXG' not in e[0]
+                    ]
+                    self.detector_mask = children[offset + 3][1]
+                    self.pixel_indexes = self.get_spectrum_pixel_indexes(
+                    self.detector_mask, self.pixel_mask)
+                    self.extract_masks=False
 
                 rcr = children[offset + 1][1]
-                pixel_mask = [
-                    e[1] for e in children[offset + 2][3] if 'NIXG' not in e[0]
-                ]
-                # exclude NIXG parameters
-
-                detector_mask = children[offset + 3][1]
                 integrations = children[offset + 4][1]
                 triggers = [children[k + 5][trig_idx] for k in range(0, 16)]
                 # id 6-22, 16 trigger accumulators
                 num_samples = children[21 + offset][1]
                 samples = children[21 + offset][3]
-                energies = []
-                pixel_indexes = self.get_spectrum_pixel_indexes(
-                    detector_mask, pixel_mask)
-                for j in range(0, num_samples):
+
+                counts = []
+                #print(num_samples)
+                for j in range(0, num_samples):#interate over time bins
                     k = j * 4
                     E1_low = samples[k + 1][1]
                     E2_high = samples[k + 2][1]
@@ -384,31 +402,34 @@ class StixBulkL1L2Analyzer(object):
                         self.spectrogram.fill(E1_low, E2_high, time, e[counts_idx])
                         #fill spectrogram
                         self.pixel_total_counts[
-                            pixel_indexes[idx]] += e[counts_idx]
+                            self.pixel_indexes[idx]] += e[counts_idx]
                         if is_flare_data and E1_low==E2_high:
                             self.flare_peak_pixel_spectra[
-                                pixel_indexes[idx]][E1_low] += e[counts_idx]
+                                self.pixel_indexes[idx]][E1_low] += e[counts_idx]
                             if E1_low<FLARE_SCI_EMAX:
                                 self.flare_pixel_counts[
-                                    pixel_indexes[idx]] += e[counts_idx]
+                                    self.pixel_indexes[idx]] += e[counts_idx]
 
                         if E1_low == E2_high: #only fill counts with Ebin=1  to spectra
                             self.pixel_time_int_spectra[
-                                pixel_indexes[idx]][E1_low] += e[counts_idx]
-                    energies.append(
-                        [E1_low, E2_high,
-                         sum(pixel_counts), pixel_counts])
-                group = {
-                    'time': time,
+                                self.pixel_indexes[idx]][E1_low] += e[counts_idx]
+                    counts.append(
+                            [E1_low, E2_high,
+                             sum(pixel_counts), pixel_counts])
+                if not group:
+                    group = {
+                    'time': time+ float(integrations)*0.1/2,
                     'rcr': rcr,
-                    'pixel_mask': pixel_mask,
-                    'detector_mask': detector_mask,
                     'triggers': triggers,
-                    'integrations': integrations,
-                    'pixel_indexes': pixel_indexes,
-                    'energies': energies,
-                }
-                self.groups.append(group)
+                    'integrations': float(integrations)*0.1,
+                    #'pixel_indexes': pixel_indexes,
+                    'counts': counts,
+                    }
+                else:
+                    #truncated packet
+                    group['counts'].extend(counts)
+        if group:
+            self.groups.append(group)
         return self.format_report()
 
 
@@ -544,6 +565,7 @@ class StixBulkL4Analyzer(object):
     def process_packets(self, cursor):
         last_timestamp=None
         hash_list=[]
+        self.num_time_bins = 0
         for pkt in cursor:
             if pkt['hash'] in hash_list:
                 continue
@@ -567,7 +589,6 @@ class StixBulkL4Analyzer(object):
             group = {}
             if last_timestamp is None:
                 last_timestamp = T0
-            self.num_time_bins = 0
 
 
             for i in range(0, num_structures):
@@ -712,6 +733,7 @@ def process_packets_in_file(file_id, remove_existing=True):
                     pass
             json_filename = os.path.join(level1_products_path,
                                          f'L1_{doc["_id"]}_{date_str}.json')
+            print(json_filename)
             start_unix=result.get('start_unix',0)
             end_unix=result.get('end_unix',0)
             result['data_type']=data_type
@@ -729,6 +751,6 @@ if __name__ == '__main__':
         process_one(int(sys.argv[1]))
     else:
         for i in range(int(sys.argv[1]),int(sys.argv[2])+1):
-            print('process:',i)
+            print('process file:',i)
             process_one(i)
 

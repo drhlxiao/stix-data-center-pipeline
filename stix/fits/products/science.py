@@ -724,13 +724,13 @@ class Spectrogram(Product):
             raise ValueError('Original and reformatted count totals do not match')
 
         try:
-            delta_time = (np.array(packets['NIX00441'], np.uint16)) * 0.1 * u.s
+            delta_time = (np.array(packets['NIX00441'], np.uint32)) * 0.1 * u.s
         except KeyError:
-            delta_time = (np.array(packets['NIX00404'], np.uint16)) * 0.1 * u.s
+            delta_time = (np.array(packets['NIX00404'], np.uint32)) * 0.1 * u.s
 
 
 
-        closing_time_offset = (np.array(packets['NIX00269'], np.uint16)) * 0.1 * u.s
+        closing_time_offset = (np.array(packets['NIX00269'], np.uint32)) * 0.1 * u.s
 
         # TODO incorporate into main loop above
         centers = []

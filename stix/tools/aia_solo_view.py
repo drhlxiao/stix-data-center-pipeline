@@ -278,7 +278,7 @@ def roi_hpc_SOLO(aia_map, coord, date_solo, solo_hee):
     
     return roi_solo_hpc
 ############################################################
-def plot(folder,_id, flare_id ,time_at_peak, wavelen=1600, overwrite=False):
+def create_plot(folder,_id, flare_id ,time_at_peak, wavelen=1600, overwrite=False):
     '''
     Usually we rotate the 1600 map, since has most likely
     less projection effects compared to the others AIA
