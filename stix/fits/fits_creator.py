@@ -2,7 +2,7 @@ import sys
 import os
 import argparse
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime,timedelta
 from itertools import chain
 from pathlib import Path
 
@@ -309,6 +309,16 @@ def create_fits_for_bulk_science(bsd_id_start, bsd_id_end, output_path=FITS_PATH
         create_fits_for_packets(file_id, pkts, spid, product, True, output_path, overwrite, version, remove_duplicates=True)
 
 
+def create_daily_low_latency_fits_for_all(path=FITS_PATH):
+    last_date=db.get_last_daily_fits_file_date()
+    if last_date:
+        start_date_noon=last_date+timedelta(hours=12)
+        end_date=datetime.now()-timedelta(hours=48)
+        start_date_str=start_date_noon.strftime('%Y-%m-%d')
+        end_date_str=end_date.strftime('%Y-%m-%d')
+        create_low_latency_fits_between_dates(start_date_str, end_date_str, path)
+
+
 
 
 
@@ -449,6 +459,13 @@ if  __name__ == '__main__':
         default=None,
         required=False,
         help="End time to select LL data")
+    optional.add_argument(
+        "-da",
+        dest='daily_all',
+         nargs=2,
+        default=None,
+        required=False,
+        help="Generate daily FITS files for low latency data starting from the end date of last processing run ")
 
     optional.add_argument(
         "-b",
@@ -480,6 +497,8 @@ if  __name__ == '__main__':
     if args['file_id_range']:
         for i in range(int(args['file_id_range'][0]),int(args['file_id_range'][1])+1):
             create_fits(i, path, overwrite=True, version=1)
+    if args['daily_all']:
+        create_daily_low_latency_fits_for_all()
 
     if args['date_range']:
         date_start=args['date_range'][0]

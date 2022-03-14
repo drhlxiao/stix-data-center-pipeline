@@ -557,23 +557,12 @@ class MongoDB(object):
         except:
             return None
 
-    def insert_notification(self, doc):
-        next_id = 0
-        try:
-            next_id = self.collection_notifications.find({}).sort(
-                '_id', -1).limit(1)[0]['_id'] + 1
-        except IndexError:
-            pass
-        doc['_id'] = next_id
-        self.collection_notifications.save(doc)
-        return next_id
-    def release_notifications(self, ids):
-        if ids:
-            self.collection_notifications.update_many({'_id':{'$in':ids}},{'$set':{'released':True}})
-    
 
-
-
+    def get_last_daily_fits_file_date(self):
+        flist=list(self.collection_fits.find({'run_type':'daily'}).sort('data_end_unix',-1).limit(1))
+        if flist:
+            return datetime.fromtimestamp(flist[0]['data_end_unix'])
+        return None
 
     def insert_time_bins(self,doc, delete_existing):
         file_id=doc['file_id']
