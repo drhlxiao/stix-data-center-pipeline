@@ -26,6 +26,9 @@ from stix.analysis import sci_packets_analyzer
 from stix.analysis import integration_time_estimator
 from stix.analysis import flare_goes_class as fgc
 from stix.analysis import goes_downloader as gdl
+
+from stix.analysis import monitor
+
 from stix.spice import spice_manager as spm
 #from stix.flare_pipeline import flare_L1_analyzer as fla
 
@@ -69,7 +72,7 @@ class _WatchDog(object):
     def expired(self):
       if  (datetime.now()-self.reset_time).total_seconds()>self.expiration_time:
         self.counter=self.counter+1
-        print(self.counter)
+        #print(self.counter)
         return True
       return False
 
@@ -97,8 +100,20 @@ class _Notification(object):
         mailer.send_email(receivers, title, content)
         self.messages=[]
         #empty list
+    
+    def scan_housekeeping(self,file_id):
+        warnings=monitor.scan(file_id)
+        content='\n'+'='*50+'\n'
+        content+='Housekeeping monitoring:\n'
+        if not warnings:
+            content+='\n'.join(warnings)
+        else:
+            content+='\nNo abnormality detected.'
+        self.messages.append(content)
 
-    def push_pipeline_message(self, raw_filename, service_5_headers, summary, num_flares, goes_class_list):
+
+
+    def append_pipeline_message(self, raw_filename, service_5_headers, summary, num_flares, goes_class_list):
         file_id = summary['_id']
         start = sdt.unix2utc(summary['data_start_unix_time'])
         end = sdt.unix2utc(summary['data_stop_unix_time'])
@@ -157,6 +172,8 @@ def clear_ngnix_cache():
         except OSError as e:
             logger.error(str(e))
     logger.info('Nginx cache removed')
+
+
 
 
 
@@ -231,8 +248,9 @@ def pipeline(instrument, filename, notification_enabled=True, debugging=False):
         except Exception as e:
             #raise
             logger.error(str(e))
+    Notification.scan_housekeeping(file_id)
     try:
-        Notification.push_pipeline_message(base, service_5_headers, summary,
+        Notification.append_pipeline_message(base, service_5_headers, summary,
                                        num_flares, goes_class_list)
     except Exception as e:
         logger.info(str(e))
@@ -252,6 +270,7 @@ def pipeline(instrument, filename, notification_enabled=True, debugging=False):
             fits_creator.create_fits(file_id, daemon_config['fits_path'])
         except Exception as e:
             logger.error(str(e))
+    
     clear_ngnix_cache()
 
     #return summary
@@ -282,6 +301,7 @@ def find_new_telemetry_files():
                         filelist[instrument] = []
                     filelist[instrument].append(filename)
     return filelist
+
 
 def process_files(filelist):
     """

@@ -123,6 +123,9 @@ class MongoDB(object):
             runs = self.col_goes.find(query_string).sort('unix_time', 1)
         return runs
 
+    def get_houskeeping_packets_of_file(self,file_id):
+        return self.collection_packets.find({'_id':file_id, 'header.SPID':54102})
+
     def get_LC_pkt_by_tw(self, start_unix_time, span):
         if not self.collection_ql:
             yield []

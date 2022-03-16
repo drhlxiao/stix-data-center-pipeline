@@ -14,22 +14,29 @@ sys.path.append(parentdir)
 
 from stix.pipeline import raw_pipeline as pd
 from stix.analysis import goes_downloader as gd
+from stix.fits import fits_creator
 
 goes=gd.GOES()
 
-
+def daily_LL_fits_creator_loop(wait=24*3600):
+    print("Starting LL fits creator loop..")
+    while True:
+        fits_creator.create_daily_low_latency_fits_for_all()
+        time.sleep(wait)
 
 def parser_loop(wait=60):
     while True:
         pd.main()
         time.sleep(wait)
 
-def main_threading():
+def start_threads():
     parser_thread= threading.Thread(target=parser_loop)
     parser_thread.start()
     goes_thread= threading.Thread(target=goes.loop)
     goes_thread.start()
+    ll_fits_thread=threading.Thread(target=daily_LL_fits_creator_loop)
+    ll_fits_thread.start()
 
 if __name__ == '__main__':
-    main_threading()
+    start_threads()
 

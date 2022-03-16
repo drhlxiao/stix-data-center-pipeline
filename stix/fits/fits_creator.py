@@ -309,12 +309,13 @@ def create_fits_for_bulk_science(bsd_id_start, bsd_id_end, output_path=FITS_PATH
         create_fits_for_packets(file_id, pkts, spid, product, True, output_path, overwrite, version, remove_duplicates=True)
 
 
-def create_daily_low_latency_fits_for_all(path=FITS_PATH):
+def create_daily_low_latency_fits_for_all(path=FITS_PATH, end_date_offset= 7):
     last_date=db.get_last_daily_fits_file_date()
     if last_date:
         start_date_noon=last_date+timedelta(hours=12)
-        end_date=datetime.now()-timedelta(hours=48)
+        end_date=datetime.now()-timedelta(hours=end_date_offset * 24)
         start_date_str=start_date_noon.strftime('%Y-%m-%d')
+        logger.info(f'Creating daily fits file from {start_date_str}')
         end_date_str=end_date.strftime('%Y-%m-%d')
         create_low_latency_fits_between_dates(start_date_str, end_date_str, path)
 
@@ -423,7 +424,6 @@ if  __name__ == '__main__':
     ap = argparse.ArgumentParser()
     required = ap.add_argument_group('Required arguments')
     optional = ap.add_argument_group('Optional arguments')
-
 
     optional.add_argument(
         "-p",
