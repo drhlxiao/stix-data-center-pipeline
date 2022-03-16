@@ -425,7 +425,7 @@ class StixUserDataRequestReportAnalyzer(object):
     def update_bsd_doc(self,  unique_id, bsd_doc):
         doc=self.bsd_db.find_one({'unique_id':unique_id})
         if not doc:
-            logger.info(f"Inserting new bsd:{bsd_doc['_id']}")
+            logger.info(f"Inserting new BSD #{bsd_doc['_id']} into to DB")
             self.bsd_db.save(bsd_doc)
             updated_existing=False
         else:
@@ -492,7 +492,7 @@ class StixUserDataRequestReportAnalyzer(object):
             except Exception as e:
                 logger.error(e)
 
-            logger.info(f'inserting bsd {self.last_unique_id} to db')
+            logger.info(f'Inserting BSD {self.last_unique_id} into db')
             self.report['packet_ids']=self.packet_ids
             self.report['_id']=self.current_id
             updated_existing=self.update_bsd_doc(self.last_unique_id, self.report)
