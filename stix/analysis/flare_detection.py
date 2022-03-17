@@ -111,7 +111,7 @@ def get_lightcurve_data(file_id):
         return None
     return qla.LightCurveAnalyzer.parse(packets)
 
-def make_lightcurve_snapshot(data, docs, snapshot_path):
+def create_lightcurve_plot(data, docs, snapshot_path):
     '''
                 '_id': first_id + i,
                 'run_id': result['run_id'],
@@ -222,6 +222,7 @@ def find_flares_in_one_file(run_id,
         return 0
     auxilary={'run_id':run_id}
     return find_flares_in_data(data, peak_min_width, peak_min_distance,rel_height, snapshot_path, auxilary)
+
 
 def find_flares_in_data(data, 
            peak_min_width=15,
@@ -389,7 +390,7 @@ def find_flares_in_data(data,
     mdb.save_flare_info(doc)
     doc['properties'] = properties
     data['lc_smoothed'] = lc_smoothed
-    make_lightcurve_snapshot(data, doc, snapshot_path)
+    create_lightcurve_plot(data, doc, snapshot_path)
     return xpeaks.size
 
 def find_flares_in_files(fid_start, fid_end, img_path='/data/flare_lc'):

@@ -102,7 +102,7 @@ class _Notification(object):
         #empty list
     
     def scan_housekeeping(self,file_id):
-        warnings=monitor.scan(file_id)
+        warnings=monitor.HKMonitor.scan(file_id)
         content='\n'+'='*50+'\n'
         content+='Housekeeping monitoring:\n'
         if not warnings:
@@ -217,7 +217,7 @@ def pipeline(instrument, filename, notification_enabled=True, debugging=False):
     file_id = summary['_id']
 
     if actions['bkg_estimation']:
-        logger.info('Background estimation..')
+        logger.info('Extracting background information from non-flaring times ..')
         try:
             bkg.process_file(file_id)
         except Exception as e:
@@ -242,20 +242,24 @@ def pipeline(instrument, filename, notification_enabled=True, debugging=False):
 
     if actions['bsd_report_merging']:
         logger.info(
-            'merging bulk science data and preparing bsd json files...')
+            'Merging bulk science data and preparing json files for data browsers...')
         try:
             sci_packets_analyzer.process_packets_in_file(file_id)
         except Exception as e:
             #raise
             logger.error(str(e))
-    Notification.scan_housekeeping(file_id)
+    try:
+        Notification.scan_housekeeping(file_id)
+    except Exception as e:
+        logger.error(str(e))
+
     try:
         Notification.append_pipeline_message(base, service_5_headers, summary,
                                        num_flares, goes_class_list)
     except Exception as e:
-        logger.info(str(e))
+        logger.error(str(e))
     if actions['calibration']:
-        logger.info('Starting calibration spectrum analysis...')
+        logger.info('Analyzing calibration data ...')
         try:
             calibration_run_ids = summary['calibration_run_ids']
             report_path = daemon_config['calibration_report_path']
@@ -321,18 +325,11 @@ def main():
     flist=find_new_telemetry_files()
     if flist:
         process_files(flist)
-    #WatchDog.reset()
-    #print(WatchDog.counter)
-    #if WatchDog.expired() and  WatchDog.counter==1:
-    #    Notification.push(f' No telemetry data received in the past {WatchDog.hours} hours! ')
-    #    Notification.send()
-    #    WatchDog.reset()
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
         print("""Usage: 
         level1 <raw telemetry filename>
         """)
-
     else:
         process_one(sys.argv[1])
