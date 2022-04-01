@@ -71,7 +71,7 @@ def fit_location(counts,
     obs_area, obs_area_err = get_measured_cfl_pixel_open_area(
         counts, count_errors, mean_fluence, mean_fluence_error)
 
-    solo_location = solo.get_solo_ephemeris(flare_utc, flare_utc, 1)
+    solo_location = solo.SoloEphemeris.get_solo_ephemeris(flare_utc, flare_utc, 1)
     sun_angular_diameter = solo_location.get('sun_angular_diameter', 0) * 60
     try:
         sun_angular_radius = sun_angular_diameter * 0.5

@@ -8,11 +8,13 @@
 import os
 import re
 import pprint
-from datetime import datetime,timedelta
 import uuid
 import bson
 import pymongo
 from pathlib import Path
+from datetime import datetime,timedelta
+from stix.core import logger
+logger = logger.get_logger()
 NUM_KERNEL_FILES_LIMIT=10
 
 NUM_MAX_PACKETS = 20000
@@ -118,7 +120,8 @@ class MongoDB(object):
             query_string = {
                 'unix_time': {
                     '$lt': stop_unix, '$gt': start_unix
-                }
+                },
+                'satellite':16
             }
             runs = self.col_goes.find(query_string).sort('unix_time', 1)
         return runs
@@ -384,10 +387,9 @@ class MongoDB(object):
                     '$lt': peak_unix + time_window
                 }
             })
-            #if it is exists in db
+            #if two peaks 
             if exists:
                 continue
-
             doc = {
                 '_id': first_id + num_inserted,
                 'hidden': hidden,
@@ -405,6 +407,7 @@ class MongoDB(object):
             new_inserted_flares.append(doc)
 
             inserted_ids[i] = doc['_id']
+            logger.info(f'Inserting flare: {doc["_id"]}')
             self.collection_flares.save(doc)
         #return new_inserted_flares
         result['inserted_ids'] = inserted_ids
@@ -435,12 +438,8 @@ class MongoDB(object):
     def update_flare_pipeline_products(self, _id, key, value):
         doc = self.collection_flares.find_one({'_id': _id})
         if doc:
-            if key != 'wiki':
-                if 'helio_pipeline' not in doc:
-                    doc['helio_pipeline'] = {}
-                doc['helio_pipeline'][key] = value
-            else:
-                doc['wiki'] = value
+            if 'sim_obs' not in doc:
+                doc['sim_obs'][key] = value
             self.collection_flares.replace_one({'_id': _id}, doc)
 
     def get_quicklook_packets(self,

@@ -36,6 +36,7 @@ from stix.spice import spice_manager as spm
 
 #S20_EXCLUDED = True
 
+logger = logger.get_logger()
 
 
 actions={'calibration':True,
@@ -47,8 +48,8 @@ actions={'calibration':True,
         'bkg_estimation':True
         }
         
+
 HOST = config.HTTP_PREFIX
-logger = logger.get_logger()
 goes=gdl.GOES()
 daemon_config = config.get_config('pipeline.daemon')
 mongodb_config = config.get_config('pipeline.mongodb')
@@ -227,7 +228,7 @@ def pipeline(instrument, filename, notification_enabled=True, debugging=False):
         logger.info('Detecting flares..')
         try:
             num_flares = flare_detection.find_flares_in_one_file(
-                file_id, snapshot_path=daemon_config['flare_lc_snapshot_path'])
+                file_id, lc_output_dir=daemon_config['flare_lc_snapshot_path'])
             if num_flares>0:
                 goes_class_list=fgc.find_goes_class_flares_in_file(file_id)
 

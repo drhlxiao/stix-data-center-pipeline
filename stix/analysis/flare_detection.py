@@ -15,13 +15,14 @@ from scipy import signal
 import numpy as np
 import math
 import matplotlib
+from datetime import datetime,timedelta
 from matplotlib import pyplot as plt
 from stix.core import datatypes as sdt
 from stix.core import mongo_db as db
 from stix.spice import time_utils as st
-from stix.core import logger
 #from stix.spice import solo
 from stix.analysis import ql_analyzer as qla
+from stix.core import logger
 logger = logger.get_logger()
 matplotlib.use('Agg')
 
@@ -29,7 +30,7 @@ mdb = db.MongoDB()
 
 PEAK_MIN_NUM_POINTS = 7  #  peak duration must be greater than 28 seconds, used to determine energy range upper limit,
 
-SPID = 54118
+LC_SPID = 54118
 
 terminal = False
 
@@ -58,17 +59,18 @@ def info(msg):
 def find_flare_time_ranges(lc_times, lc_counts,peaks,props,threshold=270):
     """
      calculate peak width at height 
+     arguments
+     lc_times: list
+        light curve time series
+    lc_count: list
+        light curve counts
     """
-    print('----')
     print("Threshold:",threshold)
 
 
     num_peaks=peaks.size
     imax=len(lc_counts)
-    
     boundaries=[]
-    
-
     left_ips, right_ips, start_times, end_times=[],[],[],[]
 
     for k in  range(num_peaks):
@@ -87,14 +89,11 @@ def find_flare_time_ranges(lc_times, lc_counts,peaks,props,threshold=270):
         right_ip=min(right_ip, imax-1)
         left_ip=max(0, left_ip) #falls at the edge
         
-
-
         #print(i_min, i_max, left_ip, right_ip)
         left_ips.append(left_ip)
         right_ips.append(right_ip)
         start_times.append(lc_times[left_ip])
         end_times.append(lc_times[right_ip])
-
     return start_times,end_times, left_ips, right_ips,boundaries 
 
 def smooth(y, N=15):
@@ -104,14 +103,7 @@ def smooth(y, N=15):
     return y_smooth
 
 
-def get_lightcurve_data(file_id):
-    packets = mdb.select_packets_by_run(file_id, SPID)
-    if not packets:
-        info(f'No QL LC packets found for run {file_id}')
-        return None
-    return qla.LightCurveAnalyzer.parse(packets)
-
-def create_lightcurve_plot(data, docs, snapshot_path):
+def create_lightcurve_plot(data, docs, lc_output_dir):
     '''
                 '_id': first_id + i,
                 'run_id': result['run_id'],
@@ -179,7 +171,7 @@ def create_lightcurve_plot(data, docs, snapshot_path):
         plt.xlabel(f'T [s] - Start at {T0}')
         plt.ylabel('Counts')
         plt.title(f'Flare #{flare_id} (major: {is_major[i]})')
-        filename = os.path.join(snapshot_path,
+        filename = os.path.join(lc_output_dir,
                                 f'flare_lc_{_id}_{flare_id}.png')
         plt.yscale('log')
         fig.tight_layout()
@@ -203,8 +195,7 @@ def major_peaks(lefts, rights, peak_values):
             if i == j:
                 continue
             b = (lefts[j], rights[j])
-
-            if a[0] <= b[1] and a[1] >= b[0] and  peak_values[i] < peak_values[j]:
+            if a[0] < b[1] and a[1] > b[0] and  peak_values[i] < peak_values[j]:
                 major[i] = False
     return major
 
@@ -213,22 +204,51 @@ def find_flares_in_one_file(run_id,
            peak_min_width=15,
            peak_min_distance=75,
            rel_height=0.9,
-           snapshot_path='.'):
-    data = get_lightcurve_data(run_id)
-    print(f'Deleting flares in file #{run_id}')
-    #mdb.delete_flares_of_file(run_id)
+           lc_output_dir='.'):
+    packets = mdb.select_packets_by_run(run_id, LC_SPID)
+    if not packets:
+        info(f'No QL LC packets found for run {file_id}')
+        return 0
+    data=qla.LightCurveAnalyzer.parse(packets)
     if not data:
-        info(f'No QL LC packets found for file {run_id}')
+        info(f'No QL LC packets found for run {file_id}')
         return 0
     auxilary={'run_id':run_id}
-    return find_flares_in_data(data, peak_min_width, peak_min_distance,rel_height, snapshot_path, auxilary)
+    return find_flares_in_data(data, peak_min_width, peak_min_distance,rel_height, lc_output_dir, auxilary)
 
+def find_flares_in_recent_LC(start_date_off=-3, end_date_off=0,  lc_path='.'):
+    """
+       it is possible that flares are not detected if a flare 
+    """
+    now_unix=datetime.now().timestamp()
+    start_unix=now_unix + start_date_off*86400
+    end_unix= now_unix + end_date_off*86400
+    return find_flares_in_time_range(start_unix, end_unix,lc_output_dir=lc_path)
+    
+
+
+def find_flares_in_time_range(start_unix,
+        end_unix,
+           peak_min_width=15,
+           peak_min_distance=75,
+           rel_height=0.9,
+           lc_output_dir='.'):
+    packets= mdb.get_LC_pkt_by_tw(start_unix, end_unix-start_unix)
+    if not packets:
+        info(f'No QL LC packets found for file {run_id}')
+        return 0
+    data=qla.LightCurveAnalyzer.parse(packets)
+    auxilary={'run_id':-1}
+    if not data:
+        info(f'No QL LC packets found for run {file_id}')
+        return 0
+    return find_flares_in_data(data, peak_min_width, peak_min_distance,rel_height, lc_output_dir, auxilary)
 
 def find_flares_in_data(data, 
            peak_min_width=15,
            peak_min_distance=150,
            rel_height=0.9,
-           snapshot_path='.', auxilary=None):
+           lc_output_dir='.', auxilary=None):
 
     unix_time = data['time']
     lightcurve = data['lcs'][0]
@@ -250,6 +270,7 @@ def find_flares_in_data(data,
 
     lc_smoothed = smooth(lightcurve)
     result = {}
+
     xpeaks, properties = signal.find_peaks(
         lc_smoothed,
         height=height,
@@ -285,10 +306,12 @@ def find_flares_in_data(data,
     threshold=baseline+noise_rms
     flare_start_times, flare_end_times,left_ips, right_ips, boundaries=find_flare_time_ranges(unix_time, 
             lc_smoothed, xpeaks,properties, threshold)
-
+    #find flare time ranges
 
     is_major_flags = major_peaks(left_ips, right_ips, peak_values)
-    #print(majors)
+    for i, f in enumerate(is_major_flags):
+        print(f, st.unix2utc(flare_start_times[i]), st.unix2utc(flare_end_times[i]))
+            
 
     #range_indexs = np.vstack((left_ips, right_ips)).T
     total_counts = [int(np.sum(lightcurve[r0:r1])) for r0,r1 in zip(left_ips, right_ips)]
@@ -390,7 +413,7 @@ def find_flares_in_data(data,
     mdb.save_flare_info(doc)
     doc['properties'] = properties
     data['lc_smoothed'] = lc_smoothed
-    create_lightcurve_plot(data, doc, snapshot_path)
+    create_lightcurve_plot(data, doc, lc_output_dir)
     return xpeaks.size
 
 def find_flares_in_files(fid_start, fid_end, img_path='/data/flare_lc'):
@@ -398,7 +421,7 @@ def find_flares_in_files(fid_start, fid_end, img_path='/data/flare_lc'):
         print(f'deleting flares of Files {i}')
         mdb.delete_flares_of_file(i)
     for i in range(fid_start, fid_end + 1):
-        find_flares_in_one_file(i, snapshot_path=img_path)
+        find_flares_in_one_file(i, lc_output_dir=img_path)
 
 
 if __name__ == '__main__':
@@ -407,7 +430,7 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         print('flare_detection file_number')
     elif len(sys.argv) == 2:
-        res = find_flares_in_one_file(int(sys.argv[1]), snapshot_path='/data/flare_lc')
+        res = find_flares_in_one_file(int(sys.argv[1]), lc_output_dir='/data/flare_lc')
         print('Number of peaks:', res)
     else:
         find_flares_in_files(int(sys.argv[1]),

@@ -26,8 +26,10 @@ from stix.spice import time_utils as sdt
 from stix.core import mongo_db as db
 from matplotlib import pyplot as plt
 import math
+from stix.core import logger
 
 mdb = db.MongoDB()
+logger = logger.get_logger()
 
 try:
     import ROOT
@@ -41,11 +43,16 @@ class GOES(object):
     def __init__(self):
         self.db= mdb.get_collection('goes_fluxes')
         try:
-            self.last_unix_time = self.db.find().sort('unix_time',-1).limit(1)[0]['unix_time']
+            self.last_unix_time_primary = self.db.find({'satellite':16}).sort('unix_time',-1).limit(1)[0]['unix_time']
         except:
-            self.last_unix_time=0
-        print('Last UTC ', sdt.unix2utc(self.last_unix_time))
+            self.last_unix_time_primary=0
+        print('Last UTC ', sdt.unix2utc(self.last_unix_time_primary))
+        try:
+            self.last_unix_time_secondary= self.db.find({'satellite':17}).sort('unix_time',-1).limit(1)[0]['unix_time']
+        except:
+            self.last_unix_time_secondary=0
 
+    """
     def estimate_goes_background(self, start_unix_time,
             duration=7*86400, 
             w=900, 
@@ -101,39 +108,49 @@ class GOES(object):
             plt.savefig(fname)
                 
             
+            """
 
     
 
-    def get_max_time(self):
-        return self.last_unix_time
-    def save_geos_fluxes(self, data):
+    def save_geos_fluxes(self, data, satellite='primary'):
         num = 0
+        last_time=self.last_unix_time_primary if satellite=='primary' else self.last_unix_time_secondary
         for d in data:
             d['unix_time']=sdt.utc2unix(d['time_tag'])
-            if d['unix_time']<self.last_unix_time:
+            if d['unix_time']<last_time:
                 #don't insert again
                 continue
             ret=self.db.update_one(
-                    {'unix_time':d['unix_time'], 'energy':d['energy']},
+                    {'unix_time':d['unix_time'], 'energy':d['energy'], 'satellite':d['satellite']},
                     {'$set': d},
                     upsert=True)
             num+=1
-            self.last_unix_time=d['unix_time']
-        print(f'{num} entries inserted ')
-        print(f'Last timestamp: {sdt.unix2utc(self.last_unix_time)}')
+            if satellite=='primary':
+                self.last_unix_time_primary=d['unix_time']
+            else:
+                self.last_unix_time_secondary=d['unix_time']
 
+        last_time=self.last_unix_time_primary if satellite=='primary' else self.last_unix_time_secondary
+        logger.info(f'{num} entries inserted ')
+        logger.info(f'Last timestamp: {sdt.unix2utc(last_time)}')
         duration=7*86400
-        if ROOT_EXISTS:
-            self.estimate_goes_background(self.last_unix_time - duration, duration, w=900 )
+        #if ROOT_EXISTS:
+        #    self.estimate_goes_background(self.last_unix_time_primary - duration, duration, w=900 )
 
     def download(self, max_unix=math.inf):
-        if max_unix<self.last_unix_time:
-            return
-        url='http://services.swpc.noaa.gov/json/goes/primary/xrays-3-day.json'
-        print('Downloading GOES x-ray flux')
-        r = requests.get(url)
-        data=r.json()
-        self.save_geos_fluxes(data)
+        if max_unix > self.last_unix_time_primary:
+            logger.info('downloading GOES-16 data...')
+            url='http://services.swpc.noaa.gov/json/goes/primary/xrays-3-day.json'
+            r = requests.get(url)
+            data=r.json()
+            self.save_geos_fluxes(data, 'primary')
+        if max_unix > self.last_unix_time_secondary:
+            logger.info('downloading GOES-17 data...')
+            url='http://services.swpc.noaa.gov/json/goes/secondary/xrays-3-day.json'
+            r = requests.get(url)
+            data=r.json()
+            self.save_geos_fluxes(data, 'secondary')
+
     def import_data(self, filename):
         with open(filename) as f:
             data=json.loads(f.read())
@@ -144,7 +161,7 @@ class GOES(object):
                 self.download()
             except Exception as e:
                 print(e)
-            print('Waiting ...')
+            logger.info('GOES downloader is waiting for next download...')
             time.sleep(wait)
 
 

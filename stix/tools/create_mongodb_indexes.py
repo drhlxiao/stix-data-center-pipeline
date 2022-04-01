@@ -25,7 +25,7 @@ try:
         collection_iors.create_index(index)
 
 
-    indexes=[[('unix_time',1)]]
+    indexes=[[('unix_time',1), ('satellite':1)]]
     for index in indexes:
         collection_goes.create_index(index)
 

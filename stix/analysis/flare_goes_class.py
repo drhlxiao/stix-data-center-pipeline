@@ -166,7 +166,7 @@ def get_flare_goes_class(doc):
         return
 
 
-    ephs=solo.get_solo_ephemeris(peak_utc, peak_utc)
+    ephs=solo.SoloEphemeris.get_solo_ephemeris(peak_utc, peak_utc)
     eph=get_first_element(ephs)
     dsun=eph.get('sun_solo_r',1)
     try:
@@ -175,6 +175,10 @@ def get_flare_goes_class(doc):
         delta_lt=0
     peak_time_low, peak_flux_low, peak_time_high, peak_flux_high, goes_class, bkg_low=get_goes_info(start_unix+delta_lt, end_unix+delta_lt)
     bkg_subtracted_counts=peak_counts-doc['LC_statistics']['lc0']['bkg_median']
+    try:
+        orientation=solo.SoloEphemeris.get_solar_limb_stix_fov(peak_utc)
+    except Exception:
+        orientation={}
 
 
 
@@ -194,7 +198,8 @@ def get_flare_goes_class(doc):
                     'class':goes_class,
                     'estimated_class':estimated_class,
                     },
-                'ephemeris':eph
+                'ephemeris':eph,
+                'orientation': orientation
                 }
             })
     return time_utils.unix2utc(peak_time_low), goes_class, estimated_class

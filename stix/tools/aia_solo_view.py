@@ -309,7 +309,7 @@ def create_plot(folder,_id, flare_id ,time_at_peak, wavelen=1600, overwrite=Fals
     fname=os.path.join(folder, f'AIA_{wlth}_{_id}_{flare_id}.png')
     #lon, lat = ax.coords
     plt.savefig(fname, dpi=100)
-    mdb.update_flare_pipeline_products(_id, key, [fname])
+    mdb.update_flare_pipeline_products(_id, key, {'preview':fname})
     #plt.show()
     return fname
 

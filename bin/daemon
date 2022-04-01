@@ -14,28 +14,35 @@ sys.path.append(parentdir)
 
 from stix.pipeline import raw_pipeline as pd
 from stix.analysis import goes_downloader as gd
+from stix.analysis import flare_detection
 from stix.fits import fits_creator
 
 goes=gd.GOES()
 
-def daily_LL_fits_creator_loop(wait=24*3600):
-    print("Starting LL fits creator loop..")
+def daily_jobs():
     while True:
+        print("Starting LL fits creator loop..")
         fits_creator.create_daily_low_latency_fits_for_all()
-        time.sleep(wait)
+        print("Starting flare detection loop..")
+        flare_detection.find_flares_in_recent_LC()
+        time.sleep(86400)
 
-def parser_loop(wait=60):
+
+def minutely_jobs():
     while True:
         pd.main()
-        time.sleep(wait)
+        time.sleep(60)
 
 def start_threads():
-    parser_thread= threading.Thread(target=parser_loop)
-    parser_thread.start()
+
+    minutely_thread= threading.Thread(target=minutely_jobs)
+    minutely_thread.start()
+
     goes_thread= threading.Thread(target=goes.loop)
     goes_thread.start()
-    ll_fits_thread=threading.Thread(target=daily_LL_fits_creator_loop)
-    ll_fits_thread.start()
+
+    daily_thread=threading.Thread(target=daily_jobs)
+    daily_thread.start()
 
 if __name__ == '__main__':
     start_threads()
