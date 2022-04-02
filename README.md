@@ -1,9 +1,7 @@
 
 ## Data processing pipeline for The Spectrometer/Telescope for Imaging X-rays (STIX) onboard Solar Orbiter
 
-This package includes STIX raw data parser, ior reader, data parser Qt GUI, calibration data processing code, and STIX pipeline data processing code. 
-
-
+STIX data processing pipeline is a software suite running on the STIX data center. Its main functions include automatic data reception, raw telemetry parsing, data decompression, creation of L1A FITS files, flare detection, coarse flare location, calibration data analysis,  telemetry data estimation, data monitoring, data management, and preparation of data for web browsing. 
 
 
 ### 2. Installation
