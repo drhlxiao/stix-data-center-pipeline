@@ -7,21 +7,26 @@ from datetime import datetime, timedelta
 import spiceypy as sp
 import astropy.units as u
 from astropy import constants as const
-from stix.spice import time_utils as stix_datetime
+
 from spiceypy.utils import support_types as spiceytypes
 import astropy.time as time
 from scipy.spatial.transform import Rotation 
 import astropy.coordinates as astrocoords
 import sunpy
 import sunpy.coordinates as suncoords
-
+from scipy import linalg
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
-from scipy import linalg
+
 
 from sunpy.coordinates.frames import HeliocentricEarthEcliptic, HeliographicStonyhurst
 
 from stix.spice import spice_manager
+from stix.core import logger
+from stix.utils import bson
+from stix.spice import time_utils as stix_datetime
+
+logger = logger.get_logger()
 
 MAX_STEPS=10000
 
@@ -452,7 +457,8 @@ class SoloEphemeris(object):
         }
         except Exception as e:
             result = {'error': str(e)}
-        return result
+
+        return bson.dict_to_json(result)
 
 
 
@@ -622,7 +628,7 @@ class SoloEphemeris(object):
                 valid_t.append(dt.timestamp()) 
                 valid_att.append(res)
             except Exception as e: 
-                print(e)
+                logger.error(e)
         if not valid_att:
             return {'error': 'Data not available!'}
         euler_angles=np.array(valid_att).T 

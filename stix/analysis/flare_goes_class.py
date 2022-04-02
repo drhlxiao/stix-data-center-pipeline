@@ -10,10 +10,13 @@
 import numpy as np
 from stix.core import mongo_db as db
 from stix.spice import time_utils
+from stix.utils import bson
 from stix.core import config
 from stix.spice import solo
+from stix.core import logger
 threshold=0
 
+logger = logger.get_logger()
 mdb = db.MongoDB()
 
 flare_db=mdb.get_collection('flares')
@@ -56,7 +59,7 @@ def goes_flux_to_class(x, frac=True):
     else:
         return f'X{x/1e-4:.1f}' if frac else f'X{x/1e-4:.0f}'
 def get_goes_info(start, end):
-    data = mdb.get_goes_fluxes(start, end)
+    data = mdb.get_goes_fluxes(start, end, satellite=16)
     last_time=0
     start_times=[]
     low_name='0.1-0.8nm'
@@ -66,6 +69,8 @@ def get_goes_info(start, end):
     peak_flux_high=0
     peak_time_high=0
     bkg_low=0
+
+
     for d in data:
         unix = d['unix_time']
         flux=d['flux']
@@ -85,16 +90,11 @@ def get_goes_info(start, end):
 
 
 def find_goes_class_flares_in_file(file_id):
-    print(f'processing flares in file {file_id}')
+    logger.info(f'processing flares in file {file_id}')
     fdb=mdb.get_collection('flares')
     flares=flare_db.find({'run_id':file_id, 'hidden':False})
-
-    
-
-
-
     if not flares:
-        print(f'Flare not found in  {file_id} !')
+        logger.error(f'Flare not found in  {file_id} !')
         return
     goes_class_list=[]
     for doc in flares:
@@ -162,11 +162,11 @@ def get_flare_goes_class(doc):
     peak_counts=doc['LC_statistics']['lc0']['signal_max']
 
     if peak_counts<=threshold:
-        print(f"Ignored flares {doc['_id']}, peak counts < {threshold}")
+        logger.info(f"Ignored flares {doc['_id']}, peak counts < {threshold}")
         return
 
 
-    ephs=solo.SoloEphemeris.get_solo_ephemeris(peak_utc, peak_utc)
+    ephs=solo.SoloEphemeris.get_solo_ephemeris(peak_utc, peak_utc,1)
     eph=get_first_element(ephs)
     dsun=eph.get('sun_solo_r',1)
     try:
@@ -182,16 +182,11 @@ def get_flare_goes_class(doc):
 
 
 
+
     estimated_class=estimate_goes_class(bkg_subtracted_counts, dsun, GOES_STIX_COEFFS, GOES_STIX_ERROR_LUT)
     #estimated_class=estimate_goes_class(doc['peak_counts'], dsun)
-    #print(estimated_class)
     is_ok= goes_class>estimated_class['min'] and goes_class<estimated_class['max']
-    print(peak_utc, estimated_class, goes_class, is_ok)
-    
-
-    flare_db.update_one(
-            {'_id':doc['_id']},
-            {'$set':{
+    updated_data={
                 'goes':{
                     'low':{'unix_time':peak_time_low, 'utc': time_utils.unix2utc(peak_time_low), 'flux':peak_flux_low, 'background':bkg_low},
                     'high':{'unix_time':peak_time_high, 'utc': time_utils.unix2utc(peak_time_high), 'flux':peak_flux_high},
@@ -201,6 +196,10 @@ def get_flare_goes_class(doc):
                 'ephemeris':eph,
                 'orientation': orientation
                 }
+
+    flare_db.update_one(
+            {'_id':doc['_id']},
+            {'$set':updated_data
             })
     return time_utils.unix2utc(peak_time_low), goes_class, estimated_class
             

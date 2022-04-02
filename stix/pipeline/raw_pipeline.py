@@ -90,14 +90,14 @@ class _Notification(object):
     def send(self):
         groups =MDB.get_group_users('operations') 
         if not groups:
-            print('can not find emails for operations team ')
+            logger.error('can not find emails for operations team ')
             return
         receivers= groups[0]['user_emails']
         title = 'STIX operational message'
         bt='\n'+'='*50+'\n'
         content=str(bt).join(self.messages)
-        print('sending message')
-        print(content)
+        logger.info('sending message..')
+        logger.info(content)
         mailer.send_email(receivers, title, content)
         self.messages=[]
         #empty list
@@ -182,7 +182,7 @@ def clear_ngnix_cache():
 def pipeline(instrument, filename, notification_enabled=True, debugging=False):
     spm.spice.load_kernels()
     #always load the latest kernel files
-    print('Start processing file ', filename)
+    logger.info(f'Start processing file {filename}')
     base = os.path.basename(filename)
     name = os.path.splitext(base)[0]
     num_flares = 0
@@ -191,7 +191,6 @@ def pipeline(instrument, filename, notification_enabled=True, debugging=False):
     logger.set_logger(log_filename, level=3)
     if debugging:
         logger.enable_debugging()
-        print('Start processing file ', filename)
     parser = stp.StixTCTMParser()
     parser.config_mongodb(mongodb_config['host'], mongodb_config['port'],
                               mongodb_config['user'],
@@ -293,7 +292,7 @@ def find_new_telemetry_files():
         dictionary with a list of new files or empty dict
     """
     filelist = {}
-    print('checking new files ...')
+    logger.info('checking new files ...')
     for instrument, selectors in daemon_config['data_source'].items():
         for pattern in selectors:
             filenames = glob.glob(pattern)

@@ -52,14 +52,13 @@ class GOES(object):
         except:
             self.last_unix_time_secondary=0
 
-    """
     def estimate_goes_background(self, start_unix_time,
             duration=7*86400, 
             w=900, 
             create_ql_plot=False):
         energy="0.1-0.8nm"
         rows = self.db.find({'unix_time':{'$gt': start_unix_time, '$lt':start_unix_time+duration},
-            'energy':energy
+            'energy':energy, 'satellite':16
             }).sort('unix_time',1)
         
         counts=[]
@@ -108,7 +107,6 @@ class GOES(object):
             plt.savefig(fname)
                 
             
-            """
 
     
 
@@ -134,8 +132,8 @@ class GOES(object):
         logger.info(f'{num} entries inserted ')
         logger.info(f'Last timestamp: {sdt.unix2utc(last_time)}')
         duration=7*86400
-        #if ROOT_EXISTS:
-        #    self.estimate_goes_background(self.last_unix_time_primary - duration, duration, w=900 )
+        if ROOT_EXISTS:
+            self.estimate_goes_background(self.last_unix_time_primary - duration, duration, w=900 )
 
     def download(self, max_unix=math.inf):
         if max_unix > self.last_unix_time_primary:

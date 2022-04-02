@@ -114,17 +114,15 @@ class MongoDB(object):
             return cursor
         return None
 
-    def get_goes_fluxes(self, start_unix, stop_unix):
-        runs = []
-        if self.col_goes:
-            query_string = {
+    def get_goes_fluxes(self, start_unix, stop_unix, satellite=16):
+        res = []
+        query_string = {
                 'unix_time': {
                     '$lt': stop_unix, '$gt': start_unix
                 },
-                'satellite':16
+                'satellite':satellite
             }
-            runs = self.col_goes.find(query_string).sort('unix_time', 1)
-        return runs
+        return  self.col_goes.find(query_string).sort('unix_time', 1)
 
     def get_houskeeping_packets_of_file(self,file_id):
         return self.collection_packets.find({'_id':file_id, 'header.SPID':54102})
