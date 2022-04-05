@@ -156,6 +156,7 @@ class Trajectory:
         self._generated = False
         self.light_times=[]
 
+        self.positions=[]
     def generate_positions(self, times, observing_body, frame,
                            abcorr=None):
         """
@@ -194,6 +195,7 @@ class Trajectory:
         positions = np.array(pos_vel)[:, :3] * u.km
         velocities = np.array(pos_vel)[:, 3:] * u.km / u.s
         self.light_times=np.array(lightTimes)
+        self.positions=np.array(pos_vel)[:,:3]
 
         self._frame = frame
         self._times = time.Time(times)
@@ -432,6 +434,7 @@ class SoloEphemeris(object):
             earth_sun_solo_angles = SoloEphemeris.compute_earth_sun_so_angle(orbiter_sun)
             elevation= np.degrees(np.arctan2(orbiter_sun.z.value, orbiter_sun.r.value))
             #orientations=SoloEphemeris.get_solo_orientations(times)
+            hee_pos=orbiter_sun.positions.tolist()
 
             result = {
                 'ref_frame':frame,
@@ -441,6 +444,7 @@ class SoloEphemeris(object):
                 'vunit':'km/s',
                 'tunit':'s',
                 'utc': utc_times,
+                'hee_solo_pos_km':hee_pos,
                 'x': -orbiter_sun.x.value,
                 'y': -orbiter_sun.y.value,
                 'z': -orbiter_sun.z.value,

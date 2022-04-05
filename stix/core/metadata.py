@@ -12,6 +12,7 @@ import numpy as np
 from stix.core import datatypes as sdt
 from stix.spice import time_utils
 from stix.core import logger
+from datetime import datetime
 
 logger = logger.get_logger()
 DATA_REQUEST_REPORT_SPIDS = [54114, 54115, 54116, 54117, 54143, 54125]
@@ -512,6 +513,7 @@ class StixUserDataRequestReportAnalyzer(object):
                 'name': DATA_REQUEST_REPORT_NAME[packet['SPID']],
                 'header_unix_time': packet['unix_time'],
                 'header_scet': packet['SCET'],
+                'process_time':datetime.now(),
             })
 
         if packet['seg_flag'] in [1, 3]:  #first or standalone

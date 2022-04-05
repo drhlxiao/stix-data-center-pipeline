@@ -175,10 +175,10 @@ def get_flare_goes_class(doc):
         delta_lt=0
     peak_time_low, peak_flux_low, peak_time_high, peak_flux_high, goes_class, bkg_low=get_goes_info(start_unix+delta_lt, end_unix+delta_lt)
     bkg_subtracted_counts=peak_counts-doc['LC_statistics']['lc0']['bkg_median']
-    try:
-        orientation=solo.SoloEphemeris.get_solar_limb_stix_fov(peak_utc)
-    except Exception:
-        orientation={}
+    #try:
+    #    orientation=solo.SoloEphemeris.get_solar_limb_stix_fov(peak_utc)
+    #except Exception:
+    #    orientation={}
 
 
 
@@ -194,7 +194,7 @@ def get_flare_goes_class(doc):
                     'estimated_class':estimated_class,
                     },
                 'ephemeris':eph,
-                'orientation': orientation
+                #'orientation': orientation
                 }
 
     flare_db.update_one(
