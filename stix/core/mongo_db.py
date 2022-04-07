@@ -570,6 +570,7 @@ class MongoDB(object):
             self.collection_time_bins.delete_many({'file_id':file_id})
         self.collection_time_bins.save(doc)
 
+
     
 
     def get_quicklook_packets_of_run(self, packet_type, run):

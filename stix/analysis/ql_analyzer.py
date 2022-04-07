@@ -3,29 +3,10 @@ import sys
 import numpy as np
 from stix.spice import time_utils
 from stix.core import datatypes as sdt
+from stix.utils import energy_bins as ebin_utils
 
 QLLC_SPID = 54118
 QLBKG_SPID= 54120
-
-EBINS = [0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 25, 28, 32, 36, 40, 45, 50, 56, 63, 70, 76, 84, 100, 120, 150, 'Emax']
-def get_energy_bins(emask):
-    ebins=[]
-    for i in range(32):
-        if emask & (1 << i) != 0:
-            ebins.append(i);
-    names=[]
-    sci_edges=[]
-    for i in range(len(ebins) - 1):
-        begin = ebins[i]
-        end = ebins[i + 1]
-        sci_edges.append([begin,end])
-        if end == 32:
-            names.append(f'{EBINS[begin]} keV –⁠ Emax')
-        elif end < 32:
-            names.append(f'{EBINS[begin]}  – {EBINS[end]} keV')
-        else:
-            names.append('')
-    return {'names':names, 'sci_bin_edges':sci_edges}
 
 
 class QLAnalyzer(object):
@@ -68,7 +49,7 @@ class LightCurveAnalyzer(QLAnalyzer):
             compression_m = packet[10].raw
             if not energy_bins:
                 energy_bin_mask= packet[16].raw
-                energy_bins=get_energy_bins(energy_bin_mask)
+                energy_bins=ebin_utils.get_emask_energy_bins(energy_bin_mask)
 
             num_lc_points = packet.get('NIX00270/NIX00271')[0]
             lc = packet.get('NIX00270/NIX00271/*.eng')[0]
