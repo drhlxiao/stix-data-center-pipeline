@@ -30,7 +30,7 @@ parser_config = {
                         ]
                     },
                 "log_path": "/data/log/",
-                "flare_images": "/data/quicklook/",
+                "flare_images": "/data/quicklook/flare_images",
                 "notification": {
                     "file": "/data/log/message.log"
                     },

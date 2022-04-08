@@ -733,10 +733,10 @@ def process_packets_in_file(file_id, remove_existing=True):
                     pass
             json_filename = os.path.join(level1_products_path,
                                          f'L1_{doc["_id"]}_{date_str}.json')
-            print(json_filename)
             start_unix=result.get('start_unix',0)
             end_unix=result.get('end_unix',0)
             result['data_type']=data_type
+            result['status']='OK'
             with open(json_filename, 'w') as outfile:
                 json.dump(result, outfile)
             bsd_collection.update_one({'_id': doc['_id']}, {'$set':{'level1': json_filename, 

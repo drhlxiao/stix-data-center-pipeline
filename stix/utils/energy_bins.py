@@ -23,9 +23,14 @@ def to_keV(low_bin:int, up_bin:int):
 def get_sci_energy_bins():
     return EBINS
 
-def get_sci_bins_of_energy_range(elow_keV, ehigh_keV):
-    pass
-
+def keV2sci(elow_keV, ehigh_keV):
+    sel_bins=[i for i in range(32)   if EBINS_LOW[i]>=elow_keV and EBINS_HIGH>=ehigh_keV]
+    try:
+        min(sel_bins), max(sel_bins)
+    except ValueError:
+        return None, None
+def sci2keV(elow_sci, ehigh_sci):
+    return EBINS_LOW[elow_sci], EBINS_HIGH[ehigh_sci]
 
 
 def get_emask_energy_bins(emask):
