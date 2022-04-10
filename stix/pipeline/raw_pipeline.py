@@ -283,6 +283,8 @@ def process_one(filename):
     file_id = MDB.get_file_id(filename)
     if file_id == -2:
         pipeline('FM', filename, True, debugging=True)
+    else:
+        logger.info(f'Already processed:{filename}, {file_id}')
     Notification.send()
 
 def find_new_telemetry_files():

@@ -52,8 +52,8 @@ class MongoDB(object):
             self.collection_raw_files = self.db['raw_files']
             self.collection_calibration = self.db['calibration_runs']
             self.collection_ql = self.db['quick_look']
-            self.collection_data_requests = self.db['bsd']
-            self.col_bsd_forms = self.db['data_requests']
+            self.collection_science_data = self.db['bsd']
+            self.collection_data_requests = self.db['data_requests']
             self.collection_fits = self.db['fits']
             self.collection_events = self.db['events']
             self.col_goes = self.db['goes_fluxes']
@@ -82,7 +82,7 @@ class MongoDB(object):
 
 
     def get_bsd_req_form_by_uid(self, uid):
-        return self.col_bsd_forms.find_one({'unique_ids': int(uid)})
+        return self.collection_data_requests.find_one({'unique_ids': int(uid)})
 
     def get_collection(self, colname):
         try:
@@ -100,7 +100,8 @@ class MongoDB(object):
         return self.collection_packets
 
     def get_collection_bsd(self):
-        return self.collection_data_requests
+        return self.collection_science_data
+
 
     def is_connected(self):
         if self.db:
@@ -160,13 +161,13 @@ class MongoDB(object):
         query={'run_id':int(run_id), 'SPID':int(spid)}
         if complete_only:
             query.update({'first_pkt':{'$gte':0}, 'last_pkt':{'$gte':0 }})
-        docs=self.collection_data_requests.find(query)
+        docs=self.collection_science_data.find(query)
         return docs
 
     def get_packets_of_bsd_request(self, record_id, header_only=True):
         packets = []
         requests = list(
-            self.collection_data_requests.find({
+            self.collection_science_data.find({
                 '_id': record_id
             }).limit(1))
         if not requests:
@@ -234,8 +235,8 @@ class MongoDB(object):
         if self.collection_ql:
             cursor = self.collection_ql.delete_many({'run_id': run_id})
 
-        if self.collection_data_requests:
-            cursor = self.collection_data_requests.delete_many(
+        if self.collection_science_data:
+            cursor = self.collection_science_data.delete_many(
                 {'run_id': run_id})
         if self.collection_flares:
             cursor = self.collection_flares.delete_many({'run_id': run_id})
@@ -569,9 +570,38 @@ class MongoDB(object):
         if delete_existing:
             self.collection_time_bins.delete_many({'file_id':file_id})
         self.collection_time_bins.save(doc)
+    def get_bsd_fits_info_by_request_id(self, request_id, max_num_fits=1000):
+        return self.collection_fits.find({
+                'request_id': request_id
+            }).sort('_id', -1).limit(max_num_fits)
+    def find_L1_background(self, unix_time, max_days_off=14, emin=3, emax=17):
+        start_unix=unix_time-max_days_off*86400
+        query=[{
+                '$match': {'request_type':'L1','purpose':'Background','detector_mask':'0xFFFFFFFF', 
+                    'emax':{'$gte':str(emax)},
+                'emin':{'$lte':str(emin)},
+            'start_unix':{'$gt':start_unix, '$lt':unix_time}
+            }},
+            {
+                '$lookup': {
+                    'from': 'fits',
+                    'localField': 'unique_ids.0',
+                    'foreignField': 'request_id',
+                    'as': 'merg'
+                }
+            },  {
+                '$match': {
+                    'merg.request_id': {
+                        '$exists': True
+                    }
+                }
+                },
+              {'$sort':{'merge.data_start_unix':-1}
+            }
+            ]
+        return self.collection_data_requests.aggregate(query)
+       
 
-
-    
 
     def get_quicklook_packets_of_run(self, packet_type, run):
         collection = None

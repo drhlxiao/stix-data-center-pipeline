@@ -444,7 +444,7 @@ class SoloEphemeris(object):
                 'vunit':'km/s',
                 'tunit':'s',
                 'utc': utc_times,
-                'hee_solo_pos_km':hee_pos,
+                'solo_hee':hee_pos,
                 'x': -orbiter_sun.x.value,
                 'y': -orbiter_sun.y.value,
                 'z': -orbiter_sun.z.value,
@@ -683,6 +683,10 @@ class SoloEphemeris(object):
         pos_vel, lightTimes = sp.spkezr('SUN', spice_times, ref_frame, 'None',
                     'SOLO')
         positions = np.array(pos_vel)[:, :3] * u.km
+
+        solo_hee_spice,ltime_sun_solo = sp.spkpos('SOLO',spice_times, 'SOLO_HEE_NASA', 'NONE', 'SUN')
+        solo_hee_spice = solo_hee_spice * u.km
+
         et = sp.datetime2et(dts)
         sc = sp.sce2c(SOLAR_ORBITER_ID, et) #convert to clock ticks
         tol= 1.0
@@ -712,7 +716,6 @@ class SoloEphemeris(object):
         limbs_stix_frame=np.array([SoloEphemeris.to_stix_frame(np.array(loc), cmat_inv) for loc in limbs])
 
         sun_outside_stix_fov=False if np.max(np.abs(limbs_stix_frame))<3600 else True
-
         pitch = -pitch
         if abs(roll) > 360: 
             roll=roll - math.copysign(360,roll)
@@ -739,6 +742,7 @@ class SoloEphemeris(object):
             'pitch':pitch,
             'yaw':yaw,
             'lunit':'m',
+            'solo_hee':solo_hee_spice,
             'aunit':['arcsec','deg']
             }    
 
