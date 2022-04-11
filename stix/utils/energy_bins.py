@@ -24,11 +24,8 @@ def get_sci_energy_bins():
     return EBINS
 
 def keV2sci(elow_keV, ehigh_keV):
-    sel_bins=[i for i in range(32)   if EBINS_LOW[i]>=elow_keV and EBINS_HIGH>=ehigh_keV]
-    try:
-        min(sel_bins), max(sel_bins)
-    except ValueError:
-        return None, None
+    sel=np.where( (elow_keV<=EBINS_LOW) &  (EBINS_HIGH<=ehigh_keV))
+    return [np.min(sel), np.max(sel)]
 def sci2keV(elow_sci, ehigh_sci):
     return EBINS_LOW[elow_sci], EBINS_HIGH[ehigh_sci]
 

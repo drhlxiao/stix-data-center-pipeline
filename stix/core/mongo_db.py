@@ -599,6 +599,7 @@ class MongoDB(object):
               {'$sort':{'merge.data_start_unix':-1}
             }
             ]
+        print(query)
         return self.collection_data_requests.aggregate(query)
        
 

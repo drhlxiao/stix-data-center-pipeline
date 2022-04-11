@@ -685,7 +685,7 @@ class SoloEphemeris(object):
         positions = np.array(pos_vel)[:, :3] * u.km
 
         solo_hee_spice,ltime_sun_solo = sp.spkpos('SOLO',spice_times, 'SOLO_HEE_NASA', 'NONE', 'SUN')
-        solo_hee_spice = solo_hee_spice * u.km
+        solo_hee_spice = solo_hee_spice.tolist()
 
         et = sp.datetime2et(dts)
         sc = sp.sce2c(SOLAR_ORBITER_ID, et) #convert to clock ticks
