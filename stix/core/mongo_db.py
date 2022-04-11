@@ -578,9 +578,9 @@ class MongoDB(object):
         start_unix=unix_time-max_days_off*86400
         query=[{
                 '$match': {'request_type':'L1','purpose':'Background','detector_mask':'0xFFFFFFFF', 
-                    'emax':{'$gte':str(emax)},
+                'emax':{'$gte':str(emax)},
                 'emin':{'$lte':str(emin)},
-            'start_unix':{'$gt':start_unix, '$lt':unix_time}
+                'start_unix':{'$gt':start_unix, '$lt':unix_time}
             }},
             {
                 '$lookup': {
@@ -596,13 +596,16 @@ class MongoDB(object):
                     }
                 }
                 },
-              {'$sort':{'merge.data_start_unix':-1}
+              {'$sort':{'start_unix':-1}
             }
             ]
-        print(query)
         return self.collection_data_requests.aggregate(query)
        
 
+    def find_flares_by_time_range(self, start_unix, end_unix):
+        return self.collection_flares.find({'start_unix':{'$lt':end_unix},
+            'end_unix':{'$gt':start_unix}} ).sort('start_unix',1)
+        
 
     def get_quicklook_packets_of_run(self, packet_type, run):
         collection = None

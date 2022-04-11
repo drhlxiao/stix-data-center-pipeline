@@ -179,8 +179,18 @@ class ScienceL1(ScienceData):
         self.mean_pixel_rate_spectra_err = np.sqrt(
             self.mean_pixel_rate_spectra) / np.sqrt(self.duration)
         #sum over all time bins and then divide them by the duration, counts per second
-    def get_time_bins_for_imaging(self, elow_keV=6, ehigh_keV=10, min_counts=5000, min_duration = 60 ):
-
+    def get_time_bins_for_imaging(self, elow_keV=6, ehigh_keV=10, min_counts=5000, min_duration = 60 , signal_unix_time_range=[-np.inf,np.inf]):
+        """
+         automatic select time ranges for imaging
+         Arguments
+         ----
+         signal_unix_time_range: list
+            signal unix time range
+         min_counts: int
+            minimal counts per bin
+        min_duration: int
+            minimal time bin 
+        """
         time_ranges=[]
         num_tbins=len(self.time)
         last_tbin = [self.time[0]- 0.5* self.timedel[0], self.time[0]+ 0.5* self.timedel[1]]
@@ -211,13 +221,17 @@ class ScienceL1(ScienceData):
         #print(counts.shape)
         for i, c in enumerate(counts):
             cnt_sum+=c
+            if self.time[i] - 0.5*self.timedel[i] < signal_unix_time_range[0]:
+                continue
+
             this_tbin=[last_tbin[1], self.time[i]+0.5*self.timedel[i]]
             if cnt_sum>=min_counts and this_tbin[1]-this_tbin[0] >= min_duration:
                 #t1=self.time[i]
-                
                 time_ranges.append(this_tbin)
                 summed_cnts.append(cnt_sum)
                 last_tbin= this_tbin
+            if self.time[i] + 0.5*self.timedel[i] > signal_unix_time_range[1]:
+                break
                 
         return np.array(time_ranges)+self.T0_unix, summed_cnts
 
