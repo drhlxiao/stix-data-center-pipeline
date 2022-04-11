@@ -46,15 +46,14 @@ def generate_inputs_for_science_data(bsd_ids=[]):
         docs=bsd_db.find({'name':'L1', 'synopsis.is_background':False,'_id':{'$in':bsd_ids}}).sort('_id', -1)
 
     for doc in docs:
-        create_images_for_bsd(doc)
+        generate_imaging_inputs(doc)
         
         
-def create_images_for_bsd(doc, min_counts=5000,
+def generate_imaging_inputs(doc, min_counts=5000,
         min_duration=30,
                           imaging_energies=[[4,10],[16,28]], bkg_max_day_off=30,
                           overlap_time=0.5 ):
     """
-    bulk science data document
     min_counts: minimal counts per time bin
     min_duration: minimal time per bin
     """
@@ -140,6 +139,8 @@ def create_images_for_bsd(doc, min_counts=5000,
             'filename':fname,
             'bsd_id':doc['_id'],
             'unique_id':uid,
+            'signal_unix_time_range': signal_time_range,
+            'signal_utc_range': [stu.unix2utc(x) for x in  signal_time_range],
             },
         'config':{
             'min_counts_per_bin':min_counts, 
@@ -170,7 +171,7 @@ def create_images_for_bsd(doc, min_counts=5000,
  
     })
     logger.info(f"Inserting data into db for bsd #{bsd_id}")
-    bsd_db.update_one({'_id':bsd_id}, {'$set':{'imaging': imaging_inputs, 'start_utc':stu.unix2utc(start_unix)}}, upsert=False)
+    bsd_db.update_one({'_id':bsd_id}, {'$set':{'imaging': imaging_inputs}}, upsert=False)
 if __name__=='__main__':
     if len(sys.argv)==1:
         generate_inputs_for_science_data()   
