@@ -386,7 +386,7 @@ class SoloEphemeris(object):
                            num_steps=200):
         '''
           calculate solo orbiter orbit using spice kernel data
-          Args:
+          Parameters:
             start_utc: start_utc string
             end_utc:   end utc string
             frame:    coordinate frame supported by SPICE
@@ -435,6 +435,7 @@ class SoloEphemeris(object):
             elevation= np.degrees(np.arctan2(orbiter_sun.z.value, orbiter_sun.r.value))
             #orientations=SoloEphemeris.get_solo_orientations(times)
             hee_pos=orbiter_sun.positions.tolist()
+            #km
 
             result = {
                 'ref_frame':frame,
@@ -642,11 +643,14 @@ class SoloEphemeris(object):
         return res
     @staticmethod
     def to_stix_frame(rtn_coord, cmat_inv):
-       new_coord=np.dot(cmat_inv,rtn_coord)
-       solo_r=np.sqrt(np.sum(rtn_coord**2))
-       x_arcsec=np.arctan(new_coord[1]/solo_r )*180*3600/np.pi
-       y_arcsec=np.arctan(new_coord[2]/solo_r )*180*3600/np.pi
-       return [x_arcsec, y_arcsec]
+        """
+        Sun center to STIX coordinates 
+        """
+        new_coord=np.dot(cmat_inv,rtn_coord)
+        solo_r=np.sqrt(np.sum(rtn_coord**2))
+        x_arcsec=np.arctan(new_coord[1]/solo_r )*180*3600/np.pi
+        y_arcsec=np.arctan(new_coord[2]/solo_r )*180*3600/np.pi
+        return [x_arcsec, y_arcsec]
 
     @staticmethod
     def aspect_correction(utc:str, stix_x:float,stix_y:float,
@@ -673,6 +677,42 @@ class SoloEphemeris(object):
         #rsun=const.R_sun.to(u.m).value
         coord_rtn=np.array([sun_loc,stix_x,stix_y])
         return SoloEphemeris.to_stix_frame(coord_rtn, cmat)
+
+    @staticmethod
+    def get_B0_L0_roll_radius(obs_utc):
+        """
+        calculate B0, L0, roll and radius for imaging software
+        Parameters
+        ----
+        obs_utc: str
+            observation time
+        Returns
+        ---
+         B0, L0, roll, radius: float
+            the first three in units of degrees and the last in arcsec
+            
+        """
+        this_time = stix_datetime.utc2datetime(obs_utc)
+        #solo_hee = coordinates_body(this_time, observer)
+        stix_aux=SoloEphemeris.get_solar_limb_stix_fov(obs_utc)
+        try:
+            rsun= np.degrees(np.arctan(stix_aux['rsun']/stix_aux['solo_sun_r']))*0.5*3600 #in units of arcmin
+            roll = stix_aux['roll']  #roll angle in degrees
+            hee_spice=stix_aux['solo_hee']
+        except KeyError:
+            raise ValueError('No auxiliary data available for the requested time')
+
+        hee_spice = np.array(hee_spice[0]) * u.km
+        # Convert the coordinates to HEE
+        solo_hee = HeliocentricEarthEcliptic(hee_spice,
+                                              obstime=Time(this_time).isot,
+                                              representation_type='cartesian')
+
+        solo_hgs = solo_hee.transform_to(HeliographicStonyhurst(obstime=this_time))
+        B0 = solo_hgs.lat.deg # Heliographic latitude (B0 angle)
+        L0 = solo_hgs.lon.deg # Heliographic longitude (L0 angle)
+        #ROLL ANGLE Solar Orbiter in degree
+        return B0, L0, roll,rsun 
 
     @staticmethod
     def get_solar_limb_stix_fov(utc, ref_frame='SOLO_SUN_RTN'):
@@ -712,7 +752,9 @@ class SoloEphemeris(object):
         limbs=[[sun_loc.to(u.m).value, rsun*np.cos(theta), rsun*np.sin(theta)] for theta in np.linspace(0,2*np.pi, 50)
                 ]
         sun_center_stix_frame=SoloEphemeris.to_stix_frame(sun_center, cmat_inv)
+
         nsew_stix_frame=[SoloEphemeris.to_stix_frame(np.array(loc), cmat_inv) for loc in nsew_coords]
+
         limbs_stix_frame=np.array([SoloEphemeris.to_stix_frame(np.array(loc), cmat_inv) for loc in limbs])
 
         sun_outside_stix_fov=False if np.max(np.abs(limbs_stix_frame))<3600 else True
@@ -730,8 +772,8 @@ class SoloEphemeris(object):
             'ref_frame':ref_frame,
             'cmat':cmat.tolist(),
             'cmat_inv':cmat_inv.tolist(),
-            'rsun':rsun,
-            'solo_sun_r':sun_loc.to(u.m).value,
+            'rsun':rsun, #units of m
+            'solo_sun_r':sun_loc.to(u.m).value, #unit of m
             'time':utc,
             'fov':{'x':[-3600, 3600, 3600, -3600, -3600], 'y':[3600, 3600, -3600, -3600, 3600]},
             'limb':{'x':limbs_stix_frame[:,0].tolist(), 'y':limbs_stix_frame[:,1].tolist()},
@@ -742,7 +784,7 @@ class SoloEphemeris(object):
             'pitch':pitch,
             'yaw':yaw,
             'lunit':'m',
-            'solo_hee':solo_hee_spice,
+            'solo_hee':solo_hee_spice, #units of km
             'aunit':['arcsec','deg']
             }    
 

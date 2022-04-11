@@ -17,15 +17,18 @@ from stix.analysis import goes_downloader as gd
 from stix.analysis import flare_detection
 from stix.fits import fits_creator
 from stix.core import logger
+from stix.core import config
 logger = logger.get_logger()
 goes=gd.GOES()
 
 def daily_jobs():
+    daemon_config = config.get_config('pipeline.daemon')
+    lc_output_dir=daemon_config['flare_lc_snapshot_path']
     while True:
         logger.info("Starting LL fits creator loop..")
         fits_creator.create_daily_low_latency_fits_for_all()
         logger.info("Starting flare detection loop..")
-        flare_detection.find_flares_in_recent_LC()
+        flare_detection.find_flares_in_recent_LC(lc_path=lc_output_dir)
         time.sleep(86400)
 
 
