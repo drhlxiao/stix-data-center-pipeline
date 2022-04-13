@@ -165,9 +165,23 @@ class ScienceL1(ScienceData):
         self.correct_pixel_count_rates=None
         self.read_fits()
         self.make_spectra()
+    def energy_to_index(self, elow_keV, ehigh_keV):
+        ebin_min=None
+        ebin_max=None
+        for  e in self.energies:
+            #print(e)
+            if e[1]<=elow_keV:
+                ebin_min=e[0]
+            if e[2]<=ehigh_keV:
+                ebin_max=e[0]
+        if ebin_min is None or ebin_max is None:
+            return None,None
+        ebin_max+=1
+
+        return ebin_min, ebin_max
 
     def make_spectra(self, pixel_counts=None):
-        print('spectrogram...')
+        #print('spectrogram...')
         if pixel_counts is None:
             pixel_counts=self.pixel_counts
         self.spectrogram = np.sum(pixel_counts, axis=(1, 2))
@@ -179,60 +193,71 @@ class ScienceL1(ScienceData):
         self.mean_pixel_rate_spectra_err = np.sqrt(
             self.mean_pixel_rate_spectra) / np.sqrt(self.duration)
         #sum over all time bins and then divide them by the duration, counts per second
-    def get_time_bins_for_imaging(self, elow_keV=6, ehigh_keV=10, min_counts=5000, min_duration = 60 , signal_unix_time_range=[-np.inf,np.inf]):
-        """
-         automatic select time ranges for imaging
-         Arguments
-         ----
-         signal_unix_time_range: list
-            signal unix time range
-         min_counts: int
-            minimal counts per bin
-        min_duration: int
-            minimal time bin 
-        """
-        time_ranges=[]
-        num_tbins=len(self.time)
-        last_tbin = [self.time[0]- 0.5* self.timedel[0], self.time[0]+ 0.5* self.timedel[1]]
-        
-        if num_tbins==1:
-            return np.array(last_tbin), 0
-        ebin_min=None
-        ebin_max=None
-        for  e in self.energies:
-            #print(e)
-            if e[1]<=elow_keV:
-                ebin_min=e[0]
-            if e[2]<=ehigh_keV:
-                ebin_max=e[0]
 
-        if ebin_min is None or ebin_max is None:
-            return None,0
-        #print('Science bins:',ebin_min, ebin_max)
-        ebin_max+=1
-        #print(self.spectrogram.shape)
-        counts=np.sum(self.spectrogram[:,ebin_min:ebin_max], axis=1)
-        cnt_sum=0
-        
-        
-        
-        cnt_sum=0
-        summed_cnts=[]
-        #print(counts.shape)
-        for i, c in enumerate(counts):
-            cnt_sum+=c
-            if self.time[i] - 0.5*self.timedel[i] < signal_unix_time_range[0]:
+        self.time_bins_low=self.time-0.5*self.timedel+self.T0_unix
+        self.time_bins_high=self.time+0.5*self.timedel+self.T0_unix
+
+    def get_total_counts(self, emin_sci:int, emax_sci:int, unix_start, unix_end):
+
+        counts=np.sum(self.spectrogram[:,emin_sci:emax_sci], axis=1)
+        if unix_end is None or unix_end is None:
+            return np.sum(counts)
+        total_counts=np.sum(counts[ (self.time_bins_low >=unix_start) & (self.time_bins_high <= unix_end)])
+        return total_counts
+
+
+    def get_time_ranges_for_imaging(self, imaging_energies, flare_unix_time_ranges, min_counts=1000, min_duration=60):
+        """
+        determine time ranges for imaging
+            flare_unix_time_ranges: list
+                flare time ranges
+            elow_keV: float
+                energy range lower limit
+            ehigh_keV: float
+                energy range upper limit
+            min_counts: int
+                minimum counts per bin
+            """
+        boxes=[]
+        if not flare_unix_time_ranges:
+            return []
+
+        sci_energy_ranges=[]
+        for energy_range in imaging_energies:
+            elow_sci, emax_sci=self.energy_to_index(energy_range[0], energy_range[1])
+            if elow_sci is None or emax_sci is None:
+                sci_energy_ranges.append(None)
+            sci_energy_ranges.append([elow_sci, emax_sci])
+
+
+        duration=self.time[-1]+ 0.5* self.timedel[-1]-(self.time[0]+ 0.5* self.timedel[0])
+        if duration<min_duration:
+            start=self.time[0]- 0.5* self.timedel[0] + self.T0_unix
+            end=self.time[-1]+ 0.5* self.timedel[-1] +self.T0_unix
+            flare_unix_time_ranges=[[start, end]]
+
+        for flare_time in flare_unix_time_ranges:
+            #only select flaring times
+            start, peak, end = flare_time
+            if peak is not None:
+                start=max(start, peak - min_duration)
+                end=min(end, peak+min_duration)
+
+            counts_enough=[False]*len(imaging_energies)
+            for i, sci_range in enumerate(sci_energy_ranges):
+                if sci_range:
+                    counts_enough[i]=bool( self.get_total_counts(sci_range[0], sci_range[1], start, end) > min_counts )
+            if not any(counts_enough):
                 continue
+            boxes.append({'counts_enough':  counts_enough,
+                    'energy_range_keV': imaging_energies,
+                    'energy_range_sci': sci_energy_ranges,
+                    'unix_time_range': [start,  end],
+                    'utc_range': [sdt.unix2utc(start),  sdt.unix2utc(end)]})
+        return boxes
 
-            this_tbin=[last_tbin[1], self.time[i]+0.5*self.timedel[i]]
-            if cnt_sum>=min_counts and this_tbin[1]-this_tbin[0] >= min_duration:
-                #t1=self.time[i]
-                time_ranges.append(this_tbin)
-                summed_cnts.append(cnt_sum)
-                last_tbin= this_tbin
-            if self.time[i] + 0.5*self.timedel[i] > signal_unix_time_range[1]:
-                break
                 
-        return np.array(time_ranges)+self.T0_unix, summed_cnts
+
+
 
 
