@@ -206,7 +206,7 @@ class ScienceL1(ScienceData):
         return total_counts
 
 
-    def get_time_ranges_for_imaging(self, imaging_energies, flare_unix_time_ranges, min_counts=1000, min_duration=60):
+    def get_time_ranges_for_imaging(self, imaging_energies, flare_unix_time_ranges, min_counts=1000, integration_time = 60, time_step=300):
         """
         determine time ranges for imaging
             flare_unix_time_ranges: list
@@ -218,6 +218,16 @@ class ScienceL1(ScienceData):
             min_counts: int
                 minimum counts per bin
             """
+        def generate_time_ranges(tstart, tend, tbin, tgap, order='asc'):
+            time_ranges=[]
+            if order=='asc':
+                t=tend
+                while t >= tstart+tbin/2.:
+                    time_ranges.append([t-tbin/2,t+tbin/2])
+
+            
+
+
         boxes=[]
         if not flare_unix_time_ranges:
             return []
@@ -229,19 +239,39 @@ class ScienceL1(ScienceData):
                 sci_energy_ranges.append(None)
             sci_energy_ranges.append([elow_sci, emax_sci])
 
-
-        duration=self.time[-1]+ 0.5* self.timedel[-1]-(self.time[0]+ 0.5* self.timedel[0])
-        if duration<min_duration:
-            start=self.time[0]- 0.5* self.timedel[0] + self.T0_unix
-            end=self.time[-1]+ 0.5* self.timedel[-1] +self.T0_unix
-            flare_unix_time_ranges=[[start, end]]
+        time_ranges = []
 
         for flare_time in flare_unix_time_ranges:
             #only select flaring times
             start, peak, end = flare_time
             if peak is not None:
+                start=max(start, peak - integration_time)
+                end=min(end, peak+integration_time)
+            else :
+                t=peak
+                while t >= start:
+                    t = t - time_step
+                    time_ranges
+
+
+
+
+
+        duration = self.time[-1]+ 0.5* self.timedel[-1]-(self.time[0]+ 0.5* self.timedel[0])
+        if duration < integration_time:
+            start = self.time[0]- 0.5* self.timedel[0] + self.T0_unix
+            end = self.time[-1]+ 0.5* self.timedel[-1] +self.T0_unix
+            time_ranges= [[start, end]]
+        
+
+        for flare_time in time_ranges:
+            #only select flaring times
+            start, peak, end = flare_time
+            if peak is not None:
                 start=max(start, peak - min_duration)
                 end=min(end, peak+min_duration)
+            else:
+                if peak-start > 
 
             counts_enough=[False]*len(imaging_energies)
             for i, sci_range in enumerate(sci_energy_ranges):
