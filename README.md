@@ -39,16 +39,11 @@ This package is hosted on PyPI and the most recent stable version can be install
 
 This package can also be installed step by step:
 
-  (1) Download the source code and then unzip the file: 
- 
-    https://github.com/i4Ds/STIX-dataviewer/archive/master.zip
-   
-   or 
-   ```sh
-   git clone https://github.com/i4Ds/STIX-python-data-parser
+   (1) Install pystix
+     pip install git+https://github.com/drhlxiao/pystix.git
    
    ```
-   (2) Dependency installation 
+   (2) Installation of dependencies 
   ```cmd
    pip3 install numpy xmltodict PyQt5 pyqtchart scipy pymongo python-dateutil
 ````
