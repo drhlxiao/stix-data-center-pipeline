@@ -31,13 +31,6 @@ On windows
 #### 2.2 STIX parser Installation
 
 ##### 2.2.1 User
-This package is hosted on PyPI and the most recent stable version can be installed with pip:
-
-```sh
-  pip3 install stix_parser
-``` 
-
-This package can also be installed step by step:
 
    (1) Install pystix
      pip install git+https://github.com/drhlxiao/pystix.git
@@ -47,12 +40,7 @@ This package can also be installed step by step:
   ```cmd
    pip3 install numpy xmltodict PyQt5 pyqtchart scipy pymongo python-dateutil
 ````
-  (3)Install the package to python libarary path:
 
-Note that this step is optional.
-```bash
-python3 setup.py install  
-```
 
 ##### 2.2.2 Developer
 ```
@@ -65,17 +53,15 @@ pip install -e .[dev]
 
 Usage:
 ```bash
-python3 -m stix_parser.apps.parser
-python -m stix_parser.apps.stix_quicklook
-python -m stix_parser.apps.stix_parser_gui
+./bin/parser_gui
 ```
 If you have installed the package to python library path, you just need to execute:
 ```bash
-stix-parser
+./bin/parse_raw
 ```
 Arguments:
 ```console
-Usage: parser.py [-h] -i [INPUT] [-o OUTPUT] [--idb IDB] [--opf {tuple,dict}]
+Usage: parse_raw [-h] -i [INPUT] [-o OUTPUT] [--idb IDB] [--opf {tuple,dict}]
                  [-t {binary,ascii,xml}] [--wdb] [--db-host DB_HOST]
                  [--db-port DB_PORT] [--db-user DB_USER] [--db-pwd DB_PWD]
                  [-m COMMENT] [--SPID [SPID [SPID ...]]]
