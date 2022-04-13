@@ -12,6 +12,7 @@ from stix.utils import bson
 from stix.core import config
 from stix.spice import solo
 from stix.core import logger
+from datetime import datetime
 threshold = 0
 
 logger = logger.get_logger()
@@ -30,6 +31,43 @@ GOES_STIX_ERROR_LUT={'bins':[
 'errors':[0.2404348065,0.2850726823,0.1928913381,0.277,0.139,0.273,0.217]
 }
 """
+
+def save_config(config:dict):
+    """
+    save GOES STIX coefficients in mongodb
+    Parameters
+    ---
+    config: dict
+        it has a structure like the one below
+        {'coeff': [-6.9, 0.07, 0.07],
+        'error_bar_lut':{'bins': [(0, 10)], 'errors': [0.3]}
+        }
+    """
+    config['type']='GOES_STIX_COEFF'
+    config['date']=datetime.now()
+    sw_config_db=mdb.get_collection('sw_config')
+    sw_config_db.save(config)
+def read_lastest_config():
+    """
+    Read the latest GOES STIX coefficients from Mongodb
+    Parameters
+    ----
+    dt: datetime
+
+    Returns
+    ---
+    None if not found or a dictionary 
+        
+    """
+    sw_config_db=mdb.get_collection('sw_config')
+    docs=list(sw_config_db.find().sort('date',-1).limit(1))
+    if docs:
+        return docs[0]
+    return None
+
+
+
+
 
 
 def get_first_element(obj):
@@ -96,7 +134,7 @@ def find_goes_class_flares_in_file(file_id):
     fdb = mdb.get_collection('flares')
     flares = flare_db.find({'run_id': file_id, 'hidden': False})
     if not flares:
-        logger.error(f'Flare not found in  {file_id} !')
+        logger.error(f'Flare not found in file {file_id} !')
         return
     goes_class_list = []
     for doc in flares:
@@ -129,7 +167,7 @@ def estimate_goes_class(counts: float,
         default_error: float
             default error in log goes flux when it can not be found in the lut
     Returns: dict
-        predicted GOES class and limts
+        predicted GOES class and limits
     """
 
     cnts = counts * dsun**2
