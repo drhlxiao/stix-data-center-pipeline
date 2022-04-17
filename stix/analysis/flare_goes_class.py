@@ -60,7 +60,7 @@ def read_latest_config():
         
     """
     sw_config_db=mdb.get_collection('sw_config')
-    docs=list(sw_config_db.find().sort('date',-1).limit(1))
+    docs=list(sw_config_db.find({'type':'GOES_STIX_COEFF'}).sort('date',-1).limit(1))
     if docs:
         return docs[0]
     return None
