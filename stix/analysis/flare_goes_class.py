@@ -47,7 +47,7 @@ def save_config(config:dict):
     config['date']=datetime.now()
     sw_config_db=mdb.get_collection('sw_config')
     sw_config_db.save(config)
-def read_lastest_config():
+def read_latest_config():
     """
     Read the latest GOES STIX coefficients from Mongodb
     Parameters

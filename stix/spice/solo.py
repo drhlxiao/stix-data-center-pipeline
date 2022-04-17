@@ -679,7 +679,7 @@ class SoloEphemeris(object):
         return SoloEphemeris.to_stix_frame(coord_rtn, cmat)
 
     @staticmethod
-    def get_B0_L0_roll_radius(obs_utc):
+    def get_ephemeris_for_imaging(obs_utc):
         """
         calculate B0, L0, roll and radius for imaging software
         Parameters
@@ -712,7 +712,7 @@ class SoloEphemeris(object):
         B0 = solo_hgs.lat.deg # Heliographic latitude (B0 angle)
         L0 = solo_hgs.lon.deg # Heliographic longitude (L0 angle)
         #ROLL ANGLE Solar Orbiter in degree
-        return B0, L0, roll,rsun 
+        return B0*u.deg, L0*u.deg, roll*u.deg,rsun*u.deg ,stix_aux['solo_hee']*u.km, stix_aux['solo_sun_r']*u.m
 
     @staticmethod
     def get_solar_limb_stix_fov(utc, ref_frame='SOLO_SUN_RTN'):

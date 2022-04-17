@@ -20,6 +20,7 @@ from sunpy.coordinates.frames import HeliocentricEarthEcliptic, HeliographicSton
 from stix.core import config
 from stix.core import mongo_db as db
 from stix.analysis.science_l1 import ScienceL1
+from stix.flare_pipeline import image_viewer as imv
 
 from stix.core import logger
 from stix.spice import solo
@@ -123,6 +124,7 @@ def call_idl(inputs, bkg_fits, sig_fits):
     return True
 
 
+
 def generate_imaging_inputs(doc,
                             min_counts=2000,
                             min_duration=30,
@@ -167,7 +169,7 @@ def generate_imaging_inputs(doc,
 
     try:
         signal_utc = stu.unix2utc((bsd_start_unix + bsd_end_unix) / 2.)
-        B0, L0, roll, rsun = solo.SoloEphemeris.get_B0_L0_roll_radius(
+        B0, L0, roll, rsun, solo_hee, solo_sun_r = solo.SoloEphemeris.get_ephemeris_for_imaging(
             signal_utc)
     except ValueError:
         logger.warning(f'No ephemeris data found for {bsd_id} (uid {uid})')
@@ -207,27 +209,29 @@ def generate_imaging_inputs(doc,
         tb['fits'] = [[]] * len(imaging_energies)
         for ie, energy in enumerate(imaging_energies):
             fits_prefix = f'sci_{bsd_id}_uid_{uid}_{ibox}_{ie}'
-            out_fits_fnames = [
+            output_filenames = [
                 os.path.join(quicklook_path, fits_prefix + ext)
-                for ext in ['_fwfit.fits', '_bp.fits']
+                for ext in ['_fwfit.fits', '_bp.fits', '.png']
             ]
             num_images += 1
             if tb['counts_enough'][ie]:
                 success = call_idl([
                     bkg_fname, fname, tb['utc_range'][0], tb['utc_range'][1],
                     tb['energy_range_sci'][ie][0],
-                    tb['energy_range_sci'][ie][1], out_fits_fnames[0],
-                    out_fits_fnames[1],
-                    round(L0, 4),
-                    round(B0, 4),
-                    round(rsun, 4),
-                    round(roll, 4)
+                    tb['energy_range_sci'][ie][1], output_filenames[0],
+                    output_filenames[1],
+                    round(L0.to(u.deg).value, 4),
+                    round(B0.to(u.deg).value, 4),
+                    round(rsun.to(u.deg).value, 4),
+                    round(roll.to(u.deg).value, 4)
                 ], bkg_fname, fname)
                 if not success:
                     continue
-                print("success, output:", out_fits_fnames)
-
-                tb['fits'][ie] = out_fits_fnames
+                print("success, output:", output_filenames)
+                tb['fits'][ie] = output_filenames[0:2]
+                tb['png'][ie] = output_filenames[2]
+                imv.create_flare_image(output_filenames[1], output_filenames[1], solo_hee, solo_sun_r.to(u.au).value, 
+                        flare_center=[0,0],  map_name='', output_filename=output_filenames[2])
 
     if num_images == 0:
         logger.warning(
@@ -246,10 +250,12 @@ def generate_imaging_inputs(doc,
             'min_duration': min_duration,
         },
         'aux': {
-            'B0': B0,
-            'L0': L0,
-            'roll': roll,
-            'rsun': rsun,
+            'B0': B0.to(u.deg).value,
+            'L0': L0.to(u.deg).value,
+            'roll': roll.to(u.deg).value,,
+            'rsun': rsun.to(u.arcsec).value,
+            'solo_sun_r':solo_sun_r.to(u.au).value,
+            'solo_hee':solo_hee.to(u.km).value
         },
         'background': {
             'filename': bkg_fname,
