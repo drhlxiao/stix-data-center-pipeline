@@ -198,7 +198,6 @@ class ScienceL1(ScienceData):
         self.time_bins_high=self.time+0.5*self.timedel+self.T0_unix
 
     def get_total_counts(self, emin_sci:int, emax_sci:int, unix_start, unix_end):
-
         counts=np.sum(self.spectrogram[:,emin_sci:emax_sci], axis=1)
         if unix_end is None or unix_end is None:
             return np.sum(counts)
@@ -206,7 +205,7 @@ class ScienceL1(ScienceData):
         return total_counts
 
 
-    def get_time_ranges_for_imaging(self, imaging_energies, flare_unix_time_ranges, min_counts=1000, integration_time = 60, time_step=300):
+    def get_time_ranges_for_imaging(self, imaging_energies, flare_unix_time_ranges, min_counts=3000, integration_time = 60, time_step=300):
         """
         determine time ranges for imaging
             flare_unix_time_ranges: list
@@ -218,14 +217,6 @@ class ScienceL1(ScienceData):
             min_counts: int
                 minimum counts per bin
             """
-        def generate_time_ranges(tstart, tend, tbin, tgap, order='asc'):
-            time_ranges=[]
-            if order=='asc':
-                t=tend
-                while t >= tstart+tbin/2.:
-                    time_ranges.append([t-tbin/2,t+tbin/2])
-
-            
 
 
         boxes=[]
@@ -241,45 +232,45 @@ class ScienceL1(ScienceData):
 
         time_ranges = []
 
-        for flare_time in flare_unix_time_ranges:
-            #only select flaring times
-            start, peak, end = flare_time
-            if peak is not None:
-                start=max(start, peak - integration_time)
-                end=min(end, peak+integration_time)
-            else :
-                t=peak
-                while t >= start:
-                    t = t - time_step
-                    time_ranges
-
-
-
-
 
         duration = self.time[-1]+ 0.5* self.timedel[-1]-(self.time[0]+ 0.5* self.timedel[0])
-        if duration < integration_time:
+        if duration <= integration_time or len(self.timedel)==1:
+            # duration too short or only one time bin
             start = self.time[0]- 0.5* self.timedel[0] + self.T0_unix
             end = self.time[-1]+ 0.5* self.timedel[-1] +self.T0_unix
             time_ranges= [[start, end]]
+        else:
+            for flare_time in flare_unix_time_ranges:
+                #only select flaring times
+                start, peak, end = flare_time
+                peak= peak if peak is not None else start
+                if peak is not None:
+                    #every time_step
+                    t=peak
+                    while t-integration_time/2 >= start :
+                        time_ranges.append( [t-integration_time/2., t+integration_time/2.])
+                        t = t - time_step
+                t=peak
+                print('Peak time:', sdt.unix2utc(peak))
+                while t+integration_time/2. <= end :
+                    time_ranges.append( [t-integration_time/2., t+integration_time/2.])
+                    t = t + time_step
         
 
         for flare_time in time_ranges:
             #only select flaring times
-            start, peak, end = flare_time
-            if peak is not None:
-                start=max(start, peak - min_duration)
-                end=min(end, peak+min_duration)
-            else:
-                if peak-start > 
+            start, end = flare_time
 
-            counts_enough=[False]*len(imaging_energies)
+            box_counts = [0]*len(imaging_energies)
+            
             for i, sci_range in enumerate(sci_energy_ranges):
                 if sci_range:
-                    counts_enough[i]=bool( self.get_total_counts(sci_range[0], sci_range[1], start, end) > min_counts )
-            if not any(counts_enough):
-                continue
-            boxes.append({'counts_enough':  counts_enough,
+                    box_counts[i]= self.get_total_counts(sci_range[0], sci_range[1], start, end)
+                    #don't make images if count rate too low 
+                #both energies don't have counts
+            boxes.append({
+                'box_counts':  box_counts,
+                'counts_enough':  [bool(x>min_counts) for x in box_counts],
                     'energy_range_keV': imaging_energies,
                     'energy_range_sci': sci_energy_ranges,
                     'unix_time_range': [start,  end],

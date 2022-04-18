@@ -6,6 +6,7 @@ import sys
 import json
 import numpy as np
 import subprocess
+import random
 from datetime import datetime, timedelta
 
 from astropy import units as u
@@ -15,8 +16,6 @@ from astropy.wcs import WCS
 from astropy.io import fits
 
 from sunpy import map
-from sunpy.map import make_fitswcs_header
-from sunpy.coordinates.frames import HeliocentricEarthEcliptic, HeliographicStonyhurst
 from stix.core import config
 from stix.core import mongo_db as db
 from stix.analysis.science_l1 import ScienceL1
@@ -44,12 +43,12 @@ from pprint import pprint
 HOST = 'https://datacenter.stix.i4ds.net/'
 
 
-def execute_script(shell_filename, verbose=False):
+def execute_script(shell_filename, idl_script, verbose=False):
     """
     execute script
     """
     subprocess.call(['chmod', 'u+x', shell_filename])
-    cmd_output = subprocess.run([shell_filename],
+    cmd_output = subprocess.run([shell_filename, idl_script],
                                 shell=True,
                                 stderr=subprocess.PIPE,
                                 stdout=subprocess.PIPE)
@@ -94,7 +93,7 @@ def generate_inputs_for_science_data(bsd_ids=[]):
         generate_imaging_inputs(doc)
 
 
-def call_idl(inputs, bkg_fits, sig_fits):
+def call_idl(inputs, bkg_fits, sig_fits, process_id=0):
     parameters = ','.join(
         [f"'{x}'" if isinstance(x, str) else str(x) for x in inputs])
     bkg_filename = os.path.basename(bkg_fits)
@@ -107,7 +106,7 @@ def call_idl(inputs, bkg_fits, sig_fits):
         f'.run {IDL_SCRIPT_PATH}/stix_image_reconstruction.pro',
         f'stx_image_reconstruct, {parameters}', 'exit'
     ]
-    sc_fname = os.path.join(IDL_SCRIPT_PATH, 'top.pro')
+    sc_fname = os.path.join(IDL_SCRIPT_PATH, f'top_{process_id:03d}.pro')
     f = open(sc_fname, 'w')
     for l in script_lines:
         f.write(l + '\n')
@@ -115,19 +114,18 @@ def call_idl(inputs, bkg_fits, sig_fits):
     f.close()
     print("executing script")
     try:
-        execute_script(IDL_SCRIPT_PATH / 'stix_imaging.sh')
+        execute_script(IDL_SCRIPT_PATH / 'stix_imaging.sh', sc_fname)
     except RuntimeError:
-        print("Run time error!")
         return False
 
-    print("success!")
     return True
 
 
 
 def generate_imaging_inputs(doc,
                             min_counts=2000,
-                            min_duration=30,
+                            integration_time=60,
+                            time_step=300,
                             imaging_energies=[[4, 10], [16, 28]],
                             bkg_max_day_off=30,
                             overlap_time=0.5):
@@ -152,14 +150,14 @@ def generate_imaging_inputs(doc,
         return
     boxes_energy_low = np.min(np.array(imaging_energies))
     boxes_energy_high = np.max(np.array(imaging_energies))
-    box_emax_sci, box_emax_sci = eb.keV2sci(boxes_energy_low,
+    box_emin_sci, box_emax_sci = eb.keV2sci(boxes_energy_low,
                                             boxes_energy_high)
     #energy range
 
     bkg_fits_docs = list(
         mdb.find_L1_background(bsd_start_unix,
                                bkg_max_day_off,
-                               emin=box_emax_sci,
+                               emin=box_emin_sci,
                                emax=box_emax_sci))
     #find background data acquired within bkg_max_day_off days
     if not bkg_fits_docs:
@@ -198,17 +196,17 @@ def generate_imaging_inputs(doc,
     print(bsd_flare_time_ranges, imaging_energies)
 
     boxes = l1.get_time_ranges_for_imaging(imaging_energies,
-                                           bsd_flare_time_ranges, min_counts,
-                                           min_duration)
-    print(boxes)
+                                           bsd_flare_time_ranges, min_counts, integration_time, time_step)
+
     if boxes is None:
         logger.warning(f'No time bins found for {bsd_id} (uid {uid})')
         return
     num_images = 0
     for tb in boxes:
         tb['fits'] = [[]] * len(imaging_energies)
+        tb['png'] = [None] * len(imaging_energies)
         for ie, energy in enumerate(imaging_energies):
-            fits_prefix = f'sci_{bsd_id}_uid_{uid}_{ibox}_{ie}'
+            fits_prefix = f'sci_{bsd_id}_uid_{uid}_{ibox}_{ie}_{num_images}_{tb["utc_range"][0]}'
             output_filenames = [
                 os.path.join(quicklook_path, fits_prefix + ext)
                 for ext in ['_fwfit.fits', '_bp.fits', '.png']
@@ -224,14 +222,16 @@ def generate_imaging_inputs(doc,
                     round(B0.to(u.deg).value, 4),
                     round(rsun.to(u.deg).value, 4),
                     round(roll.to(u.deg).value, 4)
-                ], bkg_fname, fname)
+                ], bkg_fname, fname,0)
                 if not success:
                     continue
                 print("success, output:", output_filenames)
                 tb['fits'][ie] = output_filenames[0:2]
                 tb['png'][ie] = output_filenames[2]
-                imv.create_flare_image(output_filenames[1], output_filenames[1], solo_hee, solo_sun_r.to(u.au).value, 
-                        flare_center=[0,0],  map_name='', output_filename=output_filenames[2])
+                flare_center=[0,0]
+                imv.create_flare_image(output_filenames[1], output_filenames[0],  tb['utc_range'][0], 
+                        solo_hee, solo_sun_r.to(u.au).value, 
+                        flare_center,  map_name='', output_filename=output_filenames[2])
 
     if num_images == 0:
         logger.warning(
@@ -252,7 +252,7 @@ def generate_imaging_inputs(doc,
         'aux': {
             'B0': B0.to(u.deg).value,
             'L0': L0.to(u.deg).value,
-            'roll': roll.to(u.deg).value,,
+            'roll': roll.to(u.deg).value,
             'rsun': rsun.to(u.arcsec).value,
             'solo_sun_r':solo_sun_r.to(u.au).value,
             'solo_hee':solo_hee.to(u.km).value
@@ -270,6 +270,114 @@ def generate_imaging_inputs(doc,
         'imaging': imaging_inputs
     }},
                       upsert=False)
+
+
+
+def create_image_for_web(_id, energy_range_keV, time_range_utc, bkg_max_day_off=60, bkg_bsd_id=None):
+    """
+    min_counts: minimal counts per time bin
+    min_duration: minimal time per bin
+    """
+    doc=bsd_db.find_one({'_id':_id})
+    bsd_id = doc['_id']
+    uid=doc['unique_id']
+
+    uid = int(uid)
+    #find flare times
+    bsd_start_unix = doc['start_unix']
+    bsd_end_unix = doc['end_unix']
+    #signal utc
+    fits_doc = bsd_db.find_one({'_id':bsd_id})
+
+    if not fits_doc:
+        logger.warning(f'No signal Fits file found for {bsd_id} (uid {uid})')
+        return {'error': 'signal not found'}
+
+    boxes_energy_low = energy_range_keV[0]
+    boxes_energy_high = energy_range_keV[1]
+    box_emin_sci, box_emax_sci = eb.keV2sci(boxes_energy_low,
+                                            boxes_energy_high)
+    if bkg_bsd_id is None:
+        bkg_fits_docs = list(
+            mdb.find_L1_background(bsd_start_unix,
+                               bkg_max_day_off,
+                               emin=box_emin_sci,
+                               emax=box_emax_sci))
+    else:
+        bkg_fits_docs = list(bsd_db.find_one({'_id':bkg_bsd_id}))
+
+    #find background data acquired within bkg_max_day_off days
+    if not bkg_fits_docs:
+        logger.warning(
+            f'No background Fits file found for {bsd_id} (uid {uid})')
+        return {'error': 'BKG not found'}
+
+    try:
+        signal_utc = stu.unix2utc((bsd_start_unix + bsd_end_unix) / 2.)
+        B0, L0, roll, rsun, solo_hee, solo_sun_r = solo.SoloEphemeris.get_ephemeris_for_imaging(
+            signal_utc)
+    except ValueError:
+        logger.warning(f'No ephemeris data found for {bsd_id} (uid {uid})')
+        return {'error': 'No ephemeris data found'}
+
+    bkg_fits = bkg_fits_docs[0]  # select the most recent one
+    fname = os.path.join(fits_doc[0]['path'], fits_doc[0]['filename'])
+    l1 = ScienceL1.from_fits(fname)
+    bkg_fname = os.path.join(bkg_fits['merg'][0]['path'],
+                             bkg_fits['merg'][0]['filename'])
+
+    num_images = 0
+    for ie, energy in enumerate(imaging_energies):
+        fits_prefix = f'sci_{bsd_id}_uid_{uid}_{ibox}_{ie}_{num_images}_{tb["utc_range"][0]}'
+        output_filenames = [
+            os.path.join(quicklook_path, fits_prefix + ext)
+            for ext in ['_fwfit.fits', '_bp.fits', '.png']
+            ]
+        process_id=random.randint(1, 200)
+        result={'signal': {
+            'filename': os.path.basename(fname),
+            'bsd_id': doc['_id'],
+            'unique_id': uid,
+                },
+
+                'aux': {
+                    'B0': B0.to(u.deg).value,
+                    'L0': L0.to(u.deg).value,
+                    'roll': roll.to(u.deg).value,
+                    'rsun': rsun.to(u.arcsec).value,
+                    'solo_sun_r':solo_sun_r.to(u.au).value,
+                    'solo_hee':solo_hee.to(u.km).value
+                },
+                'background': {
+                    'filename': os.path.basename(bkg_fname),
+                    'req_form_id': bkg_fits['_id'],
+                    'fits_id': bkg_fits['merg'][0]['_id'],
+                    'unique_id': bkg_fits['merg'][0]['request_id'],
+                },
+                'success':False,
+                'process_id':process_id,
+                'output':[os.path.basename(x) for x in output_filenames]
+            }
+        success = call_idl([
+                    bkg_fname, fname, time_range_utc[0], time_range_utc[1],
+                    box_emin_sci, 
+                    box_emax_sci,
+                    output_filenames[0],
+                    output_filenames[1],
+                    round(L0.to(u.deg).value, 4),
+                    round(B0.to(u.deg).value, 4),
+                    round(rsun.to(u.deg).value, 4),
+                    round(roll.to(u.deg).value, 4)
+                ], bkg_fname, fname, process_id)
+
+        if not success:
+            result['error']='IDL runtime error!'
+                
+        imv.create_flare_image(output_filenames[1], output_filenames[0],  time_range_utc[0], 
+                    solo_hee, solo_sun_r.to(u.au).value, 
+                    flare_center,  map_name='', output_filename=output_filenames[2])
+        result['success']=True
+        return result
 
 
 if __name__ == '__main__':
