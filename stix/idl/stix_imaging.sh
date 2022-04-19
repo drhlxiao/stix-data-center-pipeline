@@ -9,4 +9,6 @@ source $SSW/gen/setup/setup.ssw
 setenv IDL_DIR /opt/idl88/idl88
 # Startup SSW IDL
 #sswidl /opt/stix/parser/stix/idl/top.pro
-sswidl $1
+echo "Executing IDL:$1 ..."
+sswidl  $1
+echo "IDL existing..."

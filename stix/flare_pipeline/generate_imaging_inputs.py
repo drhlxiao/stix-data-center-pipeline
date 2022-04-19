@@ -47,12 +47,14 @@ def execute_script(shell_filename, idl_script, verbose=False):
     """
     execute script
     """
+    logger.info(f"Executing script {shell_filename} {idl_script}...")
     subprocess.call(['chmod', 'u+x', shell_filename])
-    cmd_output = subprocess.run([shell_filename, idl_script],
-                                shell=True,
-                                stderr=subprocess.PIPE,
-                                stdout=subprocess.PIPE)
-    check_for_errors(cmd_output, verbose)
+    cmd_output = subprocess.check_call([shell_filename, idl_script])
+    #        shell=True,
+    #                            stderr=subprocess.PIPE,
+    #                            stdout=subprocess.PIPE)
+    #print('done, checking output')
+    #check_for_errors(cmd_output, verbose)
 
 
 def check_for_errors(output, verbose):
@@ -68,7 +70,7 @@ def check_for_errors(output, verbose):
     if 'failed to acquire license' in stderr.lower():
         raise RuntimeError(stderr)
     if verbose:
-        print(f'{stderr}\n{stdout}')
+        logger.info(f'{stderr}\n{stdout}')
 
 
 def generate_inputs_for_science_data(bsd_ids=[]):
@@ -110,12 +112,11 @@ def call_idl(inputs, bkg_fits, sig_fits, process_id=0):
     f = open(sc_fname, 'w')
     for l in script_lines:
         f.write(l + '\n')
-    print('updated', sc_fname)
     f.close()
-    print("executing script")
     try:
-        execute_script(IDL_SCRIPT_PATH / 'stix_imaging.sh', sc_fname)
+        execute_script(os.path.join(IDL_SCRIPT_PATH, 'stix_imaging.sh'), sc_fname)
     except RuntimeError:
+        logger.error('IDL runtime error')
         return False
 
     return True
@@ -211,7 +212,6 @@ def generate_imaging_inputs(doc,
                 os.path.join(quicklook_path, fits_prefix + ext)
                 for ext in ['_fwfit.fits', '_bp.fits', '.png']
             ]
-            num_images += 1
             if tb['counts_enough'][ie]:
                 success = call_idl([
                     bkg_fname, fname, tb['utc_range'][0], tb['utc_range'][1],
@@ -224,14 +224,19 @@ def generate_imaging_inputs(doc,
                     round(roll.to(u.deg).value, 4)
                 ], bkg_fname, fname,0)
                 if not success:
+                    print('Failed ')
                     continue
-                print("success, output:", output_filenames)
+                logger.info(f"success, output:{output_filenames}")
                 tb['fits'][ie] = output_filenames[0:2]
                 tb['png'][ie] = output_filenames[2]
                 flare_center=[0,0]
-                imv.create_flare_image(output_filenames[1], output_filenames[0],  tb['utc_range'][0], 
+                try:
+                    num_images += 1
+                    imv.create_flare_image(output_filenames[1], output_filenames[0],  tb['utc_range'][0], 
                         solo_hee, solo_sun_r.to(u.au).value, 
                         flare_center,  map_name='', output_filename=output_filenames[2])
+                except FileNotFoundError as e:
+                    logger.error(str(e))
 
     if num_images == 0:
         logger.warning(
@@ -372,11 +377,11 @@ def create_image_for_web(_id, energy_range_keV, time_range_utc, bkg_max_day_off=
 
         if not success:
             result['error']='IDL runtime error!'
-                
-        imv.create_flare_image(output_filenames[1], output_filenames[0],  time_range_utc[0], 
+        else:
+            imv.create_flare_image(output_filenames[1], output_filenames[0],  time_range_utc[0], 
                     solo_hee, solo_sun_r.to(u.au).value, 
                     flare_center,  map_name='', output_filename=output_filenames[2])
-        result['success']=True
+            result['success']=True
         return result
 
 
