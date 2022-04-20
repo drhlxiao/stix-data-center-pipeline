@@ -33,6 +33,7 @@ mdb = db.MongoDB()
 logger = logger.get_logger()
 quicklook_path = config.get_config('pipeline.daemon.flare_images')
 bsd_db = mdb.get_collection('bsd')
+flare_images_db= mdb.get_collection('flare_images')
 
 req_db = mdb.get_collection('data_requests')
 SSW_HOME = '/data2/ssw'
@@ -271,10 +272,8 @@ def generate_imaging_inputs(doc,
         'boxes': boxes
     })
     logger.info(f"Inserting data into db for bsd #{bsd_id}")
-    bsd_db.update_one({'_id': bsd_id}, {'$set': {
-        'imaging': imaging_inputs
-    }},
-                      upsert=False)
+    flare_images_db.save(imaging_inputs)
+                      
 
 
 
