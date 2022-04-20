@@ -38,7 +38,7 @@ flare_images_db= mdb.get_collection('flare_images')
 req_db = mdb.get_collection('data_requests')
 SSW_HOME = '/data2/ssw'
 IDL_HOME = '/opt/idl88/idl88'
-IDL_SCRIPT_PATH = Path(__file__).resolve().parent.parent / 'idl'
+IDL_SCRIPT_PATH = '/data/scripts/imaging'
 
 from pprint import pprint
 HOST = 'https://datacenter.stix.i4ds.net/'
@@ -79,7 +79,7 @@ def create_images_for_science_data(bsd_ids=[]):
         docs = bsd_db.find({
             'name': 'L1',
             'synopsis.is_background': False,
-            'imaging': {
+            'qk_images': {
                 '$exists': False
                 }
             }).sort('_id', -1)
@@ -127,7 +127,7 @@ def call_idl(inputs, bkg_fits, sig_fits, process_id=0):
 def generate_imaging_inputs(doc,
         min_counts=2000,
         integration_time=60,
-        time_step=300,
+        time_step=600,
         imaging_energies=[[4, 10], [16, 28]],
         bkg_max_day_off=30,
         overlap_time=0.5):
@@ -204,6 +204,7 @@ def generate_imaging_inputs(doc,
         logger.warning(f'No time bins found for {bsd_id} (uid {uid})')
         return
     num_images = 0
+
     for tb in boxes:
         for ie, energy in enumerate(imaging_energies):
             fits_prefix = f'sci_{bsd_id}_uid_{uid}_{ibox}_{ie}_{num_images}_{tb["utc_range"][0]}'
@@ -211,6 +212,7 @@ def generate_imaging_inputs(doc,
                     os.path.join(quicklook_path, fits_prefix + ext)
                     for ext in ['_fwfit.fits', '_bp.fits', '.png']
                     ]
+            rndint=random.randint(0,1000)
             if tb['counts_enough'][ie]:
                 success = call_idl([
                     bkg_fname, fname, tb['utc_range'][0], tb['utc_range'][1],
@@ -222,17 +224,17 @@ def generate_imaging_inputs(doc,
                     round(B0.to(u.deg).value, 4),
                     round(rsun.to(u.deg).value, 4),
                     round(roll.to(u.deg).value, 4)
-                    ], bkg_fname, fname,0)
+                    ], bkg_fname, fname, rndint)
                 if not success:
                     print('Failed ')
                     continue
                 logger.info(f"success, output:{output_filenames}")
-                flare_center=[0,0]
+                #flare_center=[0,0]
                 try:
                     num_images += 1
                     imv.create_flare_image(output_filenames[1], output_filenames[0],  tb['utc_range'][0], 
                             solo_hee, solo_sun_r.to(u.au).value, 
-                            flare_center,  map_name='', output_filename=output_filenames[2])
+                              map_name='', output_filename=output_filenames[2])
                 except FileNotFoundError as e:
                     logger.error(str(e))
                 imaging_inputs = bson.dict_to_json({
@@ -260,8 +262,11 @@ def generate_imaging_inputs(doc,
                     'total_counts':tb['box_counts'][ie],
                     'images':{'fits':output_filenames[0:2], 'png':output_filenames[2]},
                     })
+                print(imaging_inputs)
                 logger.info(f"Inserting data into db for bsd #{bsd_id}")
-                flare_images_db.save(imaging_inputs)
+                flare_images_db.insert_one(imaging_inputs)
+        if num_images > 0:
+            bsd_db.update_one({'_id':doc['_id']},{'$set':{'qk_images': num_images }}, upsert=False)
 
 
 

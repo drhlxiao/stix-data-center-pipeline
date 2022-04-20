@@ -271,8 +271,8 @@ class ScienceL1(ScienceData):
             boxes.append({
                 'box_counts':  box_counts,
                 'counts_enough':  [bool(x>min_counts) for x in box_counts],
-                    'energy_range_keV': imaging_energies,
                     'energy_range_sci': sci_energy_ranges,
+                    'energy_range_keV': imaging_energies,
                     'unix_time_range': [start,  end],
                     'utc_range': [sdt.unix2utc(start),  sdt.unix2utc(end)]})
         return boxes
