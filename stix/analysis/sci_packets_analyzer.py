@@ -20,6 +20,7 @@ logger = logger.get_logger()
 level1_products_path = config.get_config(
     'pipeline.daemon.level1_products_path')
 
+bsd_collection = mdb.get_collection_bsd()
 DATA_REQUEST_REPORT_SPIDS = [54114, 54115, 54116, 54117, 54143, 54125]
 DATA_REQUEST_REPORT_NAME = {
     54114: 'L0',
@@ -688,69 +689,98 @@ def process_one(file_id):
 
 
 def process_packets_in_file(file_id, remove_existing=True):
-    bsd_collection = mdb.get_collection_bsd()
     bsd_cursor = bsd_collection.find({'run_id': file_id}).sort('_id', 1)
     for doc in bsd_cursor:
-        spid = int(doc['SPID'])
-        logger.info(f'processing bsd id: {doc["_id"]}, spid:{spid}')
-        if 'first_pkt' not in doc or 'last_pkt' not in doc:
-            #don't process incomplete packets
-            #wait until 
-            continue
-            #complete report 
+        process_science_request_doc(doc)
 
 
-        cursor = mdb.get_packets_of_bsd_request(doc['_id'], header_only=False)
-        synopsis=None
-        data_type=DATA_REQUEST_REPORT_NAME.get(spid,'UNKNOWN')
-        if not cursor:
-            continue
-        result = None
-        if spid == 54125:
-            analyzer = StixBulkAspectAnalyzer()
-            result = analyzer.process_packets(cursor)
-        elif spid == 54114:
-            analyzer = StixBulkL0Analyzer()
-            result = analyzer.process_packets(cursor)
-        elif spid in [54115, 54116]:
-            analyzer = StixBulkL1L2Analyzer()
-            result, synopsis = analyzer.process_packets(cursor)
 
-        elif spid == 54117:
-            analyzer = StixBulkL3Analyzer()
-            result = analyzer.process_packets(cursor)
-        elif spid == 54143:
-            analyzer = StixBulkL4Analyzer()
-            result = analyzer.process_packets(cursor)
-        if result:
-            date_str=datetime.now().strftime("%y%m%d%H")
-            existing_fname=doc.get('level1','')
-            if existing_fname:
-                old_file= os.path.join(level1_products_path,existing_fname)
-                try:
-                    os.remove(old_file)
-                except Exception:
-                    pass
-            json_filename = os.path.join(level1_products_path,
-                                         f'L1_{doc["_id"]}_{date_str}.json')
-            start_unix=result.get('start_unix',0)
-            end_unix=result.get('end_unix',0)
-            result['data_type']=data_type
-            result['status']='OK'
-            with open(json_filename, 'w') as outfile:
-                json.dump(result, outfile)
-            bsd_collection.update_one({'_id': doc['_id']}, {'$set':{'level1': json_filename, 
-                'start_unix':start_unix, 'end_unix':end_unix, 'synopsis':synopsis}})
+
+
+def process_science_request(_id):
+    bsd_doc= bsd_collection.find_one({'_id': _id})
+    process_science_request_doc(bsd_doc)
+
+
+
+
+def process_science_request_doc(doc):
+    """
+    process science data request report
+    """
+    spid = int(doc['SPID'])
+    logger.info(f'processing bsd id: {doc["_id"]}, spid:{spid}')
+    if 'first_pkt' not in doc or 'last_pkt' not in doc:
+        #don't process incomplete packets
+        #wait until 
+        #complete report 
+        logger.info(f'Packets may be missing for {doc["_id"]}...')
+        return
+
+
+    cursor = mdb.get_packets_of_bsd_request(doc['_id'], header_only=False)
+    synopsis=None
+    data_type=DATA_REQUEST_REPORT_NAME.get(spid,'UNKNOWN')
+    if not cursor:
+        logger.info(f'No packets found for {doc["_id"]}...')
+        return
+    result = None
+    if spid == 54125:
+        analyzer = StixBulkAspectAnalyzer()
+        result = analyzer.process_packets(cursor)
+    elif spid == 54114:
+        analyzer = StixBulkL0Analyzer()
+        result = analyzer.process_packets(cursor)
+    elif spid in [54115, 54116]:
+        analyzer = StixBulkL1L2Analyzer()
+        result, synopsis = analyzer.process_packets(cursor)
+
+    elif spid == 54117:
+        analyzer = StixBulkL3Analyzer()
+        result = analyzer.process_packets(cursor)
+    elif spid == 54143:
+        analyzer = StixBulkL4Analyzer()
+        result = analyzer.process_packets(cursor)
+    if result:
+        date_str=datetime.now().strftime("%y%m%d%H")
+        existing_fname=doc.get('level1','')
+        if existing_fname:
+            old_file= os.path.join(level1_products_path,existing_fname)
+            try:
+                os.remove(old_file)
+            except Exception:
+                pass
+        json_filename = os.path.join(level1_products_path,
+                                     f'L1_{doc["_id"]}_{date_str}.json')
+        start_unix=result.get('start_unix',0)
+        end_unix=result.get('end_unix',0)
+        result['data_type']=data_type
+        result['status']='OK'
+        with open(json_filename, 'w') as outfile:
+            json.dump(result, outfile)
+            logger.info(f'data written to file {json_filename}')
+        bsd_collection.update_one({'_id': doc['_id']}, {'$set':{'level1': json_filename, 
+            'start_unix':start_unix, 'end_unix':end_unix, 'synopsis':synopsis}})
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print('process_sci_packets run_id')
-        print('process_sci_packets run_id_start id_end')
-    elif len(sys.argv)==2:
-        process_one(int(sys.argv[1]))
+    if len(sys.argv) < 3:
+        print('process_sci_packets -file run_id')
+        print('process_sci_packets -file run_id_start id_end')
+        print('process_sci_packets -bsd <bsd_id>')
     else:
-        for i in range(int(sys.argv[1]),int(sys.argv[2])+1):
-            print('process file:',i)
-            process_one(i)
+        opt=sys.argv[1]
+        if len(sys.argv)==3:
+            if opt=='-file':
+                process_one(int(sys.argv[2]))
+            elif opt=='-bsd':
+                process_science_request(int(sys.argv[2]))
+
+        elif len(sys.argv)==4:
+            for i in range(int(sys.argv[2]),int(sys.argv[3])+1):
+                print('process file:',i)
+                if opt=='-file':
+                    process_one(i)
+                elif opt=='-bsd':
+                    process_science_request(i)
 

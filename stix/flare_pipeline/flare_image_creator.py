@@ -1,5 +1,10 @@
 """
  create flare images for science data
+ Procedure to create image for science data
+ Step 1:
+    prepare inputs for imaging, store the data into flare_images database
+ step 2:
+    imaging daemon get inputs from the database can create inputs 
 """
 import os
 import sys
@@ -7,6 +12,7 @@ import json
 import numpy as np
 import subprocess
 import random
+import time
 from datetime import datetime, timedelta
 
 from astropy import units as u
@@ -74,7 +80,7 @@ def check_for_errors(output, verbose):
         logger.info(f'{stderr}\n{stdout}')
 
 
-def create_images_for_science_data(bsd_ids=[]):
+def register_imaging_run_for_science_data(bsd_ids=[]):
     if not bsd_ids:
         docs = bsd_db.find({
             'name': 'L1',
@@ -96,31 +102,7 @@ def create_images_for_science_data(bsd_ids=[]):
         generate_imaging_inputs(doc)
 
 
-def call_idl(inputs, bkg_fits, sig_fits, process_id=0):
-    parameters = ','.join(
-            [f"'{x}'" if isinstance(x, str) else str(x) for x in inputs])
-    bkg_filename = os.path.basename(bkg_fits)
-    sig_filename = os.path.basename(sig_fits)
-    script_lines = [
-            "!PATH=!PATH",
-            f'; The two fits files can be downloaded via the links below:',
-            f';{HOST}/download/fits/filename/{bkg_filename}',
-            f';{HOST}/download/fits/filename/{sig_filename}',
-            f'.run {IDL_SCRIPT_PATH}/stix_image_reconstruction.pro',
-            f'stx_image_reconstruct, {parameters}', 'exit'
-            ]
-    sc_fname = os.path.join(IDL_SCRIPT_PATH, f'top_{process_id:03d}.pro')
-    f = open(sc_fname, 'w')
-    for l in script_lines:
-        f.write(l + '\n')
-    f.close()
-    try:
-        execute_script(os.path.join(IDL_SCRIPT_PATH, 'stix_imaging.sh'), sc_fname)
-    except RuntimeError:
-        logger.error('IDL runtime error')
-        return False
 
-    return True
 
 
 
@@ -129,18 +111,23 @@ def generate_imaging_inputs(doc,
         integration_time=60,
         time_step=600,
         imaging_energies=[[4, 10], [16, 28]],
-        bkg_max_day_off=30,
+        bkg_max_day_off=60,
         overlap_time=0.5):
     """
+    This function only pushes input parameters to database
     min_counts: minimal counts per time bin
     min_duration: minimal time per bin
     """
+    if doc['name']!='L1':
+        logger.info(f"{doc['_id']} is not L1 request")
+        return
     uid = doc['unique_id']
     bsd_id = doc['_id']
     #print(uid)
     uid = int(uid)
 
     #find flare times
+    flare_image_id=mdb.get_next_flare_image_id()
 
     bsd_start_unix = doc['start_unix']
     bsd_end_unix = doc['end_unix']
@@ -184,9 +171,14 @@ def generate_imaging_inputs(doc,
     if not bsd_flare_time_ranges:
         logger.warning(f'No flares found for {bsd_id} (uid {uid})')
         return
-    bkg_fits = bkg_fits_docs[0]  # select the most recent one
-    fname = os.path.join(fits_doc[0]['path'], fits_doc[0]['filename'])
-    #signal filename
+    try:
+        bkg_fits = bkg_fits_docs[0]  # select the most recent one
+        fname = os.path.join(fits_doc[0]['path'], fits_doc[0]['filename'])
+        #signal filename
+    except (IndexError,KeyError):
+        logger.warning(f'No background for {bsd_id} (uid {uid})')
+        return
+
 
     l1 = ScienceL1.from_fits(fname)
     bkg_fname = os.path.join(bkg_fits['merg'][0]['path'],
@@ -214,33 +206,50 @@ def generate_imaging_inputs(doc,
                     ]
             rndint=random.randint(0,1000)
             if tb['counts_enough'][ie]:
-                success = call_idl([
+                idl_args=[[
                     bkg_fname, fname, tb['utc_range'][0], tb['utc_range'][1],
-                    tb['energy_range_sci'][ie][0],
-                    tb['energy_range_sci'][ie][1], 
+                    tb['energy_range_keV'][ie][0],
+                    tb['energy_range_keV'][ie][1], 
                     output_filenames[0],
                     output_filenames[1],
                     round(L0.to(u.deg).value, 4),
                     round(B0.to(u.deg).value, 4),
-                    round(rsun.to(u.deg).value, 4),
+                    round(rsun.to(u.arcsec).value, 4),
+                    round(roll.to(u.deg).value, 4)
+                    ], bkg_fname, fname, rndint]
+                num_images += 1
+                """
+                success = call_idl([
+                    bkg_fname, fname, tb['utc_range'][0], tb['utc_range'][1],
+                    tb['energy_range_keV'][ie][0],
+                    tb['energy_range_keV'][ie][1], 
+                    output_filenames[0],
+                    output_filenames[1],
+                    round(L0.to(u.deg).value, 4),
+                    round(B0.to(u.deg).value, 4),
+                    round(rsun.to(u.arcsec).value, 4),
                     round(roll.to(u.deg).value, 4)
                     ], bkg_fname, fname, rndint)
-                if not success:
-                    print('Failed ')
-                    continue
-                logger.info(f"success, output:{output_filenames}")
+                    """
+                #if not success:
+                #    print('Failed ')
+                #    continue
+                #logger.info(f"success, output:{output_filenames}")
                 #flare_center=[0,0]
-                try:
-                    num_images += 1
-                    imv.create_flare_image(output_filenames[1], output_filenames[0],  tb['utc_range'][0], 
-                            solo_hee, solo_sun_r.to(u.au).value, 
-                              map_name='', output_filename=output_filenames[2])
-                except FileNotFoundError as e:
-                    logger.error(str(e))
+                #try:
+                #    #imv.create_flare_image(output_filenames[1], output_filenames[0],  tb['utc_range'][0], 
+                #    #        solo_hee, solo_sun_r.to(u.au).value, 
+                #    #          map_name='', output_filename=output_filenames[2])
+                #except FileNotFoundError as e:
+                #    logger.error(str(e))
                 imaging_inputs = bson.dict_to_json({
                     'filename': fname,
                     'bsd_id': doc['_id'],
                     'unique_id': uid,
+                    'idl_args':idl_args, 
+                    'num_idl_calls':0,
+                    'run_type':'auto',
+                    'idl_success':False,
                     'aux': {
                         'B0': B0.to(u.deg).value,
                         'L0': L0.to(u.deg).value,
@@ -260,25 +269,78 @@ def generate_imaging_inputs(doc,
                     'energy_range': energy,
                     'utc_range':tb['utc_range'],
                     'total_counts':tb['box_counts'][ie],
-                    'images':{'fits':output_filenames[0:2], 'png':output_filenames[2]},
+                    'fits':output_filenames[0:2]
                     })
                 print(imaging_inputs)
                 logger.info(f"Inserting data into db for bsd #{bsd_id}")
-                flare_images_db.insert_one(imaging_inputs)
+                imaging_inputs['_id']=flare_image_id
+                mdb.insert_flare_image(imaging_inputs)
+                flare_image_id+=1
         if num_images > 0:
             bsd_db.update_one({'_id':doc['_id']},{'$set':{'qk_images': num_images }}, upsert=False)
 
+def call_idl(inputs, bkg_fits, sig_fits, process_id=0):
+    parameters = ','.join(
+            [f"'{x}'" if isinstance(x, str) else str(x) for x in inputs])
+    bkg_filename = os.path.basename(bkg_fits)
+    sig_filename = os.path.basename(sig_fits)
+    script_lines = [
+            "!PATH=!PATH",
+            f'; The two fits files can be downloaded via the links below:',
+            f';{HOST}/download/fits/filename/{bkg_filename}',
+            f';{HOST}/download/fits/filename/{sig_filename}',
+            f'.run {IDL_SCRIPT_PATH}/stix_image_reconstruction.pro',
+            f'stx_image_reconstruct, {parameters}', 'exit'
+            ]
+    sc_fname = os.path.join(IDL_SCRIPT_PATH, f'top_{process_id:03d}.pro')
+    f = open(sc_fname, 'w')
+    for l in script_lines:
+        f.write(l + '\n')
+    f.close()
+    try:
+        execute_script(os.path.join(IDL_SCRIPT_PATH, 'stix_imaging.sh'), sc_fname)
+    except RuntimeError:
+        logger.error('IDL runtime error')
+        return False
+
+    return True
 
 
+def create_images_in_queue():
+    cursor=flare_images_db.find({'num_idl_calls':0, 'idl_status':''}).sort({'_id':-1})
+    create_images_for_bsd_docs(cursor)
+def create_images_for_science_data(bsd_id):
+    cursor=flare_images_db.find({'bsd_id':bsd_id})
+    create_images_for_bsd_docs(cursor)
 
+
+def create_images_for_bsd_docs(cursor):
+    for doc in cursor:
+        args=doc.get('idl_args',None)
+        if args is not None:
+            logger.info(f"Processing {doc['_id']}")
+            logger.info(f": prameters {str(args)}")
+            success = call_idl(args[0], args[1], args[2], args[3])
+            logger.info(f"End of processing {doc['_id']}, status: {success}")
+            flare_images_db.update_one({'_id':doc['_id']},
+                    {'$set':{'num_idl_calls':doc['num_idl_calls']+1}, 'idl_status':success})
+        
+
+
+        
+
+def register_imaging_runs_for_file(file_id):
+    docs=bsd_db.find({'run_id':file_id, 'name':'L1'})
+    ids=[int(x['_id']) for x in docs]
+    register_imaging_run_for_science_data(ids)
 
 
 
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
-        create_images_for_science_data()
+        register_imaging_run_for_science_data()
     else:
         ids = [int(i) for i in sys.argv[1:]]
-        create_images_for_science_data(ids)
+        register_imaging_run_for_science_data(ids)
 

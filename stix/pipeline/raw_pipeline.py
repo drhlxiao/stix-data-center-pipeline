@@ -26,6 +26,8 @@ from stix.analysis import sci_packets_analyzer
 from stix.analysis import integration_time_estimator
 from stix.analysis import flare_goes_class as fgc
 from stix.analysis import goes_downloader as gdl
+from stix.flare_pipeline import flare_image_creator as fic
+
 
 from stix.analysis import monitor
 
@@ -45,6 +47,7 @@ actions={'calibration':True,
         'time_bins_simulation':True,
         'bsd_report_merging':True,
         'bsd_l1_preprocessing':False,
+        'imaging':True,
         'bkg_estimation':True
         }
         
@@ -274,8 +277,15 @@ def pipeline(instrument, filename, notification_enabled=True, debugging=False):
             fits_creator.create_fits(file_id, daemon_config['fits_path'])
         except Exception as e:
             logger.error(str(e))
-    
     clear_ngnix_cache()
+
+    if actions['imaging']:
+        logger.info('preparing imaging inputs...')
+        try:
+            fic.register_imaging_runs_for_file(file_id)
+        except Exception as e:
+            logger.error(str(e))
+
 
     #return summary
 

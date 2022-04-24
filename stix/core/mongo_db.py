@@ -57,7 +57,6 @@ class MongoDB(object):
             self.collection_fits = self.db['fits']
             self.collection_events = self.db['events']
             self.col_goes = self.db['goes_fluxes']
-            #self.col_flare_tbc= self.db['flare_tbc']
             self.collection_flares = self.db['flares']
             self.collection_lc_stats = self.db['lc_stats']
             self.collection_notifications = self.db['notifications']
@@ -67,10 +66,11 @@ class MongoDB(object):
             self.collection_qllc=self.db['ql_lightcurves']
             self.collection_qloc=self.db['ql_flare_locs']
             self.collection_sw_config=self.db['sw_config']
+            self.collection_flare_images= self.db['flare_images']
 
             self.col_user_groups=self.db['user_groups']
         except Exception as e:
-            print('Error occurred while initializing mongodb: {}'.format(
+            raise IndexError('Error occurred while initializing mongodb: {}'.format(
                 str(e)))
 
     def get_db(self):
@@ -342,6 +342,15 @@ class MongoDB(object):
                 '_id', -1).limit(1)[0]['_id'] + 1
         except IndexError:
             return 0
+    def get_next_flare_image_id(self):
+        try:
+            return self.collection_flare_images.find({}).sort(
+                '_id', -1).limit(1)[0]['_id'] + 1
+        except IndexError:
+            return 0
+    def insert_flare_image(self,doc):
+        self.collection_flare_images.save(doc)
+
 
     def get_next_flare_id(self):
         try:

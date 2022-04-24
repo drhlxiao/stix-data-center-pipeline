@@ -696,7 +696,7 @@ class SoloEphemeris(object):
         #solo_hee = coordinates_body(this_time, observer)
         stix_aux=SoloEphemeris.get_solar_limb_stix_fov(obs_utc)
         try:
-            rsun= np.degrees(np.arctan(stix_aux['rsun']/stix_aux['solo_sun_r']))*0.5*3600 #in units of arcmin
+            rsun_deg= np.degrees(np.arctan(stix_aux['rsun']/stix_aux['solo_sun_r']))* u.deg#in units of arcmin
             roll = stix_aux['roll']  #roll angle in degrees
             hee_spice=stix_aux['solo_hee']
         except KeyError:
@@ -712,7 +712,7 @@ class SoloEphemeris(object):
         B0 = solo_hgs.lat.deg # Heliographic latitude (B0 angle)
         L0 = solo_hgs.lon.deg # Heliographic longitude (L0 angle)
         #ROLL ANGLE Solar Orbiter in degree
-        return B0*u.deg, L0*u.deg, roll*u.deg,rsun*u.deg ,stix_aux['solo_hee']*u.km, stix_aux['solo_sun_r']*u.m
+        return B0*u.deg, L0*u.deg, roll*u.deg,rsun_deg ,stix_aux['solo_hee']*u.km, stix_aux['solo_sun_r']*u.m
 
     @staticmethod
     def get_solar_limb_stix_fov(utc, ref_frame='SOLO_SUN_RTN'):
