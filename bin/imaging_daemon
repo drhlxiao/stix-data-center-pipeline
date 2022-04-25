@@ -9,7 +9,11 @@ import time
 from stix.flare_pipeline import flare_image_creator as fic
 def main():
     while True:
-        fic.create_images_in_queue()
+        try:
+            fic.create_images_in_queue()
+        except Exception as e:
+            raise e
+            print(e)
         time.sleep(1)
 
 if __name__=='__main__':

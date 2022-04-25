@@ -179,8 +179,12 @@ def generate_imaging_inputs(doc,
         logger.warning(f'No background for {bsd_id} (uid {uid})')
         return
 
+    try:
+        l1 = ScienceL1.from_fits(fname)
+    except IndexError:
+        logger.warning(f'Failed to read fits file for BSD # {bsd_id} (uid {uid})')
+        return
 
-    l1 = ScienceL1.from_fits(fname)
     bkg_fname = os.path.join(bkg_fits['merg'][0]['path'],
             bkg_fits['merg'][0]['filename'])
     ibox = 0
@@ -249,7 +253,7 @@ def generate_imaging_inputs(doc,
                     'idl_args':idl_args, 
                     'num_idl_calls':0,
                     'run_type':'auto',
-                    'idl_success':False,
+                    'idl_status':'',
                     'aux': {
                         'B0': B0.to(u.deg).value,
                         'L0': L0.to(u.deg).value,
@@ -307,7 +311,7 @@ def call_idl(inputs, bkg_fits, sig_fits, process_id=0):
 
 
 def create_images_in_queue():
-    cursor=flare_images_db.find({'num_idl_calls':0, 'idl_status':''}).sort({'_id':-1})
+    cursor=flare_images_db.find({'num_idl_calls':0, 'idl_status':''}).sort('_id',-1)
     create_images_for_bsd_docs(cursor)
 def create_images_for_science_data(bsd_id):
     cursor=flare_images_db.find({'bsd_id':bsd_id})
@@ -322,9 +326,11 @@ def create_images_for_bsd_docs(cursor):
             logger.info(f": prameters {str(args)}")
             success = call_idl(args[0], args[1], args[2], args[3])
             logger.info(f"End of processing {doc['_id']}, status: {success}")
-            flare_images_db.update_one({'_id':doc['_id']},
-                    {'$set':{'num_idl_calls':doc['num_idl_calls']+1}, 'idl_status':success})
+            updates={'$set':{'num_idl_calls':doc['num_idl_calls']+1, 'idl_status':success}}
+            print(updates)
+            flare_images_db.update_one({'_id':doc['_id']}, updates)
         
+
 
 
         

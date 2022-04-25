@@ -12,6 +12,7 @@ try:
     collection_qllc= db['ql_lightcurves']
     collection_qlspec= db['ql_spectra']
     collection_bsd= db['bsd']
+    collection_flare_images= db['flare_images']
     collection_flares= db['flares']
     collection_iors= db['iors']
 
@@ -32,6 +33,11 @@ try:
     indexes=[[('start_unix_time',1)], [('unique_id',1)], [('name',1),('SPID',1),('header_unix_time',1)]]
     for index in indexes:
         collection_bsd.create_index(index)
+
+
+    indexes=[[('idl_status',1)], [('bsd_id',1)], [('start_unix',1)],[('num_idl_calls',1)]]
+    for index in indexes:
+        collection_flare_images.create_index(index)
 
     indexes=[[('goes.peak_flux',1)], 
             [('peak_counts',1)], 
