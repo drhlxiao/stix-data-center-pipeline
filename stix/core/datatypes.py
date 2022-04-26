@@ -151,11 +151,11 @@ class Packet(object):
             self._header = copy_object(a, deep_copy)
             if isinstance(b, list):
                 self._parameters = copy_object(b, deep_copy)
+
     def is_valid(self):
         if self._header and self._parameters:
             return True
         return False
-
 
     def get_raw_length(self):
         if not self._header:
@@ -292,15 +292,16 @@ class Packet(object):
             return Parameter(self._parameters[key])
 
     def isa(self, SPIDs):
-        if self._header['TMTC'] == 'TC':
+
+        if self._header.get('TMTC', None) == 'TC':
             return False
         if not isinstance(SPIDs, list):
             SPIDs = [int(SPIDs)]
         try:
             if int(self._header['SPID']) in SPIDs:
                 return True
-        except Exception as e:
-            logger.error("isa:" + str(e))
+        except (KeyError, ValueError) as e:
+            logger.warn("SPID not found in the packet")
         return False
 
     def ls(self, node_name=None):
@@ -315,10 +316,10 @@ class Packet(object):
             SPIDs = [SPIDs]
 
         result = {}
-        hash_list=[]
-        min_id=math.inf
-        max_id=-math.inf
-        pkt_len=0
+        hash_list = []
+        min_id = math.inf
+        max_id = -math.inf
+        pkt_len = 0
 
         for pkt in packets:
             if remove_duplicates:
@@ -331,15 +332,15 @@ class Packet(object):
                     continue
             except ValueError:
                 continue
-            min_id=min(min_id,pkt['_id'])
-            max_id=max(max_id,pkt['_id'])
-            pkt_len+=1
+            min_id = min(min_id, pkt['_id'])
+            max_id = max(max_id, pkt['_id'])
+            pkt_len += 1
 
             Packet.merge_headers(result, pkt['header'])
             Packet.merge_parameters(result, pkt['parameters'], value_type)
-        result['min_id']=min_id
-        result['max_id']=max_id
-        result['num_packets']=pkt_len
+        result['min_id'] = min_id
+        result['max_id'] = max_id
+        result['num_packets'] = pkt_len
 
         return result
 
