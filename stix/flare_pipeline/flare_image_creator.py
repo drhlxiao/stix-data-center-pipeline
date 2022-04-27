@@ -330,7 +330,7 @@ def create_qk_figures(doc, update_db=False, output_folder=None):
         fnames=[doc['fits'][0], doc['fits'][1]]
         start_utc, end_utc=doc['utc_range']
         energy_range=doc['energy_range']
-        logger.info(f'Creating images for {doc["_id"}')
+        logger.info(f'Creating images for {doc["_id"]}')
         figs=imv.images_to_graph(fnames[0], fnames[1], solo_hee, start_utc, end_utc, energy_range, output_folder)
     except Exception as e:
         logger.error(e)
