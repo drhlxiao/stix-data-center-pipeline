@@ -50,6 +50,7 @@ IDL_SCRIPT_PATH = '/data/scripts/imaging'
 from pprint import pprint
 HOST = 'https://datacenter.stix.i4ds.net/'
 
+last_bkg_fits_doc={}
 
 def execute_script(shell_filename, idl_script, verbose=False):
     """
@@ -100,6 +101,7 @@ def register_imaging_task_for_science_data(bsd_ids=[]):
             }).sort('_id', -1)
 
     for doc in docs:
+        logger.info(f'Adding imaging tasks for BSD {doc["_id"]}')
         queue_imaging_tasks(doc)
 
 def queue_imaging_tasks(doc,
@@ -155,8 +157,20 @@ def queue_imaging_tasks(doc,
     #find background data acquired within bkg_max_day_off days
     if not bkg_fits_docs:
         logger.warning(
-                f'No background Fits file found for {bsd_id} (uid {uid})')
+                f'No background Fits file found for {bsd_id} (uid {uid}), trying to use last one')
+        bkg_fits_docs=last_bkg_fits_doc
+    try:
+        bkg_fits = bkg_fits_docs[0]  # select the most recent one
+        fname = os.path.join(fits_doc[0]['path'], fits_doc[0]['filename'])
+    except (IndexError,KeyError):
+        logger.warning(f'No background data found for BSD {bsd_id} (uid {uid})')
         return
+    if not os.path.isfile(fname):
+        logger.warning(f'No background data found for BSD {bsd_id} (uid {uid})')
+        return
+
+    last_bkg_fits_doc[0]=bkg_fits
+
 
     try:
         signal_utc = stu.unix2utc((bsd_start_unix + bsd_end_unix) / 2.)
@@ -177,12 +191,7 @@ def queue_imaging_tasks(doc,
     if not bsd_flare_time_ranges:
         logger.warning(f'No flares found for {bsd_id} (uid {uid})')
         return
-    try:
-        bkg_fits = bkg_fits_docs[0]  # select the most recent one
-        fname = os.path.join(fits_doc[0]['path'], fits_doc[0]['filename'])
-    except (IndexError,KeyError):
-        logger.warning(f'No background data for {bsd_id} (uid {uid})')
-        return
+
     try:
         l1 = ScienceL1.from_fits(fname)
     except IndexError:
@@ -191,7 +200,6 @@ def queue_imaging_tasks(doc,
 
     bkg_fname = os.path.join(bkg_fits['merg'][0]['path'],
             bkg_fits['merg'][0]['filename'])
-    ibox = 0
     if not bsd_flare_time_ranges:
         logger.warning(f'No flares found for {bsd_id} (uid {uid})')
         return
@@ -207,8 +215,7 @@ def queue_imaging_tasks(doc,
     for box in boxes:
         for ie, energy in enumerate(energy_bands):
             energy_range_str='-'.join([str(x) for x in energy])
-
-            fits_prefix = f'stix_image_sci_{bsd_id}_uid_{uid}_{ibox}_{energy_range_str}keV_{num_images}_{box["utc_range"][0]}'
+            fits_prefix = f'stix_ql_image_sci_{bsd_id}_uid_{uid}_{energy_range_str}keV_{box["utc_range"][0]}_{num_images}'
             output_filenames = [
                     os.path.join(quicklook_path, fits_prefix + ext)
                     for ext in ['_fwdfit.fits', '_bp.fits']
@@ -234,6 +241,7 @@ def queue_imaging_tasks(doc,
                     'idl_args':idl_args, 
                     'num_idl_calls':0,
                     'run_type':'auto',
+                    'creation_time':datetime.now(),
                     'idl_status':'',
                     'aux': {
                         'B0': B0.to(u.deg).value,
@@ -257,13 +265,14 @@ def queue_imaging_tasks(doc,
                     'fits':output_filenames[0:2],
                     'figs':[]
                     })
-                logger.info(f"Inserting data into db for bsd #{bsd_id}")
+                logger.info(f"Inserting data into db for bsd #{bsd_id} ")
                 imaging_inputs['_id']=flare_image_id
                 flare_image_ids.append(flare_image_id)
                 mdb.insert_flare_image(imaging_inputs)
                 flare_image_id+=1
-        if num_images > 0:
-            bsd_db.update_one({'_id':doc['_id']},{'$set':{'flare_image_ids': flare_image_ids}}, upsert=False)
+    logger.info(f'{num_images} images will be created')
+    if num_images > 0:
+        bsd_db.update_one({'_id':doc['_id']},{'$set':{'flare_image_ids': flare_image_ids}}, upsert=False)
         #push 
 
         
@@ -306,6 +315,11 @@ def create_images_for_science_data(bsd_id):
     cursor=flare_images_db.find({'bsd_id':bsd_id})
     create_images_for_bsd_docs(cursor)
 
+def create_qk_figures_for_all():
+    docs=flare_images_db.find({'figs.0':{'$exists':False}}).sort('_id',-1)
+    for doc in docs:
+        create_qk_figures(doc)
+
 def create_qk_figures(doc, update_db=False, output_folder=None):
     """
     write images to the same folder if output_folder is None
@@ -316,13 +330,12 @@ def create_qk_figures(doc, update_db=False, output_folder=None):
         fnames=[doc['fits'][0], doc['fits'][1]]
         start_utc, end_utc=doc['utc_range']
         energy_range=doc['energy_range']
+        logger.info(f'Creating images for {doc["_id"}')
         figs=imv.images_to_graph(fnames[0], fnames[1], solo_hee, start_utc, end_utc, energy_range, output_folder)
     except Exception as e:
         logger.error(e)
         return None
     if update_db:
-        if isinstance(figs,str):
-            figs=[figs]
         updates={'$set':{'figs':figs}}
         flare_images_db.update_one({'_id':doc['_id']}, updates)
     return figs
@@ -331,9 +344,9 @@ def create_figures_ids_between(start_id, end_id):
     for i in range(start_id, end_id):
         doc=flare_images_db.find_one({'_id':i})
         if not doc:
-            logger.warning("Failed to create figures for DocID:{i}")
+            logger.warning(f"Failed to create figures for DocID:{i}")
             continue
-        logger.info("Creating images for BSD#{doc['bsd_id']}, DocID:{i}")
+        logger.info(f"Creating images for BSD#{doc['bsd_id']}, DocID:{i}")
         create_qk_figures(doc, update_db=True, output_folder=None)
 
 def create_images_for_bsd_docs(cursor):
@@ -349,7 +362,6 @@ def create_images_for_bsd_docs(cursor):
                 figs=create_qk_figures(doc, update_db=None, output_folder=None)
                 if figs:
                     updates['figs']=figs
-
             updates={'$set':updates}
             flare_images_db.update_one({'_id':doc['_id']}, updates)
             
@@ -372,5 +384,7 @@ if __name__ == '__main__':
         else:
             ids = [int(i) for i in sys.argv[2:]]
             register_imaging_task_for_science_data(ids)
+    elif sys.argv[1] == 'tosvg':
+        create_qk_figures_for_all()
 
 

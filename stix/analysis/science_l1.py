@@ -243,6 +243,8 @@ class ScienceL1(ScienceData):
             for flare_time in flare_unix_time_ranges:
                 #only select flaring times
                 start, peak, end = flare_time
+                time_ranges.append( [start, end]) #flare  whole time range
+
                 peak= peak if peak is not None else start
                 if peak is not None:
                     #every time_step

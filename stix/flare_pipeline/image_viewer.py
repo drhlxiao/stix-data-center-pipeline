@@ -194,9 +194,8 @@ def images_to_graph(bp_image_fname, fw_image_fname, solo_hee, bsd_id, start_utc,
                     hspace=0.5)
     plt.savefig(output_fname, format='svg')
     #print(output_fname)
-    
 
-    return output_fname
+    return [output_fname]
 
 
 
