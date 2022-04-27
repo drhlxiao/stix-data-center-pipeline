@@ -206,10 +206,12 @@ def queue_imaging_tasks(doc,
 
     for box in boxes:
         for ie, energy in enumerate(energy_bands):
-            fits_prefix = f'sci_{bsd_id}_uid_{uid}_{ibox}_{ie}_{num_images}_{box["utc_range"][0]}'
+            energy_range_str='-'.join([str(x) for x in energy])
+
+            fits_prefix = f'stix_image_sci_{bsd_id}_uid_{uid}_{ibox}_{energy_range_str}keV_{num_images}_{box["utc_range"][0]}'
             output_filenames = [
                     os.path.join(quicklook_path, fits_prefix + ext)
-                    for ext in ['_fwfit.fits', '_bp.fits', '.png']
+                    for ext in ['_fwdfit.fits', '_bp.fits']
                     ]
             if box['counts_enough'][ie]:
                 idl_script_uid=uuid.uuid4().hex[0:10]
@@ -281,13 +283,14 @@ def call_idl(inputs, bkg_fits, sig_fits, uuid='test'):
             f'.run {IDL_SCRIPT_PATH}/stix_image_reconstruction.pro',
             f'stx_image_reconstruct, {parameters}', 'exit'
             ]
-    sc_fname = os.path.join(IDL_SCRIPT_PATH, f'top_{uuid}.pro')
-    f = open(sc_fname, 'w')
+    idl_script_name = os.path.join(IDL_SCRIPT_PATH, f'top_{uuid}.pro')
+    f = open(idl_script_name, 'w')
     for l in script_lines:
         f.write(l + '\n')
     f.close()
     try:
-        execute_script(os.path.join(IDL_SCRIPT_PATH, 'stix_imaging.sh'), sc_fname)
+        logger.info(f'Executing script {idl_script_name} ...')
+        execute_script(os.path.join(IDL_SCRIPT_PATH, 'stix_imaging.sh'), idl_script_name)
     except RuntimeError:
         logger.error('IDL runtime error')
         return False
