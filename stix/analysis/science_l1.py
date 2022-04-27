@@ -261,16 +261,16 @@ class ScienceL1(ScienceData):
             #only select flaring times
             start, end = flare_time
 
-            box_counts = [0]*len(imaging_energies)
+            total_counts = [0]*len(imaging_energies)
             
             for i, sci_range in enumerate(sci_energy_ranges):
                 if sci_range:
-                    box_counts[i]= self.get_total_counts(sci_range[0], sci_range[1], start, end)
+                    total_counts[i]= self.get_total_counts(sci_range[0], sci_range[1], start, end)
                     #don't make images if count rate too low 
                 #both energies don't have counts
             boxes.append({
-                'box_counts':  box_counts,
-                'counts_enough':  [bool(x>min_counts) for x in box_counts],
+                'total_counts':  total_counts,
+                'counts_enough':  [bool(x>min_counts) for x in total_counts],
                     'energy_range_sci': sci_energy_ranges,
                     'energy_range_keV': imaging_energies,
                     'unix_time_range': [start,  end],
