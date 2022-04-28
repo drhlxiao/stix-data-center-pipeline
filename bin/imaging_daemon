@@ -10,11 +10,11 @@ from stix.flare_pipeline import flare_image_creator as fic
 def main():
     while True:
         try:
-            fic.create_images_in_queue()
+            fic.process_one_latest()
         except Exception as e:
             raise e
             print(e)
-        time.sleep(1)
+        time.sleep(10)
 
 if __name__=='__main__':
     main()

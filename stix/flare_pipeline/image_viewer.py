@@ -6,7 +6,6 @@ April 27, 2022
 """
 import os
 import matplotlib
-#matplotlib.use('SVG') 
 from astropy import units as u
 from astropy.time import Time
 from astropy.coordinates import SkyCoord
@@ -14,19 +13,19 @@ from astropy.io import fits
 from matplotlib import pyplot as plt
 from dateutil.parser import parse as dtparse
 
-import matplotlib.colors as colors
 from sunpy import map
 from sunpy.map import make_fitswcs_header
 from sunpy.coordinates.frames import HeliocentricEarthEcliptic,HeliographicStonyhurst
 from stix.flare_pipeline import lightcurves
 
 import numpy as np
-import matplotlib
 SMALL_SIZE = 8
 matplotlib.rc('font', size=SMALL_SIZE)
 matplotlib.rc('axes', titlesize=SMALL_SIZE)
+matplotlib.rcParams['axes.titlepad']=20
 
-CMAP='RdPu'
+CMAP='RdPu' #color map
+
 def create_STIX_map(fits_filename,  solo_hee,   map_name=''): 
 
     """
@@ -95,7 +94,7 @@ def create_STIX_map(fits_filename,  solo_hee,   map_name=''):
 
     stix_map = map.Map(hdul[0].data, out_header)
     return stix_map, max_indices, header
-def images_to_graph(bp_image_fname, fw_image_fname, solo_hee, bsd_id, start_utc, end_utc, energy_range,  output_folder=None):
+def images_to_graph(fw_image_fname, bp_image_fname, solo_hee, bsd_id,  start_utc, end_utc, energy_range,  output_folder=None, bsd_uid=None, bkg_uid=None):
     """
     Plot STIX image
     Parameters
@@ -118,7 +117,9 @@ def images_to_graph(bp_image_fname, fw_image_fname, solo_hee, bsd_id, start_utc,
         map of forward fit image
 
     """
+    print("args:", bp_image_fname, fw_image_fname, solo_hee, bsd_id, start_utc, end_utc, energy_range,  output_folder, "end")
     if not os.path.isfile(bp_image_fname) or not os.path.isfile(fw_image_fname):
+        print(bp_image_fname, fw_image_fname)
         return {'error': 'Image files not found'}
 
 
@@ -142,7 +143,7 @@ def images_to_graph(bp_image_fname, fw_image_fname, solo_hee, bsd_id, start_utc,
     #back projection
     ax_bp = fig.add_subplot(222, projection=bp_map)
     bp_map.plot( vmin=bp_map.max()*0.1, 
-                    cmap=CMAP,#'sdoaia'+str(np.int(aia_map.meta['wavelnth'])), 
+                    cmap=CMAP,
                     axes=ax_bp,  title="Back-projection",)
 
     bp_map.draw_grid(color='k', ls='--', grid_spacing=10*u.deg)
@@ -152,27 +153,34 @@ def images_to_graph(bp_image_fname, fw_image_fname, solo_hee, bsd_id, start_utc,
 
     ax_bp_clicp = fig.add_subplot(223, projection=bp_map)
     bp_map.plot( vmin=bp_map.max()*0.1, 
-                    cmap=CMAP,#'sdoaia'+str(np.int(aia_map.meta['wavelnth'])), 
+                    cmap=CMAP,
                     axes=ax_bp_clicp, title='Back-projection clipped')
     bp_map.draw_limb(axes=ax_bp_clicp, color='k',alpha=0.5)
-    bp_map.draw_grid(color='k', ls='--', grid_spacing=10*u.deg)
 
     ymin,ymax=ax_bp.get_ylim()
     xmin,xmax=ax_bp.get_xlim()
 
     print("axis ranges", xmin, xmax, ymin, ymax)
+    hw,hh=50, 50
 
-    xlim=(max(xmin,bp_maxidx[1][0]-30), min(xmax, bp_maxidx[1][0]+30))
-    ylim=(max(ymin,bp_maxidx[0][0]-30), min(ymax, bp_maxidx[0][0]+30))
+    xlim=(max(xmin,bp_maxidx[1][0]-hw), min(xmax, bp_maxidx[1][0]+hw))
+    ylim=(max(ymin,bp_maxidx[0][0]-hh), min(ymax, bp_maxidx[0][0]+hh))
+
     print("lims", xlim, ylim)
-    ax_bp_clicp.set_xlim(xlim)
-    ax_bp_clicp.set_ylim(ylim)
+    try:
+        ax_bp_clicp.set_xlim(xlim)
+        ax_bp_clicp.set_ylim(ylim)
+    except Exception as e:
+        logger.warning(f"Failed to clip image: {e}")
+        #astropy may raise an error when writing the image to a file, we need to modify the astropy
+        pass
 
+    bp_map.draw_grid(color='k', ls='--', grid_spacing=10*u.deg)
     #forward fit
 
     ax_fw = fig.add_subplot(224, projection=fw_map)
     fw_map.plot(vmin=0., 
-                            cmap=CMAP,#'sdoaia'+str(np.int(aia_map.meta['wavelnth'])), 
+                            cmap=CMAP,
                             axes=ax_fw, title='Forward-fit')
     fw_map.draw_limb(axes=ax_fw, color='k', alpha=0.5)
     fw_map.draw_grid(color='k', ls='--', grid_spacing=10*u.deg)
@@ -187,7 +195,7 @@ def images_to_graph(bp_image_fname, fw_image_fname, solo_hee, bsd_id, start_utc,
 
     output_fname=f'{output_fname_prefix}.svg' 
 
-    plt.suptitle(f'STIX light curves and  flare images\n IMG EXP TIME {start_utc} –  {end_utc}\n {energy_range[0]} – {energy_range[1]} keV ')
+    plt.suptitle(f'STIX light curves and  flare images\n IMG EXP TIME {start_utc} –  {end_utc}\n E: {energy_range[0]} – {energy_range[1]} keV  SIG/BKG: {bsd_uid}/{bkg_uid} ')
     #plt.tight_layout()
     plt.subplots_adjust(
                     wspace=0.1, 
@@ -203,4 +211,4 @@ def test_image_viewer():
     f1='/data/quicklook/flare_images/sci_9111_uid_2202155513_0_0_7_2022-02-15T17:21:49.918_bp.fits'
     f2='/data/quicklook/flare_images/sci_9111_uid_2202155513_0_0_7_2022-02-15T17:21:49.918_fwfit.fits'
     hee=np.array([ 1.03180004e+08,  -3.22106960e+07,  5.13784704e+06])*u.km
-    images_to_graph(f1, f2, hee, 9111, '2022-02-15T17:21:49.918', '2022-02-15T17:21:51.918', [4,10], '~')
+    images_to_graph(f1, f2, hee, 9111, '2022-02-15T17:21:49.918', '2022-02-15T17:21:51.918', [4,10], '.', 0, 0 )

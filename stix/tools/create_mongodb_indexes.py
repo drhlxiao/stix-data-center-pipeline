@@ -35,7 +35,7 @@ try:
         collection_bsd.create_index(index)
 
 
-    indexes=[[('idl_status',1)], [('bsd_id',1)], [('start_unix',1)],[('num_idl_calls',1)]]
+    indexes=[[('idl_status',1)], [('bsd_id',1)], [('start_unix',1)],[('num_idl_calls',1), [('task_id',1)], [('figs',1)]]]
     for index in indexes:
         collection_flare_images.create_index(index)
 

@@ -1,5 +1,5 @@
 PRO stx_image_reconstruct, path_bkg_file, path_sci_file, flare_start_UTC, flare_end_UTC, energy_range_science_channel_lower_limit, energy_range_science_channel_upper_limit, $
-	vis_fwdfit_map_filename, 	bp_map_filename ,  L0, B0,RSUN,  	roll_angle                           
+	vis_fwdfit_map_filename,  	bp_map_filename ,  L0, B0,RSUN,  	roll_angle 
 	;L0, B0, roll_angle are in units of degrees
 	;RSUN: apparent radius of the sun, in units of arcsec
 	;;***** Parameters
@@ -41,6 +41,7 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, flare_start_UTC, flare_
 	;;******* Compute the FWDFIT solution
 	vis_fwdfit_pso_map = stx_vis_fwdfit_pso('circle', vis, param_opt=param_opt, imsize=imsize, pixel=pixel, $
 		srcstr = srcstrout_pso, silent=silent)
+	;the shape can be 'ellipse','multi' (two circular) 
 	vis_fwdfit_pso_map.L0 = L0
 	vis_fwdfit_pso_map.B0 = B0
 	vis_fwdfit_pso_map.RSUN = RSUN

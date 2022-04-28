@@ -215,13 +215,14 @@ def queue_imaging_tasks(doc,
     for box in boxes:
         for ie, energy in enumerate(energy_bands):
             energy_range_str='-'.join([str(x) for x in energy])
-            fits_prefix = f'stix_ql_image_sci_{bsd_id}_uid_{uid}_{energy_range_str}keV_{box["utc_range"][0]}_{num_images}'
+            fits_prefix = f'stix_ql_image_sci_{bsd_id}_uid_{uid}_{energy_range_str}keV_{box["utc_range"][0]}_{flare_image_id}'
             output_filenames = [
                     os.path.join(quicklook_path, fits_prefix + ext)
                     for ext in ['_fwdfit.fits', '_bp.fits']
                     ]
             if box['counts_enough'][ie]:
-                idl_script_uid=uuid.uuid4().hex[0:10]
+                idl_script_uid=f'{flare_image_id}_{uuid.uuid4().hex[0:10]}'
+                
                 idl_args=[[
                     bkg_fname, fname, box['utc_range'][0], box['utc_range'][1],
                     box['energy_range_keV'][ie][0],
@@ -234,14 +235,13 @@ def queue_imaging_tasks(doc,
                     round(roll.to(u.deg).value, 4)
                     ], bkg_fname, fname, idl_script_uid]
                 num_images += 1
-                imaging_inputs = bson.dict_to_json({
+                config={
                     'filename': fname,
                     'bsd_id': doc['_id'],
                     'unique_id': uid,
                     'idl_args':idl_args, 
                     'num_idl_calls':0,
                     'run_type':'auto',
-                    'creation_time':datetime.now(),
                     'idl_status':'',
                     'aux': {
                         'B0': B0.to(u.deg).value,
@@ -264,7 +264,10 @@ def queue_imaging_tasks(doc,
                     'total_counts':box['total_counts'][ie],
                     'fits':output_filenames[0:2],
                     'figs':[]
-                    })
+                    }
+
+                imaging_inputs = bson.dict_to_json(config)
+                imaging_inputs['creation_time']=datetime.now()
                 logger.info(f"Inserting data into db for bsd #{bsd_id} ")
                 imaging_inputs['_id']=flare_image_id
                 flare_image_ids.append(flare_image_id)
@@ -316,23 +319,25 @@ def create_images_for_science_data(bsd_id):
     create_images_for_bsd_docs(cursor)
 
 def create_qk_figures_for_all():
-    docs=flare_images_db.find({'figs.0':{'$exists':False}}).sort('_id',-1)
+    docs=flare_images_db.find({'idl_status':True, 'figs.0':{'$exists':False}}).sort('_id',-1)
     for doc in docs:
-        create_qk_figures(doc)
+        create_qk_figures(doc, update_db=True)
 
 def create_qk_figures(doc, update_db=False, output_folder=None):
     """
     write images to the same folder if output_folder is None
     """
     try:
-        bp_fname=doc['fits'][0]
-        solo_hee=np.array(doc['aux']['solo_hee'])*u.km
+        solo_hee=np.array(doc['aux']['solo_hee'][0])*u.km
         fnames=[doc['fits'][0], doc['fits'][1]]
         start_utc, end_utc=doc['utc_range']
         energy_range=doc['energy_range']
-        logger.info(f'Creating images for {doc["_id"]}')
-        figs=imv.images_to_graph(fnames[0], fnames[1], solo_hee, start_utc, end_utc, energy_range, output_folder)
+        logger.info(f'Creating images for flare image #{doc["_id"]}')
+        figs=imv.images_to_graph(fnames[0], fnames[1], solo_hee, doc['bsd_id'], 
+                start_utc, end_utc, energy_range, output_folder, doc['unique_id'], doc['background']['unique_id'] )
+        logger.info(str(figs))
     except Exception as e:
+        raise
         logger.error(e)
         return None
     if update_db:
@@ -348,22 +353,29 @@ def create_figures_ids_between(start_id, end_id):
             continue
         logger.info(f"Creating images for BSD#{doc['bsd_id']}, DocID:{i}")
         create_qk_figures(doc, update_db=True, output_folder=None)
+def process_one(doc):
+    args=doc.get('idl_args',None)
+    if args is not None:
+        logger.info(f"Processing {doc['_id']}")
+        logger.info(f": prameters {str(args)}")
+        success = call_idl(args[0], args[1], args[2], args[3])
+        logger.info(f"End of processing {doc['_id']}, status: {success}")
+        updates={'num_idl_calls':doc['num_idl_calls']+1, 'idl_status':success}
+        if success:
+            figs=create_qk_figures(doc, update_db=None, output_folder=None)
+            if figs:
+                updates['figs']=figs
+        updates={'$set':updates}
+        flare_images_db.update_one({'_id':doc['_id']}, updates)
+def process_one_latest():
+    cursor=flare_images_db.find({'idl_status':True, 'figs.0':{'$exists':False}}).sort('_id',-1).limit(1)
+    for doc in cursor:
+        process_one(doc)
+
 
 def create_images_for_bsd_docs(cursor):
     for doc in cursor:
-        args=doc.get('idl_args',None)
-        if args is not None:
-            logger.info(f"Processing {doc['_id']}")
-            logger.info(f": prameters {str(args)}")
-            success = call_idl(args[0], args[1], args[2], args[3])
-            logger.info(f"End of processing {doc['_id']}, status: {success}")
-            updates={'num_idl_calls':doc['num_idl_calls']+1, 'idl_status':success}
-            if success:
-                figs=create_qk_figures(doc, update_db=None, output_folder=None)
-                if figs:
-                    updates['figs']=figs
-            updates={'$set':updates}
-            flare_images_db.update_one({'_id':doc['_id']}, updates)
+        process_one(doc)
             
 
 def register_imaging_tasks_for_file(file_id):
