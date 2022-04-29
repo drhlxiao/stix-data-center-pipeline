@@ -368,7 +368,7 @@ def process_one(doc):
         updates={'$set':updates}
         flare_images_db.update_one({'_id':doc['_id']}, updates)
 def process_one_latest():
-    cursor=flare_images_db.find({'idl_status':True, 'figs.0':{'$exists':False}}).sort('_id',-1).limit(1)
+    cursor=flare_images_db.find({'idl_status':'', 'figs.0':{'$exists':False}}).sort('_id',-1).limit(1)
     for doc in cursor:
         process_one(doc)
 

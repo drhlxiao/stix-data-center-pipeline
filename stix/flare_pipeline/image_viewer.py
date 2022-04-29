@@ -22,7 +22,7 @@ import numpy as np
 SMALL_SIZE = 8
 matplotlib.rc('font', size=SMALL_SIZE)
 matplotlib.rc('axes', titlesize=SMALL_SIZE)
-matplotlib.rcParams['axes.titlepad']=20
+matplotlib.rcParams['axes.titlepad']=30
 
 CMAP='RdPu' #color map
 
@@ -198,10 +198,11 @@ def images_to_graph(fw_image_fname, bp_image_fname, solo_hee, bsd_id,  start_utc
     plt.suptitle(f'STIX light curves and  flare images\n IMG EXP TIME {start_utc} –  {end_utc}\n E: {energy_range[0]} – {energy_range[1]} keV  SIG/BKG: {bsd_uid}/{bkg_uid} ')
     #plt.tight_layout()
     plt.subplots_adjust(
+            top=.82,
                     wspace=0.1, 
                     hspace=0.5)
     plt.savefig(output_fname, format='svg')
-    #print(output_fname)
+    print(output_fname)
 
     return [output_fname]
 
@@ -211,4 +212,4 @@ def test_image_viewer():
     f1='/data/quicklook/flare_images/sci_9111_uid_2202155513_0_0_7_2022-02-15T17:21:49.918_bp.fits'
     f2='/data/quicklook/flare_images/sci_9111_uid_2202155513_0_0_7_2022-02-15T17:21:49.918_fwfit.fits'
     hee=np.array([ 1.03180004e+08,  -3.22106960e+07,  5.13784704e+06])*u.km
-    images_to_graph(f1, f2, hee, 9111, '2022-02-15T17:21:49.918', '2022-02-15T17:21:51.918', [4,10], '.', 0, 0 )
+    images_to_graph(f2, f1, hee, 9111, '2022-02-15T17:21:49.918', '2022-02-15T17:21:51.918', [4,10], '.', 0, 0 )

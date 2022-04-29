@@ -14,7 +14,7 @@ def main():
         except Exception as e:
             raise e
             print(e)
-        time.sleep(10)
+        time.sleep(3)
 
 if __name__=='__main__':
     main()
