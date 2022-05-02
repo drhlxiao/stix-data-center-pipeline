@@ -46,6 +46,7 @@ req_db = mdb.get_collection('data_requests')
 SSW_HOME = '/data2/ssw'
 IDL_HOME = '/opt/idl88/idl88'
 IDL_SCRIPT_PATH = '/data/scripts/imaging'
+MIN_COUNTS=10000
 
 from pprint import pprint
 HOST = 'https://datacenter.stix.i4ds.net/'
@@ -105,7 +106,7 @@ def register_imaging_task_for_science_data(bsd_ids=[]):
         queue_imaging_tasks(doc)
 
 def queue_imaging_tasks(doc,
-        min_counts=2000,
+        min_counts=MIN_COUNTS,
         duration=60,
         interval=600,
         energy_bands=[[4, 10], [16, 28]],
@@ -174,11 +175,12 @@ def queue_imaging_tasks(doc,
 
     try:
         signal_utc = stu.unix2utc((bsd_start_unix + bsd_end_unix) / 2.)
-        B0, L0, roll, rsun, solo_hee, solo_sun_r = solo.SoloEphemeris.get_ephemeris_for_imaging(
+        B0, L0, roll, rsun, solo_hee, solo_sun_r,sun_center= solo.SoloEphemeris.get_ephemeris_for_imaging(
                 signal_utc)
     except ValueError:
         logger.warning(f'No ephemeris data found for {bsd_id} (uid {uid})')
         return
+    sun_center=ephem['sun_center']
 
     #find flares in the time frame
     bsd_flare_time_ranges = [[
@@ -216,24 +218,10 @@ def queue_imaging_tasks(doc,
         for ie, energy in enumerate(energy_bands):
             energy_range_str='-'.join([str(x) for x in energy])
             fits_prefix = f'stix_ql_image_sci_{bsd_id}_uid_{uid}_{energy_range_str}keV_{box["utc_range"][0]}_{flare_image_id}'
-            output_filenames = [
-                    os.path.join(quicklook_path, fits_prefix + ext)
-                    for ext in ['_fwdfit.fits', '_bp.fits']
-                    ]
+            folder=os.path.join(quicklook_path, str(uid))
+            if not os.path.exists(folder):
+                os.makedirs(folder)
             if box['counts_enough'][ie]:
-                idl_script_uid=f'{flare_image_id}_{uuid.uuid4().hex[0:10]}'
-                
-                idl_args=[[
-                    bkg_fname, fname, box['utc_range'][0], box['utc_range'][1],
-                    box['energy_range_keV'][ie][0],
-                    box['energy_range_keV'][ie][1], 
-                    output_filenames[0],
-                    output_filenames[1],
-                    round(L0.to(u.deg).value, 4),
-                    round(B0.to(u.deg).value, 4),
-                    round(rsun.to(u.arcsec).value, 4),
-                    round(roll.to(u.deg).value, 4)
-                    ], bkg_fname, fname, idl_script_uid]
                 num_images += 1
                 config={
                     'filename': fname,
@@ -242,6 +230,7 @@ def queue_imaging_tasks(doc,
                     'idl_args':idl_args, 
                     'num_idl_calls':0,
                     'run_type':'auto',
+                    
                     'idl_status':'',
                     'aux': {
                         'B0': B0.to(u.deg).value,
@@ -259,10 +248,12 @@ def queue_imaging_tasks(doc,
                         },
                     'start_unix': box['unix_time_range'][0],
                     'end_unix': box['unix_time_range'][1],
-                    'energy_range': energy,
+                    'energy_range': energy, #energy in time 
+                    
                     'utc_range':box['utc_range'],
                     'total_counts':box['total_counts'][ie],
-                    'fits':output_filenames[0:2],
+                    'idl_config':{'folder':folder,  'prefix':fits_prefix, 'shape':'ellipse' if energy[1] <15 else 'multi'},
+                    'fits':[]
                     'figs':[]
                     }
 
@@ -341,7 +332,8 @@ def create_qk_figures(doc, update_db=False, output_folder=None):
         logger.error(e)
         return None
     if update_db:
-        updates={'$set':{'figs':figs}}
+        updates={'$set':{'figs':figs, 'processing_date':datetime.now()}}
+
         flare_images_db.update_one({'_id':doc['_id']}, updates)
     return figs
 
@@ -365,11 +357,13 @@ def process_one(doc):
             figs=create_qk_figures(doc, update_db=None, output_folder=None)
             if figs:
                 updates['figs']=figs
+                updates['processing_date']=datetime.now()
         updates={'$set':updates}
         flare_images_db.update_one({'_id':doc['_id']}, updates)
 def process_one_latest():
     cursor=flare_images_db.find({'idl_status':'', 'figs.0':{'$exists':False}}).sort('_id',-1).limit(1)
     for doc in cursor:
+        logger.info("Processing doc: {doc['_id']}")
         process_one(doc)
 
 

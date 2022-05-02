@@ -699,6 +699,7 @@ class SoloEphemeris(object):
             rsun_deg= np.degrees(np.arctan(stix_aux['rsun']/stix_aux['solo_sun_r']))* u.deg#in units of arcmin
             roll = stix_aux['roll']  #roll angle in degrees
             hee_spice=stix_aux['solo_hee']
+            sun_center=stix_aux['sun_center']
         except KeyError:
             raise ValueError('No auxiliary data available for the requested time')
 
@@ -712,7 +713,7 @@ class SoloEphemeris(object):
         B0 = solo_hgs.lat.deg # Heliographic latitude (B0 angle)
         L0 = solo_hgs.lon.deg # Heliographic longitude (L0 angle)
         #ROLL ANGLE Solar Orbiter in degree
-        return B0*u.deg, L0*u.deg, roll*u.deg,rsun_deg ,stix_aux['solo_hee']*u.km, stix_aux['solo_sun_r']*u.m
+        return B0*u.deg, L0*u.deg, roll*u.deg,rsun_deg ,stix_aux['solo_hee']*u.km, stix_aux['solo_sun_r']*u.m,sun_center
 
     @staticmethod
     def get_solar_limb_stix_fov(utc, ref_frame='SOLO_SUN_RTN'):

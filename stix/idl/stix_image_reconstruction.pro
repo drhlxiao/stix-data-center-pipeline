@@ -7,8 +7,8 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, flare_start_UTC, flare_
 	mapcenter    = [0., 0.]
 	subc_index   = stix_label2ind(['10a','10b','10c','9a','9b','9c','8a','8b','8c','7a','7b','7c'])
 	silent       = 1
-	;imsize_bp    = [512,512]
-	imsize_bp    = [256,256]
+	imsize_bp    = [512,512]
+	;imsize_bp    = [256,256]
 	pixel_bp     = RSUN * 2.6 / imsize_bp
 	imsize       = [256,256]
 	pixel        = [1.,1.]

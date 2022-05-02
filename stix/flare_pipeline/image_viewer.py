@@ -22,7 +22,7 @@ import numpy as np
 SMALL_SIZE = 8
 matplotlib.rc('font', size=SMALL_SIZE)
 matplotlib.rc('axes', titlesize=SMALL_SIZE)
-matplotlib.rcParams['axes.titlepad']=30
+matplotlib.rcParams['axes.titlepad']=35
 
 CMAP='RdPu' #color map
 
@@ -94,7 +94,7 @@ def create_STIX_map(fits_filename,  solo_hee,   map_name=''):
 
     stix_map = map.Map(hdul[0].data, out_header)
     return stix_map, max_indices, header
-def images_to_graph(fw_image_fname, bp_image_fname, solo_hee, bsd_id,  start_utc, end_utc, energy_range,  output_folder=None, bsd_uid=None, bkg_uid=None):
+def images_to_graph(fw_image_fname, bp_image_fname, solo_hee, bsd_id,  start_utc, end_utc, energy_range,  output_folder=None, bsd_uid=None, bkg_uid=None, processing_id=None):
     """
     Plot STIX image
     Parameters
@@ -173,6 +173,9 @@ def images_to_graph(fw_image_fname, bp_image_fname, solo_hee, bsd_id,  start_utc
     except Exception as e:
         logger.warning(f"Failed to clip image: {e}")
         #astropy may raise an error when writing the image to a file, we need to modify the astropy
+        #find the line change it to the line as below in visualization/wcsaxes/transforms.py 
+        #if self.same_frames or not np.any(input_coords):
+        #    return input_coords
         pass
 
     bp_map.draw_grid(color='k', ls='--', grid_spacing=10*u.deg)
@@ -194,13 +197,13 @@ def images_to_graph(fw_image_fname, bp_image_fname, solo_hee, bsd_id,  start_utc
         output_fname_prefix=prefix.rsplit('.', 1)[0] 
 
     output_fname=f'{output_fname_prefix}.svg' 
-
-    plt.suptitle(f'STIX light curves and  flare images\n IMG EXP TIME {start_utc} –  {end_utc}\n E: {energy_range[0]} – {energy_range[1]} keV  SIG/BKG: {bsd_uid}/{bkg_uid} ')
+    process_id_str = f'(#{processing_id})' if processing_id is not None else ''
+    plt.suptitle(f'STIX light curves and images {process_id_str} \n IMG EXP TIME {start_utc} –  {end_utc}\n E: {energy_range[0]} – {energy_range[1]} keV  SIG/BKG: {bsd_uid}/{bkg_uid} ')
     #plt.tight_layout()
     plt.subplots_adjust(
             top=.82,
                     wspace=0.1, 
-                    hspace=0.5)
+                    hspace=0.6)
     plt.savefig(output_fname, format='svg')
     print(output_fname)
 
