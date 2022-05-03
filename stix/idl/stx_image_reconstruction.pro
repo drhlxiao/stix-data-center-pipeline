@@ -1,16 +1,29 @@
-function stx_image_reconstruct, path_bkg_file, path_sci_file, $
+PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
                             flare_start_UTC, flare_end_UTC, $
                             energy_range_lower_limit_keV, energy_range_upper_limit_keV, $
                             energy_range_full_disk_bp_map_lower_limit_keV, energy_range_full_disk_bp_map_upper_limit_keV, $
-                            full_disk_bp_map_filename, full_disk_bp_map_size, full_disk_bp_map_subc_index, full_disk_bp_map_mapcenter, $
-                            map_size, pixel_size, subc_index, $
+                            full_disk_bp_map_filename,    $
                             bp_map_filename, $
                             vis_fwdfit_map_filename, vis_fwdfit_source_type, $
                             em_map_filename, $
-                            clean_map_filename, clean_niter, clean_gain, clean_beam_width, clean_uniform_weighting, $
+                            clean_map_filename,   $
                             L0, B0, RSUN, roll_angle, $
                             x_offset_arcsec, y_offset_arcsec                           
 	
+						
+	clean_uniform_weighting=0
+	full_disk_bp_map_size=[512,512]
+	full_disk_bp_map_mapcenter=[0.,0.]
+	map_size=[256,256]
+	pixel_size=[1.,1.]
+	full_disk_bp_map_subc_index=stix_label2ind(['10a','10b','10c','9a','9b','9c','8a','8b','8c','7a','7b','7c'])
+	subc_index=stix_label2ind(['10a','10b','10c','9a','9b','9c','8a','8b','8c','7a','7b','7c',$
+		'6a','6b','6c','5a','5b','5c','4a','4b','4c','3a','3b','3c'])
+	clean_niter  = 200    
+	clean_gain   = 0.1    
+	clean_beam_width = 20.
+
+
   ;;***** Parameters
   energy_range = [energy_range_full_disk_bp_map_lower_limit_keV,energy_range_full_disk_bp_map_upper_limit_keV]
 	time_range   = anytim([flare_start_UTC,flare_end_UTC])

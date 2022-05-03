@@ -7,10 +7,11 @@ Date:2022-05-03
 
 import os
 from datetime import datetime
-from stix.core import mongo_db as mdb
-from flask import Flask,    jsonify
+from stix.core import mongo_db as mgdb
+from flask import Flask,    jsonify, request
 app = Flask(__name__)
 
+mdb = mgdb.MongoDB()
 
 @app.route('/request/imaging/task/last')
 def get_last_pending_request():

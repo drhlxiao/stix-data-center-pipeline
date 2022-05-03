@@ -43,9 +43,9 @@ bsd_db = mdb.get_collection('bsd')
 flare_images_db= mdb.get_collection('flare_images')
 
 req_db = mdb.get_collection('data_requests')
-SSW_HOME = '/data2/ssw'
-IDL_HOME = '/opt/idl88/idl88'
-IDL_SCRIPT_PATH = '/data/scripts/imaging'
+#SSW_HOME = '/data2/ssw'
+#IDL_HOME = '/opt/idl88/idl88'
+#IDL_SCRIPT_PATH = '/data/scripts/imaging'
 MIN_COUNTS=10000
 
 from pprint import pprint
@@ -53,38 +53,9 @@ HOST = 'https://datacenter.stix.i4ds.net/'
 
 last_bkg_fits_doc={}
 
-def execute_script(shell_filename, idl_script, verbose=False):
-    """
-    execute script
-    """
-    logger.info(f"Executing script {shell_filename} {idl_script}...")
-    subprocess.call(['chmod', 'u+x', shell_filename])
-    cmd_output = subprocess.check_call([shell_filename, idl_script])
-    #        shell=True,
-    #                            stderr=subprocess.PIPE,
-    #                            stdout=subprocess.PIPE)
-    #print('done, checking output')
-    #check_for_errors(cmd_output, verbose)
-
-
-def check_for_errors(output, verbose):
-    """
-    Check IDL output to try and decide if an error has occurred
-    """
-    stdout = output.stdout.decode('utf-8')
-    stderr = output.stderr.decode('utf-8')
-    # NOTE: For some reason, not only errors are output to stderr so we
-    # have to check it for certain keywords to see if an error occurred
-    if 'execution halted' in stderr.lower():
-        raise RuntimeError(stderr)
-    if 'failed to acquire license' in stderr.lower():
-        raise RuntimeError(stderr)
-    if verbose:
-        logger.info(f'{stderr}\n{stdout}')
-
-
 def register_imaging_task_for_science_data(bsd_ids=[]):
     if not bsd_ids:
+        #only processing for data which are not background
         docs = bsd_db.find({
             'name': 'L1',
             'synopsis.is_background': False,
@@ -123,10 +94,6 @@ def queue_imaging_tasks(doc,
             time interval between two selected time periods
         duration: float
             integration time in units of seconds
-        
-
-        
-    
     """
     if doc['name']!='L1':
         logger.info(f"{doc['_id']} is not L1 science data")
@@ -269,38 +236,6 @@ def queue_imaging_tasks(doc,
         bsd_db.update_one({'_id':doc['_id']},{'$set':{'flare_image_ids': flare_image_ids}}, upsert=False)
         #push 
 
-        
-
-"""
-def call_idl(inputs, bkg_fits, sig_fits, uuid='test'):
-    """
-    """
-    parameters = ','.join(
-            [f"'{x}'" if isinstance(x, str) else str(x) for x in inputs])
-    bkg_filename = os.path.basename(bkg_fits)
-    sig_filename = os.path.basename(sig_fits)
-    script_lines = [
-            "!PATH=!PATH",
-            f'; The two fits files can be downloaded via the links below:',
-            f';{HOST}/download/fits/filename/{bkg_filename}',
-            f';{HOST}/download/fits/filename/{sig_filename}',
-            f'.run {IDL_SCRIPT_PATH}/stix_image_reconstruction.pro',
-            f'stx_image_reconstruct, {parameters}', 'exit'
-            ]
-    idl_script_name = os.path.join(IDL_SCRIPT_PATH, f'top_{uuid}.pro')
-    f = open(idl_script_name, 'w')
-    for l in script_lines:
-        f.write(l + '\n')
-    f.close()
-    try:
-        logger.info(f'Executing script {idl_script_name} ...')
-        execute_script(os.path.join(IDL_SCRIPT_PATH, 'stix_imaging.sh'), idl_script_name)
-    except RuntimeError:
-        logger.error('IDL runtime error')
-        return False
-
-    return True
-    """
 
 def create_images_in_queue():
     cursor=flare_images_db.find({'num_idl_calls':0, 'idl_status':''}).sort('_id',-1)
@@ -374,6 +309,10 @@ def create_images_for_bsd_docs(cursor):
             
 
 def register_imaging_tasks_for_file(file_id):
+    """
+    called by L1 data processing pipeline
+    imaging requests are submitted to database  after parsing the raw TM
+    """
     docs=bsd_db.find({'run_id':file_id, 'name':'L1'})
     ids=[int(x['_id']) for x in docs]
     register_imaging_task_for_science_data(ids)

@@ -121,7 +121,7 @@ def unix2scet(unix):
 
 def utc2filename(utc):
     dt=utc2datetime(utc)
-    return strftime("%Y%-m-%dT%H%M%S")
+    return dt.strftime("%Y%-m-%dT%H%M%S")
 
 def scet2datetime(coarse, fine=0):
     unixtimestamp = scet2unix(coarse, fine)
