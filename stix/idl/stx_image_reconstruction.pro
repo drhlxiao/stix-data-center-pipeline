@@ -1,4 +1,4 @@
-PRO  stx_image_reconstruct, path_bkg_file, path_sci_file, $
+function stx_image_reconstruct, path_bkg_file, path_sci_file, $
                             flare_start_UTC, flare_end_UTC, $
                             energy_range_lower_limit_keV, energy_range_upper_limit_keV, $
                             energy_range_full_disk_bp_map_lower_limit_keV, energy_range_full_disk_bp_map_upper_limit_keV, $
@@ -92,3 +92,4 @@ PRO  stx_image_reconstruct, path_bkg_file, path_sci_file, $
 	map2fits, clean_map, clean_map_filename
 	map2fits, em_map, em_map_filename
 END
+

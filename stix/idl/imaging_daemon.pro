@@ -1,17 +1,22 @@
-host='http://localhost:5000'
+FUNCTION run_daemon, i
+host='http://localhost:8022'
 url_request=host+'/request/imaging/task/last'
 url_post=host+"/request/imaging/task/update"
-iruns=0
-obj = OBJ_NEW('IDLnetUrl')
-while 1 do begin
-;if 1 then begin
-	wait, 2
+obj = IDLnetUrl()
+i=0
+
+WHILE (1 ne 0) DO BEGIN
+	print, 'Loop '+i+'...'
+	i++
 	print, url_request
 	json= wget(url_request,/string_array)
 	data=JSON_PARSE(json,/TOSTRUCT)
-	print, iruns
-	iruns++
-;	if data.pending eq 0 then continue 
+	wait, 1
+	i++
+	if (data.pending eq 0) then  begin
+		wait, 10
+		continue
+	endif
 
 	sig_fname=data.filename
 	bkg_fname=data.background.filename
@@ -19,6 +24,8 @@ while 1 do begin
 	time_range=data.utc_range
 	;filename_prefix=data.get('filename_prefix')
 
+	path_sci_file=data.filename
+	path_bkg_file=data.background.filename
 
 	start_utc=data.utc_range[0]
 	end_utc=data.utc_range[1]
@@ -39,6 +46,7 @@ while 1 do begin
 	y_offset_arcsec=aux.sun_center[1]    
 
 
+
 	full_disk_bp_map_size=[512,512]
 	full_disk_bp_map_mapcenter=[0.,0.]
 	map_size=[256,256]
@@ -50,7 +58,7 @@ while 1 do begin
 	clean_gain   = 0.1    
 	clean_beam_width = 20.
 
-	vis_fwdfit_source_type= data.idl_config.shape ; multi or ellipse
+	vis_fwdfit_source_type= data.idl_config.fwdfit_shape ; multi or ellipse
 
 
 	bp_fname=out_folder + 'bp_map.fits' 
@@ -61,24 +69,28 @@ while 1 do begin
 
 	print, bp_fname+','+full_disk_bp_fname
 
-
 	clean_uniform_weighting=0
-;	stx_image_reconstruct, path_bkg_file, path_sci_file, $
-;		start_utc, end_utc, $
-;		elow, ehigh, $
-;		bp_elow, bp_ehigh, $
-;		full_disk_bp_fname, full_disk_bp_map_size, full_disk_bp_map_subc_index, full_disk_bp_map_mapcenter, $
-;		map_size, pixel_size, subc_index, $
-;		bp_fname, $
-;		vis_fwdfit_fname, vis_fwdfit_source_type, $
-;		em_fname, $
-;		clean_fname, clean_niter, clean_gain, clean_beam_width, clean_uniform_weighting, $
-;		L0, B0, RSUN, roll_angle, $
-;		x_offset_arcsec, y_offset_arcsec     
-	resp="image_bp="+bp_fname+"&vis_fwdfit="+vis_fwdfit_fname+"&image_em="+em_fname+"&image_clean="+clean_fname+"&image_full_disk="+full_disk_bp_fname
-	print, resp
-	print, "Send data to server..."
-	obj->Put(resp, /buffer, /post, url=url_post)
-	print, "Done, existing..."
-	print, 'Call python script to create images'
-end
+	stx_image_reconstruct, path_bkg_file, path_sci_file, $
+		print, path_bkg_file, path_sci_file, $
+		start_utc, end_utc, $
+		elow, ehigh, $
+		bp_elow, bp_ehigh, $
+		full_disk_bp_fname, full_disk_bp_map_size, full_disk_bp_map_subc_index, full_disk_bp_map_mapcenter, $
+		map_size, pixel_size, subc_index, $
+		bp_fname, $
+		vis_fwdfit_fname, vis_fwdfit_source_type, $
+		em_fname, $
+		clean_fname, clean_niter, clean_gain, clean_beam_width, clean_uniform_weighting, $
+		L0, B0, RSUN, roll_angle, $
+		x_offset_arcsec, y_offset_arcsec     
+	resp="_id="+string(data._id)+"&image_bp="+bp_fname+"&vis_fwdfit="+vis_fwdfit_fname+"&image_em="+em_fname+"&image_clean="+clean_fname+"&image_full_disk="+full_disk_bp_fname
+	
+	ret=obj->Put(resp, /buffer, /post, url=url_post)
+	print, "done"
+ENDWHILE 
+return, 1
+END
+
+
+
+

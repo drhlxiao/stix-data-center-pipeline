@@ -193,7 +193,6 @@ def queue_imaging_tasks(doc,
     if not bsd_flare_time_ranges:
         logger.warning(f'No flares found for {bsd_id} (uid {uid})')
         return
-
     try:
         l1 = ScienceL1.from_fits(fname)
     except IndexError:
@@ -217,7 +216,9 @@ def queue_imaging_tasks(doc,
     for box in boxes:
         for ie, energy in enumerate(energy_bands):
             energy_range_str='-'.join([str(x) for x in energy])
-            fits_prefix = f'stix_ql_image_sci_{bsd_id}_uid_{uid}_{energy_range_str}keV_{box["utc_range"][0]}_{flare_image_id}'
+            start_utc_str=stu.utc2filename(box['utc_range'][0])
+            fits_prefix = f'stix_ql_image_sci_{bsd_id}_uid_{uid}_{energy_range_str}keV_{start_utc_str}_{flare_image_id}'
+
             folder=os.path.join(quicklook_path, str(uid))
             if not os.path.exists(folder):
                 os.makedirs(folder)
@@ -249,12 +250,11 @@ def queue_imaging_tasks(doc,
                     'start_unix': box['unix_time_range'][0],
                     'end_unix': box['unix_time_range'][1],
                     'energy_range': energy, #energy in time 
-                    
                     'utc_range':box['utc_range'],
                     'total_counts':box['total_counts'][ie],
-                    'idl_config':{'folder':folder,  'prefix':fits_prefix, 'shape':'ellipse' if energy[1] <15 else 'multi'},
-                    'fits':[]
-                    'figs':[]
+                    'idl_config':{'folder':folder,  'prefix':fits_prefix, 'fwdfit_shape':'ellipse' if energy[1] <15 else 'multi'},
+                    'fits':{},
+                    'figs':{}
                     }
 
                 imaging_inputs = bson.dict_to_json(config)
@@ -271,6 +271,7 @@ def queue_imaging_tasks(doc,
 
         
 
+"""
 def call_idl(inputs, bkg_fits, sig_fits, uuid='test'):
     """
     """
@@ -299,7 +300,7 @@ def call_idl(inputs, bkg_fits, sig_fits, uuid='test'):
         return False
 
     return True
-
+    """
 
 def create_images_in_queue():
     cursor=flare_images_db.find({'num_idl_calls':0, 'idl_status':''}).sort('_id',-1)
