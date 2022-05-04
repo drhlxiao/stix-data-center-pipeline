@@ -6,6 +6,7 @@ April 27, 2022
 """
 import os
 import matplotlib
+import numpy as np
 from astropy import units as u
 from astropy.time import Time
 from astropy.coordinates import SkyCoord
@@ -15,16 +16,91 @@ from dateutil.parser import parse as dtparse
 
 from sunpy import map
 from sunpy.map import make_fitswcs_header
+
 from sunpy.coordinates.frames import HeliocentricEarthEcliptic,HeliographicStonyhurst
+
 from stix.flare_pipeline import lightcurves
 
-import numpy as np
+
+flare_images_db= mdb.get_collection('flare_images')
 SMALL_SIZE = 8
 matplotlib.rc('font', size=SMALL_SIZE)
 matplotlib.rc('axes', titlesize=SMALL_SIZE)
 matplotlib.rcParams['axes.titlepad']=35
 
 CMAP='RdPu' #color map
+
+def create_images_in_queue():
+    cursor=flare_images_db.find({'num_idl_calls':0, 'idl_status':''}).sort('_id',-1)
+    create_images_for_bsd_docs(cursor)
+
+def create_images_for_science_data(bsd_id):
+    cursor=flare_images_db.find({'bsd_id':bsd_id})
+    create_images_for_bsd_docs(cursor)
+
+def create_qk_figures_for_all():
+    docs=flare_images_db.find({'idl_status':True, 'figs.0':{'$exists':False}}).sort('_id',-1)
+    for doc in docs:
+        create_qk_figures(doc, update_db=True)
+def process_one_latest():
+    cursor=flare_images_db.find({'idl_status':'', 'figs.0':{'$exists':False}}).sort('_id',-1).limit(1)
+    for doc in cursor:
+        logger.info("Processing doc: {doc['_id']}")
+        process_one(doc)
+
+
+def create_images_for_bsd_docs(cursor):
+    for doc in cursor:
+        process_one(doc)
+
+def create_qk_figures(doc, update_db=False, output_folder=None):
+    """
+    write images to the same folder if output_folder is None
+    """
+    try:
+        solo_hee=np.array(doc['aux']['solo_hee'][0])*u.km
+        fnames=[doc['fits'][0], doc['fits'][1]]
+        start_utc, end_utc=doc['utc_range']
+        energy_range=doc['energy_range']
+        logger.info(f'Creating images for flare image #{doc["_id"]}')
+        figs=imv.images_to_graph(fnames[0], fnames[1], solo_hee, doc['bsd_id'], 
+                start_utc, end_utc, energy_range, output_folder, doc['unique_id'], doc['background']['unique_id'] )
+        logger.info(str(figs))
+    except Exception as e:
+        raise
+        logger.error(e)
+        return None
+    if update_db:
+        updates={'$set':{'figs':figs, 'processing_date':datetime.now()}}
+
+        flare_images_db.update_one({'_id':doc['_id']}, updates)
+    return figs
+
+def create_figures_ids_between(start_id, end_id):
+    for i in range(start_id, end_id):
+        doc=flare_images_db.find_one({'_id':i})
+        if not doc:
+            logger.warning(f"Failed to create figures for DocID:{i}")
+            continue
+        logger.info(f"Creating images for BSD#{doc['bsd_id']}, DocID:{i}")
+        create_qk_figures(doc, update_db=True, output_folder=None)
+def process_one(doc):
+    args=doc.get('idl_args',None)
+    if args is not None:
+        logger.info(f"Processing {doc['_id']}")
+        logger.info(f": prameters {str(args)}")
+        success = call_idl(args[0], args[1], args[2], args[3])
+        logger.info(f"End of processing {doc['_id']}, status: {success}")
+        updates={'num_idl_calls':doc['num_idl_calls']+1, 'idl_status':success}
+        if success:
+            figs=create_qk_figures(doc, update_db=None, output_folder=None)
+            if figs:
+                updates['figs']=figs
+                updates['processing_date']=datetime.now()
+        updates={'$set':updates}
+        flare_images_db.update_one({'_id':doc['_id']}, updates)
+
+            
 
 def create_STIX_map(fits_filename,  solo_hee,   map_name=''): 
 
