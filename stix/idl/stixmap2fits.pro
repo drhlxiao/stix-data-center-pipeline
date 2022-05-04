@@ -105,7 +105,7 @@
     if tag_exist(map[i],'RSUN') then fxaddpar,header,'RSUN',map[i].rsun,'Solar radius (arcsecs)'
 
     if tag_exist(map[i],'RSUN') then fxaddpar,header,'RSUN_OBS',map[i].rsun,'Solar radius (arcsecs)'
-    if tag_exist(map[i],'DSUN') then fxaddpar,header,'DSUN_OBS',map[i].dsun,'S/C distance to Sun (km)'
+    if tag_exist(map[i],'DSUN') then fxaddpar,header,'DSUN_OBS',map[i].dsun,'S/C distance to Sun (meters)'
     if tag_exist(map[i],'L0') then fxaddpar,header,'HGLN_OBS',map[i].l0,'S/C longitude in HeliographicStonyhurst coord. (degrees)'
     if tag_exist(map[i],'B0') then fxaddpar,header,'HGLT_OBS',map[i].b0,'S/C latitude in HeliographicStonyhurst coord. (degrees)'
 
