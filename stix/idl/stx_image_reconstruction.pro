@@ -40,6 +40,7 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 	vis.u    = u[full_disk_bp_map_subc_index]
 	vis.v    = v[full_disk_bp_map_subc_index]
 
+	duration=anytim2tai( flare_end_UTC) - anytim2tai(flare_start_UTC)
 	;;******* Compute the Back Projection map
 	pixel_size_full_disk_bp_map = RSUN * 2.6 / full_disk_bp_map_size
 	full_disk_bp_map = stx_bproj(vis,full_disk_bp_map_size,pixel_size_full_disk_bp_map)
@@ -61,7 +62,6 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 	vis  = stix2vis_sep2021(path_sci_file, time_range, energy_range, max_bp_coord, $
 		xy_flare=max_bp_coord, path_bkg_file=path_bkg_file, subc_index=subc_index, /silent)
 
-	duration=anytim2tai( flare_end_UTC) - anytim2tai(flare_start_UTC)
 	;;******* Compute the Back Projection map (around the flare location)
 	bp_map = stx_bproj(vis,map_size,pixel_size)
 	bp_map.L0 = L0
