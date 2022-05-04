@@ -713,7 +713,8 @@ class SoloEphemeris(object):
         B0 = solo_hgs.lat.deg # Heliographic latitude (B0 angle)
         L0 = solo_hgs.lon.deg # Heliographic longitude (L0 angle)
         #ROLL ANGLE Solar Orbiter in degree
-        return B0*u.deg, L0*u.deg, roll*u.deg,rsun_deg ,stix_aux['solo_hee']*u.km, stix_aux['solo_sun_r']*u.m,sun_center
+        dsun=solo_hgs.radius.value*u.km
+        return B0*u.deg, L0*u.deg, roll*u.deg,rsun_deg, dsun,  stix_aux['solo_hee']*u.km, stix_aux['solo_sun_r']*u.m,sun_center
 
     @staticmethod
     def get_solar_limb_stix_fov(utc, ref_frame='SOLO_SUN_RTN'):

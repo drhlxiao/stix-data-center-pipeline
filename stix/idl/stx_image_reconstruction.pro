@@ -7,7 +7,7 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 	vis_fwdfit_map_filename, vis_fwdfit_source_type, $
 	em_map_filename, $
 	clean_map_filename,   $
-	L0, B0, RSUN, roll_angle, dsun, hgln, hglt$
+	L0, B0, RSUN, roll_angle, dsun, $
 	x_offset_arcsec, y_offset_arcsec                     
 
 
@@ -71,12 +71,10 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 	bp_map.yc += y_offset_arcsec
 
 
-	bp_map.DSUN= dsun
-	bp_map.HGLN=hgln
-	bp_map.HGLT=hglt
 
 	bp_map.time= flare_start_UTC
 	bp_map.dur=duration
+	add_prop,bp_map, DSUN= DSUN
 
 	;;******* Compute the FWDFIT reconstruction (around the flare location)
 	vis_fwdfit_pso_map = stx_vis_fwdfit_pso(vis_fwdfit_source_type, vis, imsize=map_size, pixel=pixel_size, /silent)
@@ -89,9 +87,9 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 
 
 	vis_fwdfit_pso_map.time= flare_start_UTC
-	vis_fwdfit_pso_map.dur= flare_start_UTC
-
 	vis_fwdfit_pso_map.dur=duration
+	add_prop,vis_fwdfit_pso_map, DSUN= DSUN
+
 	;;******* Compute the CLEAN reconstruction (around the flare location)
 
 	clean_map=stx_vis_clean(vis,niter=clean_niter,image_dim=map_size[0],PIXEL=pixel_size[0],uni=clean_uniform_weighting,gain=clean_gain,beam_width=clean_beam_width)
@@ -100,16 +98,14 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 	clean_map.B0 = B0
 	clean_map.RSUN = RSUN
 
-	clean_map.DSUN= dsun
-	clean_map.HGLN=hgln
-	clean_map.HGLT=hglt
+	clean_map.time= flare_start_UTC
+	clean_map.dur=duration
+	add_prop,clean_map, DSUN= DSUN
 
 	clean_map.roll_angle = roll_angle
 	clean_map.xc += x_offset_arcsec
 	clean_map.yc += y_offset_arcsec
 
-	clean_map.time= flare_start_UTC
-	clean_map.dur=duration
 
 	;;******* Compute the EM reconstruction (around the flare location)
 	data = stix_compute_vis_amp_phase(path_sci_file,time_range,energy_range,xy_flare=max_bp_coord,bkg_file=path_bkg_file, /silent)
@@ -120,9 +116,6 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 	em_map.B0 = B0
 	em_map.RSUN = RSUN
 
-	em_map.DSUN= dsun
-	em_map.HGLN=hgln
-	em_map.HGLT=hglt
 
 	em_map.roll_angle = roll_angle
 	em_map.xc += x_offset_arcsec
@@ -130,6 +123,7 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 
 	em_map.time= flare_start_UTC
 	em_map.dur=duration
+	add_prop,em_map, DSUN= DSUN
 
 	stixmap2fits, full_disk_bp_map, full_disk_bp_map_filename
 	stixmap2fits, bp_map, bp_map_filename

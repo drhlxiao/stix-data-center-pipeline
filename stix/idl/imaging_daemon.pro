@@ -52,8 +52,8 @@ WHILE (1 ne 0) DO BEGIN
 	L0=aux.L0
 	B0=aux.B0
 	RSUN=aux.rsun
-	hgln=aux.hgln
-	hglt=aux.hglt
+	dsun=aux.dsun
+
 	roll_angle=aux.roll
 	x_offset_arcsec=aux.sun_center[0]
 	y_offset_arcsec=aux.sun_center[1]    
@@ -79,7 +79,7 @@ WHILE (1 ne 0) DO BEGIN
 		vis_fwdfit_fname, vis_fwdfit_source_type, $
 		em_fname, $
 		clean_fname,  $
-		L0, B0, RSUN, roll_angle, dsun, hgln, hglt $
+		L0, B0, RSUN, roll_angle, dsun, $
 		x_offset_arcsec, y_offset_arcsec     
 
 	resp="_id="+string(data._id)+"&image_bp="+bp_fname+"&vis_fwdfit="+vis_fwdfit_fname+"&image_em="+em_fname+"&image_clean="+clean_fname+"&image_full_disk="+full_disk_bp_fname
