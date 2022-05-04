@@ -46,8 +46,9 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 	full_disk_bp_map.xc += x_offset_arcsec
 	full_disk_bp_map.yc += y_offset_arcsec
 
-	;full_disk_bp_map.roll_center = [x_offset_arcsec, y_offset_arcsec]
 	full_disk_bp_map.time= flare_start_UTC
+	full_disk_bp_map.dur=duration
+	add_prop,full_disk_bp_map, DSUN= DSUN
 
 	;;******* Compute the coordinates of the maximum value of the Back Projection map, i.e. of the location of the flare
 	max_bp       = max(full_disk_bp_map.data, ind_max)
