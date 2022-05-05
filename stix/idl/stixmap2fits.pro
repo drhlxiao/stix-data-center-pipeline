@@ -18,7 +18,7 @@
 ; Comments    : Based on map2fits in sswidl, but adapted for STIX images
 ; History     : 05-04-2022, Hualin Xiao
 ;                - modified ssw map2fits 
-; Contact     : hualin.xiao@fhnw.ch
+
 ;
 
    pro stixmap2fits,map,file, meta, err=err,byte_scale=byte_scale,verbose=verbose
