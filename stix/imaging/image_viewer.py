@@ -43,40 +43,16 @@ def create_images_for_science_data(bsd_id):
 def create_qk_figures_for_all():
     docs=flare_images_db.find({'idl_status':True, 'figs.0':{'$exists':False}}).sort('_id',-1)
     for doc in docs:
-        create_qk_figures(doc, update_db=True)
+        create_qk_figures(doc)
 def process_one_latest():
     cursor=flare_images_db.find({'idl_status':'', 'figs.0':{'$exists':False}}).sort('_id',-1).limit(1)
     for doc in cursor:
         logger.info("Processing doc: {doc['_id']}")
         process_one(doc)
 
-
 def create_images_for_bsd_docs(cursor):
     for doc in cursor:
         process_one(doc)
-
-def create_qk_figures(doc, update_db=False, output_folder=None):
-    """
-    write images to the same folder if output_folder is None
-    """
-    try:
-        solo_hee=np.array(doc['aux']['solo_hee'][0])*u.km
-        fnames=[doc['fits'][0], doc['fits'][1]]
-        start_utc, end_utc=doc['utc_range']
-        energy_range=doc['energy_range']
-        logger.info(f'Creating images for flare image #{doc["_id"]}')
-        figs=imv.images_to_graph(fnames[0], fnames[1], solo_hee, doc['bsd_id'], 
-                start_utc, end_utc, energy_range, output_folder, doc['unique_id'], doc['background']['unique_id'] )
-        logger.info(str(figs))
-    except Exception as e:
-        raise
-        logger.error(e)
-        return None
-    if update_db:
-        updates={'$set':{'figs':figs, 'processing_date':datetime.now()}}
-
-        flare_images_db.update_one({'_id':doc['_id']}, updates)
-    return figs
 
 def create_figures_ids_between(start_id, end_id):
     for i in range(start_id, end_id):
@@ -85,22 +61,7 @@ def create_figures_ids_between(start_id, end_id):
             logger.warning(f"Failed to create figures for DocID:{i}")
             continue
         logger.info(f"Creating images for BSD#{doc['bsd_id']}, DocID:{i}")
-        create_qk_figures(doc, update_db=True, output_folder=None)
-def process_one(doc):
-    args=doc.get('idl_args',None)
-    if args is not None:
-        logger.info(f"Processing {doc['_id']}")
-        logger.info(f": prameters {str(args)}")
-        success = call_idl(args[0], args[1], args[2], args[3])
-        logger.info(f"End of processing {doc['_id']}, status: {success}")
-        updates={'num_idl_calls':doc['num_idl_calls']+1, 'idl_status':success}
-        if success:
-            figs=create_qk_figures(doc, update_db=None, output_folder=None)
-            if figs:
-                updates['figs']=figs
-                updates['processing_date']=datetime.now()
-        updates={'$set':updates}
-        flare_images_db.update_one({'_id':doc['_id']}, updates)
+        create_qk_figures(doc, output_folder=None)
 
             
 
@@ -172,7 +133,14 @@ def create_STIX_map(fits_filename,  solo_hee,   map_name=''):
 
     stix_map = map.Map(hdul[0].data, out_header)
     return stix_map, max_indices, header
-def images_to_graph(fw_image_fname, bp_image_fname, solo_hee, bsd_id,  start_utc, end_utc, energy_range,  output_folder=None, bsd_uid=None, bkg_uid=None, processing_id=None):
+
+def create_qk_figures(doc, output_folder=None):
+    """
+    write images to the same folder if output_folder is None
+    """
+
+
+
     """
     Plot STIX image
     Parameters
@@ -285,7 +253,8 @@ def images_to_graph(fw_image_fname, bp_image_fname, solo_hee, bsd_id,  start_utc
     plt.savefig(output_fname, format='svg')
     print(output_fname)
 
-    return [output_fname]
+    updates={'$set':{'figs':figs, 'processing_date':datetime.now()}}
+    flare_images_db.update_one({'_id':doc['_id']}, updates)
 
 
 

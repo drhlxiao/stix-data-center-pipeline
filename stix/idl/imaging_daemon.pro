@@ -20,10 +20,10 @@ WHILE (1 ne 0) DO BEGIN
 
 
 	data_folder=data.idl_config.folder
-	outfile_prefix=data.idl_config.folder+'/'+data.idl_config.prefix
+	outfile_prefix=data.idl_config.folder+"/"+data.idl_config.prefix
 	if ~file_exist(data_folder) then file_mkdir, data_folder
 
-	log_file=outfile_prefix+'_log.txt'
+	log_file=outfile_prefix+"_log.txt"
 	openw,lun,log_file,/get_lun
 	printf,lun, json
 	close, lun
@@ -62,11 +62,12 @@ WHILE (1 ne 0) DO BEGIN
 	vis_fwdfit_source_type= data.idl_config.fwdfit_shape ; multi or ellipse
 
 
-	bp_fname=outfile_prefix + 'bp_map.fits' 
-	full_disk_bp_fname=outfile_prefix + 'full_disk_bp_map.fits' 
-	vis_fwdfit_fname=outfile_prefix + 'vis_fwdfit_map.fits' 
-	em_fname=outfile_prefix + 'em_map.fits'
-	clean_fname=outfile_prefix + 'clean_map.fits'
+	bp_fname=outfile_prefix + "_bp_map.fits" 
+	full_disk_bp_fname=outfile_prefix + "_full_disk_bp_map.fits" 
+	vis_fwdfit_fname=outfile_prefix + "_vis_fwdfit_map.fits" 
+	em_fname=outfile_prefix + "_em_map.fits"
+	clean_fname=outfile_prefix + "_clean_map.fits"
+
 
 	print, bp_fname+','+full_disk_bp_fname
 
@@ -82,7 +83,7 @@ WHILE (1 ne 0) DO BEGIN
 		L0, B0, RSUN, roll_angle, dsun, $
 		x_offset_arcsec, y_offset_arcsec     
 
-	resp="_id="+string(data._id)+"&image_bp="+bp_fname+"&vis_fwdfit="+vis_fwdfit_fname+"&image_em="+em_fname+"&image_clean="+clean_fname+"&image_full_disk="+full_disk_bp_fname
+	resp="_id="+string(data._id)+"&image_bp="+bp_fname+"&image_fwdfit="+vis_fwdfit_fname+"&image_em="+em_fname+"&image_clean="+clean_fname+"&image_full_disk="+full_disk_bp_fname
 	
 	ret=obj->Put(resp, /buffer, /post, url=url_post)
 	print, "done"

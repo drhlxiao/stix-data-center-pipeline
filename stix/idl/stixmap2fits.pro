@@ -44,6 +44,8 @@
    endif
    if trim(dext) eq '' then fext='.fits' else fext=dext
    filename=concat_dir(fdir,dfile)+fext
+   filename=filename.Replace("'","")
+   
    if verbose then message,'Writing map to - '+filename,/info
    use_rtime=tag_exist(map,'rtime')
    in_tags=tag_names(map)
