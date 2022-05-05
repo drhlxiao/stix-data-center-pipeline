@@ -20,9 +20,11 @@ from sunpy.map import make_fitswcs_header
 from sunpy.coordinates.frames import HeliocentricEarthEcliptic,HeliographicStonyhurst
 
 from stix.flare_pipeline import lightcurves
+from stix.core import mongo_db as db
 
-
+mdb = db.MongoDB()
 flare_images_db= mdb.get_collection('flare_images')
+
 SMALL_SIZE = 8
 matplotlib.rc('font', size=SMALL_SIZE)
 matplotlib.rc('axes', titlesize=SMALL_SIZE)

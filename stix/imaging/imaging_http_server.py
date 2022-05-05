@@ -31,6 +31,7 @@ def update_request():
     _id=int(data['_id'].strip())
     fits={key: value.strip() for key,value in data.items() if key!='_id'}
     db=mdb.get_collection('flare_images')
+    print("Updating: ", _id)
     db.update_one({'_id':_id},{'$set':{'fits':fits, 'num_idl_calls':1, 'idl_status':True}}, upsert=False) 
     res={'success':True}
     return jsonify(res)
