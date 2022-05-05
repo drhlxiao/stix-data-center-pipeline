@@ -87,6 +87,8 @@ WHILE (1 ne 0) DO BEGIN
 	
 	ret=obj->Put(resp, /buffer, /post, url=url_post)
 	print, "done"
+	print, "Executing image creator..."
+	SPAWN, "/usr/bin/python3 /opt/stix/parser/stix/imaging/image_viewer.py " + string(data._id)
 ENDWHILE 
 return, 1
 END

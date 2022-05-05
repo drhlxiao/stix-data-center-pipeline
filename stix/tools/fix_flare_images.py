@@ -20,6 +20,7 @@ for doc in flare_images_db.find():
         sun_center=[0,0]
         pointing_valid=False
     start=ut.utc2filename(obs_utc)
+    rsun=np.degrees(np.arctan(stix_aux['rsun']/stix_aux['solo_sun_r']))
 
     flare_images_db.update_one({'_id':doc['_id']},
             {'$set':
@@ -33,7 +34,8 @@ for doc in flare_images_db.find():
             'fwdfit_shape': 'ellipse' if doc['energy_range'][1]<15 else 'multi'
             },
         "creation_time":datetime.now(),
-        "aux.dsun":(doc["aux"]['solo_sun_r']*u.au).to(u.m).value,
+        "aux.dsun":stix_aux['solo_sun_r'],
+        "aux.rsun":rsun*3600,
         "aux.sun_center": sun_center,
         "aux.has_pointing": pointing_valid
         }})
