@@ -6,7 +6,6 @@ obj = IDLnetUrl()
 i=0
 
 WHILE (1 ne 0) DO BEGIN
-	print, 'Loop '+i+'...'
 	i++
 	print, url_request
 	json= wget(url_request,/string_array)
@@ -18,6 +17,19 @@ WHILE (1 ne 0) DO BEGIN
 		continue
 	endif
 
+   CATCH, Error_status
+ 
+   ;This statement begins the error handler:
+   IF Error_status NE 0 THEN BEGIN
+      PRINT, 'Error index: ', Error_status
+      PRINT, 'Error message: ', !ERROR_STATE.MSG
+      ; Handle the error by extending A:
+		resp="_id="+string(data._id)+"&error=yes"
+		ret=obj->Put(resp, /buffer, /post, url=url_post)
+	  continue
+      CATCH, /CANCEL
+   ENDIF
+ 
 
 	data_folder=data.idl_config.folder
 	outfile_prefix=data.idl_config.folder+"/"+data.idl_config.prefix

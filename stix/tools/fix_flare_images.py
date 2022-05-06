@@ -1,4 +1,5 @@
 
+import numpy as np
 from stix.core import mongo_db as db
 import astropy.units as u
 from datetime import datetime

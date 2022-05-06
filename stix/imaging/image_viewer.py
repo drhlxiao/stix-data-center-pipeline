@@ -35,7 +35,8 @@ matplotlib.rc('font', size=SMALL_SIZE)
 matplotlib.rc('axes', titlesize=SMALL_SIZE)
 matplotlib.rcParams['axes.titlepad']=35
 
-CMAP='RdPu' #color map
+CMAP='hot' #color map
+GRID_COLOR='w'
 def create_images(_id):
     doc=flare_images_db.find_one({'_id':_id})
     if doc:
@@ -116,11 +117,11 @@ def plot_stix_images(doc ):
                     cmap=CMAP,
                     axes=ax_mbp_full, title="")#  title="Back-projection (full)",)
 
-    mbp_full.draw_grid(color='k', ls='--', grid_spacing=10*u.deg)
-    mbp_full.draw_limb(axes=ax_mbp_full, color='k',alpha=0.5)
+    mbp_full.draw_grid(color=GRID_COLOR, ls='--', grid_spacing=10*u.deg)
+    mbp_full.draw_limb(axes=ax_mbp_full, color=GRID_COLOR,alpha=0.5)
 
     ax_mbp_full.text(text_xy[0], text_xy[1],'Back-projection (full)',
-     horizontalalignment='center',   verticalalignment='center',    transform = ax_mbp_full.transAxes)
+     horizontalalignment='center',   verticalalignment='center',    transform = ax_mbp_full.transAxes, color=GRID_COLOR)
 
 
     mbp=sunpy.map.Map(doc_fits['image_bp'])
@@ -128,11 +129,11 @@ def plot_stix_images(doc ):
     mbp.plot(  cmap=CMAP,
                     axes=ax_mbp,  title="")
 
-    mbp.draw_grid(color='k', ls='--', grid_spacing=10*u.deg)
-    mbp.draw_limb(axes=ax_mbp, color='k',alpha=0.5)
+    mbp.draw_grid(color=GRID_COLOR, ls='--', grid_spacing=10*u.deg)
+    mbp.draw_limb(axes=ax_mbp, color=GRID_COLOR,alpha=0.5)
 
     ax_mbp.text(text_xy[0], text_xy[1],'Back-projection',
-     horizontalalignment='center',   verticalalignment='center',    transform = ax_mbp.transAxes)
+     horizontalalignment='center',   verticalalignment='center',    transform = ax_mbp.transAxes, color=GRID_COLOR)
 
     mv=mbp.max()
     cs=mbp.draw_contours([0.5*mv])
@@ -148,11 +149,11 @@ def plot_stix_images(doc ):
     mclean.plot( cmap=CMAP,
                     axes=ax_clean, title="")
 
-    mclean.draw_grid(color='k', ls='--', grid_spacing=10*u.deg)
-    mclean.draw_limb(axes=ax_clean, color='k',alpha=0.5)
+    mclean.draw_grid(color=GRID_COLOR, ls='--', grid_spacing=10*u.deg)
+    mclean.draw_limb(axes=ax_clean, color=GRID_COLOR,alpha=0.5)
 
     ax_clean.text(text_xy[0], text_xy[1],'BP CLEAN',
-     horizontalalignment='center',   verticalalignment='center',    transform = ax_clean.transAxes)
+     horizontalalignment='center',   verticalalignment='center',    transform = ax_clean.transAxes, color=GRID_COLOR)
 
 
     mem=sunpy.map.Map(doc_fits['image_em'])
@@ -161,21 +162,21 @@ def plot_stix_images(doc ):
     mem.plot( cmap=CMAP, axes=ax_em, title="")
 
 
-    mem.draw_grid(color='k', ls='--', grid_spacing=10*u.deg)
-    mem.draw_limb(axes=ax_em, color='k',alpha=0.5)
+    mem.draw_grid(color=GRID_COLOR, ls='--', grid_spacing=10*u.deg)
+    mem.draw_limb(axes=ax_em, color=GRID_COLOR,alpha=0.5)
     ax_em.text(text_xy[0], text_xy[1],'EM',
-     horizontalalignment='center',   verticalalignment='center',    transform = ax_em.transAxes)
+     horizontalalignment='center',   verticalalignment='center',    transform = ax_em.transAxes, color=GRID_COLOR)
 
 
     mfwd=sunpy.map.Map(doc_fits['image_fwdfit'])
     ax_fwd= fig.add_subplot(236, projection=mfwd)
     mfwd.plot( cmap=CMAP, axes=ax_fwd, title="")
 
-    mfwd.draw_grid(color='k', ls='--', grid_spacing=10*u.deg)
-    mfwd.draw_limb(axes=ax_fwd, color='k',alpha=0.5)
+    mfwd.draw_grid(color=GRID_COLOR, ls='--', grid_spacing=10*u.deg)
+    mfwd.draw_limb(axes=ax_fwd, color=GRID_COLOR,alpha=0.5)
 
     ax_fwd.text(text_xy[0], text_xy[1],'Forward-fit',
-     horizontalalignment='center',   verticalalignment='center',    transform = ax_fwd.transAxes)
+     horizontalalignment='center',   verticalalignment='center',    transform = ax_fwd.transAxes, color=GRID_COLOR)
 
 
     img_fname=os.path.join(doc['idl_config']['folder'],f'{doc["idl_config"]["prefix"]}.png')
