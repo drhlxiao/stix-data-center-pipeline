@@ -40,7 +40,7 @@ def update_request():
     db.update_one({'_id':_id},{'$set':{'fits':fits, 'num_idl_calls':1, 'idl_status':idl_status}}, upsert=False) 
     res={'success':True}
     return jsonify(res)
-def run_server()
+def run_server():
     app.run(port='8022')
 if __name__=='__main__':
     run_server()
