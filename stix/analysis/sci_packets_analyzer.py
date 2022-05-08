@@ -1,12 +1,13 @@
 #!/usr/bin/python3
 '''
     Pre-process science data, extract information from bulk science data packets and write results to json files or mongodb
-    so that web client side could load the data quickly 
+    so that web browsers load pixel data quicker 
     author: Hualin Xiao
 '''
 import sys
 import os
 import json
+from zipfile import ZipFile
 import numpy as np
 from datetime import datetime
 from stix.core import datatypes as sdt
@@ -759,6 +760,16 @@ def process_science_request_doc(doc):
         with open(json_filename, 'w') as outfile:
             json.dump(result, outfile)
             logger.info(f'data written to file {json_filename}')
+            """
+            the file will be used by stix data center web page
+            Now we write the data to a zip to reduce the size to be transfer to web browsers, this requires ngnix adding gzip on 
+            """
+        zip_filename=json_filename+'.zip'
+        try:
+            ZipFile(zip_filename, 'w').write(json_filename)
+        except Exception as e:
+            logger.error(str(e));
+
         bsd_collection.update_one({'_id': doc['_id']}, {'$set':{'level1': json_filename, 
             'start_unix':start_unix, 'end_unix':end_unix, 'synopsis':synopsis}})
 

@@ -26,7 +26,7 @@ from stix.analysis import sci_packets_analyzer
 from stix.analysis import integration_time_estimator
 from stix.analysis import flare_goes_class as fgc
 from stix.analysis import goes_downloader as gdl
-from stix.flare_pipeline import imaging_task_manager as itm
+from stix.imaging import imaging_task_manager as itm
 
 
 from stix.analysis import monitor

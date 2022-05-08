@@ -1,6 +1,7 @@
 #!/usr/bin/python
 """
     Process ScienceL1 fits file
+    used by preview image creation software
     Author: Hualin Xiao (hualin.xiao@fhnw.ch)
     Date: Sep. 1, 2021
 """
