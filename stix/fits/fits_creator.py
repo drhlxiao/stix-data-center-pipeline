@@ -116,6 +116,7 @@ def _create_fits_for_packets(file_id, packets, spid, product, is_complete,
     if not packets:
         print('No packets found!')
         return
+    logger.info('Merging packets...')
 
     parsed_packets = sdt.Packet.merge(packets, spid, value_type='raw', remove_duplicates=remove_duplicates)
     #eng_packets = sdt.Packet.merge(packets, spid, value_type='eng',remove_duplicates=remove_duplicates)
@@ -233,7 +234,6 @@ def purge_fits_for_raw_file(file_id):
                 logger.info(f'Removing file: {fits_filename}')
                 os.unlink(fits_filename)
             except Exception as e:
-                #raise
                 logger.warning(f'Failed to remove fits file:{fits_filename} due to: {str(e)}')
         logger.info(f'deleting fits collections for file: {file_id}')
         cursor = fits_collection.delete_many({'file_id': int(file_id)})
@@ -345,7 +345,6 @@ def create_fits(file_id, output_path, overwrite=True,  version=1):
         #if spid==54118:
         logger.info(f'Querying packets for SPID: {spid}')
         product = SPID_MAP[spid]
-
         if spid in SCI_REPORT_SPIDS:
             #cursor=self.collection_packets.find({'_id':{'$in':pids}}).sort('header.unix_time',1)
             bsd_docs=db.get_bsd_docs_by_run_id(file_id, spid)
@@ -487,6 +486,7 @@ if  __name__ == '__main__':
     if args['bsd_id']:
         bsd_id_start=int(args['bsd_id'])
         bsd_id_end=bsd_id_start
+        logger.info(f'Creating fits for bsd #{bsd_id_start}')
         create_fits_for_bulk_science(bsd_id_start, bsd_id_end, path, overwrite=True, version=1)
     if args['bsd_id_range']:
         bsd_id_start=int(args['bsd_id_range'][0])

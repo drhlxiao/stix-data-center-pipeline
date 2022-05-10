@@ -35,9 +35,9 @@ try:
         collection_bsd.create_index(index)
 
 
-    indexes=[[('idl_status',1)], [('bsd_id',1)], [('start_unix',1)],[('num_idl_calls',1), [('task_id',1)], [('figs',1)]]]
+    indexes=['idl_status','bsd_id', 'start_unix', 'num_idl_calls', 'task_id', 'figs', 'hidden', 'author']
     for index in indexes:
-        collection_flare_images.create_index(index)
+        collection_flare_images.create_index({index:1})
 
     indexes=[[('goes.peak_flux',1)], 
             [('peak_counts',1)], 

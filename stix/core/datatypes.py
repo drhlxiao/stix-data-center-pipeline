@@ -320,6 +320,9 @@ class Packet(object):
         min_id = math.inf
         max_id = -math.inf
         pkt_len = 0
+        
+        seg_flag_counter={0:0,1:0,2:0,3:0}
+
 
         for pkt in packets:
             if remove_duplicates:
@@ -335,6 +338,13 @@ class Packet(object):
             min_id = min(min_id, pkt['_id'])
             max_id = max(max_id, pkt['_id'])
             pkt_len += 1
+            if set(SPIDs).intersection([54115, 54143]): #l1 or L4 report, Hualin 2022-05-10, fix issues for data that generated twice (included into different IORs)
+                seg_flag_counter[pkt['header']['seg_flag']]+=1
+                if seg_flag_counter[1] >1 or seg_flag_counter[2]>1:
+                    logger.warning(f'{pkt["_id"]} ignored, might be a duplicated requests')
+                    continue
+
+
 
             Packet.merge_headers(result, pkt['header'])
             Packet.merge_parameters(result, pkt['parameters'], value_type)

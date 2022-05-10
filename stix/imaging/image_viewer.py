@@ -168,6 +168,10 @@ def plot_stix_images(doc ):
      horizontalalignment='center',   verticalalignment='center',    transform = ax_em.transAxes, color=GRID_COLOR)
 
 
+    try:
+        fwdshape=f"({doc['idl_config']['fwdfit_shape']})"
+    except (KeyError, TypeError):
+        fwdshape=''
     mfwd=sunpy.map.Map(doc_fits['image_fwdfit'])
     ax_fwd= fig.add_subplot(236, projection=mfwd)
     mfwd.plot( cmap=CMAP, axes=ax_fwd, title="")
@@ -175,7 +179,7 @@ def plot_stix_images(doc ):
     mfwd.draw_grid(color=GRID_COLOR, ls='--', grid_spacing=10*u.deg)
     mfwd.draw_limb(axes=ax_fwd, color=GRID_COLOR,alpha=0.5)
 
-    ax_fwd.text(text_xy[0], text_xy[1],'Forward-fit',
+    ax_fwd.text(text_xy[0], text_xy[1],f'Forward-fit {fwdshape}',
      horizontalalignment='center',   verticalalignment='center',    transform = ax_fwd.transAxes, color=GRID_COLOR)
 
 

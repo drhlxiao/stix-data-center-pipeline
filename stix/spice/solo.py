@@ -642,11 +642,11 @@ class SoloEphemeris(object):
                 'frame1':frame1, 'ref_frame':ref_frame, 'units':'deg'}
         return res
     @staticmethod
-    def to_stix_frame(rtn_coord, cmat_inv):
+    def to_stix_frame(rtn_coord, cmat):
         """
         Sun center to STIX coordinates 
         """
-        new_coord=np.dot(cmat_inv,rtn_coord)
+        new_coord=np.dot(cmat,rtn_coord)
         solo_r=np.sqrt(np.sum(rtn_coord**2))
         x_arcsec=np.arctan(new_coord[1]/solo_r )*180*3600/np.pi
         y_arcsec=np.arctan(new_coord[2]/solo_r )*180*3600/np.pi
@@ -753,11 +753,11 @@ class SoloEphemeris(object):
 
         limbs=[[sun_loc.to(u.m).value, rsun*np.cos(theta), rsun*np.sin(theta)] for theta in np.linspace(0,2*np.pi, 50)
                 ]
-        sun_center_stix_frame=SoloEphemeris.to_stix_frame(sun_center, cmat_inv)
+        sun_center_stix_frame=SoloEphemeris.to_stix_frame(sun_center, cmat)
 
-        nsew_stix_frame=[SoloEphemeris.to_stix_frame(np.array(loc), cmat_inv) for loc in nsew_coords]
+        nsew_stix_frame=[SoloEphemeris.to_stix_frame(np.array(loc), cmat) for loc in nsew_coords]
 
-        limbs_stix_frame=np.array([SoloEphemeris.to_stix_frame(np.array(loc), cmat_inv) for loc in limbs])
+        limbs_stix_frame=np.array([SoloEphemeris.to_stix_frame(np.array(loc), cmat) for loc in limbs])
 
         sun_outside_stix_fov=False if np.max(np.abs(limbs_stix_frame))<3600 else True
         pitch = -pitch
