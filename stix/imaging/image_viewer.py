@@ -35,7 +35,7 @@ matplotlib.rc('font', size=SMALL_SIZE)
 matplotlib.rc('axes', titlesize=SMALL_SIZE)
 matplotlib.rcParams['axes.titlepad']=35
 
-CMAP='hot' #color map
+CMAP='std_gamma_2' #color map
 GRID_COLOR='w'
 def create_images(_id):
     doc=flare_images_db.find_one({'_id':_id})
@@ -135,9 +135,7 @@ def plot_stix_images(doc ):
     ax_mbp.text(text_xy[0], text_xy[1],'Back-projection',
      horizontalalignment='center',   verticalalignment='center',    transform = ax_mbp.transAxes, color=GRID_COLOR)
 
-    mv=mbp.max()
-    cs=mbp.draw_contours([0.5*mv])
-    plt.clabel(cs, inline=1,  fmt={0.5*mv:'50%'})
+    cs=mbp.draw_contours([0.2, 0.5, 0.8]*u.percenter)
     
 
 
