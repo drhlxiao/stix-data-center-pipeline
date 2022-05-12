@@ -197,20 +197,39 @@ class ScienceL1(ScienceData):
 
         self.time_bins_low=self.time-0.5*self.timedel+self.T0_unix
         self.time_bins_high=self.time+0.5*self.timedel+self.T0_unix
+    
 
-    def get_total_counts(self, emin_sci:int, emax_sci:int, unix_start, unix_end):
+    def get_peak_time_and_counts(self, emin_sci:int, emax_sci:int, integration_time:float, start=None, end=None):
+        """
+            find the peak time and integrate counts 
+        """
+
         counts=np.sum(self.spectrogram[:,emin_sci:emax_sci], axis=1)
-        if unix_end is None or unix_end is None:
-            return np.sum(counts)
-        total_counts=np.sum(counts[ (self.time_bins_low >=unix_start) & (self.time_bins_high <= unix_end)])
-        return total_counts
+        if counts.size==0:
+            return None, None, None
+
+        if start is None or end is None:
+            #use the peak time
+            max_idx = np.argmax(counts)
+            #max_rate =np.max(counts)/self.timedel[max_idx]
+            peak_time_bin=[ self.time_bins_low[max_idx], self.time_bins_high[max_idx]]
+            peak_time=(peak_time_bin[0]+peak_time_bin[1])/2.
+            if peak_time_bin[1]-peak_time_bin[0] >= integration_time:
+                #one time bin requests
+                start,end=peak_time_bin
+            else:
+                start = max(peak_time-integration_time/2, self.time_bins_low[0])
+                end = min(peak_time+integration_time/2, self.time_bins_high[-1])
 
 
-    def get_time_ranges_for_imaging(self, imaging_energies, flare_unix_time_ranges, min_counts=3000, integration_time = 60, time_step=300):
+        total_counts=np.sum(counts[ (self.time_bins_low >=start) & (self.time_bins_high <= end)])
+        return start, end, total_counts
+    
+
+
+    def get_time_ranges_for_imaging(self, flare_time_ranges,  imaging_energies,  min_counts=3000, integration_time = 60):
         """
         determine time ranges for imaging
-            flare_unix_time_ranges: list
-                flare time ranges
             elow_keV: float
                 energy range lower limit
             ehigh_keV: float
@@ -218,13 +237,9 @@ class ScienceL1(ScienceData):
             min_counts: int
                 minimum counts per bin
             """
-
-
         boxes=[]
-        if not flare_unix_time_ranges:
-            return []
-
         sci_energy_ranges=[]
+
         for energy_range in imaging_energies:
             elow_sci, emax_sci=self.energy_to_index(energy_range[0], energy_range[1])
             if elow_sci is None or emax_sci is None:
@@ -233,51 +248,34 @@ class ScienceL1(ScienceData):
 
         time_ranges = []
 
-
-        duration = self.time[-1]+ 0.5* self.timedel[-1]-(self.time[0]+ 0.5* self.timedel[0])
-        if duration <= integration_time or len(self.timedel)==1:
-            # duration too short or only one time bin
-            start = self.time[0]- 0.5* self.timedel[0] + self.T0_unix
-            end = self.time[-1]+ 0.5* self.timedel[-1] +self.T0_unix
-            time_ranges= [[start, end]]
-        else:
-            for flare_time in flare_unix_time_ranges:
-                #only select flaring times
-                start, peak, end = flare_time
-                time_ranges.append( [start, end]) #flare  whole time range
-
-                peak= peak if peak is not None else start
-                if peak is not None:
-                    #every time_step
-                    t=peak
-                    while t-integration_time/2 >= start :
-                        time_ranges.append( [t-integration_time/2., t+integration_time/2.])
-                        t = t - time_step
-                t=peak
-                print('Peak time:', sdt.unix2utc(peak))
-                while t+integration_time/2. <= end :
-                    time_ranges.append( [t-integration_time/2., t+integration_time/2.])
-                    t = t + time_step
-        
-
-        for flare_time in time_ranges:
-            #only select flaring times
-            start, end = flare_time
-
-            total_counts = [0]*len(imaging_energies)
-            
-            for i, sci_range in enumerate(sci_energy_ranges):
-                if sci_range:
-                    total_counts[i]= self.get_total_counts(sci_range[0], sci_range[1], start, end)
-                    #don't make images if count rate too low 
-                #both energies don't have counts
-            boxes.append({
-                'total_counts':  total_counts,
-                'counts_enough':  [bool(x>min_counts) for x in total_counts],
-                    'energy_range_sci': sci_energy_ranges,
-                    'energy_range_keV': imaging_energies,
+        for i, sci_range in enumerate(sci_energy_ranges):
+            start, end, total_counts =self.get_peak_time_and_counts( sci_range[0], sci_range[1], integration_time)
+            if start is None:
+                continue
+            if total_counts>min_counts:
+                boxes.append({
+                    'total_counts':  total_counts,
+                    'energy_range_sci': sci_range,
+                    'energy_range_keV': imaging_energies[i],
                     'unix_time_range': [start,  end],
                     'utc_range': [sdt.unix2utc(start),  sdt.unix2utc(end)]})
+            else:
+                #this might be a small flare, take the whole time period
+                for flare in flare_time_ranges:
+                    if flare['peak']:
+                        #try again
+                        start, end, total_counts =self.get_peak_time_and_counts(sci_range[0], sci_range[1], integration_time, flare['start'],flare['end'])
+                        if total_counts>min_counts:
+                            boxes.append({
+                                'total_counts':  total_counts,
+                                'energy_range_sci': sci_range,
+                                'energy_range_keV': imaging_energies[i],
+                                'unix_time_range': [start,  end],
+                                'utc_range': [sdt.unix2utc(start),  sdt.unix2utc(end)]})
+
+
+
+
         return boxes
 
                 

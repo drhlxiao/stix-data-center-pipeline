@@ -24,7 +24,6 @@ from sunpy import map
 from stix.core import config
 from stix.core import mongo_db as db
 from stix.analysis.science_l1 import ScienceL1
-from stix.flare_pipeline import image_viewer as imv
 
 from stix.core import logger
 from stix.spice import solo
@@ -70,7 +69,6 @@ def register_imaging_task_for_science_data(bsd_ids=[]):
 def queue_imaging_tasks(doc,
         min_counts=MIN_COUNTS,
         duration=60,
-        interval=600,
         energy_bands=[[4, 10], [16, 28]],
         bkg_max_day_off=60):
     """
@@ -81,8 +79,6 @@ def queue_imaging_tasks(doc,
             minimal counts per time bin
         min_duration: float
             minimal time per bin
-        interval: float
-            time interval between two selected time periods
         duration: float
             integration time in units of seconds
     """
@@ -129,8 +125,6 @@ def queue_imaging_tasks(doc,
         return
 
     last_bkg_fits_doc[0]=bkg_fits
-
-
     try:
         signal_utc = stu.unix2utc((bsd_start_unix + bsd_end_unix) / 2.)
         B0, L0, roll, rsun, dsun, solo_hee, solo_sun_r, sun_center= solo.SoloEphemeris.get_ephemeris_for_imaging(
@@ -138,33 +132,27 @@ def queue_imaging_tasks(doc,
     except ValueError:
         logger.warning(f'No ephemeris data found for {bsd_id} (uid {uid})')
         return
-    sun_center=ephem['sun_center']
+    #sun_center=ephem['sun_center']
 
     #find flares in the time frame
-    bsd_flare_time_ranges = [[
-        x['start_unix'] if x['start_unix'] > bsd_start_unix else
-        bsd_start_unix, x['peak_unix_time']
-        if bsd_start_unix <= x['peak_unix_time'] <= bsd_end_unix else None,
-        x['end_unix'] if x['end_unix'] < bsd_end_unix else bsd_end_unix
-        ] for x in mdb.find_flares_by_time_range(bsd_start_unix, bsd_end_unix)]
-
-    if not bsd_flare_time_ranges:
-        logger.warning(f'No flares found for {bsd_id} (uid {uid})')
-        return
     try:
         l1 = ScienceL1.from_fits(fname)
     except IndexError:
         logger.warning(f'Failed to read fits file for BSD # {bsd_id} (uid {uid})')
         return
-
     bkg_fname = os.path.join(bkg_fits['merg'][0]['path'],
             bkg_fits['merg'][0]['filename'])
-    if not bsd_flare_time_ranges:
-        logger.warning(f'No flares found for {bsd_id} (uid {uid})')
-        return
-    #(bsd_flare_time_ranges, energy_bands)
-    boxes = l1.get_time_ranges_for_imaging(energy_bands,
-            bsd_flare_time_ranges, min_counts, duration, interval)
+
+
+    bsd_flare_time_ranges =[ {
+        'start': max(x['start_unix'],  bsd_start_unix),  
+        'peak':  x['peak_unix_time']  if bsd_start_unix <= x['peak_unix_time'] <= bsd_end_unix else None,
+        'end':  min(x['end_unix'],  bsd_end_unix)
+            } for x in mdb.find_flares_by_time_range(bsd_start_unix, bsd_end_unix)]
+
+    boxes = l1.get_time_ranges_for_imaging(bsd_flare_time_ranges, energy_bands, min_counts, duration )
+    #two energies at the peak
+
     if boxes is None:
         logger.warning(f'No boxes selected for BSD {bsd_id} (uid {uid})')
         return
@@ -172,25 +160,22 @@ def queue_imaging_tasks(doc,
     flare_image_ids=[]
 
     for box in boxes:
-        for ie, energy in enumerate(energy_bands):
-            energy_range_str='-'.join([str(x) for x in energy])
-            start_utc_str=stu.utc2filename(box['utc_range'][0])
-            fits_prefix = f'stix_ql_image_sci_{bsd_id}_uid_{uid}_{energy_range_str}keV_{start_utc_str}_{flare_image_id}'
-
-            folder=os.path.join(quicklook_path, str(uid))
-            if not os.path.exists(folder):
-                os.makedirs(folder)
-            if box['counts_enough'][ie]:
-                task_id= uuid.uuid4().hex[0:10]
-                num_images += 1
-                config={
+        energy_range_str=f'{box["energy_range_keV"][0]}-{box["energy_range_keV"][1]}'
+        start_utc_str=stu.utc2filename(box['utc_range'][0])
+        fits_prefix = f'stix_ql_image_sci_{bsd_id}_uid_{uid}_{energy_range_str}keV_{start_utc_str}_{flare_image_id}'
+        folder=os.path.join(quicklook_path, str(uid))
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        task_id= uuid.uuid4().hex[0:10]
+        num_images += 1
+        config={
                     'filename': fname,
                     'bsd_id': doc['_id'],
+                    'raw_file_id':doc['run_id'],
                     'unique_id': uid,
                     'task_id':task_id,
                     'author':'bot',
                     'hidden':False,
-                    'idl_args':idl_args, 
                     'num_idl_calls':0,
                     'run_type':'auto',
                     'idl_status':'',
@@ -211,26 +196,25 @@ def queue_imaging_tasks(doc,
                         },
                     'start_unix': box['unix_time_range'][0],
                     'end_unix': box['unix_time_range'][1],
-                    'energy_range': energy, #energy in time 
+                    'energy_range': box["energy_range_keV"], #energy in time 
                     'utc_range':box['utc_range'],
-                    'total_counts':box['total_counts'][ie],
-                    'idl_config':{'folder':folder,  'prefix':fits_prefix, 'fwdfit_shape':'ellipse' if energy[1] <15 else 'multi'},
+                    'total_counts':box['total_counts'],
+                    'idl_config':{'folder':folder,  'prefix':fits_prefix, 'fwdfit_shape':'ellipse' if box["energy_range_keV"][1] <16 else 'multi'},
                     'fits':{},
                     'figs':{}
-                    }
+                }
 
-                imaging_inputs = bson.dict_to_json(config)
-                imaging_inputs['creation_time']=datetime.now()
-                logger.info(f"Inserting data into db for bsd #{bsd_id} ")
-                imaging_inputs['_id']=flare_image_id
-                flare_image_ids.append(flare_image_id)
-                mdb.insert_flare_image(imaging_inputs)
-                flare_image_id+=1
+        imaging_inputs = bson.dict_to_json(config)
+        imaging_inputs['creation_time']=datetime.now()
+        logger.info(f"Inserting data into db for bsd #{bsd_id} ")
+        imaging_inputs['_id']=flare_image_id
+        flare_image_ids.append(flare_image_id)
+        mdb.insert_flare_image(imaging_inputs)
+        flare_image_id+=1
     logger.info(f'{num_images} images will be created')
     if num_images > 0:
         bsd_db.update_one({'_id':doc['_id']},{'$set':{'flare_image_ids': flare_image_ids}}, upsert=False)
         #push 
-
 
 def register_imaging_tasks_for_file(file_id):
     """

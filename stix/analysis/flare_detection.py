@@ -42,20 +42,6 @@ def info(msg):
     logger.info(msg)
 
 
-#def merge_intervals(x):
-#    #sort the intervals by its first value
-#    x.sort(key=lambda x: x[0])
-#    m = []
-#    m.append(x[0])
-#    overlaps = lambda a, b: b[0] > a[0] and b[0] < a[1]
-#    for i in range(1, len(x)):
-#        pm = m.pop()
-#        if overlaps(pm, x[i]):
-#            m.append((pm[0], max(pm[1], x[i][1])))
-#        else:
-#            m.append(pm)
-#            m.append(x[i])
-#    return m
 def find_flare_time_ranges(lc_times, lc_counts, peaks, props, threshold=270):
     """
      calculate peak width at height 

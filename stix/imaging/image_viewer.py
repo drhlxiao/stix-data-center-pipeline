@@ -135,7 +135,7 @@ def plot_stix_images(doc ):
     ax_mbp.text(text_xy[0], text_xy[1],'Back-projection',
      horizontalalignment='center',   verticalalignment='center',    transform = ax_mbp.transAxes, color=GRID_COLOR)
 
-    cs=mbp.draw_contours([0.2, 0.5, 0.8]*u.percenter)
+    cs=mbp.draw_contours([0.2, 0.5, 0.8]*u.percent)
     
 
 

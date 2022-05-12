@@ -314,6 +314,7 @@ class StixBulkL1L2Analyzer(object):
         group = {}
         last_time_bin = 0
         #print('start processing packets', cursor.count())
+        current_time = 0
         for pkt in cursor:
             #print('flare start')
             if pkt['hash'] in hash_list:
@@ -324,6 +325,13 @@ class StixBulkL1L2Analyzer(object):
             self.request_id = packet[3].raw
             self.packet_unix = packet['unix_time']
             T0 = time_utils.scet2unix(packet[12].raw)
+
+            if T0 < current_time:
+                logger.warning("Time stamps roll back, ignored")
+                continue
+            current_time = T0
+
+
 
             if ipkt==0:
                 _, _, flare_start_times,flare_end_times, peak_counts=self.get_flare_times(T0, MAX_L1_REQ_DURATION)
