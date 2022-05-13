@@ -17,7 +17,8 @@
 ;
 ; Comments    : Based on map2fits in sswidl, but adapted for STIX images
 ; History     : 05-04-2022, Hualin Xiao
-;                - modified ssw map2fits 
+;                - copied map2fits from ssw and add more keywords to the 
+;                  header to make generated fits files be compatible with sunpy.map
 
 ;
 

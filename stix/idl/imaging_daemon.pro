@@ -13,7 +13,7 @@ WHILE (1 ne 0) DO BEGIN
 	wait, 1
 	i++
 	if (data.pending eq 0) then  begin
-		wait, 10
+		wait, 20
 		continue
 	endif
 

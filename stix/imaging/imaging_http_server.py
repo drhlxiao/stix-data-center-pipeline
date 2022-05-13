@@ -22,6 +22,7 @@ def get_last_pending_request():
     if docs:
         res=docs[0] 
         res['pending']=1
+    print(res)
     return jsonify(res) 
 @app.route('/request/imaging/task/update', methods=['POST', 'GET'])
 def update_request():
@@ -37,11 +38,12 @@ def update_request():
         fits={key: value.strip() for key,value in data.items() if key!='_id'}
         idl_status=True
         print("Updating: ", _id)
-    db.update_one({'_id':_id},{'$set':{'fits':fits, 'num_idl_calls':1, 'idl_status':idl_status}}, upsert=False) 
+
+    db.update_one({'_id':_id},{'$set':{'fits':fits, 'processing_date':datetime.now(),'num_idl_calls':1, 'idl_status':idl_status}}, upsert=False) 
     res={'success':True}
     return jsonify(res)
-def run_server():
-    app.run(port='8022')
+def run_server(port=8022):
+    app.run(port=port)
 if __name__=='__main__':
     run_server()
 

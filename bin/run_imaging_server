@@ -2,4 +2,4 @@
 # @author       : Hualin Xiao
 # @date         : May. 11, 2021
 from stix.imaging import imaging_http_server as s
-s.run_server()
+s.run_server(port=8022)

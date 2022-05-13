@@ -315,6 +315,8 @@ class StixBulkL1L2Analyzer(object):
         last_time_bin = 0
         #print('start processing packets', cursor.count())
         current_time = 0
+        segs=[0]*4
+
         for pkt in cursor:
             #print('flare start')
             if pkt['hash'] in hash_list:
@@ -330,6 +332,11 @@ class StixBulkL1L2Analyzer(object):
                 logger.warning("Time stamps roll back, ignored")
                 continue
             current_time = T0
+
+            segs[pkt['header']['seg_flag']]+=1
+            if segs[1]>1 or segs[2]>1:
+                logger.warning("Duplicated requests or duplicated data, ignore")
+                break
 
 
 

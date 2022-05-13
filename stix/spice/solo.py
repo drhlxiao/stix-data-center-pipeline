@@ -743,15 +743,16 @@ class SoloEphemeris(object):
 
         sun_loc=np.sqrt(np.sum(positions**2))
         rsun=const.R_sun.to(u.m).value
-        sun_center=np.array([sun_loc.to(u.m).value, 0, 0])
+        x_sun=-sun_loc.to(u.m).value
+        sun_center=np.array([x_sun, 0, 0])
         nsew_coords=[
-                [sun_loc.to(u.m).value, 0, rsun],
-                [sun_loc.to(u.m).value, 0, -rsun],
-                [sun_loc.to(u.m).value,  -rsun,0],
-                [sun_loc.to(u.m).value,  rsun,0],
+                [x_sun 0, rsun],
+                [x_sun, 0, -rsun],
+                [x_sun,  -rsun,0],
+                [x_sun,  rsun,0],
                        ]
 
-        limbs=[[sun_loc.to(u.m).value, rsun*np.cos(theta), rsun*np.sin(theta)] for theta in np.linspace(0,2*np.pi, 50)
+        limbs=[[x_sun, rsun*np.cos(theta), rsun*np.sin(theta)] for theta in np.linspace(0,2*np.pi, 50)
                 ]
         sun_center_stix_frame=SoloEphemeris.to_stix_frame(sun_center, cmat)
 
