@@ -8,7 +8,7 @@ import math
 from matplotlib import pyplot as plt
 import matplotlib.dates as mdates
 from datetime import datetime
-from pprint import pprint
+pngfrom pprint import pprint
 from stix.core import mongo_db as db
 from stix.core import datatypes as sdt
 from stix.spice import time_utils as ut

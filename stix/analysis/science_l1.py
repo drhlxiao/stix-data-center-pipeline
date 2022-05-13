@@ -41,6 +41,7 @@ class ScienceData():
         self.data = self.hdul['DATA'].data
         self.T0_utc = self.hdul['PRIMARY'].header['DATE_BEG']
         self.counts= self.data['counts']
+        #timebin: detector,pixel, energies
 
         self.light_time_del= self.hdul['PRIMARY'].header['EAR_TDEL']
         self.light_time_corrected=light_time_correction
@@ -58,6 +59,7 @@ class ScienceData():
             print('Shifted time bins have been corrected automatically!')
             if self.data_type=='ScienceL1':
                 self.counts= self.counts[1:, :, :, :]
+
                 self.triggers = self.triggers[1:, :]
                 self.rcr = self.rcr[1:]
             elif self.data_type=='Spectrogram':
@@ -223,7 +225,9 @@ class ScienceL1(ScienceData):
 
 
         total_counts=np.sum(counts[ (self.time_bins_low >=start) & (self.time_bins_high <= end)])
-        return start, end, total_counts
+        pixel_total_counts=np.sum(self.counts[  (self.time_bins_low >=start) & (self.time_bins_high <= end) ,:,:,emin_sci:emax_sci], axis=(0,3))
+        #timebin: detector,pixel, energies
+        return start, end, total_counts,pixel_counts, pixel_total_counts
     
 
 
@@ -249,12 +253,13 @@ class ScienceL1(ScienceData):
         time_ranges = []
 
         for i, sci_range in enumerate(sci_energy_ranges):
-            start, end, total_counts =self.get_peak_time_and_counts( sci_range[0], sci_range[1], integration_time)
+            start, end, total_counts, pixel_counts =self.get_peak_time_and_counts( sci_range[0], sci_range[1], integration_time)
             if start is None:
                 continue
             if total_counts>min_counts:
                 boxes.append({
                     'total_counts':  total_counts,
+                    'pixel_counts':  pixel_counts,
                     'energy_range_sci': sci_range,
                     'energy_range_keV': imaging_energies[i],
                     'unix_time_range': [start,  end],

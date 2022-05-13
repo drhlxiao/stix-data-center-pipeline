@@ -33,7 +33,7 @@ flare_images_db= mdb.get_collection('flare_images')
 SMALL_SIZE = 8
 matplotlib.rc('font', size=SMALL_SIZE)
 matplotlib.rc('axes', titlesize=SMALL_SIZE)
-matplotlib.rcParams['axes.titlepad']=35
+#matplotlib.rcParams['axes.titlepad']=25
 
 CMAP='std_gamma_2' #color map
 GRID_COLOR='w'
@@ -81,7 +81,7 @@ def plot_stix_images(doc ):
     # key should be like "image_xxx"
 
     name_map={'clean':'CLEAN', 
-            'full':'Back-projection (full)', 
+            'full':'Back-projection (full-disk)', 
             'fwd':'Forward-fit',
             'em':'EM', 
             'bp':'Back-projection'}
@@ -106,22 +106,22 @@ def plot_stix_images(doc ):
 
     lightcurves.plot_QL_lc_for_bsd(bsd_id, fill_between_times=[start_utc, end_utc], ax=ax_lc)
 
-    text_xy=[0.3,0.95]
+    text_xy=[0.02,0.95]
 
 
     mbp_full=sunpy.map.Map(doc_fits['image_full_disk'])
 
     ax_mbp_full= fig.add_subplot(232, projection=mbp_full)
 
-    mbp_full.plot(vmin=mbp_full.max()*0.1, 
+    mbp_full.plot(vmin=mbp_full.max()*0.2, 
                     cmap=CMAP,
                     axes=ax_mbp_full, title="")#  title="Back-projection (full)",)
 
     mbp_full.draw_grid(color=GRID_COLOR, ls='--', grid_spacing=10*u.deg)
     mbp_full.draw_limb(axes=ax_mbp_full, color=GRID_COLOR,alpha=0.5)
 
-    ax_mbp_full.text(text_xy[0], text_xy[1],'Back-projection (full)',
-     horizontalalignment='center',   verticalalignment='center',    transform = ax_mbp_full.transAxes, color=GRID_COLOR)
+    ax_mbp_full.text(text_xy[0], text_xy[1],'Back-projection (full-disk)',
+     horizontalalignment='left',   verticalalignment='center',    transform = ax_mbp_full.transAxes, color=GRID_COLOR)
 
 
     mbp=sunpy.map.Map(doc_fits['image_bp'])
@@ -133,10 +133,13 @@ def plot_stix_images(doc ):
     mbp.draw_limb(axes=ax_mbp, color=GRID_COLOR,alpha=0.5)
 
     ax_mbp.text(text_xy[0], text_xy[1],'Back-projection',
-     horizontalalignment='center',   verticalalignment='center',    transform = ax_mbp.transAxes, color=GRID_COLOR)
+     horizontalalignment='left',   verticalalignment='center',    transform = ax_mbp.transAxes, color=GRID_COLOR)
 
-    cs=mbp.draw_contours([0.2, 0.5, 0.8]*u.percent)
     
+    levels=np.array([0.5])
+    cs=mbp.draw_contours(levels*u.percent)
+    clevels =levels*mbp.max()
+    plt.clabel(cs, inline=1,  fmt={x: f'{levels[i]*100:.0f} %%'    for i, x in enumerate(clevels) })
 
 
     mclean=sunpy.map.Map(doc_fits['image_clean'])
@@ -150,8 +153,8 @@ def plot_stix_images(doc ):
     mclean.draw_grid(color=GRID_COLOR, ls='--', grid_spacing=10*u.deg)
     mclean.draw_limb(axes=ax_clean, color=GRID_COLOR,alpha=0.5)
 
-    ax_clean.text(text_xy[0], text_xy[1],'BP CLEAN',
-     horizontalalignment='center',   verticalalignment='center',    transform = ax_clean.transAxes, color=GRID_COLOR)
+    ax_clean.text(text_xy[0], text_xy[1],'CLEAN',
+     horizontalalignment='left',   verticalalignment='center',    transform = ax_clean.transAxes, color=GRID_COLOR)
 
 
     mem=sunpy.map.Map(doc_fits['image_em'])
@@ -163,7 +166,7 @@ def plot_stix_images(doc ):
     mem.draw_grid(color=GRID_COLOR, ls='--', grid_spacing=10*u.deg)
     mem.draw_limb(axes=ax_em, color=GRID_COLOR,alpha=0.5)
     ax_em.text(text_xy[0], text_xy[1],'EM',
-     horizontalalignment='center',   verticalalignment='center',    transform = ax_em.transAxes, color=GRID_COLOR)
+     horizontalalignment='left',   verticalalignment='center',    transform = ax_em.transAxes, color=GRID_COLOR)
 
 
     try:
@@ -178,20 +181,24 @@ def plot_stix_images(doc ):
     mfwd.draw_limb(axes=ax_fwd, color=GRID_COLOR,alpha=0.5)
 
     ax_fwd.text(text_xy[0], text_xy[1],f'Forward-fit {fwdshape}',
-     horizontalalignment='center',   verticalalignment='center',    transform = ax_fwd.transAxes, color=GRID_COLOR)
+     horizontalalignment='left',   verticalalignment='center',    transform = ax_fwd.transAxes, color=GRID_COLOR)
 
 
     img_fname=os.path.join(doc['idl_config']['folder'],f'{doc["idl_config"]["prefix"]}.png')
+    pdf_img_fname=os.path.join(doc['idl_config']['folder'],f'{doc["idl_config"]["prefix"]}.pdf')
     image_id_str = f'(#{doc["_id"]})'
 
 
-    plt.suptitle(f'STIX light curves and images {image_id_str} \n {start_utc} –  {end_utc}\n E: {energy_range[0]} – {energy_range[1]} keV  SIG/BKG: {bsd_uid}/{bkg_uid} ')
+    plt.suptitle(f'STIX light curves and reconstructed flare images {image_id_str} \n {start_utc} –  {end_utc}\n Energy range: {energy_range[0]} – {energy_range[1]} keV ')
     #plt.tight_layout()
     plt.subplots_adjust(
             top=.9,
                     wspace=0.1, 
                     hspace=0.6)
     plt.savefig(img_fname, format='png')
+
+    plt.savefig(pdf_img_fname, format='pdf')
+    logger.info(f"Images have been written to file:{img_fname}")
 
     updates={'$set':{'figs':[{'quicklook':img_fname}], 'processing_date':datetime.now()}}
     flare_images_db.update_one({'_id':doc['_id']}, updates)
@@ -201,7 +208,11 @@ def plot_stix_images(doc ):
 def test_image_viewer():
     create_figures_ids_between(0,1)
 if __name__=='__main__':
-    if len(sys.argv)==2:
-        create_images(int(sys.argv[1]))
-    else:
+    if len(sys.argv)==1:
         create_images_in_queue()
+    elif len(sys.argv)==2:
+        create_images(int(sys.argv[1]))
+    elif len(sys.argv)==3:
+        for i in range(int(sys.argv[1]), int(sys.argv[2])):
+            print("Creating images for Entry #",i)
+            create_images(i)
