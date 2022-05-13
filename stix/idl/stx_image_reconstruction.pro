@@ -126,10 +126,10 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 	em_map.dur=duration
 	add_prop,em_map, DSUN= DSUN
 
-	stixmap2fits, full_disk_bp_map, full_disk_bp_map_filename
-	stixmap2fits, bp_map, bp_map_filename
-	stixmap2fits, vis_fwdfit_pso_map, vis_fwdfit_map_filename
-	stixmap2fits, clean_map, clean_map_filename
-	stixmap2fits, em_map, em_map_filename
+	stx_map2fits, full_disk_bp_map, full_disk_bp_map_filename
+	stx_map2fits, bp_map, bp_map_filename
+	stx_map2fits, vis_fwdfit_pso_map, vis_fwdfit_map_filename
+	stx_map2fits, clean_map, clean_map_filename
+	stx_map2fits, em_map, em_map_filename
 END
 

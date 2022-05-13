@@ -22,7 +22,7 @@
 
 ;
 
-   pro stixmap2fits,map,file, meta, err=err,byte_scale=byte_scale,verbose=verbose
+   pro stx_map2fits,map,file, meta, err=err,byte_scale=byte_scale,verbose=verbose
 
    err=''
    verbose=keyword_set(verbose)
