@@ -59,6 +59,7 @@ WHILE (1 ne 0) DO BEGIN
 	elow=data.energy_range[0]
 	ehigh=data.energy_range[1]
 
+	print, "Processing "+data._id
 
 	aux=data.aux
 	L0=aux.L0
@@ -67,8 +68,9 @@ WHILE (1 ne 0) DO BEGIN
 	dsun=aux.dsun
 
 	roll_angle=aux.roll
-	x_offset_arcsec=aux.sun_center[0]
-	y_offset_arcsec=aux.sun_center[1]    
+	x_offset_arcsec= - aux.sun_center[0]
+	y_offset_arcsec= - aux.sun_center[1]    
+	; STIX pointing offsets have opposite signs
 
 
 	vis_fwdfit_source_type= data.idl_config.fwdfit_shape ; multi or ellipse

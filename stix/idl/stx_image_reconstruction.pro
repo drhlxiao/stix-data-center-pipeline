@@ -102,6 +102,12 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 	clean_map.time= flare_start_UTC
 	clean_map.dur=duration
 	add_prop,clean_map, DSUN= DSUN
+	;add_prop,clean_map[0], DSUN= DSUN
+	;add_prop,clean_map[1], DSUN= DSUN
+	;add_prop,clean_map[2], DSUN= DSUN
+	;;add_prop,clean_map[3], DSUN= DSUN
+	;add_prop,clean_map[4], DSUN= DSUN
+	;
 
 	clean_map.roll_angle = roll_angle
 	clean_map.xc += x_offset_arcsec

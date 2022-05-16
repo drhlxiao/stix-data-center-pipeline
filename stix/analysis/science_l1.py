@@ -201,7 +201,7 @@ class ScienceL1(ScienceData):
         self.time_bins_high=self.time+0.5*self.timedel+self.T0_unix
     
 
-    def get_peak_time_and_counts(self, emin_sci:int, emax_sci:int, integration_time:float, start=None, end=None):
+    def get_time_and_counts(self, emin_sci:int, emax_sci:int, integration_time:float, start=None, end=None):
         """
             find the peak time and integrate counts 
         """
@@ -210,24 +210,31 @@ class ScienceL1(ScienceData):
         if counts.size==0:
             return None, None, None
 
+
         if start is None or end is None:
             #use the peak time
             max_idx = np.argmax(counts)
             #max_rate =np.max(counts)/self.timedel[max_idx]
             peak_time_bin=[ self.time_bins_low[max_idx], self.time_bins_high[max_idx]]
             peak_time=(peak_time_bin[0]+peak_time_bin[1])/2.
+            #mean time
             if peak_time_bin[1]-peak_time_bin[0] >= integration_time:
                 #one time bin requests
                 start,end=peak_time_bin
             else:
                 start = max(peak_time-integration_time/2, self.time_bins_low[0])
                 end = min(peak_time+integration_time/2, self.time_bins_high[-1])
+        
+        start=max(start, self.time_bins_low[0])
+        end=min(end, self.time_bins_high[-1])
+        #make sure start time and end valid
 
 
-        total_counts=np.sum(counts[ (self.time_bins_low >=start) & (self.time_bins_high <= end)])
         pixel_total_counts=np.sum(self.counts[  (self.time_bins_low >=start) & (self.time_bins_high <= end) ,:,:,emin_sci:emax_sci], axis=(0,3))
         #timebin: detector,pixel, energies
-        return start, end, total_counts,pixel_counts, pixel_total_counts
+
+        total_counts=np.sum(pixel_total_counts)
+        return start, end, total_counts, pixel_total_counts
     
 
 
@@ -247,13 +254,14 @@ class ScienceL1(ScienceData):
         for energy_range in imaging_energies:
             elow_sci, emax_sci=self.energy_to_index(energy_range[0], energy_range[1])
             if elow_sci is None or emax_sci is None:
-                sci_energy_ranges.append(None)
+                continue
             sci_energy_ranges.append([elow_sci, emax_sci])
 
         time_ranges = []
 
         for i, sci_range in enumerate(sci_energy_ranges):
-            start, end, total_counts, pixel_counts =self.get_peak_time_and_counts( sci_range[0], sci_range[1], integration_time)
+
+            start, end, total_counts, pixel_counts =self.get_time_and_counts( sci_range[0], sci_range[1], integration_time)
             if start is None:
                 continue
             if total_counts>min_counts:
@@ -267,12 +275,14 @@ class ScienceL1(ScienceData):
             else:
                 #this might be a small flare, take the whole time period
                 for flare in flare_time_ranges:
+                    #create images for flaring time
                     if flare['peak']:
                         #try again
-                        start, end, total_counts =self.get_peak_time_and_counts(sci_range[0], sci_range[1], integration_time, flare['start'],flare['end'])
+                        start, end, total_counts, pixel_counts =self.get_time_and_counts(sci_range[0], sci_range[1], integration_time, flare['start'],flare['end'])
                         if total_counts>min_counts:
                             boxes.append({
                                 'total_counts':  total_counts,
+                                'pixel_counts':  pixel_counts,
                                 'energy_range_sci': sci_range,
                                 'energy_range_keV': imaging_energies[i],
                                 'unix_time_range': [start,  end],

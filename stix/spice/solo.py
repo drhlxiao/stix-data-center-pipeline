@@ -744,9 +744,9 @@ class SoloEphemeris(object):
         sun_loc=np.sqrt(np.sum(positions**2))
         rsun=const.R_sun.to(u.m).value
         x_sun=-sun_loc.to(u.m).value
-        sun_center=np.array([x_sun, 0, 0])
+        sun_center_RTN=np.array([x_sun, 0, 0])
         nsew_coords=[
-                [x_sun 0, rsun],
+                [x_sun, 0, rsun],
                 [x_sun, 0, -rsun],
                 [x_sun,  -rsun,0],
                 [x_sun,  rsun,0],
@@ -754,7 +754,7 @@ class SoloEphemeris(object):
 
         limbs=[[x_sun, rsun*np.cos(theta), rsun*np.sin(theta)] for theta in np.linspace(0,2*np.pi, 50)
                 ]
-        sun_center_stix_frame=SoloEphemeris.to_stix_frame(sun_center, cmat)
+        sun_center_stix_frame=SoloEphemeris.to_stix_frame(sun_center_RTN, cmat)
 
         nsew_stix_frame=[SoloEphemeris.to_stix_frame(np.array(loc), cmat) for loc in nsew_coords]
 

@@ -42,53 +42,11 @@ import tempfile
 from stix.core import mongo_db as db
 mdb = db.MongoDB()
 
-############################################################
-##### Main function
-def download_calibrate_aia(time_start, time_end, wavelength): 
-    """
-    Download AIA maps found in the interval [time_start, 
-    time_end]. Then, the maps are processed to level 1.5
-    and the pointing information in the header is updated. 
 
-    Parameters
-    ------------
-    time_start : `tuple`, `list`, `str`, `pandas.Timestamp`, 
-                 `pandas.Series`, `pandas.DatetimeIndex`, 
-                 `datetime.datetime`, `datetime.date`, 
-                 `numpy.datetime64`, `numpy.ndarray`, 
-                 `astropy.time.Time`
-        The start time of the range
-    time_end : `tuple`, `list`, `str`, `pandas.Timestamp`, 
-               `pandas.Series`, `pandas.DatetimeIndex`, 
-               `datetime.datetime`, `datetime.date`, 
-               `numpy.datetime64`, `numpy.ndarray`, 
-               `astropy.time.Time`
-        The end time of the range
-    wavelength : `int`
-        Wavelength of the maps to calibrate
-    """
-    
-    # Search for the data
-    query = Fido.search(a.Instrument.aia,
-                    a.Physobs.intensity,
-                    a.Wavelength(wavelength*u.angstrom),
-                    a.Time(time_start, time_end),
-    )
-    # Download the data
-    temp_folder=tempfile.gettempdir()
-    result=Fido.fetch(query[0], progress=True, path=temp_folder)
-    if not result:
-        print("AIA 1600 data not available")
-        return None
-    aia_map = sunpy.map.Map(result)
-    # Calibrate the map
-    aia_map = register(update_pointing(aia_map))
-    # Return the calibrated map
-    return aia_map
 
 ############################################################
 ##### Main function
-def as_seen_by_SOLO(aia_map,  date_solo=None, center=None, fov=None): 
+def convert_aia_to_solo_view(aia_map,  date_solo=None, center=None, fov=None): 
     """
     Return the input map as seen by Solar Orbiter.
 
@@ -137,7 +95,7 @@ def as_seen_by_SOLO(aia_map,  date_solo=None, center=None, fov=None):
     aia_map.meta['rsun_ref'] = sunpy.sun.constants.radius.to_value('m')
 
     # Get the HEE coordinates of Solar Orbiter
-    solo_hee = coordinates_SOLO(date_solo)
+    solo_hee = get_solo_coord(date_solo)
 
     # Mask the off disk data (array type must be float!)
     hpc_coords = all_coordinates_from_map(aia_map)
@@ -203,12 +161,8 @@ def as_seen_by_SOLO(aia_map,  date_solo=None, center=None, fov=None):
         solo_submap = solo_map.submap(bottom_left=bl_solo, top_right=tr_solo)
 
         return solo_map, solo_submap
-############################################################
 
-
-############################################################
-##### Support functions
-def coordinates_SOLO(date_solo):
+def get_solo_coord(date_solo):
     """
     Load the kernel needed in order to derive the
     coordinates of Solar Orbiter and then return them in
@@ -278,39 +232,58 @@ def roi_hpc_SOLO(aia_map, coord, date_solo, solo_hee):
     
     return roi_solo_hpc
 ############################################################
-def create_plot(folder,_id, flare_id ,time_at_peak, wavelen=1600, overwrite=False):
+def create_aia_image_as_seen_by_STIX(folder,_id, flare_id ,time_at_peak, wavelen=1600, overwrite=False):
     '''
     Usually we rotate the 1600 map, since has most likely
     less projection effects compared to the others AIA
     bands
     '''
-    wlth = wavelen
+    wavelength= wavelen
     key='aia1600'
-    if  mdb.get_flare_pipeline_products(_id, key) and overwrite == False:
-        print(f'AIA 1600 image for Flare {flare_id} was not created as it exists already!')
-        return 
+    #if  mdb.get_flare_pipeline_products(_id, key) and overwrite == False:
+    #    print(f'AIA 1600 image for Flare {flare_id} was not created as it exists already!')
+    #    return 
     time_start = Time(time_at_peak)-6*u.s
     time_end = Time(time_at_peak)+6*u.s
     # Download and calibrate AIA
-    aia_map = download_calibrate_aia(time_start, time_end, wlth)
+
+        
+    # Search for the data
+    query = Fido.search(a.Instrument.aia,
+                    a.Physobs.intensity,
+                    a.Wavelength(wavelength*u.angstrom),
+                    a.Time(time_start, time_end),
+    )
+    # Download the data
+    temp_folder=tempfile.gettempdir()
+    result=Fido.fetch(query[0], progress=True, path=temp_folder)
+    if not result:
+        print("AIA 1600 data not available")
+        return None
+    aia_map = sunpy.map.Map(result)
+    # Calibrate the map
+
+    aia_map = register(update_pointing(aia_map))
+
     if aia_map is None:
         return ''
-    solo_map = as_seen_by_SOLO(aia_map)
+    solo_map = convert_aia_to_solo_view(aia_map)
     str_title = 'AIA '+str(solo_map.meta['wavelnth'])+             r' $\AA$'+' as seen by Solar Orbiter \n  '+solo_map.meta['date-obs']
-    #plt.figure(figsize=(8, 7), dpi=100, facecolor='white')
+
     fig = plt.figure(figsize=(6, 6), dpi=100, facecolor='white')
     ax = fig.add_subplot(111, projection=solo_map)
     plt.suptitle(str_title)
     solo_map.plot(vmin=0, vmax=np.nanmax(solo_map.data)/10., 
                   cmap='sdoaia'+str(np.int(solo_map.meta['wavelnth'])), 
                   axes=ax, title=False)
-    #plt.colorbar()
+
     solo_map.draw_grid(color='k', ls='--')
     fname=os.path.join(folder, f'AIA_{wlth}_{_id}_{flare_id}.png')
-    #lon, lat = ax.coords
     plt.savefig(fname, dpi=100)
-    mdb.update_flare_pipeline_products(_id, key, {'preview':fname})
+    #mdb.update_flare_pipeline_products(_id, key, {'preview':fname})
     #plt.show()
+
+
     return fname
 
 

@@ -15,6 +15,7 @@ from astropy.io import fits
 from matplotlib import pyplot as plt
 from dateutil.parser import parse as dtparse
 from stix.core import logger
+from stix.spice import time_utils as ut
 
 from datetime import datetime
 
@@ -30,10 +31,11 @@ logger = logger.get_logger()
 mdb = db.MongoDB()
 flare_images_db= mdb.get_collection('flare_images')
 
-SMALL_SIZE = 8
+SMALL_SIZE = 9
 matplotlib.rc('font', size=SMALL_SIZE)
 matplotlib.rc('axes', titlesize=SMALL_SIZE)
-#matplotlib.rcParams['axes.titlepad']=25
+#matplotlib.rcParams['axes.titlepad']=20
+#plt.rcParams['figure.constrained_layout.use'] = True
 
 CMAP='std_gamma_2' #color map
 GRID_COLOR='w'
@@ -47,6 +49,21 @@ def create_images(_id):
             logger.error(e)
     else:
         logger.info(f"doc {_id} does not exist")
+
+def fix_clean_map_fits_header(doc, image_filename):
+    """
+        to add dsun to clean maps
+        idl script dosen't write dsun to clean fits files, we do a fix here 
+        
+    """
+    hduls=fits.open(image_filename) 
+    dsun=(doc['aux']['dsun'], 'S/C distance to Sun (meters)')
+    for hdu in hduls:
+        hdu.header['DSUN_OBS']=dsun
+        hdu.header['DSUN']=dsun
+    hduls.writeto(image_filename, overwrite=True, checksum=True)
+    logger.info(f"Adding more keywords to {image_filename}")
+
 
 def create_images_in_queue(num=10000):
     cursor=flare_images_db.find({'fits':{'$gt':{}}, 'figs.0':{'$exists':False}}).sort('_id',-1).limit(num)
@@ -96,7 +113,7 @@ def plot_stix_images(doc ):
     doc_fits=doc['fits']
     find_key=lambda x: [k for k in keys if x in k]
 
-    fig = plt.figure(figsize=(12,7), dpi=100, facecolor='white')
+    fig = plt.figure(figsize=(12,7), dpi=100, facecolor='white', constrained_layout=True)
     ax_lc= fig.add_subplot(231)
     bsd_id=doc['bsd_id']
     energy_range=doc['energy_range']
@@ -140,6 +157,9 @@ def plot_stix_images(doc ):
     cs=mbp.draw_contours(levels*u.percent)
     clevels =levels*mbp.max()
     plt.clabel(cs, inline=1,  fmt={x: f'{levels[i]*100:.0f} %%'    for i, x in enumerate(clevels) })
+
+
+    fix_clean_map_fits_header(doc, doc_fits['image_clean'])
 
 
     mclean=sunpy.map.Map(doc_fits['image_clean'])
@@ -188,13 +208,14 @@ def plot_stix_images(doc ):
     pdf_img_fname=os.path.join(doc['idl_config']['folder'],f'{doc["idl_config"]["prefix"]}.pdf')
     image_id_str = f'(#{doc["_id"]})'
 
+    duration=ut.utc2unix(end_utc)-ut.utc2unix(start_utc)
 
-    plt.suptitle(f'STIX light curves and reconstructed flare images {image_id_str} \n {start_utc} –  {end_utc}\n Energy range: {energy_range[0]} – {energy_range[1]} keV ')
-    #plt.tight_layout()
+
+    plt.suptitle(f'Start UTC {start_utc}; Exp. time: {duration:.1f} sec; Energy range: {energy_range[0]} – {energy_range[1]} keV ', fontsize=12)
     plt.subplots_adjust(
-            top=.9,
-                    wspace=0.1, 
-                    hspace=0.6)
+            top=0.85,
+                    wspace=0.2, 
+                    hspace=0.4)
     plt.savefig(img_fname, format='png')
 
     plt.savefig(pdf_img_fname, format='pdf')
