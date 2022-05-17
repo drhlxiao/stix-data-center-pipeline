@@ -125,8 +125,11 @@ def plot_stix_images(doc ):
 
     text_xy=[0.02,0.95]
 
+    rotate_map = lambda x: x.rotate(x.meta['crota2']*u.deg, recenter=True)
 
     mbp_full=sunpy.map.Map(doc_fits['image_full_disk'])
+
+    mbp_full= rotate_map(mbp_full)
 
     ax_mbp_full= fig.add_subplot(232, projection=mbp_full)
 
@@ -141,7 +144,13 @@ def plot_stix_images(doc ):
      horizontalalignment='left',   verticalalignment='center',    transform = ax_mbp_full.transAxes, color=GRID_COLOR)
 
 
+
+
+
     mbp=sunpy.map.Map(doc_fits['image_bp'])
+
+    mbp= rotate_map(mbp)
+
     ax_mbp= fig.add_subplot(233, projection=mbp)
     mbp.plot(  cmap=CMAP,
                     axes=ax_mbp,  title="")
@@ -154,17 +163,20 @@ def plot_stix_images(doc ):
 
     
     levels=np.array([0.5])
-    cs=mbp.draw_contours(levels*u.percent)
+    cs=mbp.draw_contours(levels*100*u.percent)
     clevels =levels*mbp.max()
     plt.clabel(cs, inline=1,  fmt={x: f'{levels[i]*100:.0f} %%'    for i, x in enumerate(clevels) })
 
 
     fix_clean_map_fits_header(doc, doc_fits['image_clean'])
+    #add dsun to the header
 
 
     mclean=sunpy.map.Map(doc_fits['image_clean'])
 
+
     mclean=mclean[4]
+    mclean= rotate_map(mclean)
 
     ax_clean= fig.add_subplot(234, projection=mclean)
     mclean.plot( cmap=CMAP,
@@ -178,6 +190,8 @@ def plot_stix_images(doc ):
 
 
     mem=sunpy.map.Map(doc_fits['image_em'])
+
+    mem= rotate_map(mem)
 
     ax_em= fig.add_subplot(235, projection=mem)
     mem.plot( cmap=CMAP, axes=ax_em, title="")
@@ -194,6 +208,9 @@ def plot_stix_images(doc ):
     except (KeyError, TypeError):
         fwdshape=''
     mfwd=sunpy.map.Map(doc_fits['image_fwdfit'])
+
+    mfwd= rotate_map(mfwd)
+
     ax_fwd= fig.add_subplot(236, projection=mfwd)
     mfwd.plot( cmap=CMAP, axes=ax_fwd, title="")
 
