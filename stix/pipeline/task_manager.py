@@ -7,12 +7,12 @@ from stix.core import logger
 
 logger = logger.get_logger()
 
-def run_on_background(func, name='processing', args, wait=3600*3):
+def run_on_background(func, name="process", args=(), wait=3600*3):
     logger.info(f"Running {name} on background!")
-    
-    p = multiprocessing.Process(target=func, name=name, args)
+    p = multiprocessing.Process(target=func, name=name, args=args)
     p.start()
-    time.sleep(wait)
-    logger.info(f"Terminating {name} !")
-    p.terminate()
-    p.join()
+    p.join(wait)
+    if p.is_alive():
+        #kill it after time out
+        logger.info(f"Timeout Terminating {name} !")
+        p.terminate()

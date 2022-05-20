@@ -66,25 +66,6 @@ MDB = mongo_db.MongoDB(mongodb_config['host'], mongodb_config['port'],
 def get_now():
     return datetime.now().isoformat()
 
-class _WatchDog(object):
-    reset_time=datetime.now()
-    hours =  48
-    expiration_time= 5 #hours*3600
-    counter=0
-    def reset(self):
-        self.reset_time=datetime.now()
-        self.counter=0
-    def expired(self):
-      if  (datetime.now()-self.reset_time).total_seconds()>self.expiration_time:
-        self.counter=self.counter+1
-        #print(self.counter)
-        return True
-      return False
-
-
-
-WatchDog=_WatchDog()
-
 
 class _Notification(object):
     def __init__(self):
