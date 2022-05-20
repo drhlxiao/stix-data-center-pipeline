@@ -93,12 +93,17 @@ class _SpiceManager(object):
 
 
     def obt2utc(self, obt_string):
-        # Obt to Ephemeris time (seconds past J2000)
-        ephemeris_time = spiceypy.scs2e(-144, obt_string)
-        # Ephemeris time to Utc
-        # Format of output epoch: ISOC (ISO Calendar format, UTC)
-        # Digits of precision in fractional seconds: 3
-        return spiceypy.et2utc(ephemeris_time, "ISOC", 3)
+        """
+         Obt to Ephemeris time (seconds past J2000)
+         Ephemeris time to Utc
+         Format of output epoch: ISOC (ISO Calendar format, UTC)
+         Digits of precision in fractional seconds: 3
+         """
+        try:
+            ephemeris_time = spiceypy.scs2e(-144, obt_string)
+            return spiceypy.et2utc(ephemeris_time, "ISOC", 3)
+        except Exception as e:
+            raise e
 
     def utc2obt(self, utc_string):
         # Utc to Ephemeris time (seconds past J2000)
