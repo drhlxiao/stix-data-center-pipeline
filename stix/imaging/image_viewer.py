@@ -49,6 +49,10 @@ def create_images(_id):
             logger.error(e)
     else:
         logger.info(f"doc {_id} does not exist")
+def rotate_map(m, recenter=False):
+    #further checks are required
+    #rotate map
+    return m.rotate(angle=(m.meta['crota2'])*u.deg, recenter=recenter)
 
 def fix_clean_map_fits_header(doc, image_filename):
     """
@@ -125,11 +129,10 @@ def plot_stix_images(doc ):
 
     text_xy=[0.02,0.95]
 
-    rotate_map = lambda x: x.rotate(x.meta['crota2']*u.deg, recenter=True)
 
     mbp_full=sunpy.map.Map(doc_fits['image_full_disk'])
 
-    mbp_full= rotate_map(mbp_full)
+    mbp_full= rotate_map(mbp_full, recenter=True)
 
     ax_mbp_full= fig.add_subplot(232, projection=mbp_full)
 
@@ -165,7 +168,7 @@ def plot_stix_images(doc ):
     levels=np.array([0.5])
     cs=mbp.draw_contours(levels*100*u.percent)
     clevels =levels*mbp.max()
-    plt.clabel(cs, inline=1,  fmt={x: f'{levels[i]*100:.0f} %%'    for i, x in enumerate(clevels) })
+    plt.clabel(cs, inline=1,  fmt={x: f'{levels[i]*100:.0f} %'    for i, x in enumerate(clevels) })
 
 
     fix_clean_map_fits_header(doc, doc_fits['image_clean'])

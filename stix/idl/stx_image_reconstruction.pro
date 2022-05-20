@@ -49,7 +49,6 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 
 	full_disk_bp_map.time= flare_start_UTC
 	full_disk_bp_map.dur=duration
-	add_prop,full_disk_bp_map, DSUN= DSUN
 
 	;;******* Compute the coordinates of the maximum value of the Back Projection map, i.e. of the location of the flare
 	max_bp       = max(full_disk_bp_map.data, ind_max)
@@ -75,7 +74,6 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 
 	bp_map.time= flare_start_UTC
 	bp_map.dur=duration
-	add_prop,bp_map, DSUN= DSUN
 
 	;;******* Compute the FWDFIT reconstruction (around the flare location)
 	vis_fwdfit_pso_map = stx_vis_fwdfit_pso(vis_fwdfit_source_type, vis, imsize=map_size, pixel=pixel_size, /silent)
@@ -89,7 +87,6 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 
 	vis_fwdfit_pso_map.time= flare_start_UTC
 	vis_fwdfit_pso_map.dur=duration
-	add_prop,vis_fwdfit_pso_map, DSUN= DSUN
 
 	;;******* Compute the CLEAN reconstruction (around the flare location)
 
@@ -101,12 +98,6 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 
 	clean_map.time= flare_start_UTC
 	clean_map.dur=duration
-	add_prop,clean_map, DSUN= DSUN
-	;add_prop,clean_map[0], DSUN= DSUN
-	;add_prop,clean_map[1], DSUN= DSUN
-	;add_prop,clean_map[2], DSUN= DSUN
-	;;add_prop,clean_map[3], DSUN= DSUN
-	;add_prop,clean_map[4], DSUN= DSUN
 	;
 
 	clean_map.roll_angle = roll_angle
@@ -130,12 +121,15 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 
 	em_map.time= flare_start_UTC
 	em_map.dur=duration
-	add_prop,em_map, DSUN= DSUN
 
-	stx_map2fits, full_disk_bp_map, full_disk_bp_map_filename
-	stx_map2fits, bp_map, bp_map_filename
-	stx_map2fits, vis_fwdfit_pso_map, vis_fwdfit_map_filename
-	stx_map2fits, clean_map, clean_map_filename
-	stx_map2fits, em_map, em_map_filename
+	xy_shift=[x_offset_arcsec, y_offset_arcsec]
+	err=''
+
+
+	stx_map2fits, full_disk_bp_map, full_disk_bp_map_filename, path_sci_file, path_bkg_file=path_bkg_file, xy_shift=xy_shift 
+	stx_map2fits, bp_map, bp_map_filename, path_sci_file, path_bkg_file=path_bkg_file, xy_shift=xy_shift 
+	stx_map2fits, vis_fwdfit_pso_map, vis_fwdfit_map_filename, path_sci_file, path_bkg_file=path_bkg_file, xy_shift=xy_shift 
+	stx_map2fits, clean_map, clean_map_filename, path_sci_file, path_bkg_file=path_bkg_file, xy_shift=xy_shift 
+	stx_map2fits, em_map, em_map_filename, path_sci_file, path_bkg_file=path_bkg_file, xy_shift=xy_shift 
 END
 

@@ -27,6 +27,7 @@ from stix.analysis import integration_time_estimator
 from stix.analysis import flare_goes_class as fgc
 from stix.analysis import goes_downloader as gdl
 from stix.imaging import imaging_task_manager as itm
+from stix.pipeline import task_manager 
 
 
 from stix.analysis import monitor
@@ -180,9 +181,30 @@ def clear_ngnix_cache():
 
 
 
+def find_new_telemetry_files():
+    """
+        Find new telemetry files in the folder specified in config.py
+        returns: dict
+        dictionary with a list of new files or empty dict
+    """
+    filelist = {}
+    logger.info('checking new files ...')
+    for instrument, selectors in daemon_config['data_source'].items():
+        for pattern in selectors:
+            filenames = glob.glob(pattern)
+            for filename in filenames:
+                if os.path.getsize(filename) == 0:
+                    continue
+                file_id = MDB.get_file_id(filename)
+                if file_id == -2:
+                    if instrument not in filelist:
+                        filelist[instrument] = []
+                    filelist[instrument].append(filename)
+    return filelist
 
 
-def pipeline(instrument, filename, notification_enabled=True, debugging=False):
+
+def piepeline_parsing_and_basic_analysis(instrument, filename, notification_enabled, debugging):
     spm.spice.load_kernels()
     #always load the latest kernel files
     logger.info(f'Start processing file {filename}')
@@ -243,14 +265,6 @@ def pipeline(instrument, filename, notification_enabled=True, debugging=False):
         except Exception as e:
             logger.error(str(e))
 
-    if actions['bsd_report_merging']:
-        logger.info(
-            'Merging bulk science data and preparing json files for data browsers...')
-        try:
-            sci_packets_analyzer.process_packets_in_file(file_id)
-        except Exception as e:
-            #raise
-            logger.error(str(e))
     try:
         Notification.scan_housekeeping(file_id)
     except Exception as e:
@@ -270,21 +284,27 @@ def pipeline(instrument, filename, notification_enabled=True, debugging=False):
                 calibration.process_one_run(run_id,create_pdf=True, pdf_path=report_path)
         except Exception as e:
             logger.error(str(e))
-
-    if actions['fits_creation']:
-        logger.info('Creating fits files...')
-        try:
-            fits_creator.create_fits(file_id, daemon_config['fits_path'])
-        except Exception as e:
-            logger.error(str(e))
     clear_ngnix_cache()
+    return file_id
 
-    if actions['imaging']:
-        logger.info('preparing imaging inputs...')
-        try:
-            itm.register_imaging_tasks_for_file(file_id)
-        except Exception as e:
-            logger.error(str(e))
+
+def pipeline_fits_creation_packets_merging_and_imaging(file_id):
+    logger.info('Creating fits files...')
+    try:
+        fits_creator.create_fits(file_id, daemon_config['fits_path'])
+    except Exception as e:
+        logger.error(str(e))
+    logger.info(
+            'Merging bulk science data and preparing json files for data browsers...')
+    try:
+        sci_packets_analyzer.process_packets_in_file(file_id)
+    except Exception as e:
+        logger.error(str(e))
+    logger.info('preparing imaging inputs...')
+    try:
+        itm.register_imaging_tasks_for_file(file_id)
+    except Exception as e:
+        logger.error(str(e))
 
 
     #return summary
@@ -297,31 +317,22 @@ def process_one(filename):
         logger.info(f'Already processed:{filename}, {file_id}')
     Notification.send()
 
-def find_new_telemetry_files():
+
+
+def pipeline(instrument, filename, notification_enabled=True, debugging=False):
     """
-        Find new telemetry files in the folder specified in config.py
-        returns: dict
-        dictionary with a list of new files or empty dict
+    single file processing pipeline
     """
-    filelist = {}
-    logger.info('checking new files ...')
-    for instrument, selectors in daemon_config['data_source'].items():
-        for pattern in selectors:
-            filenames = glob.glob(pattern)
-            for filename in filenames:
-                if os.path.getsize(filename) == 0:
-                    continue
-                file_id = MDB.get_file_id(filename)
-                if file_id == -2:
-                    if instrument not in filelist:
-                        filelist[instrument] = []
-                    filelist[instrument].append(filename)
-    return filelist
+    file_id=piepeline_parsing_and_basic_analysis(instrument, filename, notification_enabled, debugging)
+    task_manager.run_on_background(pipeline_fits_creation_packets_merging_and_imaging, 'fits-creation-pkt-merging', args=(file_id,))
+    #pipeline_fits_creation_packets_merging_and_imaging(file_id)
+
+
 
 
 def process_files(filelist):
     """
-    Process files
+    Process files in the given list
     """
     num_processed = 0
     for instrument, files in filelist.items():
@@ -331,17 +342,25 @@ def process_files(filelist):
             pipeline(instrument, filename , True)
             num_processed += 1
     Notification.send()
+    #only sending email after all files are processed
     return num_processed
+
+
+
+
 
 def main():
     flist=find_new_telemetry_files()
     if flist:
         process_files(flist)
 
+
+
+
 if __name__ == '__main__':
     if len(sys.argv) == 1:
         print("""Usage: 
-        level1 <raw telemetry filename>
+        raw_pipeline <raw telemetry filename>
         """)
     else:
         process_one(sys.argv[1])

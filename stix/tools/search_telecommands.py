@@ -26,7 +26,8 @@ for  ior in iors:
     occurrences=ior['occurrences']
     for tc in occurrences:
         if tc['name'] in names:
-            results.append(tc)
+            if tc['parameters'][0][1]=='477':
+                results.append(tc)
 
 pprint(results)
 
