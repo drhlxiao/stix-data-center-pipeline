@@ -34,4 +34,4 @@ for doc in col_bsd.find(bsd_query).sort('_id',-1):
         to_do=True
     if to_do:
         print("creating json :", doc['_id'])
-        process_science_request(doc['_id'])
+        spa.process_science_request(doc['_id'])

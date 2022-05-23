@@ -301,7 +301,7 @@ def create_fits_for_bulk_science(bsd_id_start, bsd_id_end, output_path=FITS_PATH
     for bsd in bsd_docs:
         pids=bsd['packet_ids']
         pkts=db.get_collection('packets').find({'_id':{'$in':pids}}).sort('header.unix_time',1).max_time_ms(300*1000)
-        logger.info(f'Creating fits file for bsd #{bsd["_id"]}')
+        logger.info(f'Creating fits file for bsd #{bsd["_id"]}, number of packets: {len(pids)}')
         file_id=bsd['run_id']
         spid=bsd['SPID']
         product = SPID_MAP[spid]
