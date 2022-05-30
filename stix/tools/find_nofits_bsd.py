@@ -8,7 +8,7 @@ import matplotlib.dates as mdates
 from datetime import datetime
 from matplotlib import pyplot as plt
 from stix.core import mongo_db as db
-from stix.spice import datetime as sdt
+from stix.spice import time_utils as sdt
 from stix.fits import fits_creator
 import matplotlib.ticker as mticker
 from pathlib import Path

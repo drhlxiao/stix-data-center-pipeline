@@ -181,7 +181,12 @@ class MongoDB(object):
             return self.collection_packets.find({'_id': {
                 '$in': packet_ids
             }}, {'header': 1})
-        return self.collection_packets.find({'_id': {'$in': packet_ids}}).sort('header.unix_time',1)
+        #return self.collection_packets.find({'_id': {'$in': packet_ids}}).sort('header.unix_time',1)
+        #removed the line below to improve performance
+        packet_ids.sort()
+        for pid  in packet_ids:
+            yield self.collection_packets.find_one({'_id':  pid})
+
 
     def get_filename_of_run(self, run_id):
         if self.collection_raw_files:
@@ -610,6 +615,9 @@ class MongoDB(object):
             ]
         return self.collection_data_requests.aggregate(query)
        
+    def get_packets_by_ids(self,id_list):
+        for _id in id_list:
+            yield self.collection_packets.find_one({'_id': _id})
 
     def find_flares_by_time_range(self, start_unix, end_unix):
         return self.collection_flares.find({'start_unix':{'$lt':end_unix},

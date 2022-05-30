@@ -10,6 +10,8 @@ import numpy as np
 from astropy.io import fits
 from matplotlib import pyplot as plt
 from stix.spice import time_utils as sdt
+import matplotlib.dates as mdates
+from matplotlib.patches import Polygon
 
 
 
@@ -180,7 +182,6 @@ class ScienceL1(ScienceData):
         if ebin_min is None or ebin_max is None:
             return None,None
         ebin_max+=1
-
         return ebin_min, ebin_max
 
     def make_spectra(self, pixel_counts=None):
@@ -236,6 +237,48 @@ class ScienceL1(ScienceData):
         total_counts=np.sum(pixel_total_counts)
         return start, end, total_counts, pixel_total_counts
     
+    def plot_spectrogram(self, ax=None, selection_box=None):
+        if not ax:
+            _, ax = plt.subplots()
+        X, Y = np.meshgrid(self.datetime,
+                           np.arange(self.min_ebin, self.max_ebin))
+        im = ax.pcolormesh(
+                X, Y,
+                np.transpose(
+                    self.count_rate_spectrogram[:, self.min_ebin:self.max_ebin]
+                ))  #pixel summed energy spectrum
+        ax.set_yticks(
+                self.energies['channel'][self.min_ebin:self.max_ebin:2])
+        ax.set_yticklabels(
+                self.energy_bin_names[self.min_ebin:self.max_ebin:2])
+        fig = plt.gcf()
+        cbar = fig.colorbar(im, ax=ax)
+        cbar.set_label('Counts')
+        ax.set_title('Count rate spectrogram')
+        ax.set_ylabel('Energy range (keV')
+
+        if selection_box:
+            erange=selection_box.get('erange',None)
+            trange=selection_box.get('trange',None)
+            if erange and trange:
+                emin_sci, emax_sci=self.energy_to_index(erange[0], erange[1])
+                tmin,tmax=sdt.utc2datetime(trange[0]), sdt.utc2datetime(trange[1]) 
+                rec= Polygon([(tmin, emax_sci), 
+                    (tmax, emax_sci),
+                    (tmax, emin_sci),
+                    (tmin, emin_sci)])
+                ax.add_patch(rec, fill=None,edgecolor='cyan')
+
+                locator = mdates.AutoDateLocator(minticks=3, maxticks=7)
+                formatter = mdates.ConciseDateFormatter(locator)
+                ax.xaxis.set_major_locator(locator)
+                ax.xaxis.set_major_formatter(formatter)
+
+
+
+
+        #ax.set_xlabel(f"Time")
+        return ax
 
 
     def get_time_ranges_for_imaging(self, flare_time_ranges,  imaging_energies,  min_counts=3000, integration_time = 60):

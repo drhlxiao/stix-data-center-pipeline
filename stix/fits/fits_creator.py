@@ -122,6 +122,7 @@ def _create_fits_for_packets(file_id, packets, spid, product, is_complete,
     #eng_packets = sdt.Packet.merge(packets, spid, value_type='eng',remove_duplicates=remove_duplicates)
     eng_packets=None
     prod=None
+    logger.info('Converting merged packets to fits...')
 
     try:
         if product == 'hk_mini':
@@ -172,6 +173,9 @@ def _create_fits_for_packets(file_id, packets, spid, product, is_complete,
         else:
             logger.warning(f'Not implemented {product}, SPID {spid}.')
             return
+        #prod are a , containing a control and data in the dictionary type
+        
+        logger.info("Preparing data for writing fits file...")
 
 
 
@@ -300,12 +304,14 @@ def create_fits_for_bulk_science(bsd_id_start, bsd_id_end, output_path=FITS_PATH
     bsd_docs=bsd_db.find({'_id':{'$gte':bsd_id_start, '$lte':bsd_id_end}}).max_time_ms(300*1000)
     for bsd in bsd_docs:
         pids=bsd['packet_ids']
-        pkts=db.get_collection('packets').find({'_id':{'$in':pids}}).sort('header.unix_time',1).max_time_ms(300*1000)
+        pids.sort()
+        #pkts=db.get_collection('packets').find({'_id':{'$in':pids}}).sort('header.unix_time',1).max_time_ms(300*1000)
+        pkts=db.get_packets_by_ids(pids)
         logger.info(f'Creating fits file for bsd #{bsd["_id"]}, number of packets: {len(pids)}')
         file_id=bsd['run_id']
         spid=bsd['SPID']
         product = SPID_MAP[spid]
-        print(spid,product)
+        logger.info(f'{spid},{product}')
         create_fits_for_packets(file_id, pkts, spid, product, True, output_path, overwrite, version, remove_duplicates=True)
 
 
@@ -345,6 +351,7 @@ def create_fits(file_id, output_path, overwrite=True,  version=1):
         #if spid==54118:
         logger.info(f'Querying packets for SPID: {spid}')
         product = SPID_MAP[spid]
+        #process science packets
         if spid in SCI_REPORT_SPIDS:
             #cursor=self.collection_packets.find({'_id':{'$in':pids}}).sort('header.unix_time',1)
             bsd_docs=db.get_bsd_docs_by_run_id(file_id, spid)
@@ -353,11 +360,13 @@ def create_fits(file_id, output_path, overwrite=True,  version=1):
                 pkts=db.get_collection('packets').find({'_id':{'$in':pids}}).sort('header.unix_time',1).max_time_ms(300*1000)
                 logger.info(f'Creating fits file for bsd #{bsd["_id"]}')
                 create_fits_for_packets(file_id, pkts, spid, product, True, output_path, overwrite, version, remove_duplicates=True)
+
             continue
 
-        #process of continuous data packets
+        #process low latency packets
 
         cursor= db.select_packets_by_run(file_id, [spid],sort_field=sort_field)
+        
 
         is_complete=True
         #if housekeeping, process all of them once
@@ -367,6 +376,7 @@ def create_fits(file_id, output_path, overwrite=True,  version=1):
         packets=[]
         received_first=False
         received_last=False
+        
 
         #iterate over packets of the same type
         hashes=[]

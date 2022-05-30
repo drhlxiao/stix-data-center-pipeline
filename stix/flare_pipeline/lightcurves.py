@@ -95,6 +95,7 @@ def plot_lc(start_utc, end_utc, fill_between_times=[], light_time=0, event_type=
     formatter = mdates.ConciseDateFormatter(locator)
     ax.xaxis.set_major_locator(locator)
     ax.xaxis.set_major_formatter(formatter)
+
     xlabel=f'UTC + {light_time:.02f} s (4 sec time bins)' if light_time!=0 else 'UTC (4 sec time bins)'
     ax.set_xlabel(xlabel)
     ax.set_ylabel('Counts')

@@ -97,10 +97,15 @@ class StixBulkL0Analyzer(object):
 
     def process_packets(self, cursor):
         hash_list=[]
+        last_header_time=0
         for pkt in cursor:
             if pkt['hash'] in hash_list:
                 continue
             hash_list.append(pkt['hash'])
+
+            if pkt['header']['unix_time'] < last_header_time:
+                continue
+            last_header_time=pkt['header']['unix_time']
 
             packet = sdt.Packet(pkt)
 
@@ -316,12 +321,22 @@ class StixBulkL1L2Analyzer(object):
         #print('start processing packets', cursor.count())
         current_time = 0
         segs=[0]*4
+        last_header_time=0
+        stat={'hash_excluded':0, 'obs_time_excluded':0, 'header_time_excluded':0, 'total':0, 'valid':0, 'dup':0}
 
         for pkt in cursor:
             #print('flare start')
+            stat['total']+=1
             if pkt['hash'] in hash_list:
+                stat['hash_excluded']+=1
                 continue
             hash_list.append(pkt['hash'])
+
+            if pkt['header']['unix_time'] < last_header_time:
+                logger.info('time stamp rolling back, ignore')
+                stat['header_time_excluded']+=1
+                continue
+            last_header_time=pkt['header']['unix_time']
 
             packet = sdt.Packet(pkt)
             self.request_id = packet[3].raw
@@ -329,12 +344,14 @@ class StixBulkL1L2Analyzer(object):
             T0 = time_utils.scet2unix(packet[12].raw)
 
             if T0 < current_time:
+                stat['obs_time_excluded']+=1
                 logger.warning("Time stamps roll back, ignored")
                 continue
             current_time = T0
 
             segs[pkt['header']['seg_flag']]+=1
             if segs[1]>1 or segs[2]>1:
+                stat['dup']+=1
                 logger.warning("Duplicated requests or duplicated data, ignore")
                 break
 
@@ -346,6 +363,7 @@ class StixBulkL1L2Analyzer(object):
             #the data end time is known here 
             # loads all flares in the next MAX_L1_REQ_DURATION 
 
+            stat['valid']+=1
 
 
             num_structures = packet[13].raw
@@ -384,7 +402,8 @@ class StixBulkL1L2Analyzer(object):
                         self.groups.append(group)
                         group={}
 
-                if self.extract_masks:
+                #if self.extract_masks:
+                if True:
                     #only extract once
                     self.pixel_mask = [
                         e[1] for e in children[offset + 2][3] if 'NIXG' not in e[0]
@@ -392,7 +411,7 @@ class StixBulkL1L2Analyzer(object):
                     self.detector_mask = children[offset + 3][1]
                     self.pixel_indexes = self.get_spectrum_pixel_indexes(
                     self.detector_mask, self.pixel_mask)
-                    self.extract_masks=False
+                    #self.extract_masks=False
 
                 rcr = children[offset + 1][1]
                 integrations = children[offset + 4][1]
@@ -445,8 +464,10 @@ class StixBulkL1L2Analyzer(object):
                 else:
                     #truncated packet
                     group['counts'].extend(counts)
+
         if group:
             self.groups.append(group)
+        logger.info(f'stat: {stat}')
         return self.format_report()
 
 
@@ -757,6 +778,7 @@ def process_science_request_doc(doc):
     elif spid == 54143:
         analyzer = StixBulkL4Analyzer()
         result = analyzer.process_packets(cursor)
+
     if result:
         date_str=datetime.now().strftime("%y%m%d%H")
         existing_fname=doc.get('level1','')
