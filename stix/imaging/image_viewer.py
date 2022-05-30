@@ -34,7 +34,7 @@ mdb = db.MongoDB()
 flare_images_db= mdb.get_collection('flare_images')
 
 SMALL_SIZE = 9
-PDF_FIGURE_SIZE=(17, 6)
+PDF_FIGURE_SIZE=(17, 7)
 
 
 matplotlib.rc('font', size=SMALL_SIZE)
@@ -58,7 +58,7 @@ def rotate_map(m, recenter=False):
     #rotate map
     return m.rotate(angle=(m.meta['crota2'])*u.deg, recenter=recenter)
 
-def zoom(m, ax, scale=4):
+def zoom(m, ax, scale=2):
     xc, yc=ndimage.center_of_mass(m.data)
     y0,y1=ax.get_ylim()
     x0,x1=ax.get_xlim()
@@ -142,11 +142,11 @@ def create_title_page(pdf, img_id=0, obs='',expt='',sig_id='',bkg_id='',erange='
     title = 'STIX preview images'
 
     descr=f'Observation begin UTC:{obs}\nExposure time: {round(expt,2)}\nSignal data unique ID: {sig_id}\nBackground data unique ID: {bkg_id} \nEnergy range:{erange} (keV)'
-    remarks=f'Created on {datetime.today().strftime("%B %d, %Y")} \n  by STIX Data Center preview image creator'
+    remarks=f'Absolute flare location accuracy ~ 1 arcmin\nCreated on {datetime.today().strftime("%B %d, %Y")} \n  by STIX Data Center preview image creator'
     ax.axis("off") 
     ax.text(0.1,0.9,title, transform=fig.transFigure, size=24, ha="left")
     ax.text(0.1,0.8,descr, transform=fig.transFigure, size=14, ha="left", va='top')
-    ax.text(0.1,0.5,remarks, transform=fig.transFigure, size=14, ha="left", va='top')
+    ax.text(0.1,0.5,remarks, transform=fig.transFigure, size=12, ha="left", va='top')
     pdf.savefig()
     plt.close()
 
@@ -189,7 +189,7 @@ def plot_stix_images(doc ):
 
 
     
-    fig = plt.figure(figsize=(12,7), dpi=100, facecolor='white', constrained_layout=True)
+    fig = plt.figure(figsize=(12,7), dpi=100, facecolor='white')
 
     ax_lc= fig.add_subplot(231)
     lightcurves.plot_QL_lc_for_bsd(bsd_id, fill_between_times=[start_utc, end_utc], ax=ax_lc)
@@ -219,7 +219,7 @@ def plot_stix_images(doc ):
     mfwd=sunpy.map.Map(doc_fits['image_fwdfit'])
     mfwd= rotate_map(mfwd)
 
-    descr_full=f'OBS_BEG: {start_utc} \nExposure time: {duration} (s) \nEnergy range 4 - 10 keV'
+    descr_full=f'OBS_BEG: {start_utc} \nExposure time: {duration} (s) \nEnergy range: 4 - 10 keV'
     descr=f'OBS_BEG: {start_utc} \nExposure time: {duration} (s) \nEnergy range :{energy_range_str} '
 
     maps=[mbp_full, mbp, mclean, mem, mfwd]
@@ -283,14 +283,14 @@ def plot_stix_images(doc ):
         for i, imap in enumerate(maps):
             if i==0:
                 continue
-            pfig=plt.figure(figsize=PDF_FIGURE_SIZE, constrained_layout=True)
+            pfig=plt.figure(figsize=PDF_FIGURE_SIZE)
             plot_flare_image(imap, pfig, panel_grid=131, title=titles[i], 
                     descr='', draw_image=True, contour_levels=[], zoom_scale=1 )
 
-            plot_flare_image(imap, pfig, panel_grid=132, title=titles[i] +' (3x)', 
+            plot_flare_image(imap, pfig, panel_grid=132, title=titles[i] +' (2x)', 
                     descr='', draw_image=True, contour_levels=[], zoom_scale=3)
             ax=plot_flare_image(imap, pfig, panel_grid=133, title=titles[i], 
-                    descr='', draw_image=False, contour_levels=[0.3, 0.5, 0.7], zoom_scale=3, color='k')
+                    descr='', draw_image=False, contour_levels=[0.3, 0.5, 0.7], zoom_scale=2, color='k')
             ax.set_xlabel('solar_x [arcsec]')
             ax.set_ylabel('solar_y [arcsec]')
 

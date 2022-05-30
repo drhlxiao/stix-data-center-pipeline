@@ -246,7 +246,7 @@ class ScienceL1(ScienceData):
                 X, Y,
                 np.transpose(
                     self.count_rate_spectrogram[:, self.min_ebin:self.max_ebin]
-                ))  #pixel summed energy spectrum
+                ), shading='auto' )  #pixel summed energy spectrum
         ax.set_yticks(
                 self.energies['channel'][self.min_ebin:self.max_ebin:2])
         ax.set_yticklabels(
@@ -263,12 +263,12 @@ class ScienceL1(ScienceData):
             if erange and trange:
                 emin_sci, emax_sci=self.energy_to_index(erange[0], erange[1])
                 tmin,tmax=sdt.utc2datetime(trange[0]), sdt.utc2datetime(trange[1]) 
-                width=mdates.date2num(tmax)-mdates.date2num(tmin)
+                mstart,mend=mdates.date2num(tmax),mdates.date2num(tmin)
 
-                rec= Rectangle((tmin, emin_sci), 
-                    width, emax_sci-emin_sci)
+                rec= Rectangle((mstart, emin_sci), 
+                    mend-mstart, emax_sci-emin_sci, edgecolor='cyan', fill=None)
                     
-                ax.add_patch(rec, fill=None,edgecolor='cyan')
+                ax.add_patch(rec)
 
                 locator = mdates.AutoDateLocator(minticks=3, maxticks=7)
                 formatter = mdates.ConciseDateFormatter(locator)
