@@ -11,7 +11,7 @@ from astropy.io import fits
 from matplotlib import pyplot as plt
 from stix.spice import time_utils as sdt
 import matplotlib.dates as mdates
-from matplotlib.patches import Polygon
+from matplotlib.patches import Rectangle
 
 
 
@@ -263,10 +263,11 @@ class ScienceL1(ScienceData):
             if erange and trange:
                 emin_sci, emax_sci=self.energy_to_index(erange[0], erange[1])
                 tmin,tmax=sdt.utc2datetime(trange[0]), sdt.utc2datetime(trange[1]) 
-                rec= Polygon([(tmin, emax_sci), 
-                    (tmax, emax_sci),
-                    (tmax, emin_sci),
-                    (tmin, emin_sci)])
+                width=mdates.date2num(tmax)-mdates.date2num(tmin)
+
+                rec= Rectangle((tmin, emin_sci), 
+                    width, emax_sci-emin_sci)
+                    
                 ax.add_patch(rec, fill=None,edgecolor='cyan')
 
                 locator = mdates.AutoDateLocator(minticks=3, maxticks=7)
