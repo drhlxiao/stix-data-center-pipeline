@@ -89,10 +89,13 @@ def plot_flare_image(imap, fig, panel_grid=111, title='', descr='', draw_image=T
         ax.text(desc_xy[0], desc_xy[1],descr, 
                 horizontalalignment='right', verticalalignment='top',    transform = ax.transAxes, color=color)
     if contour_levels:
-        print(contour_levels)
+        #print(contour_levels)
         clevels =np.array(contour_levels)*imap.max()
         cs=imap.draw_contours(clevels)
-        plt.clabel(cs, inline=1,  fmt={x: f'{contour_levels[i]*100:.0f} %'    for i, x in enumerate(clevels) })
+        proxy = [plt.Rectangle((1, 1), 2, 1, fc=pc.get_edgecolor()[0]) for pc in
+        cs.collections]
+        legends=[ f'{contour_levels[i]*100:.0f} %'  for i, x in enumerate(clevels) ]
+        plt.legend(proxy, legends)
     if zoom_scale !=1:
         zoom(imap, ax, zoom_scale)    
     ax.set_aspect('equal')
