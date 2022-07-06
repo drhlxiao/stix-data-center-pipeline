@@ -213,7 +213,7 @@ def plot_stix_images(doc ):
     fix_clean_map_fits_header(doc, doc_fits['image_clean'])
     #add dsun to the header
     mclean=sunpy.map.Map(doc_fits['image_clean'])
-    mclean=mclean[4]
+    #mclean=mclean[4]
     mclean= rotate_map(mclean)
     #MEM
     mem=sunpy.map.Map(doc_fits['image_em'])
