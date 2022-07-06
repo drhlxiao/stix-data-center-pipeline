@@ -15,10 +15,12 @@
 ;               FILE = FITS file name
 ;               PATH_SCI_FILE = path to the L1 file used for reconstructing the STIX image
 ;
-; Keywords    : PATH_SCI_FILE = path to the L1 BKG file included for the reconstruction of the STIX image
+; Keywords    : PATH_BKG_FILE = path to the L1 BKG file included for the reconstruction of the STIX image
 ;               XY_SHIFT = applied shift to the location of the map. Provide the aspect if applied
 ;               ERR = error string
 ;               BYTE_SCALE = byte scale data
+;               ALL_CLEAN = store all maps of the clean map structure 
+;                           (by default only the clean map is stored, i.e., clean_map[0])
 ;
 ; Comments    : Based on map2fits in sswidl, but adapted for STIX images
 ; History     : 05-04-2022, Hualin Xiao (hualin.xiao@fhnw.ch)
@@ -29,14 +31,18 @@
 ;                  It now includes most of the keywords already present in the L1 science file.
 ;                  Now the user MUST specify path_sci_file
 ;
+;                - 04.07.2022: A. F. Battaglia (andrea-battaglia@fhnw.ch)
+;                  Keyword ALL_CLEAN added. By default, only the clean_map[0] is stored
 ; -
 
-   pro stx_map2fits,map,file,path_sci_file,meta,path_bkg_file=path_bkg_file,$
-    xy_shift=xy_shift, err=err,byte_scale=byte_scale,verbose=verbose
+   pro stx_map2fits,in_map,file,path_sci_file,path_bkg_file=path_bkg_file,$
+    xy_shift=xy_shift, err=err,byte_scale=byte_scale,verbose=verbose,all_clean=all_clean
 
    err=''
    verbose=keyword_set(verbose)
- 
+
+  ; ******************** ADAPTED FOR STIX ************************
+
   ; Check if the L1 file is given
   if not keyword_set(path_sci_file) then begin
     print, ''
@@ -44,7 +50,18 @@
     print, ''
     message, 'Please, define path_sci_file (path to the science file used for imaging)'
   endif
- 
+    
+  ; Check if the algorithm used is CLEAN.
+  ; If this is the case, then store only the CLEAN map and discard all other maps
+  this_id = in_map[0].id
+  if this_id.Contains('CLEAN') eq 1 and not keyword_set(all_clean) then begin
+    map = in_map[0]
+  endif else begin
+    map = in_map
+  endelse
+
+  ; *************************************************************
+
    if ~valid_map(map) || is_blank(file) then begin
     pr_syntax,'map2fits,map,file'
     return

@@ -11,6 +11,7 @@ from astropy.io import fits
 from matplotlib import pyplot as plt
 from stix.spice import time_utils as sdt
 import matplotlib.dates as mdates
+import matplotlib.colors as colors
 from matplotlib.patches import Rectangle
 
 
@@ -242,11 +243,11 @@ class ScienceL1(ScienceData):
             _, ax = plt.subplots()
         X, Y = np.meshgrid(self.datetime,
                            np.arange(self.min_ebin, self.max_ebin))
+        Z=np.transpose(
+                    self.count_rate_spectrogram[:, self.min_ebin:self.max_ebin])
         im = ax.pcolormesh(
-                X, Y,
-                np.transpose(
-                    self.count_rate_spectrogram[:, self.min_ebin:self.max_ebin]
-                ), shading='auto' )  #pixel summed energy spectrum
+                X, Y, Z, norm=colors.LogNorm(),
+                 shading='auto' )  #pixel summed energy spectrum
         ax.set_yticks(
                 self.energies['channel'][self.min_ebin:self.max_ebin:2])
         ax.set_yticklabels(
