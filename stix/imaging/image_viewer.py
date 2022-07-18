@@ -16,21 +16,19 @@ from astropy.io import fits
 from astropy.wcs import WCS
 from matplotlib import pyplot as plt
 from dateutil.parser import parse as dtparse
+from matplotlib.backends.backend_pdf import PdfPages
+from datetime import datetime, timedelta as td
+from scipy import ndimage
+import sunpy
+from sunpy.map import make_fitswcs_header
+from sunpy.coordinates.frames import HeliocentricEarthEcliptic,HeliographicStonyhurst
+
+from stix.flare_pipeline import lightcurves
+from stix.core import mongo_db as db
 from stix.core import logger
 from stix.spice import time_utils as ut
 from stix.spice.solo import SoloEphemeris
 from stix.analysis.science_l1 import ScienceL1
-
-from matplotlib.backends.backend_pdf import PdfPages
-from datetime import datetime, timedelta as td
-from scipy import ndimage
-
-import sunpy
-from sunpy.map import make_fitswcs_header
-
-from sunpy.coordinates.frames import HeliocentricEarthEcliptic,HeliographicStonyhurst
-from stix.flare_pipeline import lightcurves
-from stix.core import mongo_db as db
 
 logger = logger.get_logger()
 mdb = db.MongoDB()
@@ -185,7 +183,6 @@ def fix_clean_map_fits_header(doc, image_filename):
     """
         to add dsun to clean maps
         idl script dosen't write dsun to clean fits files, we do a fix here 
-        
     """
     hduls=fits.open(image_filename) 
     dsun=(doc['aux']['dsun'], 'S/C distance to Sun (meters)')
@@ -294,7 +291,7 @@ def plot_stix_images(doc ):
     mbp=sunpy.map.Map(doc_fits['image_bp'])
     mbp= rotate_map(mbp)
     # Composite BP map with AIA underneath
-    if doc_fits['image_aia'] is not None:
+    if doc_fits.get('image_aia', None) is not None:
         comp_map = sunpy.map.map(mbp,sunpy.map.Map(doc_fits['image_aia']).submap(mbp.bottom_left_coord,top_right=mbp.top_right_coord),composite=True)
         levels = [70,80,90]
         comp_map.set_levels(index=1, levels=levels, percent=True)
@@ -326,11 +323,11 @@ def plot_stix_images(doc ):
     except (KeyError, TypeError):
         fwdshape=''
 
-    titles=['Back-projection (full disk)',
+    titles=['Back-projection (Full disk)',
             'Back-projection', # might want to edit this for composite maps
             'CLEAN',
             'MEM',
-            f'VIS_FWDFIT ({fwdshape})']
+            f'VIS_FWDFIT {fwdshape}']
     panel_ids=[232, 233, 234, 235, 236]
     for i, imap in enumerate(maps):
         vmin=0.4 if i==0 else None
@@ -348,7 +345,6 @@ def plot_stix_images(doc ):
     logger.info(f"Images have been written to file:{img_fname}")
     updates={'$set':{'figs':[{'quicklook':img_fname}], 'processing_date':datetime.now()}}
     flare_images_db.update_one({'_id':doc['_id']}, updates)
-
 
     ## Print plots to pdf
     logger.info('Creating PDF...')

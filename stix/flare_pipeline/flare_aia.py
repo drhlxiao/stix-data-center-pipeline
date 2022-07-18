@@ -29,6 +29,10 @@ def get_ang_vectors(v1, v2):
 
 
 def get_flare_spice(sun_x, sun_y, flare_utc, observer='earth'):
+    """
+        get flare auxiliary data from SPICE kernel
+
+    """
     #sun_x, sun_y in unites of arcsec
     date_flare = sdt.utc2datetime(flare_utc)
     et_stix = spice.utc2et(date_flare)
@@ -54,12 +58,15 @@ def get_flare_spice(sun_x, sun_y, flare_utc, observer='earth'):
     solo_hee = HeliocentricEarthEcliptic(solo_hee_spice,
                                          obstime=Time(date_flare).isot,
                                          representation_type='cartesian')
+    """
     if observer == 'earth':
         obs_coord = earth_hee#.transform_to(
             #HeliographicStonyhurst(obstime=date_flare))
     else:
         obs_coord = solo_hee#.transform_to(
             #HeliographicStonyhurst(obstime=date_flare))
+            """
+    obs_coord=earth_hee if observer=='earth' else solo_hee
 
     flare_skycoord = SkyCoord(flare_coord[0] * u.arcsec,
                               flare_coord[1] * u.arcsec,
@@ -201,7 +208,7 @@ def download_AIA_cutout(time_int, wave = 1600, series='aia_lev1_uv_24s', cutout_
         cutout = a.jsoc.Cutout(cutout_coords[0],top_right=cutout_coords[1])
     
     qs.append(cutout)
-    qs.append(a.jsoc.Notify(jsoc_email)) # Set this in config
+    #qs.append(a.jsoc.Notify(jsoc_email)) # Set this in config
 
 #    if sample: #Quantity
 #        sample = a.Sample(sample)
@@ -211,19 +218,12 @@ def download_AIA_cutout(time_int, wave = 1600, series='aia_lev1_uv_24s', cutout_
     if single_result: # Take the first result
         res = res[0]
 
-    if not aia_file_path: files = Fido.fetch(res,path='./') #set path in config - destination for downloaded files
-    else: files = Fido.fetch(res,path=f"{aia_file_path}/")
+    if not aia_file_path: 
+        files = Fido.fetch(res,path='./') #set path in config - destination for downloaded files
+    else: 
+        files = Fido.fetch(res,path=f"{aia_file_path}/")
     return res
-
 
 if __name__=='__main__':
     
-    res=[]
-    for i in range(10):
-        for j in range(10):
-            sun_x=-900+i*100
-            sun_y=-900+j*100
-            res.append({'loc':[sun_x, sun_y],'res':get_flare_spice(sun_x, sun_y, '2021-10-28T00:00:00', observer='solo')})
-    import json
-    f=open('flare_test.json', 'w')
-    json.dump(res,f)
+    download_AIA_cutout(['2022-01-01T00:00:00', '2022-01-01T01:00:00']) 
