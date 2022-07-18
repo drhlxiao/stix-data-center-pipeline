@@ -7,19 +7,22 @@ April 27, 2022
 import os
 import sys
 import matplotlib
+from matplotlib import cm
 import numpy as np
 from astropy import units as u
 from astropy.time import Time
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
+from astropy.wcs import WCS
 from matplotlib import pyplot as plt
 from dateutil.parser import parse as dtparse
 from stix.core import logger
 from stix.spice import time_utils as ut
+from stix.spice.solo import SoloEphemeris
 from stix.analysis.science_l1 import ScienceL1
 
 from matplotlib.backends.backend_pdf import PdfPages
-from datetime import datetime
+from datetime import datetime, timedelta as td
 from scipy import ndimage
 
 import sunpy
@@ -53,10 +56,86 @@ def create_images(_id):
             logger.error(e)
     else:
         logger.info(f"doc {_id} does not exist")
+        
 def rotate_map(m, recenter=False):
     #further checks are required
     #rotate map
     return m.rotate(angle=(m.meta['crota2'])*u.deg, recenter=recenter)
+    
+def reproject_map(m):
+    """Reprojects AIA map into STIX frame. If reprojection does not contain a reasonable amount of non-NaN pixels, return None (no AIA map will be underplotted)
+    
+    Inputs:
+    
+    m : sunpy.map.Map
+    AIA (cutout) map from FITS file"""
+    # Get reference coordinate
+    eph=SoloEphemeris().get_solo_ephemeris(m.meta['date-obs'],m.meta['date-obs'],num_steps=1)
+    #rsun_arcsec=((eph['sun_angular_diameter'][0]/2)*u.arcmin).to(u.arcsec)
+    solo_obs = SkyCoord(eph['solo_hee'][0][0]*u.km,eph['solo_hee'][0][1]*u.km,eph['solo_hee'][0][2]*u.km,
+                      representation_type='cartesian',frame=HeliocentricEarthEcliptic,
+                      obstime=Time(m.meta['date-obs']))
+    solo_refcoord = SkyCoord(0*u.arcsec,0*u.arcsec,frame='helioprojective',observer=solo_obs,
+                          obstime=Time(m.meta['date-obs']))
+    # Reproject map
+    try:
+        reprojected_aia_header = modify_header(m, solo_refcoord)
+        reprojected_aia = m.reproject_to(reprojected_aia_header)
+        return reprojected_aia
+    except ValueError:
+        return None
+        
+def find_reprojected_extent(smap,sobs, swcs=None, full_disk=False, nan_threshold=0.5):
+    """Find extent in NAXIS1 and NAXIS2 of reprojected map
+    Inputs:
+    smap: sunpy.map.Map
+    sobs: SkyCoord reference coordinate
+    swcs: astropy.wcs
+    """
+    if full_disk:
+        rsun_arcsec = int(sunpy.map.solar_angular_radius(sobs).value) #assuming 1":1px scale
+        return -rsun_arcsec, rsun_arcsec, -rsun_arcsec, rsun_arcsec
+
+    if not swcs: #make the WCS from observer information
+        swcs = WCS(sunpy.map.make_fitswcs_header((1,1),sobs))
+        
+    # Obtain the pixel locations of the edges of the reprojected map
+    edges_pix = np.concatenate(sunpy.map.map_edges(smap)) #what about if off disk? currently doesn't work correctly in that case
+    edges_coord = smap.pixel_to_world(edges_pix[:, 0], edges_pix[:, 1])
+    new_edges_coord = edges_coord.transform_to(sobs)
+    new_edges_xpix, new_edges_ypix = swcs.world_to_pixel(new_edges_coord)
+
+    #check for NaNs...
+    if new_edges_xpix[np.isnan(new_edges_xpix)].size > 0 or new_edges_ypix[np.isnan(new_edges_ypix)].size > 0:
+        cc = sunpy.map.all_coordinates_from_map(smap).transform_to(sobs)
+        on_disk = sunpy.map.coordinate_is_on_solar_disk(cc)
+        on_disk_coordinates = cc[on_disk]
+        nan_percent = 1.-len(on_disk_coordinates)/len(cc.flatten())
+        if nan_percent > nan_threshold:
+            raise ValueError(f"Warning - {nan_percent*100:.1f}% of pixels in reprojected map are NaN!")
+
+    # Determine the extent needed - use of nanmax/nanmin means only on-disk coords are considered
+    left, right = np.nanmin(new_edges_xpix), np.nanmax(new_edges_xpix)
+    bottom, top = np.nanmin(new_edges_ypix), np.nanmax(new_edges_ypix)
+    return left, right, bottom, top
+
+def modify_header(smap,sobs, swcs=None, full_disk=False):
+    """Modify the header information to be passed to sunpy.map.Map.reproject_to()
+    to contain WCS keywords corresponding to the new location and extent of the reprojected map
+
+    Inputs:
+    smap: sunpy.map.Map
+    sobs: SkyCoord reference coordinate
+    swcs: astropy.wcs
+    """
+    left, right, bottom, top = find_reprojected_extent(smap, sobs, swcs, full_disk=full_disk)
+    # Adjust the CRPIX and NAXIS values
+    modified_header = make_fitswcs_header((1, 1), sobs)
+    modified_header['crpix1'] -= left
+    modified_header['crpix2'] -= bottom
+    modified_header['naxis1'] = int(np.ceil(right - left))
+    modified_header['naxis2'] = int(np.ceil(top - bottom))
+    return modified_header
 
 def zoom(m, ax, scale=2):
     xc, yc=ndimage.center_of_mass(m.data)
@@ -90,7 +169,7 @@ def plot_flare_image(imap, fig, panel_grid=111, title='', descr='', draw_image=T
                 horizontalalignment='right', verticalalignment='top',    transform = ax.transAxes, color=color)
     if contour_levels:
         #print(contour_levels)
-        clevels =np.array(contour_levels)*imap.max()
+        clevels = np.array(contour_levels)*imap.max()
         cs=imap.draw_contours(clevels)
         proxy = [plt.Rectangle((1, 1), 2, 1, fc=pc.get_edgecolor()[0]) for pc in
         cs.collections]
@@ -100,9 +179,6 @@ def plot_flare_image(imap, fig, panel_grid=111, title='', descr='', draw_image=T
         zoom(imap, ax, zoom_scale)    
     ax.set_aspect('equal')
     return  ax
-    
-
-
 
 
 def fix_clean_map_fits_header(doc, image_filename):
@@ -139,6 +215,7 @@ def create_figures_ids_between(start_id, end_id):
         logger.info(f"Creating images for BSD#{doc['bsd_id']}, DocID:{i}")
         plot_stix_images(doc )
 
+
 def create_title_page(pdf, img_id=0, obs='',expt='',sig_id='',bkg_id='',erange='', fig=None, ax=None):
     if fig is None or ax is None:
         fig, ax=plt.subplots( figsize=PDF_FIGURE_SIZE)
@@ -153,6 +230,14 @@ def create_title_page(pdf, img_id=0, obs='',expt='',sig_id='',bkg_id='',erange='
     pdf.savefig()
     plt.close()
 
+def reverse_colormap(palette_name):
+    """reverses matplotlib colormap"""
+    if not palette_name.endswith('_r'):
+        new_cdata=cm.revcmap(plt.get_cmap(palette_name)._segmentdata)
+        new_cmap=matplotlib.colors.LinearSegmentedColormap(f'{palette_name}_r',new_cdata)
+        return new_cmap
+    else:
+        return None
 
 def plot_stix_images(doc ):
     """
@@ -208,6 +293,16 @@ def plot_stix_images(doc ):
     #bp
     mbp=sunpy.map.Map(doc_fits['image_bp'])
     mbp= rotate_map(mbp)
+    # Composite BP map with AIA underneath
+    if doc_fits['image_aia'] is not None:
+        comp_map = sunpy.map.map(mbp,sunpy.map.Map(doc_fits['image_aia']).submap(mbp.bottom_left_coord,top_right=mbp.top_right_coord),composite=True)
+        levels = [70,80,90]
+        comp_map.set_levels(index=1, levels=levels, percent=True)
+        # Reverse AIA colormap (optional)
+        aia_plot_settings=comp_map.get_plot_settings(0)
+        aia_plot_settings['cmap']=reverse_colormap(aia_plot_settings['cmap'])
+        comp_map.set_plot_settings(0, aia_plot_settings)
+        mbp = comp_map
 
     # CLEAN map
     fix_clean_map_fits_header(doc, doc_fits['image_clean'])
@@ -232,7 +327,7 @@ def plot_stix_images(doc ):
         fwdshape=''
 
     titles=['Back-projection (full disk)',
-            'Back-projection',
+            'Back-projection', # might want to edit this for composite maps
             'CLEAN',
             'MEM',
             f'VIS_FWDFIT ({fwdshape})']
