@@ -41,8 +41,49 @@ flare_images_db= mdb.get_collection('flare_images')
 req_db = mdb.get_collection('data_requests')
 MIN_COUNTS=10000
 
-last_bkg_fits_doc={}
+ASPECT_TIME_TOR=300 #time tolerance for looking for aspect solution 
 
+last_bkg_fits_doc={}
+def get_sun_center_from_aspect(y_srf,  z_srf):
+    """
+    Frederic message on slack  Jun 22, 2022
+    So, as it is done in the IDL imaging pipeline, the images have to be shifted by:
+    3:06
+    (Y_SRF + offset_X, -Z_SRF + offset_Y)
+    3:07
+    the (offset_X, offset_Y) is the residual systematic error that I've measured on a small sample of events already a year ago or so... my estimate is: +60'', +8''
+    3:07
+    but these values will be re-evaluated at some point, better store them in a file or a variable that you can easily update when need be
+    """
+    offset_x, offset_y=y_srf + 60, -z_srf +8
+    #here it is sun center, so we should add the minus sign
+    return (-offset_x, -offset_y)
+
+
+def attach_aspect_solutions(start_unix, end_unix, config):
+    """
+    attach aspect solutions
+    """
+    #return
+    mean_time=(start_unix+end_unix)/2.
+    docs=mdb.get_aspect_solutions(start_unix, end_unix)
+    min_dt=np.inf
+    for doc in docs:
+        try:
+            if np.abs(doc['unix_time']-mean_time)<min_dt:
+                config['aux']['L0'], config['aux']['B0']=doc['solo_loc_carrington_lonlat']
+                #config['aux']['sun_center']=(-doc['y_srf'],doc['z_srf'])
+                config['aux']['sun_center']=get_sun_center_from_aspect(doc['y_srf'], doc['z_srf'])
+                #Not sure about the sign, need to be confirmed
+                config['aux']['rsun']=doc['spice_disc_size']
+                config['aux']['roll']=doc['roll_angle_rpy'][0]
+                config['aux']['dsun']=doc['solo_loc_carrington_dist'][0]*1000 # distance to sun, in units of km
+                config['aux']['data_source_file']=doc['filename']
+                config['aux']['data_source_type']='Aspect'
+                config['aux']['utc']=stu.unix2utc(doc['unix_time'])
+                min_dt=doc['unix_time']
+        except (KeyError, IndexError):
+            pass 
 def register_imaging_task_for_science_data(bsd_ids=[]):
     if not bsd_ids:
         #only processing for data which are not background
@@ -168,6 +209,7 @@ def queue_imaging_tasks(doc,
             os.makedirs(folder)
         task_id= uuid.uuid4().hex[0:10]
         num_images += 1
+        
         config={
                     'filename': fname,
                     'bsd_id': doc['_id'],
@@ -186,6 +228,7 @@ def queue_imaging_tasks(doc,
                         'rsun': rsun.to(u.arcsec).value,
                         'dsun': dsun.to(u.m).value,
                         'sun_center':sun_center,
+                        'data_source_type':'SPICE',
                         'solo_sun_r':solo_sun_r.to(u.au).value,
                         'solo_hee':solo_hee.to(u.km).value
                         },
@@ -206,6 +249,8 @@ def queue_imaging_tasks(doc,
                     'fits':{},
                     'figs':{}
                 }
+
+        attach_aspect_solutions(box['unix_time_range'][0]-ASPECT_TIME_TOR, box['unix_time_range'][1]+ASPECT_TIME_TOR, config)
 
         imaging_inputs = bson.dict_to_json(config)
         imaging_inputs['creation_time']=datetime.now()
@@ -228,17 +273,29 @@ def register_imaging_tasks_for_file(file_id):
     ids=[int(x['_id']) for x in docs]
     register_imaging_task_for_science_data(ids)
 
+def update_auxiliary_data():
+    db_flare_images=mdb.get_collection('flare_images')
+    for doc in db_flare_images.find():
+        attach_aspect_solutions(doc['start_unix']-ASPECT_TIME_TOR, doc['end_unix']+ASPECT_TIME_TOR, doc)
+        doc['num_idl_calls']=0
+        logger.info(f'updating {doc["_id"]}...')
+        db_flare_images.update_one({'_id':doc['_id']}, {'$set':doc})
+
+
 
 
 
 if __name__ == '__main__':
+    update_auxiliary_data()
+    """
     if len(sys.argv) == 1:
         print('Usage:')
-        print('flare_image_creator <regtask | runidl | tosvg> [ids]')
+        print('imaging_take_manager regtask [ids]')
     elif len(sys.argv)==2:
         register_imaging_task_for_science_data()
     else:
         ids = [int(i) for i in sys.argv[2:]]
         register_imaging_task_for_science_data(ids)
+    """
 
 

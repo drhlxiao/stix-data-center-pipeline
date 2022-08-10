@@ -15,6 +15,7 @@ sys.path.append(parentdir)
 from stix.pipeline import raw_pipeline as pd
 from stix.analysis import goes_downloader as gd
 from stix.analysis import flare_detection
+#from stix.aspect import aspect_to_db as asp
 from stix.fits import fits_creator
 from stix.core import logger
 from stix.core import config
@@ -22,13 +23,19 @@ logger = logger.get_logger()
 goes=gd.GOES()
 
 def daily_jobs():
+    time.sleep(600)
+    #lower priority
     daemon_config = config.get_config('pipeline.daemon')
     lc_output_dir=daemon_config['flare_lc_snapshot_path']
+    #aspect_path_pattern=daemon_config['aspect_l2_path_pattern']
     while True:
         logger.info("Starting LL fits creator loop..")
         fits_creator.create_daily_low_latency_fits_for_all()
         logger.info("Starting flare detection loop..")
         flare_detection.find_flares_in_recent_LC(lc_path=lc_output_dir)
+        logger.info("Importing aspect solutions ..")
+        #asp.import_all_aspect_solutions(aspect_path_pattern)
+
         time.sleep(86400)
 
 
@@ -47,6 +54,7 @@ def start_threads():
 
     daily_thread=threading.Thread(target=daily_jobs)
     daily_thread.start()
+
 
 if __name__ == '__main__':
     start_threads()

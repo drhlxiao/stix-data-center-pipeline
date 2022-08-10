@@ -17,18 +17,18 @@ WHILE (1 ne 0) DO BEGIN
 		continue
 	endif
 
-   CATCH, Error_status
+;   CATCH, Error_status
  
    ;This statement begins the error handler:
-   IF Error_status NE 0 THEN BEGIN
-      PRINT, 'Error index: ', Error_status
-      PRINT, 'Error message: ', !ERROR_STATE.MSG
-      ; Handle the error by extending A:
-		resp="_id="+string(data._id)+"&error=yes"
-		ret=obj->Put(resp, /buffer, /post, url=url_post)
-	  continue
-      CATCH, /CANCEL
-   ENDIF
+;   IF Error_status NE 0 THEN BEGIN
+;      PRINT, 'Error index: ', Error_status
+;      PRINT, 'Error message: ', !ERROR_STATE.MSG
+;      ; Handle the error by extending A:
+;		resp="_id="+string(data._id)+"&error=yes"
+;		ret=obj->Put(resp, /buffer, /post, url=url_post)
+;	  continue
+;      CATCH, /CANCEL
+;   ENDIF
  
 
 	data_folder=data.idl_config.folder
@@ -99,7 +99,7 @@ WHILE (1 ne 0) DO BEGIN
 
 	resp="_id="+string(data._id)+"&image_bp="+bp_fname+"&image_fwdfit="+vis_fwdfit_fname+"&image_em="+em_fname+"&image_clean="+clean_fname+"&image_full_disk="+full_disk_bp_fname
 	
-	ret=obj->Put(resp, /buffer, /post, url=url_post)
+;	ret=obj->Put(resp, /buffer, /post, url=url_post)
 	print, "done"
 	print, "Executing image creator..."
 	SPAWN, "/usr/bin/python3 /opt/stix/parser/stix/imaging/image_viewer.py " + string(data._id)

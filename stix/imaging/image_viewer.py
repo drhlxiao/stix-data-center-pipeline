@@ -213,13 +213,16 @@ def create_figures_ids_between(start_id, end_id):
         plot_stix_images(doc )
 
 
-def create_title_page(pdf, img_id=0, obs='',expt='',sig_id='',bkg_id='',erange='', fig=None, ax=None):
+def create_title_page(pdf, img_id=0, asp_source=None, obs='',expt='',sig_id='',bkg_id='',erange='', fig=None, ax=None):
     if fig is None or ax is None:
         fig, ax=plt.subplots( figsize=PDF_FIGURE_SIZE)
     title = 'STIX preview images'
 
-    descr=f'Observation begin UTC:{obs}\nExposure time: {round(expt,2)}\nSignal data unique ID: {sig_id}\nBackground data unique ID: {bkg_id} \nEnergy range:{erange} (keV)'
-    remarks=f'Absolute flare location accuracy ~ 1 arcmin\nCreated on {datetime.today().strftime("%B %d, %Y")} \n  by STIX Data Center preview image creator'
+    descr=f'begin UTC:{obs}\nExposure time: {round(expt,2)}\nSignal data unique ID: {sig_id}\nBackground data unique ID: {bkg_id} \nEnergy range:{erange} (keV)'
+
+    remark_lines=[f'Absolute flare location accuracy ~ 1 arcmin' if asp_source is None else f'Pointing data source: {asp_source}',
+            f'\nCreated on {datetime.today().strftime("%B %d, %Y")} by STIX Data Center Web Imaging Tool']
+    remarks=''.join(remark_lines)
     ax.axis("off") 
     ax.text(0.1,0.9,title, transform=fig.transFigure, size=24, ha="left")
     ax.text(0.1,0.8,descr, transform=fig.transFigure, size=14, ha="left", va='top')
@@ -314,8 +317,8 @@ def plot_stix_images(doc ):
     mfwd=sunpy.map.Map(doc_fits['image_fwdfit'])
     mfwd= rotate_map(mfwd)
 
-    descr_full=f'OBS_BEG: {start_utc} \nExposure time: {duration} (s) \nEnergy range: 4 - 10 keV'
-    descr=f'OBS_BEG: {start_utc} \nExposure time: {duration} (s) \nEnergy range :{energy_range_str} '
+    descr_full=f'Start UT {start_utc}; {duration} sec integration;  4 - 10 keV'
+    descr=f'Start UT {start_utc}; {duration} sec integration; {energy_range_str} '
 
     maps=[mbp_full, mbp, mclean, mem, mfwd]
     try:
@@ -335,7 +338,8 @@ def plot_stix_images(doc ):
                 descr='', draw_image=True, contour_levels=[], zoom_scale=1, vmin=vmin)
 
     image_id_str = f'(#{doc["_id"]})'
-    plt.suptitle(f'Start UTC {start_utc}; Exposure time: {duration:.1f} sec; Energy range: {energy_range[0]} – {energy_range[1]} keV ', fontsize=12)
+    aspect_info='corrected' if doc['aux'].get('data_source_type', None)=='Aspect' else 'not corrected'
+    plt.suptitle(f'Start UT {start_utc}; {duration:.1f} sec integration; {energy_range[0]} – {energy_range[1]} keV; Aspect {aspect_info}', fontsize=12)
     plt.subplots_adjust(
             top=0.85,
                     wspace=0.2, 
@@ -349,9 +353,9 @@ def plot_stix_images(doc ):
     ## Print plots to pdf
     logger.info('Creating PDF...')
     with PdfPages(pdf_img_fname) as pdf:
+        aspect_source_file=doc['aux'].get('data_source_file',None)
 
-
-        create_title_page(pdf, doc['_id'], obs=start_utc,expt=duration,sig_id=bsd_uid,bkg_id=bkg_uid,erange=energy_range)
+        create_title_page(pdf, doc['_id'], aspect_source_file, obs=start_utc,expt=duration,sig_id=bsd_uid,bkg_id=bkg_uid,erange=energy_range)
 
 
         pfig, (ax_lc_pdf, ax_spec)=plt.subplots(1,2,  figsize=PDF_FIGURE_SIZE)

@@ -35,6 +35,7 @@ parser_config = {
                     "file": "/data/log/message.log"
                     },
                 "fits_path": "/data/fits",
+                "aspect_l2_path_pattern":"/data/pub099/fits/L2/*/*/*/*/*-aux-*.fits",
                 "flare_lc_snapshot_path": "/data/flare_lc",
                 "calibration_report_path": "/data/calibration/",
                 "level1_products_path": "/data/level1/",
