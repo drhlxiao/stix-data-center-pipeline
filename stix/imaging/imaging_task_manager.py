@@ -203,7 +203,7 @@ def queue_imaging_tasks(doc,
     for box in boxes:
         energy_range_str=f'{box["energy_range_keV"][0]}-{box["energy_range_keV"][1]}'
         start_utc_str=stu.utc2filename(box['utc_range'][0])
-        fits_prefix = f'stix_ql_image_sci_{bsd_id}_uid_{uid}_{energy_range_str}keV_{start_utc_str}_{flare_image_id}'
+        fits_prefix = f'stix_imaging_spectroscopy_sci_{bsd_id}_uid_{uid}_{energy_range_str}keV_{start_utc_str}_{flare_image_id}'
         folder=os.path.join(quicklook_path, str(uid))
         if not os.path.exists(folder):
             os.makedirs(folder)

@@ -8,7 +8,10 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 	em_map_filename, $
 	clean_map_filename,   $
 	L0, B0, RSUN, roll_angle, dsun, $
-	x_offset_arcsec, y_offset_arcsec                     
+	x_offset_arcsec, y_offset_arcsec, gui
+;
+;
+;
 
 
 	clean_uniform_weighting=0
@@ -45,10 +48,10 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 	;;******* Compute the Back Projection map
 	pixel_size_full_disk_bp_map = RSUN * 2.6 / full_disk_bp_map_size
 	full_disk_bp_map = stx_bproj(vis,full_disk_bp_map_size,pixel_size_full_disk_bp_map, aux_data)
-;	full_disk_bp_map.xc += x_offset_arcsec
-;	full_disk_bp_map.yc += y_offset_arcsec
-;full_disk_bp_map.time= flare_start_UTC
-;full_disk_bp_map.dur=duration
+	;	full_disk_bp_map.xc += x_offset_arcsec
+	;	full_disk_bp_map.yc += y_offset_arcsec
+	;full_disk_bp_map.time= flare_start_UTC
+	;full_disk_bp_map.dur=duration
 
 	;;******* Compute the coordinates of the maximum value of the Back Projection map, i.e. of the location of the flare
 	max_bp       = max(full_disk_bp_map.data, ind_max)
@@ -63,12 +66,12 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 
 	;;******* Compute the Back Projection map (around the flare location)
 	bp_map = stx_bproj(vis,map_size,pixel_size, aux_data)
-;bp_map.L0 = L0
-;bp_map.B0 = B0
-;bp_map.RSUN = RSUN
-;bp_map.roll_angle = roll_angle
-;bp_map.xc += x_offset_arcsec
-;bp_map.yc += y_offset_arcsec
+	;bp_map.L0 = L0
+	;bp_map.B0 = B0
+	;bp_map.RSUN = RSUN
+	;bp_map.roll_angle = roll_angle
+	;bp_map.xc += x_offset_arcsec
+	;bp_map.yc += y_offset_arcsec
 
 
 
@@ -80,12 +83,9 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 	;vis_fwdfit_pso_map.L0 = L0
 	;vis_fwdfit_pso_map.B0 = B0
 	;vis_fwdfit_pso_map.RSUN = RSUN
-
 	;vis_fwdfit_pso_map.roll_angle = roll_angle
 	;vis_fwdfit_pso_map.xc += x_offset_arcsec
 	;vis_fwdfit_pso_map.yc += y_offset_arcsec
-
-
 	;vis_fwdfit_pso_map.time= flare_start_UTC
 	;vis_fwdfit_pso_map.dur=duration
 
@@ -96,11 +96,9 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 ;	clean_map.L0 = L0
 ;	clean_map.B0 = B0
 ;	clean_map.RSUN = RSUN
-
 ;	clean_map.time= flare_start_UTC
 ;	clean_map.dur=duration
 	;
-
 	;clean_map.roll_angle = roll_angle
 	;clean_map.xc += x_offset_arcsec
 	;clean_map.yc += y_offset_arcsec
@@ -114,8 +112,6 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 ;	em_map.L0 = L0
 ;	em_map.B0 = B0
 ;	em_map.RSUN = RSUN
-
-
 ;	em_map.roll_angle = roll_angle
 ;	em_map.xc += x_offset_arcsec
 ;	em_map.yc += y_offset_arcsec
@@ -132,5 +128,18 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 	stx_map2fits, vis_fwdfit_pso_map, vis_fwdfit_map_filename, path_sci_file, path_bkg_file=path_bkg_file, xy_shift=xy_shift 
 	stx_map2fits, clean_map, clean_map_filename, path_sci_file, path_bkg_file=path_bkg_file, xy_shift=xy_shift 
 	stx_map2fits, em_map, em_map_filename, path_sci_file, path_bkg_file=path_bkg_file, xy_shift=xy_shift 
+	
+	if (gui eq 1) then  begin
+		window,0,xsize=800,ysize=800
+		cleanplot
+		!p.multi=[0,2,2]
+		chs2=1.
+		loadct, 3
+		plot_map,full_disk_bp_map,charsize=chs2,title='Full disk Back Projection', /limb,grid_spacing=15
+		loadct, 5
+		plot_map,bp_map,charsize=chs2,title='Back Projection',/limb,grid_spacing=5
+		plot_map,em_map,charsize=chs2,title='EM',/limb,grid_spacing=5
+		plot_map,vis_fwdfit_pso_map,charsize=chs2,title='VIS_FWDFIT_PSO',/limb,grid_spacing=5
+	endif
 END
 
