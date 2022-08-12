@@ -149,7 +149,7 @@ def read_fits_to_dict(fname):
 
 
 def import_auxiliary(fname):
-    logger.info(f'Importing aspect solutions from {basename} ...')
+    logger.info(f'Importing aspect solutions from {fname} ...')
     asp_db = mdb.get_collection('aspect')
     if asp_db.find_one({'filename': os.path.basename(fname)}):
         logger.warn(f'{fname} ignored because it has been imported!')
