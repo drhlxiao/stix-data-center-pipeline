@@ -102,6 +102,7 @@ WHILE (1 ne 0) DO BEGIN
 	stx_auto_fit_ssw,fits_path_data = path_sci_file, fits_path_bk =  path_bkg_file, flare_start_utc = start_utc, $
 	  flare_end_utc = end_utc, results_filename=spectral_fitting_results_filename
 
+	print, "writing meshing data to database"
 	resp="_id="+string(data._id)+"&image_bp="+bp_fname+"&image_fwdfit="+vis_fwdfit_fname+"&image_em="+em_fname+"&image_clean="+clean_fname+"&image_full_disk="+full_disk_bp_fname+"&spectral_fitting="+spectral_fitting_results_filename
 	
 ;	ret=obj->Put(resp, /buffer, /post, url=url_post)

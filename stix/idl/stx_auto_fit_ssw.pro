@@ -1,6 +1,7 @@
 pro stx_auto_fit_ssw,fits_path_data = fits_path_data, fits_path_bk =  fits_path_bk, flare_start_utc = flare_start_utc , $
   flare_end_utc = flare_end_utc, distance = distance, time_shift = time_shift, results_filename=results_filename
 
+  ;results_filename = 'fit_results_'+start_time_string+'-'+end_time_string+'.fits'
   set_logenv, 'OSPEX_NOINTERACTIVE', '1'
 
   spex_fit_time_interval = [flare_start_utc, flare_end_utc]
@@ -79,7 +80,6 @@ pro stx_auto_fit_ssw,fits_path_data = fits_path_data, fits_path_bk =  fits_path_
   end_time_string = end_time_string.substring(0,-3)
   end_time_string = end_time_string.replace('_','T')
 
-  results_filename = 'fit_results_'+start_time_string+'-'+end_time_string+'.fits'
 
   ospex_obj-> set, fit_function= 'vth+thick2'
   ospex_obj-> set, fit_comp_params = [0.01, 1.0, 1.000,  1e-10, 5., 1e+6, 6.0, 15., 3.2e+4]
@@ -149,7 +149,7 @@ pro stx_auto_fit_ssw,fits_path_data = fits_path_data, fits_path_bk =  fits_path_
     model_thick = (vth_func_components.yvals)[*,2]
   endelse
 
-  goodness_of_fit  = chisq le 2. ? 'Accepatable Fit' : 'Poor Fit'
+  goodness_of_fit  = chisq le 2. ? 'Acceptable Fit' : 'Poor Fit'
 
   fit_out = { $
     model_total : model_total, $
