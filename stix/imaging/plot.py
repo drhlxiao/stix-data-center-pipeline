@@ -44,7 +44,7 @@ matplotlib.rc('axes', titlesize=SMALL_SIZE)
 #plt.rcParams['figure.constrained_layout.use'] = True
 
 CMAP='std_gamma_2' #color map
-def create_images(_id):
+def create_plots(_id):
     doc=flare_images_db.find_one({'_id':_id})
     if doc:
         logger.info(f"Creating images for doc: {_id}...")
@@ -203,7 +203,7 @@ def create_images_in_queue(num=10000):
             logger.error(e)
 
 
-def create_figures_ids_between(start_id, end_id):
+def create_images_for_ids_between(start_id, end_id):
     for i in range(start_id, end_id):
         doc=flare_images_db.find_one({'_id':i})
         if not doc:
@@ -213,7 +213,7 @@ def create_figures_ids_between(start_id, end_id):
         plot_stix_images(doc )
 
 
-def create_title_page(pdf, img_id=0, asp_source=None, obs='',expt='',sig_id='',bkg_id='',erange='', fig=None, ax=None):
+def create_pdf_title_page(pdf, img_id=0, asp_source=None, obs='',expt='',sig_id='',bkg_id='',erange='', fig=None, ax=None):
     if fig is None or ax is None:
         fig, ax=plt.subplots( figsize=PDF_FIGURE_SIZE)
     title = 'STIX preview images'
@@ -275,18 +275,13 @@ def plot_stix_images(doc ):
 
     text_xy=[0.02,0.95]
 
-
     
     fig = plt.figure(figsize=(12,7), dpi=100, facecolor='white')
 
     ax_lc= fig.add_subplot(231)
     lightcurves.plot_QL_lc_for_bsd(bsd_id, fill_between_times=[start_utc, end_utc], ax=ax_lc)
 
-
-
-
     #Full-disk image
-
 
     mbp_full=sunpy.map.Map(doc_fits['image_full_disk'])
     mbp_full= rotate_map(mbp_full, recenter=True)
@@ -355,8 +350,7 @@ def plot_stix_images(doc ):
     with PdfPages(pdf_img_fname) as pdf:
         aspect_source_file=doc['aux'].get('data_source_file',None)
 
-        create_title_page(pdf, doc['_id'], aspect_source_file, obs=start_utc,expt=duration,sig_id=bsd_uid,bkg_id=bkg_uid,erange=energy_range)
-
+        create_pdf_title_page(pdf, doc['_id'], aspect_source_file, obs=start_utc,expt=duration,sig_id=bsd_uid,bkg_id=bkg_uid,erange=energy_range)
 
         pfig, (ax_lc_pdf, ax_spec)=plt.subplots(1,2,  figsize=PDF_FIGURE_SIZE)
         lightcurves.plot_QL_lc_for_bsd(bsd_id, fill_between_times=[start_utc, end_utc], ax=ax_lc_pdf)
@@ -407,14 +401,15 @@ def plot_stix_images(doc ):
 
 
 
-def test_image_viewer():
-    create_figures_ids_between(0,1)
+def test():
+    create_images_for_ids_between(0,1)
+
 if __name__=='__main__':
     if len(sys.argv)==1:
         create_images_in_queue()
     elif len(sys.argv)==2:
-        create_images(int(sys.argv[1]))
+        create_plots(int(sys.argv[1]))
     elif len(sys.argv)==3:
         for i in range(int(sys.argv[1]), int(sys.argv[2])):
             print("Creating images for Entry #",i)
-            create_images(i)
+            create_plots(i)
