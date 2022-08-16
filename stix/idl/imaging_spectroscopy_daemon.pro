@@ -68,8 +68,10 @@ WHILE (1 ne 0) DO BEGIN
 	dsun=aux.dsun
 
 	roll_angle=aux.roll
-	x_offset_arcsec= - aux.sun_center[0]
-	y_offset_arcsec= - aux.sun_center[1]    
+	;x_offset_arcsec= - aux.sun_center[0]
+	;y_offset_arcsec= - aux.sun_center[1]    
+	x_offset_arcsec=  aux.sun_center[0]
+	y_offset_arcsec=  aux.sun_center[1]    
 	; STIX pointing offsets have opposite signs
 
 
@@ -81,7 +83,7 @@ WHILE (1 ne 0) DO BEGIN
 	vis_fwdfit_fname=outfile_prefix + "_vis_fwdfit_map.fits" 
 	em_fname=outfile_prefix + "_em_map.fits"
 	clean_fname=outfile_prefix + "_clean_map.fits"
-	spectral_fitting_results_filename=outfile_prefix+"_spectral_fitting.fits"
+	spectral_fitting_results_filename=outfile_prefix+"_ospex.fits"
 
 
 	print, bp_fname+','+full_disk_bp_fname
@@ -103,7 +105,7 @@ WHILE (1 ne 0) DO BEGIN
 	  flare_end_utc = end_utc, results_filename=spectral_fitting_results_filename
 
 	print, "writing meshing data to database"
-	resp="_id="+string(data._id)+"&image_bp="+bp_fname+"&image_fwdfit="+vis_fwdfit_fname+"&image_em="+em_fname+"&image_clean="+clean_fname+"&image_full_disk="+full_disk_bp_fname+"&spectral_fitting="+spectral_fitting_results_filename
+	resp="_id="+string(data._id)+"&image_bp="+bp_fname+"&image_fwdfit="+vis_fwdfit_fname+"&image_em="+em_fname+"&image_clean="+clean_fname+"&image_full_disk="+full_disk_bp_fname+"&ospex="+spectral_fitting_results_filename
 	
 ;	ret=obj->Put(resp, /buffer, /post, url=url_post)
 	print, "done"
