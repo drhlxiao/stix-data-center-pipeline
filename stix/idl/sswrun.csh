@@ -8,6 +8,7 @@ source $SSW/gen/setup/setup.ssw
 # Setup IDL environment
 setenv IDL_DIR /opt/idl88/idl88
 setenv IDL_PATH /opt/stix/parser/stix/idl
+setenv IDL_WORKSPACE_PATH /data/temp
 # Startup SSW IDL
 #so that idl can find the scripts
 echo "Executing IDL:$1 ..."

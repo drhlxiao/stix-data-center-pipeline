@@ -101,8 +101,8 @@ WHILE (1 ne 0) DO BEGIN
 		x_offset_arcsec, y_offset_arcsec, 0
 
 	print, "Performing spectral fitting..."
-	stx_auto_fit_ssw,fits_path_data = path_sci_file, fits_path_bk =  path_bkg_file, flare_start_utc = start_utc, $
-	  flare_end_utc = end_utc, time_shift=0, results_filename=spectral_fitting_results_filename
+	stx_ospex_pipeline_wrapper,fits_path_data = path_sci_file, fits_path_bk =  path_bkg_file, flare_start_utc = start_utc, $
+	  flare_end_utc = end_utc, results_filename=spectral_fitting_results_filename
 
 	print, "writing meshing data to database"
 	resp="_id="+string(data._id)+"&image_bp="+bp_fname+"&image_fwdfit="+vis_fwdfit_fname+"&image_em="+em_fname+"&image_clean="+clean_fname+"&image_full_disk="+full_disk_bp_fname+"&ospex_results="+spectral_fitting_results_filename

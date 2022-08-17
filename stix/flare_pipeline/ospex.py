@@ -74,7 +74,7 @@ params[0] - Emission measure in units of 10^49
     return entries
     
 
-def plot_ospex(fname):
+def plot_ospex(fname, fig=None):
     """
      plot ospex results and print the created plot to png or pdf
     """
@@ -98,10 +98,11 @@ def plot_ospex(fname):
     bkg_flux_err=to_model_units(hdu['RATE'].data['BK_ERROR'][0])
 
     #create a canvas 
-    fig = plt.figure()
+    if fig is None:
+        fig = plt.figure() 
     gs = gridspec.GridSpec(nrows=2, ncols=1, figure=fig, height_ratios=[3, 1])
     ax = fig.add_subplot(gs[0, 0])
-    ax2 = fig.add_subplot(gs[1, 0],sharex=ax)
+    ax_residuals = fig.add_subplot(gs[1, 0],sharex=ax)
     plt.subplots_adjust(hspace=.0)
 
     prop_cycle = plt.rcParams['axes.prop_cycle']
@@ -131,13 +132,13 @@ def plot_ospex(fname):
             continue
 
     #customize plot1
-    max_y=np.max(xray_flux)
-    min_y=np.min(xray_flux)/10.
-    ax.set_ylim(min_y, 3*max_y)
+    ymax=np.max(xray_flux)
+    ymin=max(1e-3, np.min(xray_flux)/10.)
+    ax.set_ylim(ymin, 3*ymax)
     ax.set_xlim(ebins[0], ebins[-1])
     title=f"{hdu[0].header['DATE-OBS']} – {hdu[0].header['DATE-END']}"
     ax.grid('on')
-    ax.legend(loc='lower left', fontsize='small', framealpha=0.0)
+    ax.legend(loc='lower left')
     ax.set_title(title)
 
     ax.set_ylabel(r"Flux [cnts s$^{-1}$ keV$^{-1}$ cm$^{-2}$]")
@@ -156,10 +157,11 @@ def plot_ospex(fname):
             'chi2':chi2,
 
             }
-    chi2_str=f"chi2: {chi2.1f}\n"
+    chi2_str=f"chi2/ndf: {chi2:.1f}\n"
     param_text=format_params(fitfun, params, sigmas)
     legend_entries=chi2_str+'\n'.join(param_text)
-    ax.text(0.99, 0.99,legend_entries, alpha=0.9, fontsize='x-small', 
+    ax.text(0.99, 0.99,legend_entries, alpha=0.9, 
+            fontweight='bold',
         fontstyle='normal', fontfamily='sans-serif',
             horizontalalignment='right',
          verticalalignment='top',
@@ -167,15 +169,15 @@ def plot_ospex(fname):
     #residual plots
 
     residuals=to_model_units(hdu['RATE'].data['RESIDUAL'][0])
-    ax2.stairs(residuals, ebins)
-    ax2.set_xlabel('Energy (keV)')
-    ax2.set_xscale('log')
-    ax2.set_ylabel('Residuals')
+    ax_residuals.stairs(residuals, ebins)
+    ax_residuals.set_xlabel('Energy (keV)')
+    ax_residuals.set_xscale('log')
+    ax_residuals.set_ylabel('Residuals ( $\Delta_{\mathrm{flux}} /\sigma$ )')
     plt.tick_params(axis='x', which='minor')
     ax.xaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
-    ax2.xaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
+    ax_residuals.xaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
 
-    return  (fig, gs, ax, ax2, meta)
+    return  {'fig':fig, 'gs':gs, 'ax':ax, 'ax_residuals':ax_residuals, 'meta':meta}
 
 if __name__=='__main__':
     import sys
