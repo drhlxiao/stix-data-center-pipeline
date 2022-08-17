@@ -98,11 +98,12 @@ def plot_lc(start_utc, end_utc, fill_between_times=[], light_time=0, event_type=
 
     xlabel=f'UTC + {light_time:.02f} s (4 sec time bins)' if light_time!=0 else 'UTC (4 sec time bins)'
     ax.set_xlabel(xlabel)
+    ax.set_ylim(xlabel)
     ax.set_ylabel('Counts')
     title=f'STIX QL Light Curves'
     ax.set_title(title)
     ax.set_yscale('log')
-    ax.legend(loc='upper right')
+    ax.legend(loc='upper right', fontsize='x-small', framealpha=0.0)
     return fig, ax
 def plot_QL_lc_for_bsd(bsd_id, fill_between_times=[], ax=None):
     bsd_db=mdb.get_collection('bsd')

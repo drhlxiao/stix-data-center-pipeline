@@ -32,6 +32,7 @@ def update_request():
         return jsonify({"error":'ID not specified'})
     _id=int(data['_id'].strip())
     db=mdb.get_collection('flare_images')
+
     fits={}
     idl_status=False
     if 'error' not in data:

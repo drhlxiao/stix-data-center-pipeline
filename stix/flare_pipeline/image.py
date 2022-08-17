@@ -1,8 +1,10 @@
 #!/usr/bin/python
 """
-Image viewer, create image from fits files which are created by idl imaging software 
+    filename: image.py
+    create flare images for fits files created by ssw idl imaging software 
+    April 27, 2022
+    Author: Hualin Xiao (hualin.xiao@fhnw.ch)
 
-April 27, 2022
 """
 import os
 import sys
@@ -44,17 +46,7 @@ matplotlib.rc('axes', titlesize=SMALL_SIZE)
 #plt.rcParams['figure.constrained_layout.use'] = True
 
 CMAP='std_gamma_2' #color map
-def create_plots(_id):
-    doc=flare_images_db.find_one({'_id':_id})
-    if doc:
-        logger.info(f"Creating images for doc: {_id}...")
-        try:
-            plot_stix_images(doc)
-        except Exception as e:
-            logger.error(e)
-    else:
-        logger.info(f"doc {_id} does not exist")
-        
+
 def rotate_map(m, recenter=False):
     #further checks are required
     #rotate map
@@ -198,7 +190,7 @@ def create_images_in_queue(num=10000):
     for doc in cursor:
         logger.info("Creating images for doc: {doc['_id']}...")
         try:
-            plot_stix_images(doc)
+            plot_imaging_results(doc)
         except Exception as e:
             logger.error(e)
 
@@ -210,7 +202,7 @@ def create_images_for_ids_between(start_id, end_id):
             logger.warning(f"Failed to create figures for DocID:{i}")
             continue
         logger.info(f"Creating images for BSD#{doc['bsd_id']}, DocID:{i}")
-        plot_stix_images(doc )
+        plot_imaging_results(doc )
 
 
 def create_pdf_title_page(pdf, img_id=0, asp_source=None, obs='',expt='',sig_id='',bkg_id='',erange='', fig=None, ax=None):
@@ -239,10 +231,11 @@ def reverse_colormap(palette_name):
     else:
         return None
 
-def plot_stix_images(doc ):
+def plot_imaging_results(doc):
     """
     Plot STIX images and save them to image files
     Parameters
+    
     """
     if not doc.get('fits',None):
         logger.error('Fits file not found')
@@ -256,7 +249,7 @@ def plot_stix_images(doc ):
     #define unit arcsecs is the same arcsec
 
     img_fname=os.path.join(doc['idl_config']['folder'],f'{doc["idl_config"]["prefix"]}.png')
-    pdf_img_fname=os.path.join(doc['idl_config']['folder'],f'{doc["idl_config"]["prefix"]}.pdf')
+    pdf_fname=os.path.join(doc['idl_config']['folder'],f'{doc["idl_config"]["prefix"]}.pdf')
 
 
     maps, map_names=[],[]
@@ -276,7 +269,7 @@ def plot_stix_images(doc ):
     text_xy=[0.02,0.95]
 
     
-    fig = plt.figure(figsize=(12,7), dpi=100, facecolor='white')
+    fig = plt.figure(figsize=(15,7), dpi=100, facecolor='white')
 
     ax_lc= fig.add_subplot(231)
     lightcurves.plot_QL_lc_for_bsd(bsd_id, fill_between_times=[start_utc, end_utc], ax=ax_lc)
@@ -312,8 +305,8 @@ def plot_stix_images(doc ):
     mfwd=sunpy.map.Map(doc_fits['image_fwdfit'])
     mfwd= rotate_map(mfwd)
 
-    descr_full=f'Start UT {start_utc}; {duration} sec integration;  4 - 10 keV'
-    descr=f'Start UT {start_utc}; {duration} sec integration; {energy_range_str} '
+    descr_full=f'Start UT {start_utc}; {duration} sec integration time;  4 - 10 keV'
+    descr=f'Start UT {start_utc}; {duration} sec integration time; {energy_range_str} '
 
     maps=[mbp_full, mbp, mclean, mem, mfwd]
     try:
@@ -333,8 +326,8 @@ def plot_stix_images(doc ):
                 descr='', draw_image=True, contour_levels=[], zoom_scale=1, vmin=vmin)
 
     image_id_str = f'(#{doc["_id"]})'
-    aspect_info='corrected' if doc['aux'].get('data_source_type', None)=='Aspect' else 'not corrected'
-    plt.suptitle(f'Start UT {start_utc}; {duration:.1f} sec integration; {energy_range[0]} – {energy_range[1]} keV; Aspect {aspect_info}', fontsize=12)
+    aspect_info='Aspect corrected' if doc['aux'].get('data_source_type', None)=='Aspect' else 'Aspect not corrected'
+    plt.suptitle(f'Start UT {start_utc}; {duration:.1f} sec integration; {energy_range[0]} – {energy_range[1]} keV; {aspect_info}', fontsize=12)
     plt.subplots_adjust(
             top=0.85,
                     wspace=0.2, 
@@ -347,19 +340,15 @@ def plot_stix_images(doc ):
 
     ## Print plots to pdf
     logger.info('Creating PDF...')
-    with PdfPages(pdf_img_fname) as pdf:
+    with PdfPages(pdf_fname) as pdf:
         aspect_source_file=doc['aux'].get('data_source_file',None)
-
         create_pdf_title_page(pdf, doc['_id'], aspect_source_file, obs=start_utc,expt=duration,sig_id=bsd_uid,bkg_id=bkg_uid,erange=energy_range)
-
         pfig, (ax_lc_pdf, ax_spec)=plt.subplots(1,2,  figsize=PDF_FIGURE_SIZE)
         lightcurves.plot_QL_lc_for_bsd(bsd_id, fill_between_times=[start_utc, end_utc], ax=ax_lc_pdf)
 
         l1=ScienceL1.from_fits(doc['filename'])
         selection_box={'trange':[start_utc, end_utc], 'erange':energy_range}
         l1.plot_spectrogram(ax_spec, selection_box)
-
-
 
         pdf.savefig(pfig)
         pfig=plt.figure(figsize=PDF_FIGURE_SIZE)
@@ -368,9 +357,6 @@ def plot_stix_images(doc ):
                 descr='', draw_image=True, contour_levels=[], zoom_scale=1, vmin=vmin)
         plt.suptitle(descr_full, fontsize=12)
         pdf.savefig(pfig)
-
-
-
         levels=np.array([0.3,  0.5, 0.7, 0.9])
         for i, imap in enumerate(maps):
             if i==0:
@@ -385,8 +371,6 @@ def plot_stix_images(doc ):
                     descr='', draw_image=False, contour_levels=[0.3, 0.5, 0.7], zoom_scale=2, color='k')
             ax.set_xlabel('solar_x [arcsec]')
             ax.set_ylabel('solar_y [arcsec]')
-
-
             plt.suptitle(descr, fontsize=12)
             plt.subplots_adjust(
                 top=0.95,
@@ -396,20 +380,7 @@ def plot_stix_images(doc ):
             plt.close()
 
 
-
-
-
-
-
 def test():
     create_images_for_ids_between(0,1)
+    create_images_in_queue()
 
-if __name__=='__main__':
-    if len(sys.argv)==1:
-        create_images_in_queue()
-    elif len(sys.argv)==2:
-        create_plots(int(sys.argv[1]))
-    elif len(sys.argv)==3:
-        for i in range(int(sys.argv[1]), int(sys.argv[2])):
-            print("Creating images for Entry #",i)
-            create_plots(i)
