@@ -37,6 +37,8 @@ def as_si(x,ndp, error=None):
         return r'{m:s} $\pm $ {se: 0.{ndp:d}f}'.format(m=m, se=se, ndp=ndp)
     
     return r'{m:s}$\times$ 10$^{{{e:d}}}$ '.format(m=m, e=int(e)) if int(e)!=0 else s
+
+
 def format_params(fitfun, params, sigmas):
     """
     format parameters to list of strings 
@@ -60,15 +62,27 @@ params[0] - Emission measure in units of 10^49
   params[6] - Power-law index of the electron flux distribution function above the break energy.
   params[7] - Low energy cutoff in the electron flux distribution function in keV.
   params[8] - High energy cutoff in the electron flux distribution function in keV.
+
+  *Not suitable for publication
+  * to temperature
+  * fit range below time range
+  * e- 
   """
+
+    
+    kev_to_Mk=lambda x: 11604.52500617 *1000* x/1e6
+    temp=kev_to_Mk(params[1])
+    temp_err=kev_to_Mk(sigmas[1])
+
 
     entries = [
         f'EM: {as_si(params[0]*1e49 ,2, sigmas[0]*1e49)} cm$^{{-3}}$ ',
-        f'KT: {as_si(params[1] ,2, sigmas[1])} keV ']
+        f'T: {as_si(temp ,2, temp_err)} MK']
+
     if 'thick2' in fitfun:
         entries.extend([
-        r'$a_0$: {txt:s}  electrons s$^{{-1}}$'.format(txt=as_si(params[3]*1e35 ,2, sigmas[3]*1e35)),
-        f'$\gamma$: {as_si(params[4] ,2, sigmas[4])}',
+        r'$a_0$: {txt:s} $e^{{-}}$ s$^{{-1}}$'.format(txt=as_si(params[3]*1e35 ,2, sigmas[3]*1e35)),
+        f'$\delta$: {as_si(params[4] ,2, sigmas[4])}',
         r'E$_{{c}}$: {txt:s} keV'.format(txt=as_si(params[7] ,2, sigmas[7])),
     ])
     return entries
@@ -111,7 +125,7 @@ def plot_ospex(fname, fig=None):
     #plot signal and bkg
     flux_lines= ax.stairs(xray_flux,ebins, label='STIX spectrum', color=colors[0])
     ax.errorbar(ebins_mid, xray_flux, yerr=xray_flux_err, fmt='none', color=colors[0])
-    ax.stairs(bkg_flux,ebins, label='BKG spectrum', color=colors[1])
+    ax.stairs(bkg_flux,ebins, label='Subtracted background', color=colors[1])
     ax.errorbar(ebins_mid, bkg_flux, yerr=bkg_flux_err, fmt='none', color=colors[1])
 
     #fit components
@@ -136,12 +150,16 @@ def plot_ospex(fname, fig=None):
     ymin=max(1e-3, np.min(xray_flux)/10.)
     ax.set_ylim(ymin, 3*ymax)
     ax.set_xlim(ebins[0], ebins[-1])
-    title=f"{hdu[0].header['DATE-OBS']} – {hdu[0].header['DATE-END']}"
+    energy_range_str=f'{ebins[0]} – {ebins[-1]} keV' 
+    water_mark='Spectral fitting (Not suitable for publication)'
+    title=f"{water_mark}\n{hdu[0].header['DATE-OBS']} – {hdu[0].header['DATE-END']}\n{energy_range_str}"
+
+
     ax.grid('on')
     ax.legend(loc='lower left')
     ax.set_title(title)
 
-    ax.set_ylabel(r"Flux [cnts s$^{-1}$ keV$^{-1}$ cm$^{-2}$]")
+    ax.set_ylabel(r"Count flux [cnts s$^{-1}$ keV$^{-1}$ cm$^{-2}$]")
     ax.set_yscale('log')
 
     # display fit results
@@ -157,7 +175,7 @@ def plot_ospex(fname, fig=None):
             'chi2':chi2,
 
             }
-    chi2_str=f"chi2/ndf: {chi2:.1f}\n"
+    chi2_str=f"CHISQ: {chi2:.1f}\n"
     param_text=format_params(fitfun, params, sigmas)
     legend_entries=chi2_str+'\n'.join(param_text)
     ax.text(0.99, 0.99,legend_entries, alpha=0.9, 
@@ -166,16 +184,20 @@ def plot_ospex(fname, fig=None):
             horizontalalignment='right',
          verticalalignment='top',
          transform = ax.transAxes)
+
+
     #residual plots
 
-    residuals=to_model_units(hdu['RATE'].data['RESIDUAL'][0])
+    residuals=hdu['RATE'].data['RESIDUAL'][0]
     ax_residuals.stairs(residuals, ebins)
+    ax_residuals.axhline(y = 0, color = 'gray', linestyle = '--') #zero line
     ax_residuals.set_xlabel('Energy (keV)')
     ax_residuals.set_xscale('log')
     ax_residuals.set_ylabel('Residuals ( $\Delta_{\mathrm{flux}} /\sigma$ )')
     plt.tick_params(axis='x', which='minor')
     ax.xaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
     ax_residuals.xaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
+
 
     return  {'fig':fig, 'gs':gs, 'ax':ax, 'ax_residuals':ax_residuals, 'meta':meta}
 

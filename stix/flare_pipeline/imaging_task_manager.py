@@ -207,8 +207,8 @@ def queue_imaging_tasks(doc,
         folder=os.path.join(quicklook_path, str(uid))
         if not os.path.exists(folder):
             os.makedirs(folder)
-        task_id= uuid.uuid4().hex[0:10]
         num_images += 1
+        task_id= uuid.uuid4().hex[0:10]
         
         config={
                     'filename': fname,

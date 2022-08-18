@@ -27,7 +27,6 @@ def get_last_pending_request():
 @app.route('/request/imaging/task/update', methods=['POST', 'GET'])
 def update_request():
     data=request.form.to_dict()
-
     if '_id' not in data:
         return jsonify({"error":'ID not specified'})
     _id=int(data['_id'].strip())
@@ -36,9 +35,15 @@ def update_request():
     fits={}
     idl_status=False
     if 'error' not in data:
-        fits={key: value.strip() for key,value in data.items() if key!='_id'}
+        for key, value in data.items():
+            value=value.strip()
+            if key=='_id' or not value:
+                continue
+            if os.path.exists(value):
+                fits[key]=value
         idl_status=True
         print("Updating: ", _id)
+    
 
     db.update_one({'_id':_id},{'$set':{'fits':fits, 'processing_date':datetime.now(),'num_idl_calls':1, 'idl_status':idl_status}}, upsert=False) 
     res={'success':True}
