@@ -241,7 +241,6 @@ def queue_imaging_tasks(doc,
                         'fits_id': bkg_fits['merg'][0]['_id'],
                         'unique_id': bkg_fits['merg'][0]['request_id'],
                         },
-                    'ospex_config': ospex_config, 
 
                     'start_unix': box['unix_time_range'][0],
                     'end_unix': box['unix_time_range'][1],
@@ -250,7 +249,8 @@ def queue_imaging_tasks(doc,
                     'energy_range': box["energy_range_keV"], #energy in time 
                     'utc_range':box['utc_range'],
                     'total_counts':box['total_counts'],
-                    'idl_config':{'folder':folder,  'prefix':fits_prefix, 'fwdfit_shape':'ellipse' if box["energy_range_keV"][1] <16 else 'multi'},
+                    'idl_config':{'folder':folder,  'prefix':fits_prefix, 'fwdfit_shape':'ellipse' if box["energy_range_keV"][1] <16 else 'multi',
+                        'ospex': ospex_config },
                     'fits':{},
                     'figs':{}
                 }

@@ -1,11 +1,14 @@
 pro stx_auto_fit_ssw,fits_path_data = fits_path_data, fits_path_bk =  fits_path_bk, flare_start_utc = flare_start_utc , $
   flare_end_utc = flare_end_utc, distance = distance, time_shift = time_shift, require_nonthermal = require_nonthermal, results_filename = results_filename 
 
+  set_logenv, 'OSPEX_NOINTERACTIVE', '1'
+
   spex_fit_time_interval = [flare_start_utc, flare_end_utc]
 
 
   default, require_nonthermal, 0
 
+  require_nonthermal=uint(require_nonthermal)
   stx_get_header_corrections, fits_path_data, distance = header_distance, time_shift = header_time_shift
   default, distance, header_distance
   default, time_shift, header_time_shift
@@ -49,7 +52,6 @@ pro stx_auto_fit_ssw,fits_path_data = fits_path_data, fits_path_bk =  fits_path_
     message, 'ERROR: the FILENAME field in the primary header should contain either cpd, xray-l1 or spec'
   endelse
    
-  set_logenv, 'OSPEX_NOINTERACTIVE', '1'
 
   ;set the values as defined in section 2 above for this object
   ospex_obj-> set, spex_file_reader = spex_file_reader
@@ -64,6 +66,8 @@ pro stx_auto_fit_ssw,fits_path_data = fits_path_data, fits_path_bk =  fits_path_
   ospex_obj-> set, fit_comp_spectrum = ['full']
   ospex_obj-> set, fit_comp_model = ['chianti']
   ospex_obj-> set, mcurvefit_itmax= 100
+
+  
   ospex_obj-> dofit, /all
   energy_range = ospex_obj-> get(/spex_erange)
   ; if (energy_range[1] gt 28) and  (energy_range[1] le 36) then energy_range[1] = 28
@@ -138,7 +142,7 @@ pro stx_auto_fit_ssw,fits_path_data = fits_path_data, fits_path_bk =  fits_path_
     fit_function= 'vth'
     free_mask= [1B, 1B, 0B, 0B, 0B, 0B, 0B, 0B, 0B]
     params = fltarr(9,/no)+nan
-    params[0:2] = fit_param_thermal_low
+    params[0:2] = fit_param_thermal_low[0:2]
     resid = summ_vth.spex_summ_resid
     sigmas = summ_vth.spex_summ_sigmas
     convfac  =  summ_vth.spex_summ_conv
@@ -186,5 +190,5 @@ pro stx_auto_fit_ssw,fits_path_data = fits_path_data, fits_path_bk =  fits_path_
   obj_destroy, ospex_obj
   
   set_logenv, 'OSPEX_NOINTERACTIVE', '0'
-  stop
+  ;stop
 end
