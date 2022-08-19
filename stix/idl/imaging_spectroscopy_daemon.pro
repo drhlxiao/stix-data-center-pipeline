@@ -68,7 +68,7 @@ WHILE (1 ne 0) DO BEGIN
 	B0=aux.B0
 	RSUN=aux.rsun
 	dsun=aux.dsun
-	require_nonthermal=data.ospex.config.require_nonthermal
+	require_nonthermal=data.ospex_config.model_id
 
 	roll_angle=aux.roll
 	;x_offset_arcsec= - aux.sun_center[0]
