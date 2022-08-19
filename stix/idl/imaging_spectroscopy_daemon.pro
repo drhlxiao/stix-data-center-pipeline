@@ -68,7 +68,8 @@ WHILE (1 ne 0) DO BEGIN
 	B0=aux.B0
 	RSUN=aux.rsun
 	dsun=aux.dsun
-	require_nonthermal=data.idl_config.ospex.model_id
+	require_nonthermal=data.require_nonthermal
+	thermal_only=data.thermal_only
 	;require_nonthermal=1
 
 	roll_angle=aux.roll
@@ -105,7 +106,7 @@ WHILE (1 ne 0) DO BEGIN
 		x_offset_arcsec, y_offset_arcsec, 0
 
 	print, "Performing spectral fitting..."
-	result=stx_ospex_pipeline_wrapper(path_sci_file,  path_bkg_file, start_utc,  end_utc, require_nonthermal, spectral_fitting_results_filename)
+	result=stx_ospex_pipeline_wrapper(path_sci_file,  path_bkg_file, start_utc,  end_utc, require_nonthermal,thermal_only, spectral_fitting_results_filename)
 
 	print, "writing meshing data to database"
 	resp="_id="+string(data._id)+"&image_bp="+bp_fname+"&image_fwdfit="+vis_fwdfit_fname+"&image_em="+em_fname+"&image_clean="+clean_fname+"&image_full_disk="+full_disk_bp_fname+"&ospex_results="+spectral_fitting_results_filename

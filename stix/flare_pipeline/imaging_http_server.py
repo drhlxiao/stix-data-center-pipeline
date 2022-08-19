@@ -13,6 +13,7 @@ app = Flask(__name__)
 
 mdb = mgdb.MongoDB()
 
+
 @app.route('/request/imaging/task/last')
 def get_last_pending_request():
     #used by idl daemon
@@ -22,7 +23,17 @@ def get_last_pending_request():
     if docs:
         res=docs[0] 
         res['pending']=1
+        model=str(res['idl_config']['ospex']['model'])
+        res['require_nonthermal']=0
+        res['thermal_only']=0
+        #auto
+        if model=='vth':
+            res['thermal_only']=1
+        elif model=='vth+thick2':
+            res['require_nonthermal']=1
+
     print(res)
+
     return jsonify(res) 
 @app.route('/request/imaging/task/update', methods=['POST', 'GET'])
 def update_request():
