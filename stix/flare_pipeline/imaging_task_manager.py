@@ -209,7 +209,10 @@ def queue_imaging_tasks(doc,
             os.makedirs(folder)
         num_images += 1
         task_id= uuid.uuid4().hex[0:10]
-        
+
+        spectral_model='vth+thick2'
+
+        ospex_config = {'model':spectral_model, 'model_id': 1 if 'thick2' in spectral_model else 0 }
         config={
                     'filename': fname,
                     'bsd_id': doc['_id'],
@@ -238,6 +241,8 @@ def queue_imaging_tasks(doc,
                         'fits_id': bkg_fits['merg'][0]['_id'],
                         'unique_id': bkg_fits['merg'][0]['request_id'],
                         },
+                    'ospex_config': ospex_config, 
+
                     'start_unix': box['unix_time_range'][0],
                     'end_unix': box['unix_time_range'][1],
                     'duration':box['unix_time_range'][1]-box['unix_time_range'][0],

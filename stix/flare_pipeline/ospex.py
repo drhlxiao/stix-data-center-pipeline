@@ -31,10 +31,10 @@ def as_si(x,ndp, error=None):
         se = error/(10**int(e))
         res= '{x:0.{ndp:d}f}'.format(x=se, ndp=ndp)
         if int(e)!=0:
-            return r'({m:s} $\pm $ {se: 0.{ndp:d}f})$\times$ 10$^{{{e:d}}}$'.format(m=m, 
+            return r'({m:s}$\pm${se: 0.{ndp:d}f})$\times$10$^{{{e:d}}}$'.format(m=m, 
                                                                                       se=se, ndp=ndp, e=int(e))
         
-        return r'{m:s} $\pm $ {se: 0.{ndp:d}f}'.format(m=m, se=se, ndp=ndp)
+        return r'{m:s}$\pm${se: 0.{ndp:d}f}'.format(m=m, se=se, ndp=ndp)
     
     return r'{m:s}$\times$ 10$^{{{e:d}}}$ '.format(m=m, e=int(e)) if int(e)!=0 else s
 
