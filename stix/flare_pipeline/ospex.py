@@ -72,9 +72,8 @@ params[0] - Emission measure in units of 10^49
   * e- 
   """
 
-    kev_to_Mk = lambda x: 11604.52500617 * 1000 * x / 1e6
-    temp = kev_to_Mk(params[1])
-    temp_err = kev_to_Mk(sigmas[1])
+    convert_kev_to_mk= lambda x: 11604.52500617 * 1000 * x / 1e6
+    temp,temp_err= convert_kev_to_mk(params[1]),  convert_kev_to_mk(sigmas[1])
 
     entries = [
         f'EM: {as_si(params[0]*1e49 ,2, sigmas[0]*1e49)} cm$^{{-3}}$ ',
@@ -115,7 +114,6 @@ def plot_ospex(fname, fig=None):
     ebins_mid = [(i[2] + i[1]) * 0.5 for i in ebands]
     ebins.append(ebands[-1][2])
     ibins_low = range(len(ebins))
-    ibins_mid = [i + 0.5 for i in ibins_low]
 
     det_area = hdu['RATE'].header['GEOAREA']  # detector area in units of cm^2
     to_model_units = lambda x: (x / ebins_keV) / det_area
@@ -138,7 +136,7 @@ def plot_ospex(fname, fig=None):
     colors = prop_cycle.by_key()['color']
 
     #plot signal and bkg
-    flux_lines = ax.stairs(xray_flux,
+    ax.stairs(xray_flux,
                            ebins,
                            label='STIX spectrum',
                            color=colors[0])
@@ -177,7 +175,7 @@ def plot_ospex(fname, fig=None):
     ax.set_ylim(ymin, 3 * ymax)
     ax.set_xlim(ebins[0], ebins[-1])
     energy_range_str = f'{ebins[0]} – {ebins[-1]} keV'
-    water_mark = 'Spectral fitting (Not suitable for publication)'
+    water_mark = 'Not suitable for publication'
     title = f"{water_mark}\n{hdu[0].header['DATE-OBS']} – {hdu[0].header['DATE-END']}\n{energy_range_str}"
 
     ax.grid('on')
