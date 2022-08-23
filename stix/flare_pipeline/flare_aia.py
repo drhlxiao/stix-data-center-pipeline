@@ -15,8 +15,11 @@ from stix.spice import spice_manager
 from stix.spice.solo import SoloEphemeris
 from astropy import constants as const
 import drms
+from sunpy.map import Map
 from sunpy.net import Fido
 from sunpy.net import attrs as a
+import pandas as pd
+from aiapy.calibrate import normalize_exposure, register, update_pointing
 
 def get_ang_vectors(v1, v2):
     vector1 = np.array([v1.x.value, v1.y.value, v1.z.value])
@@ -186,12 +189,14 @@ def find_cutout_coords(stix_bp_map,padding=10*u.arcsec):
 
     return bottom_left_coord, top_right_coord
     
-def download_AIA_cutout(time_int, wave = 1600, series='aia_lev1_uv_24s', cutout_coords=False, single_result=True, aia_file_path=None):
+def download_AIA_cutout(time_int, wave = 1600, series='aia_lev1_uv_24s', cutout_coords=False, single_result=True, aia_file_path=None, jsoc_email = None):
     """Download AIA cutout corresponding to STIX flare."""
     if type(time_int[0]) == str:
         time_int[0] = dt.strptime(time_int[0],'%Y-%m-%dT%H:%M:%S')
         time_int[1] = dt.strptime(time_int[1],'%Y-%m-%dT%H:%M:%S')
     
+    #if wave in [1600, 1700]:
+    #    series = a.jsoc.aia_lev1_uv_24s
     wave = a.Wavelength(wave*u.angstrom)
     #instr= sn.attrs.Instrument(instrument)
     time = a.Time(time_int[0],time_int[1])
@@ -215,6 +220,32 @@ def download_AIA_cutout(time_int, wave = 1600, series='aia_lev1_uv_24s', cutout_
     else: files = Fido.fetch(res,path=f"{aia_file_path}/")
     return res
 
+def aia_prep_py(files,expnorm=True,path=None):
+    '''Convert from level 1 to level 1.5 data (aia_prep.pro using aiapy instead of IDL)
+    from https://aiapy.readthedocs.io/en/latest/generated/gallery/prepping_level_1_data.html'''
+    fnames=[]
+    if not isinstance(files, list):
+        files = [files]
+    for f in files:
+        m= Map(f)
+        try:
+            m_updated_pointing = update_pointing(m)
+            m_registered = register(m_updated_pointing)
+        except ValueError: #not full-disk image
+            m_registered=m
+        if expnorm:
+            m_out = normalize_exposure(m_registered)
+        else:
+            m_out=m_registered
+        if '/' not in f:
+            fname=f"{path}{f[:-5]}_prepped.fits"
+        else:
+            fname=f"{f[:-5]}_prepped.fits"
+        m_out.save(fname)
+        fnames.append(fname)
+        if len(fnames) == 1:
+            fnames = fnames[0]
+        return fnames
 
 if __name__=='__main__':
     
