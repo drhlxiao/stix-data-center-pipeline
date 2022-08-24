@@ -35,6 +35,7 @@ parser_config = {
                     "file": "/data/log/message.log"
                     },
                 "fits_path": "/data/fits",
+                "aspect_l2_path_pattern":"/data/pub099/fits/L2/*/*/*/*/*-aux-*.fits",
                 "flare_lc_snapshot_path": "/data/flare_lc",
                 "calibration_report_path": "/data/calibration/",
                 "level1_products_path": "/data/level1/",
@@ -54,12 +55,12 @@ parser_config = {
             "181": {
                 "filename": "/data/pub/data/idb/idb_v2.26.35.sqlite",
                 "version": "2.26.34",
-                "validityPeriod": ["2020-12-28T00:00:00", "2020-12-28T00:00:00"]
+                "validityPeriod": ["2020-12-28T00:00:00", "2021-12-10T14:00:00"]
                 },
             "183":{
                 "filename": "/data/pub/data/idb/idb_v2.26.36.sqlite",
                 "version": "2.26.36",
-                "validityPeriod": ["2020-12-28T00:00:00", "2020-12-28T00:00:00"]
+                "validityPeriod": ["2021-12-10T14:00:00", "2030-12-31:00:00"]
                 }
             },
         'joint_obs':     '/data/flares/',

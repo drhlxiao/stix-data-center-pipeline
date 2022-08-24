@@ -21,6 +21,8 @@ from stix.core.logger import get_logger
 logger = get_logger(__name__)
 
 
+
+
 class Control(QTable):
     def __repr__(self):
         return f'<{self.__class__.__name__} \n {super().__repr__()}>'
@@ -66,6 +68,18 @@ class Control(QTable):
         control['num_structures'] = np.array(packets.get('NIX00403'), np.int32)
 
         return control
+
+def qadd(table, key, value):
+    """append key to qtable
+    """
+    try:
+        table[key]=value
+    except ValueError:
+        for k in table.keys():
+            logger.info(f'{k}, {table[k].shape}')
+        logger.error(f'{value}')
+        raise ValueError(f"Failed to add {key}, shape {value.shape}, \ntable dtype: {table.dtype}")
+
 
 
 class Data(QTable):
@@ -145,38 +159,6 @@ class Product:
             yield type(self)(control=control, data=data)
 
 
-# class BaseProduct:
-#     """
-#     X-ray Level 0 data
-#     """
-#     def __init__(self, packets, eng_packet):
-#
-#         # Control
-#         self.tc_packet_id_ref = np.array(packets.get('NIX00001')[0], np.uint16)
-#         self.tc_packet_seq_control = np.array(packets.get('NIX00002')[0], np.uint16)
-#         self.request_id = np.array(packets.get('NIX00037')[0], np.uint32)
-#         self.compression_scheme_counts = np.array((packets['NIXD0007'][0],
-#                                                    packets['NIXD0008'][0],
-#                                                    packets['NIXD0009'][0]), np.ubyte)
-#         self.compression_scheme_trig = np.array((packets['NIXD0010'][0],
-#                                                  packets['NIXD0011'][0],
-#                                                  packets['NIXD0012'][0]), np.ubyte)
-#         self.time_stamp = np.array(packets.get('NIX00402')[0])
-#
-#         # TODO seems off
-#         fine, coarse = modf(self.time_stamp)
-#         self.scet_coarse = np.array(int(coarse), np.uint32).reshape(1,)
-#         self.scet_fine = np.array(int(fine * 2**16), np.uint16).reshape(1,)
-#
-#         self.integration_duration = (packets.get('NIX00405', [0])[0] + 1) * 0.1
-#
-#         self.obs_utc = scet_to_datetime(f'{self.scet_coarse[0]}:{self.scet_fine[0]}')
-#         self.obs_beg = self.obs_utc
-#         self.obs_end = self.obs_beg + timedelta(seconds=self.integration_duration)
-#         self.obs_avg = self.obs_beg + (self.obs_end - self.obs_beg) / 2
-#
-#         self.structures = np.array(packets.get('NIX00403'), np.uint16)
-#         self.num_structures = sum(self.structures)
 
 
 class XrayL0(Product):
@@ -264,25 +246,7 @@ class XrayL0(Product):
         for i, (pid, did, cid, cc) in enumerate(dd):
             counts[time_indices[i], did, pid, cid] = cc
 
-        # Create final count array with 4 dimensions: unique times, 32 det, 32 energies, 12 pixels
-
-        # for i in range(self.num_samples):
-        #     tid = np.argwhere(self.raw_counts == unique_times)
-
-        # start_index = 0
-        # for i, time_index in enumerate(time_indices):
-        #     end_index = np.uint32(start_index + np.sum(data['num_samples'][time_index]))
-        #
-        #     for did, cid, pid in zip(tmp['detector_id'], tmp['channel'], tmp['pixel_id']):
-        #         index_1d = ((tmp['detector_id'] == did) & (tmp['channel'] == cid)
-        #                     & (tmp['pixel_id'] == pid))
-        #         cur_count = counts_1d[start_index:end_index][index_1d[start_index:end_index]]
-        #         # If we have a count assign it other wise do nothing as 0
-        #         if cur_count:
-        #             counts[i, did, cid, pid] = cur_count[0]
-        #
-        #     start_index = end_index
-
+     
         sub_index = np.searchsorted(data['start_time'], unique_times)
         data = data[sub_index]
         data['time'] = Time(scet_to_datetime(f'{int(control["time_stamp"][0])}:0'))\
@@ -296,7 +260,232 @@ class XrayL0(Product):
         return cls(control=control, data=data)
 
 
+    
+
+
 class XrayL1(Product):
+    """
+    X-ray Compression Level 1/2 data
+    """
+    def __init__(self, control, data):
+        super().__init__(control=control, data=data)
+        self.name = 'xray-l1'
+        self.level = 'L1A'
+
+    @classmethod
+    def from_packets(cls, packets, eng_packets):
+        # Control
+        ssid = packets['SSID'][0]
+
+        control = Control.from_packets(packets)
+
+        control.remove_column('num_structures')
+        control = unique(control)
+
+        if len(control) != 1:
+            #print(packets[0])
+            #raise ValueError('Creating a science product form packets from multiple products')
+            print('Control is not unique')
+            
+
+        control['index'] = 0
+
+        data = Data()
+        try:
+            data['delta_time'] = (np.array(packets['NIX00441'], np.int32)) * 0.1 * u.s
+        except KeyError:
+            #replaced with NIX00404 for versions after asw v180, 
+            data['delta_time'] = (np.array(packets['NIX00404'], np.int32)) * 0.1 * u.s
+
+        unique_times = np.unique(data['delta_time'])
+
+
+        qadd(data, 'rcr',  np.array(packets['NIX00401'], np.ubyte))
+
+        pixel_sets= np.array(packets['NIX00442'], np.ubyte)
+
+        qadd(data,'num_pixel_sets',  pixel_sets)
+        print("pixel set :", pixel_sets)
+
+        pixel_masks = _get_pixel_mask(packets, 'NIXD0407')
+        pixel_masks = pixel_masks.reshape(-1, pixel_sets[0], 12)
+        if ssid == 21 and pixel_sets[0] != 12:
+            pixel_masks = np.pad(pixel_masks, ((0, 0),  (0, 12- pixel_sets[0]), (0, 0)))
+        qadd(data,'pixel_masks', pixel_masks)
+        qadd(data,'detector_masks', _get_detector_mask(packets))
+        qadd(data,'integration_time', (np.array(packets.get('NIX00405'), np.uint16)) * 0.1 * u.s)
+
+        # TODO change once FSW fixed
+        #ts, tk, tm = control['compression_scheme_counts_skm'][0]
+        
+        ts, tk, tm = control['compression_scheme_triggers_skm'][0]
+
+        trigger_from_packets=[packets.get(f'NIX00{i}') for i in range(242, 258)]
+
+
+        triggers, triggers_var = decompress(trigger_from_packets,
+                                            s=ts, k=tk, m=tm,
+                                            return_variance=True)
+
+        qadd(data,'triggers', triggers.T)
+        qadd(data,'triggers_err', np.sqrt(triggers_var).T)
+        qadd(data,'num_energy_groups', np.array(packets['NIX00258'], np.ubyte))
+
+        tmp = dict()
+        tmp['e_low'] = np.array(packets['NIXD0016'], np.ubyte)
+        tmp['e_high'] = np.array(packets['NIXD0017'], np.ubyte)
+        tmp['num_data_elements'] = np.array(packets['NIX00259'])
+        unique_energies_low = np.unique(tmp['e_low'])
+        unique_energies_high = np.unique(tmp['e_high']) 
+
+        # counts = np.array(eng_packets['NIX00260'], np.uint32)
+
+        cs, ck, cm = control['compression_scheme_counts_skm'][0]
+        counts, counts_var = decompress(packets.get('NIX00260'), s=cs, k=ck, m=cm,
+                                        return_variance=True)
+
+        #print('unique id:', packets['NIX00037'])
+        #print('unique times',len(unique_times), unique_times)
+        #print('pixel mask',len(data['pixel_masks']), pixel_masks.size)
+
+        #print(unique_times.size, 
+        #                        data['detector_masks'][0].sum(), data['num_pixel_sets'][0].sum(),unique_energies_low.size)
+        counts = counts.reshape(unique_times.size, unique_energies_low.size,
+                                data['detector_masks'][0].sum(), data['num_pixel_sets'][0].sum())
+        #comment from Hualin, 2021, Sept. probably there is a bug here, when the number of energy bins is not 32, it cashes
+        #maybe need to replaced to:
+        #print(unique_times.size, 
+        #                        data['detector_masks'][0].sum(), data['num_pixel_sets'][0].sum(),unique_energies_low.size)
+
+        counts_var = counts_var.reshape(unique_times.size, unique_energies_low.size,
+                                        data['detector_masks'][0].sum(),
+                                        data['num_pixel_sets'][0].sum())
+        # t x e x d x p -> t x d x p x e
+        counts = counts.transpose((0, 2, 3, 1))
+        counts_var = np.sqrt(counts_var.transpose((0, 2, 3, 1)))
+        if ssid == 21:
+            out_counts = np.zeros((unique_times.size, 32, 12, 32))
+            out_var = np.zeros((unique_times.size, 32, 12, 32))
+        elif ssid == 22:
+            out_counts = np.zeros((unique_times.size, 32, 4, 32))
+            out_var = np.zeros((unique_times.size, 32, 4, 32))
+
+        # energy_index = 0
+        # count_index = 0
+        # for i, time in enumerate(unique_times):
+        #     inds = np.where(data['delta_time'] == time)
+        #     cur_num_energies = data['num_energy_groups'][inds].astype(int).sum()
+        #     low = np.unique(tmp['e_low'][energy_index:energy_index+cur_num_energies])
+        #     high = np.unique(tmp['e_high'][energy_index:energy_index + cur_num_energies])
+        #     cur_num_energies = low.size
+        #     num_counts = tmp['num_data_elements'][energy_index:energy_index+cur_num_energies].sum()
+        #     cur_counts = counts[count_index:count_index+num_counts]
+        #     count_index += num_counts
+        #     pids = data[inds[0][0]]['pixel_masks']
+        #     dids = np.where(data[inds[0][0]]['detector_masks'] == True)
+        #     cids = np.full(32, False)
+        #     cids[low] = True
+        #
+        #     if ssid == 21:
+        #         cur_counts = cur_counts.reshape(cur_num_energies, dids[0].size, pids.sum())
+        #     elif ssid == 22:
+        #         cur_counts = cur_counts.reshape(cur_num_energies, dids[0].size, 4)
+        #
+        dl_energies = np.array([[ENERGY_CHANNELS[lch]['e_lower'], ENERGY_CHANNELS[hch]['e_upper']]
+            for lch, hch in zip(unique_energies_low, unique_energies_high)]).reshape(-1)
+        dl_energies = np.unique(dl_energies)
+        
+        sci_energies = np.hstack([[ENERGY_CHANNELS[ch]['e_lower'] for ch in range(32)],
+                                  ENERGY_CHANNELS[31]['e_upper']])
+
+        # If there is any onboard summing of energy channels rebin back to standard sci channels
+        #print(config.ASW_VERSION)
+        logger.info("rebining energies..")
+        #print(unique_energies_low)
+        #print(unique_energies_high)
+        if (unique_energies_high - unique_energies_low).sum() > 0:
+            # there is a bug here
+            #print('Onboard summing rebinned ')
+            rebinned_counts = np.zeros((*counts.shape[:-1], 32))
+            rebinned_counts_var = np.zeros((*counts_var.shape[:-1], 32))
+            e_ch_start = 0
+            e_ch_end = counts.shape[-1]
+            if dl_energies[0] == 0.0:
+                rebinned_counts[..., 0] = counts[..., 0]
+                rebinned_counts_var[..., 0] = counts_var[..., 0]
+                e_ch_start += 1
+            elif dl_energies[-1] == np.inf:
+                rebinned_counts[..., -1] = counts[..., -1]
+                rebinned_counts_var[..., -1] = counts_var[..., -1]
+                e_ch_end -= 1
+
+            torebin = np.where((dl_energies >= 4.0) & (dl_energies <= 150.0))
+            rebinned_counts[..., 1:-1] = np.apply_along_axis(rebin_proportional, -1,
+                    counts[..., e_ch_start:e_ch_end].reshape(-1, e_ch_end-e_ch_start),
+                    dl_energies[torebin],
+                    sci_energies[1:-1]).reshape((*counts.shape[:-1], 30))
+
+            rebinned_counts_var[..., 1:-1] = np.apply_along_axis(rebin_proportional, -1,
+                    counts_var[..., e_ch_start:e_ch_end].reshape(-1, e_ch_end-e_ch_start),
+                    dl_energies[torebin],
+                    sci_energies[1:-1]).reshape((*counts_var.shape[:-1], 30))
+
+            energy_indices = np.full(32, True)
+            energy_indices[[0,-1]] = False
+
+            ix = np.ix_(np.full(unique_times.size, True), data['detector_masks'][0].astype(bool),
+                        np.ones(data['num_pixel_sets'][0], dtype=bool), np.full(32, True))
+
+            out_counts[ix] = rebinned_counts
+            out_var[ix] = rebinned_counts_var
+        else:
+            energy_indices = np.full(32, False)
+            energy_indices[unique_energies_low.min():unique_energies_high.max()+1] = True
+
+            ix = np.ix_(np.full(unique_times.size, True),
+                              data['detector_masks'][0].astype(bool),
+                              np.ones(data['num_pixel_sets'][0], dtype=bool),
+                              energy_indices)
+
+            out_counts[ix] = counts
+            out_var[ix] = counts_var
+
+
+        if counts.sum() != out_counts.sum():
+            #import ipdb; ipdb.set_trace()
+            raise ValueError(f'Original and reformatted count totals do not match: {counts.sum()} vs {out_counts.sum()}')
+
+        control['energy_bin_mask'] = np.full((1, 32), False, np.ubyte)
+        all_energies = set(np.hstack([tmp['e_low'], tmp['e_high']]))
+        control['energy_bin_mask'][:, list(all_energies)] = True
+        # time x energy x detector x pixel
+        # counts = np.array(
+        #     eng_packets['NIX00260'], np.uint16).reshape(unique_times.size, num_energies,
+        #                                                 num_detectors, num_pixels)
+        # time x channel x detector x pixel need to transpose to time x detector x pixel x channel
+
+        sub_index = np.searchsorted(data['delta_time'], unique_times)
+        data = data[sub_index]
+
+        data['time'] = Time(scet_to_datetime(f'{int(control["time_stamp"][0])}:0')) \
+            + data['delta_time'] + data['integration_time'] / 2
+
+        logger.info("adding data to qtable..")
+        qadd(data,'timedel', data['integration_time'])
+        qadd(data,'counts', out_counts * u.ct)
+        qadd(data,'counts_err', out_var * u.ct)
+        qadd(data,'control_index', control['index'][0])
+
+        data.remove_columns(['delta_time', 'integration_time'])
+
+        data = data['time', 'timedel', 'rcr', 'pixel_masks', 'detector_masks', 'num_pixel_sets',
+                    'num_energy_groups', 'triggers', 'triggers_err', 'counts', 'counts_err']
+        data['control_index'] = 0
+        logger.info("qtable ready")
+
+        return cls(control=control, data=data)
+
+class XrayL1_Backup(Product):
     """
     X-ray Compression Level 1/2 data
     """

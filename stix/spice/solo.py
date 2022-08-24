@@ -642,11 +642,11 @@ class SoloEphemeris(object):
                 'frame1':frame1, 'ref_frame':ref_frame, 'units':'deg'}
         return res
     @staticmethod
-    def to_stix_frame(rtn_coord, cmat_inv):
+    def to_stix_frame(rtn_coord, cmat):
         """
         Sun center to STIX coordinates 
         """
-        new_coord=np.dot(cmat_inv,rtn_coord)
+        new_coord=np.dot(cmat,rtn_coord)
         solo_r=np.sqrt(np.sum(rtn_coord**2))
         x_arcsec=np.arctan(new_coord[1]/solo_r )*180*3600/np.pi
         y_arcsec=np.arctan(new_coord[2]/solo_r )*180*3600/np.pi
@@ -679,7 +679,7 @@ class SoloEphemeris(object):
         return SoloEphemeris.to_stix_frame(coord_rtn, cmat)
 
     @staticmethod
-    def get_B0_L0_roll_radius(obs_utc):
+    def get_ephemeris_for_imaging(obs_utc):
         """
         calculate B0, L0, roll and radius for imaging software
         Parameters
@@ -696,9 +696,10 @@ class SoloEphemeris(object):
         #solo_hee = coordinates_body(this_time, observer)
         stix_aux=SoloEphemeris.get_solar_limb_stix_fov(obs_utc)
         try:
-            rsun= np.degrees(np.arctan(stix_aux['rsun']/stix_aux['solo_sun_r']))*0.5*3600 #in units of arcmin
+            rsun_deg= np.degrees(np.arctan(stix_aux['rsun']/stix_aux['solo_sun_r']))* u.deg#in units of arcmin
             roll = stix_aux['roll']  #roll angle in degrees
             hee_spice=stix_aux['solo_hee']
+            sun_center=stix_aux['sun_center']
         except KeyError:
             raise ValueError('No auxiliary data available for the requested time')
 
@@ -712,7 +713,8 @@ class SoloEphemeris(object):
         B0 = solo_hgs.lat.deg # Heliographic latitude (B0 angle)
         L0 = solo_hgs.lon.deg # Heliographic longitude (L0 angle)
         #ROLL ANGLE Solar Orbiter in degree
-        return B0, L0, roll,rsun 
+        dsun=solo_hgs.radius.value*u.km
+        return B0*u.deg, L0*u.deg, roll*u.deg,rsun_deg, dsun,  stix_aux['solo_hee']*u.km, stix_aux['solo_sun_r']*u.m,sun_center
 
     @staticmethod
     def get_solar_limb_stix_fov(utc, ref_frame='SOLO_SUN_RTN'):
@@ -741,21 +743,22 @@ class SoloEphemeris(object):
 
         sun_loc=np.sqrt(np.sum(positions**2))
         rsun=const.R_sun.to(u.m).value
-        sun_center=np.array([sun_loc.to(u.m).value, 0, 0])
+        x_sun=-sun_loc.to(u.m).value
+        sun_center_RTN=np.array([x_sun, 0, 0])
         nsew_coords=[
-                [sun_loc.to(u.m).value, 0, rsun],
-                [sun_loc.to(u.m).value, 0, -rsun],
-                [sun_loc.to(u.m).value,  -rsun,0],
-                [sun_loc.to(u.m).value,  rsun,0],
+                [x_sun, 0, rsun],
+                [x_sun, 0, -rsun],
+                [x_sun,  -rsun,0],
+                [x_sun,  rsun,0],
                        ]
 
-        limbs=[[sun_loc.to(u.m).value, rsun*np.cos(theta), rsun*np.sin(theta)] for theta in np.linspace(0,2*np.pi, 50)
+        limbs=[[x_sun, rsun*np.cos(theta), rsun*np.sin(theta)] for theta in np.linspace(0,2*np.pi, 50)
                 ]
-        sun_center_stix_frame=SoloEphemeris.to_stix_frame(sun_center, cmat_inv)
+        sun_center_stix_frame=SoloEphemeris.to_stix_frame(sun_center_RTN, cmat)
 
-        nsew_stix_frame=[SoloEphemeris.to_stix_frame(np.array(loc), cmat_inv) for loc in nsew_coords]
+        nsew_stix_frame=[SoloEphemeris.to_stix_frame(np.array(loc), cmat) for loc in nsew_coords]
 
-        limbs_stix_frame=np.array([SoloEphemeris.to_stix_frame(np.array(loc), cmat_inv) for loc in limbs])
+        limbs_stix_frame=np.array([SoloEphemeris.to_stix_frame(np.array(loc), cmat) for loc in limbs])
 
         sun_outside_stix_fov=False if np.max(np.abs(limbs_stix_frame))<3600 else True
         pitch = -pitch

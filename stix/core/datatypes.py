@@ -151,11 +151,11 @@ class Packet(object):
             self._header = copy_object(a, deep_copy)
             if isinstance(b, list):
                 self._parameters = copy_object(b, deep_copy)
+
     def is_valid(self):
         if self._header and self._parameters:
             return True
         return False
-
 
     def get_raw_length(self):
         if not self._header:
@@ -292,15 +292,16 @@ class Packet(object):
             return Parameter(self._parameters[key])
 
     def isa(self, SPIDs):
-        if self._header['TMTC'] == 'TC':
+
+        if self._header.get('TMTC', None) == 'TC':
             return False
         if not isinstance(SPIDs, list):
             SPIDs = [int(SPIDs)]
         try:
             if int(self._header['SPID']) in SPIDs:
                 return True
-        except Exception as e:
-            logger.error("isa:" + str(e))
+        except (KeyError, ValueError) as e:
+            logger.warn("SPID not found in the packet")
         return False
 
     def ls(self, node_name=None):
@@ -310,44 +311,55 @@ class Packet(object):
         pprint.pprint(self.get_nodes(node_name))
 
     @staticmethod
-    def merge(packets, SPIDs, value_type='raw', remove_duplicates=False):
+    def merge(packets, SPIDs, value_type='raw', remove_duplicates=True):
         if not isinstance(SPIDs, list):
             SPIDs = [SPIDs]
 
         result = {}
-        hash_list=[]
-        min_id=math.inf
-        max_id=-math.inf
-        pkt_len=0
-
+        hash_list = []
+        min_id = math.inf
+        max_id = -math.inf
+        pkt_len = 0
+        
+        seg_flag_counter={0:0,1:0,2:0,3:0}
+        
         for pkt in packets:
+            try:
+                if int(pkt['header']['SPID']) not in SPIDs:
+                    continue
+            except (ValueError, KeyError):
+                continue
+
             if remove_duplicates:
                 if pkt['hash'] in hash_list:
                     logger.info(f'Duplicated packet {pkt["_id"]} excluded!')
                     continue
                 hash_list.append(pkt['hash'])
-            try:
-                if int(pkt['header']['SPID']) not in SPIDs:
-                    continue
-            except ValueError:
-                continue
-            min_id=min(min_id,pkt['_id'])
-            max_id=max(max_id,pkt['_id'])
-            pkt_len+=1
 
+            min_id, max_id = min(min_id, pkt['_id']), max(max_id, pkt['_id'])
+            pkt_len += 1
+
+            if set(SPIDs).intersection([54115, 54143]): 
+                #l1 or L4 report, Hualin 2022-05-10, fix the issues of the same data were requested twice (included into different IORs)
+                seg_flag_counter[pkt['header']['seg_flag']] += 1
+                if seg_flag_counter[1] >1 or seg_flag_counter[2]>1:
+                    logger.warning(f'{pkt["_id"]} ignored, might be a duplicated requests')
+                    continue
             Packet.merge_headers(result, pkt['header'])
             Packet.merge_parameters(result, pkt['parameters'], value_type)
-        result['min_id']=min_id
-        result['max_id']=max_id
-        result['num_packets']=pkt_len
+
+        result['min_id'] = min_id
+        result['max_id'] = max_id
+        result['num_packets'] = pkt_len
 
         return result
 
     @staticmethod
     def merge_headers(result, header):
-
+        """
+        merge header
+        """
         for key, value in header.items():
-
             if key not in result:
                 result[key] = [value]
             else:
@@ -355,24 +367,28 @@ class Packet(object):
 
     @staticmethod
     def merge_parameters(result, parameters, value_type):
+        """merge packets recursively 
+          
+          history:
+          2020-05-23, removed conversion of parameter to Parameter object
+
+        """
 
         if not parameters:
             return
         for p in parameters:
-            param = Parameter(p)
-            name = param.name
-            value = param['eng'] if value_type == 'eng' and param[
-                'eng'] else param['raw']
-            if value_type == 'eng':
-                value = param['eng']
+            #param = Parameter(p)
+            name, raw, eng, children=p
+
+            value = eng if (value_type == 'eng' and  eng) else raw
+
             #if 'NIXG' not in name:
 
             if name not in result:
                 result[name] = []
             result[name].append(value)
-
-            if param['children']:
-                Packet.merge_parameters(result, param.children, value_type)
+            if children:
+                Packet.merge_parameters(result, children, value_type)
             #doesn't work
 
     def children_as_dict(self, parameter_names=None, children=None):

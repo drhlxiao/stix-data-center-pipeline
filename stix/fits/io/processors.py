@@ -355,30 +355,3 @@ class FitsL1Processor:
         
         return headers
 
-# def energy_bands(num_energies):
-#     """
-#     Generate the energy band fits extension.
-#
-#     Parameters
-#     ----------
-#     num_energies : int
-#         The number of energies
-#
-#     Returns
-#     -------
-#     astropy.io.fits.BinTableHDU
-#         The Energy Extension
-#
-#     """
-#     # Extension for energy channel data
-#     energy_columns = (
-#         fits.Column(name='CHANNEL', format='B', array=np.zeros(num_energies)),
-#         fits.Column(name='E_MIN', format='E', unit='KeV', array=np.zeros(num_energies)),
-#         fits.Column(name='E_MAX', format='E', unit='KeV', array=np.zeros(num_energies))
-#     )
-#
-#     energy_coldefs = fits.ColDefs(energy_columns)
-#     enenrgy_hdu = fits.BinTableHDU.from_columns(energy_coldefs)
-#     enenrgy_hdu.name = 'ENEBAND'
-#
-#     return enenrgy_hdu

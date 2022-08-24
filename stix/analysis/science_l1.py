@@ -1,6 +1,7 @@
 #!/usr/bin/python
 """
     Process ScienceL1 fits file
+    used by preview image creation software
     Author: Hualin Xiao (hualin.xiao@fhnw.ch)
     Date: Sep. 1, 2021
 """
@@ -9,6 +10,9 @@ import numpy as np
 from astropy.io import fits
 from matplotlib import pyplot as plt
 from stix.spice import time_utils as sdt
+import matplotlib.dates as mdates
+import matplotlib.colors as colors
+from matplotlib.patches import Rectangle
 
 
 
@@ -40,6 +44,7 @@ class ScienceData():
         self.data = self.hdul['DATA'].data
         self.T0_utc = self.hdul['PRIMARY'].header['DATE_BEG']
         self.counts= self.data['counts']
+        #timebin: detector,pixel, energies
 
         self.light_time_del= self.hdul['PRIMARY'].header['EAR_TDEL']
         self.light_time_corrected=light_time_correction
@@ -51,12 +56,13 @@ class ScienceData():
         self.timedel = self.data['timedel']
         self.time = self.data['time']
 
-        if self.is_time_bin_shifted(self.T0_unix):
+        if self.is_time_bin_shifted(self.T0_unix) and len(self.timedel)>1:
             self.timedel = self.timedel[:-1]
             self.time = self.time[1:]
             print('Shifted time bins have been corrected automatically!')
             if self.data_type=='ScienceL1':
                 self.counts= self.counts[1:, :, :, :]
+
                 self.triggers = self.triggers[1:, :]
                 self.rcr = self.rcr[1:]
             elif self.data_type=='Spectrogram':
@@ -177,7 +183,6 @@ class ScienceL1(ScienceData):
         if ebin_min is None or ebin_max is None:
             return None,None
         ebin_max+=1
-
         return ebin_min, ebin_max
 
     def make_spectra(self, pixel_counts=None):
@@ -196,21 +201,91 @@ class ScienceL1(ScienceData):
 
         self.time_bins_low=self.time-0.5*self.timedel+self.T0_unix
         self.time_bins_high=self.time+0.5*self.timedel+self.T0_unix
+    
 
-    def get_total_counts(self, emin_sci:int, emax_sci:int, unix_start, unix_end):
+    def get_time_and_counts(self, emin_sci:int, emax_sci:int, integration_time:float, start=None, end=None):
+        """
+            find the peak time and integrate counts 
+        """
 
         counts=np.sum(self.spectrogram[:,emin_sci:emax_sci], axis=1)
-        if unix_end is None or unix_end is None:
-            return np.sum(counts)
-        total_counts=np.sum(counts[ (self.time_bins_low >=unix_start) & (self.time_bins_high <= unix_end)])
-        return total_counts
+        if counts.size==0:
+            return None, None, None
 
 
-    def get_time_ranges_for_imaging(self, imaging_energies, flare_unix_time_ranges, min_counts=1000, integration_time = 60, time_step=300):
+        if start is None or end is None:
+            #use the peak time
+            max_idx = np.argmax(counts)
+            #max_rate =np.max(counts)/self.timedel[max_idx]
+            peak_time_bin=[ self.time_bins_low[max_idx], self.time_bins_high[max_idx]]
+            peak_time=(peak_time_bin[0]+peak_time_bin[1])/2.
+            #mean time
+            if peak_time_bin[1]-peak_time_bin[0] >= integration_time:
+                #one time bin requests
+                start,end=peak_time_bin
+            else:
+                start = max(peak_time-integration_time/2, self.time_bins_low[0])
+                end = min(peak_time+integration_time/2, self.time_bins_high[-1])
+        
+        start=max(start, self.time_bins_low[0])
+        end=min(end, self.time_bins_high[-1])
+        #make sure start time and end valid
+
+
+        pixel_total_counts=np.sum(self.counts[  (self.time_bins_low >=start) & (self.time_bins_high <= end) ,:,:,emin_sci:emax_sci], axis=(0,3))
+        #timebin: detector,pixel, energies
+
+        total_counts=np.sum(pixel_total_counts)
+        return start, end, total_counts, pixel_total_counts
+    
+    def plot_spectrogram(self, ax=None, selection_box=None):
+        if not ax:
+            _, ax = plt.subplots()
+        X, Y = np.meshgrid(self.datetime,
+                           np.arange(self.min_ebin, self.max_ebin))
+        Z=np.transpose(
+                    self.count_rate_spectrogram[:, self.min_ebin:self.max_ebin])
+        im = ax.pcolormesh(
+                X, Y, Z, norm=colors.LogNorm(),
+                 shading='auto' )  #pixel summed energy spectrum
+        ax.set_yticks(
+                self.energies['channel'][self.min_ebin:self.max_ebin:2])
+        ax.set_yticklabels(
+                self.energy_bin_names[self.min_ebin:self.max_ebin:2])
+        fig = plt.gcf()
+        cbar = fig.colorbar(im, ax=ax)
+        cbar.set_label('Counts')
+        ax.set_title('Count rate spectrogram')
+        ax.set_ylabel('Energy range (keV')
+
+        if selection_box:
+            erange=selection_box.get('erange',None)
+            trange=selection_box.get('trange',None)
+            if erange and trange:
+                emin_sci, emax_sci=self.energy_to_index(erange[0], erange[1])
+                tmin,tmax=sdt.utc2datetime(trange[0]), sdt.utc2datetime(trange[1]) 
+                mstart,mend=mdates.date2num(tmax),mdates.date2num(tmin)
+
+                rec= Rectangle((mstart, emin_sci), 
+                    mend-mstart, emax_sci-emin_sci, edgecolor='cyan', fill=None)
+                    
+                ax.add_patch(rec)
+
+                locator = mdates.AutoDateLocator(minticks=3, maxticks=7)
+                formatter = mdates.ConciseDateFormatter(locator)
+                ax.xaxis.set_major_locator(locator)
+                ax.xaxis.set_major_formatter(formatter)
+
+
+
+
+        #ax.set_xlabel(f"Time")
+        return ax
+
+
+    def get_time_ranges_for_imaging(self, flare_time_ranges,  imaging_energies,  min_counts=3000, integration_time = 60):
         """
         determine time ranges for imaging
-            flare_unix_time_ranges: list
-                flare time ranges
             elow_keV: float
                 energy range lower limit
             ehigh_keV: float
@@ -218,72 +293,49 @@ class ScienceL1(ScienceData):
             min_counts: int
                 minimum counts per bin
             """
-        def generate_time_ranges(tstart, tend, tbin, tgap, order='asc'):
-            time_ranges=[]
-            if order=='asc':
-                t=tend
-                while t >= tstart+tbin/2.:
-                    time_ranges.append([t-tbin/2,t+tbin/2])
-
-            
-
-
         boxes=[]
-        if not flare_unix_time_ranges:
-            return []
-
         sci_energy_ranges=[]
+
         for energy_range in imaging_energies:
             elow_sci, emax_sci=self.energy_to_index(energy_range[0], energy_range[1])
             if elow_sci is None or emax_sci is None:
-                sci_energy_ranges.append(None)
+                continue
             sci_energy_ranges.append([elow_sci, emax_sci])
 
         time_ranges = []
 
-        for flare_time in flare_unix_time_ranges:
-            #only select flaring times
-            start, peak, end = flare_time
-            if peak is not None:
-                start=max(start, peak - integration_time)
-                end=min(end, peak+integration_time)
-            else :
-                t=peak
-                while t >= start:
-                    t = t - time_step
-                    time_ranges
+        for i, sci_range in enumerate(sci_energy_ranges):
 
-
-
-
-
-        duration = self.time[-1]+ 0.5* self.timedel[-1]-(self.time[0]+ 0.5* self.timedel[0])
-        if duration < integration_time:
-            start = self.time[0]- 0.5* self.timedel[0] + self.T0_unix
-            end = self.time[-1]+ 0.5* self.timedel[-1] +self.T0_unix
-            time_ranges= [[start, end]]
-        
-
-        for flare_time in time_ranges:
-            #only select flaring times
-            start, peak, end = flare_time
-            if peak is not None:
-                start=max(start, peak - min_duration)
-                end=min(end, peak+min_duration)
-            else:
-                if peak-start > 
-
-            counts_enough=[False]*len(imaging_energies)
-            for i, sci_range in enumerate(sci_energy_ranges):
-                if sci_range:
-                    counts_enough[i]=bool( self.get_total_counts(sci_range[0], sci_range[1], start, end) > min_counts )
-            if not any(counts_enough):
+            start, end, total_counts, pixel_counts =self.get_time_and_counts( sci_range[0], sci_range[1], integration_time)
+            if start is None:
                 continue
-            boxes.append({'counts_enough':  counts_enough,
-                    'energy_range_keV': imaging_energies,
-                    'energy_range_sci': sci_energy_ranges,
+            if total_counts>min_counts:
+                boxes.append({
+                    'total_counts':  total_counts,
+                    'pixel_counts':  pixel_counts,
+                    'energy_range_sci': sci_range,
+                    'energy_range_keV': imaging_energies[i],
                     'unix_time_range': [start,  end],
                     'utc_range': [sdt.unix2utc(start),  sdt.unix2utc(end)]})
+            else:
+                #this might be a small flare, take the whole time period
+                for flare in flare_time_ranges:
+                    #create images for flaring time
+                    if flare['peak']:
+                        #try again
+                        start, end, total_counts, pixel_counts =self.get_time_and_counts(sci_range[0], sci_range[1], integration_time, flare['start'],flare['end'])
+                        if total_counts>min_counts:
+                            boxes.append({
+                                'total_counts':  total_counts,
+                                'pixel_counts':  pixel_counts,
+                                'energy_range_sci': sci_range,
+                                'energy_range_keV': imaging_energies[i],
+                                'unix_time_range': [start,  end],
+                                'utc_range': [sdt.unix2utc(start),  sdt.unix2utc(end)]})
+
+
+
+
         return boxes
 
                 

@@ -57,20 +57,21 @@ class MongoDB(object):
             self.collection_fits = self.db['fits']
             self.collection_events = self.db['events']
             self.col_goes = self.db['goes_fluxes']
-            #self.col_flare_tbc= self.db['flare_tbc']
             self.collection_flares = self.db['flares']
             self.collection_lc_stats = self.db['lc_stats']
             self.collection_notifications = self.db['notifications']
             self.collection_time_bins= self.db['time_bins']
-            self.collection_aspect_solutions= self.db['aspect_solutions']
+            #self.collection_aspect_solutions= self.db['aspect_solutions']
             self.collection_qlspectra=self.db['ql_spectra']
             self.collection_qllc=self.db['ql_lightcurves']
             self.collection_qloc=self.db['ql_flare_locs']
             self.collection_sw_config=self.db['sw_config']
+            self.collection_flare_images= self.db['flare_images']
+            self.collection_aspect= self.db['aspect']
 
             self.col_user_groups=self.db['user_groups']
         except Exception as e:
-            print('Error occurred while initializing mongodb: {}'.format(
+            raise IndexError('Error occurred while initializing mongodb: {}'.format(
                 str(e)))
 
     def get_db(self):
@@ -89,6 +90,11 @@ class MongoDB(object):
             return self.db[colname]
         except:
             return None
+
+    def get_aspect_solutions(self, start_unix, end_unix):
+        return self.collection_aspect.find({'unix_time':{'$gte':start_unix,'$lte':end_unix}})
+
+
 
     def get_collection_calibration(self):
         return self.collection_calibration
@@ -181,7 +187,12 @@ class MongoDB(object):
             return self.collection_packets.find({'_id': {
                 '$in': packet_ids
             }}, {'header': 1})
-        return self.collection_packets.find({'_id': {'$in': packet_ids}}).sort('header.unix_time',1)
+        #return self.collection_packets.find({'_id': {'$in': packet_ids}}).sort('header.unix_time',1)
+        #removed the line below to improve performance
+        packet_ids.sort()
+        for pid  in packet_ids:
+            yield self.collection_packets.find_one({'_id':  pid})
+
 
     def get_filename_of_run(self, run_id):
         if self.collection_raw_files:
@@ -333,8 +344,7 @@ class MongoDB(object):
         return []
 
     def write_fits_index_info(self, doc):
-        if self.collection_fits:
-            self.collection_fits.save(doc)
+        self.collection_fits.save(doc)
 
     def get_next_fits_id(self):
         try:
@@ -342,6 +352,15 @@ class MongoDB(object):
                 '_id', -1).limit(1)[0]['_id'] + 1
         except IndexError:
             return 0
+    def get_next_flare_image_id(self):
+        try:
+            return self.collection_flare_images.find({}).sort(
+                '_id', -1).limit(1)[0]['_id'] + 1
+        except IndexError:
+            return 0
+    def insert_flare_image(self,doc):
+        self.collection_flare_images.save(doc)
+
 
     def get_next_flare_id(self):
         try:
@@ -601,6 +620,9 @@ class MongoDB(object):
             ]
         return self.collection_data_requests.aggregate(query)
        
+    def get_packets_by_ids(self,id_list):
+        for _id in id_list:
+            yield self.collection_packets.find_one({'_id': _id})
 
     def find_flares_by_time_range(self, start_unix, end_unix):
         return self.collection_flares.find({'start_unix':{'$lt':end_unix},

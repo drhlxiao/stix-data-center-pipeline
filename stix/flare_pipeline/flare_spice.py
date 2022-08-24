@@ -10,7 +10,7 @@ from datetime import datetime
 import numpy as np
 import spiceypy as spice
 from sunpy.coordinates.frames import HeliocentricEarthEcliptic, HeliographicStonyhurst
-from stix.spice import datetime as sdt
+from stix.spice import time_utils as sdt
 from stix.spice import spice_manager
 from astropy import constants as const
 
@@ -28,7 +28,7 @@ def get_ang_vectors(v1, v2):
 def get_flare_spice(sun_x, sun_y, flare_utc, observer='earth'):
     #sun_x, sun_y in unites of arcsec
     date_flare = sdt.utc2datetime(flare_utc)
-    et_stix = spice.time_utils2et(date_flare)
+    et_stix = spice.utc2et(date_flare)
     flare_coord = [sun_x, sun_y]
     # Obtain the coordinates of Solar Orbiter
     earth_hee_spice, ltime_earth_sun = spice.spkpos(
@@ -52,11 +52,11 @@ def get_flare_spice(sun_x, sun_y, flare_utc, observer='earth'):
                                          obstime=Time(date_flare).isot,
                                          representation_type='cartesian')
     if observer == 'earth':
-        obs_coord = earth_hee#.transform_to(
-            #HeliographicStonyhurst(obstime=date_flare))
+        obs_coord = earth_hee  #.transform_to(
+        #HeliographicStonyhurst(obstime=date_flare))
     else:
-        obs_coord = solo_hee#.transform_to(
-            #HeliographicStonyhurst(obstime=date_flare))
+        obs_coord = solo_hee  #.transform_to(
+        #HeliographicStonyhurst(obstime=date_flare))
 
     flare_skycoord = SkyCoord(flare_coord[0] * u.arcsec,
                               flare_coord[1] * u.arcsec,
@@ -85,10 +85,9 @@ def get_flare_spice(sun_x, sun_y, flare_utc, observer='earth'):
     flare_theta_stix = get_ang_vectors(flare_hee_cart, v_flare_solo)
     flare_theta_earth = get_ang_vectors(flare_hee_cart, v_flare_earth)
 
-    earth_flare_solo_deg= get_ang_vectors(v_flare_earth, v_flare_solo)
+    earth_flare_solo_deg = get_ang_vectors(v_flare_earth, v_flare_solo)
 
-
-    res={
+    res = {
         'flare_earth_lt': flare_earth_t.value,
         'flare_solo_lt': flare_solo_t.value,
         'owlt': owlt.value,
@@ -105,14 +104,22 @@ def get_flare_spice(sun_x, sun_y, flare_utc, observer='earth'):
     }
     return res
 
-if __name__=='__main__':
-    
-    res=[]
+
+if __name__ == '__main__':
+
+    res = []
     for i in range(10):
         for j in range(10):
-            sun_x=-900+i*100
-            sun_y=-900+j*100
-            res.append({'loc':[sun_x, sun_y],'res':get_flare_spice(sun_x, sun_y, '2021-10-28T00:00:00', observer='solo')})
+            sun_x = -900 + i * 100
+            sun_y = -900 + j * 100
+            res.append({
+                'loc': [sun_x, sun_y],
+                'res':
+                get_flare_spice(sun_x,
+                                sun_y,
+                                '2021-10-28T00:00:00',
+                                observer='solo')
+            })
     import json
-    f=open('flare_test.json', 'w')
-    json.dump(res,f)
+    f = open('flare_test.json', 'w')
+    json.dump(res, f)

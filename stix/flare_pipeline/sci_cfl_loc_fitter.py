@@ -36,6 +36,7 @@ from stix.utils import bson
 from stix.utils import energy_bins as seb
 from stix.flare_pipeline import flare_spice as fsp
 import matplotlib
+
 matplotlib.use('Agg')
 
 DET_ID_START = 20
@@ -59,6 +60,7 @@ mdb = db.MongoDB()
 
 
 class FlareDataAnalyzer(object):
+
     def __init__(self):
         self.bsd_db = mdb.get_collection_bsd()
         self.flare_db = mdb.get_collection("flares")

@@ -181,7 +181,6 @@ class StixCalibrationReportAnalyzer(object):
 class StixQuickLookReportAnalyzer(object):
     """
     capture quicklook reports and fill packet information into a MongoDB collection
-
     """
     def __init__(self, db):
         self.db=db
@@ -425,6 +424,7 @@ class StixUserDataRequestReportAnalyzer(object):
                 doc['first_pkt']=bsd_doc['first_pkt']
             if bsd_doc.get('last_pkt',-1)>=0:
                 doc['last_pkt']=bsd_doc['last_pkt']
+                #update packets info
 
             logger.info(f"Replacing existing bsd:{doc['_id']}")
 

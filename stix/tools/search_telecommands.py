@@ -9,8 +9,8 @@ col_iors= db['iors']
 
 #names=['ZIX36005','ZIX36004','AIXF060A','AIXF061A']
 names=['AIXF414A'] #load prameters
-start_utc='2021-06-15T00:00:00'
-end_utc='2021-11-15T00:00:00'
+start_utc='2021-12-09:00:00'
+end_utc='2022-11-15T00:00:00'
 
 start_unix=datetime.utc2unix(start_utc)
 end_unix=datetime.utc2unix(end_utc)
@@ -26,7 +26,8 @@ for  ior in iors:
     occurrences=ior['occurrences']
     for tc in occurrences:
         if tc['name'] in names:
-            results.append(tc)
+            if tc['parameters'][0][1]=='477':
+                results.append(tc)
 
 pprint(results)
 

@@ -142,7 +142,6 @@ def get_QL_background(start, end, file_id):
     }
     mdb.insert_lc_stats(doc)
 
-
 if __name__ == '__main__':
     import sys
     terminal = True
