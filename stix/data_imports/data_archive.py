@@ -37,8 +37,8 @@ DATA_ARCHIVE_FILE_INFO = {
     'L1_stix-hk-maxi': ('hk_maxi', 'L1', 'housekeeping', 54102),
     'L1_stix-hk-mini': ('hk_mini', 'L1', 'housekeeping', 54101),
     'L1_stix-cal-energy': ('calibration_spectrum', 'L1', 'quicklook', 54124),
-    'L1_stix-sci-xray-cpd': ('xray_l1_user', 'L1', 'science', 54115),
-    'L1_stix-sci-xray-spec': ('spectrogram_user', 'L1', 'science', 54143),
+    'L1_stix-sci-xray-cpd': ('xray-cpd', 'L1', 'science', 54115),
+    'L1_stix-sci-xray-spec': ('xray-spec', 'L1', 'science', 54143),
     'L1_stix-sci-aspect-burst': ('aspect', 'L1', 'auxiliary', 54125),
     'L2_stix-aux-auxiliary': ('auxiliary', 'L2', 'auxiliary', 54102),
     'L2_stix-hk-maxi': ('hk_maxi', 'L2', 'housekeeping', 54102)

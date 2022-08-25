@@ -27,57 +27,6 @@ db= mongo_db.MongoDB()
 FITS_PATH='/data/fits/'
 
 DATA_LEVEL='L1A'
-QL_SPID_MAP = {
-        54118: 'lc',
-        54119:'bkg',
-        54120:'qlspec',
-         54121:'var',
-         54122:'flare',
-}
-
-
-
-SPID_MAP = {
-    # Bulk Science
-    #54110: 'xray_l0_auto',
-    #54111: 'xray_l1_auto',
-    #54112: 'xray_l2_auto',
-    #54113: 'xray_l3_auto',
-    #54142: 'spectrogram_auto',
-    54114: 'xray_l0_user',
-    54115: 'xray_l1_user',
-    54116: 'xray_l2_user',
-    54117: 'xray_l3_user',
-    54143: 'spectrogram_user',
-    54125: 'aspect',
-    # Quick look
-    54118: 'ql_light_curves',
-    54119: 'ql_background',
-    54120: 'ql_spectrogram',
-    54121: 'ql_variance',
-    54122: 'flareflag_location',
-
-    54123: 'tm_status_and_flare_list',
-    54124: 'calibration_spectrum',
-    # House keeping
-    54101: 'hk_mini',
-    54102: 'hk_maxi'
-}
-LOW_LATENCY_TYPES={
-        54102: 'hk_maxi',
-    54118: 'ql_light_curves',
-    54119: 'ql_background',
-    54120: 'ql_spectrogram',
-    54121: 'ql_variance',
-    54122: 'flareflag_location'}
-
-SEG_FLAG_MAP={0: 'continuation packet',1: 'first packet',2: 'last_packet',3:'stand-alone packet'}
-SCI_REPORT_SPIDS=[
-    54114,
-    54115,
-    54116,
-    54117,
-    54143]
 
 def create_fits_for_packets(file_id, packets, spid, product, is_complete,  
         base_path_name=FITS_PATH, overwrite=True, version=1, remove_duplicates=True, run_type='file'):
@@ -125,46 +74,46 @@ def _create_fits_for_packets(file_id, packets, spid, product, is_complete,
     logger.info('Converting merged packets to fits...')
 
     try:
-        if product == 'hk_mini':
+        if product == 'hk-mini':
             prod = MiniReport(parsed_packets)
             product_type = 'housekeeping'
-        elif product == 'hk_maxi':
+        elif product == 'hk-maxi':
             prod = MaxiReport(parsed_packets)
             product_type = 'housekeeping'
-        elif product == 'ql_light_curves':
+        elif product == 'ql-lc':
             prod = LightCurve.from_packets(parsed_packets, eng_packets)
             product_type = 'quicklook'
-        elif product == 'ql_background':
+        elif product == 'ql-bkg':
             prod = Background.from_packets(parsed_packets, eng_packets)
             product_type = 'quicklook'
-        elif product == 'ql_spectrogram':
+        elif product == 'ql-spec':
             prod = Spectra.from_packets(parsed_packets, eng_packets)
             product_type = 'quicklook'
-        elif product == 'ql_variance':
+        elif product == 'ql-var':
             prod = Variance.from_packets(parsed_packets, eng_packets)
             product_type = 'quicklook'
-        elif product == 'flareflag_location':
+        elif product == 'ql-ffl':
             prod = FlareFlagAndLocation.from_packets(parsed_packets)
             product_type = 'quicklook'
-        elif product == 'calibration_spectrum':
+        elif product == 'ql-cal':
             prod = CalibrationSpectra.from_packets(parsed_packets, eng_packets)
             product_type = 'quicklook'
-        elif product == 'tm_status_and_flare_list':
+        elif product == 'ql-tm':
             prod = TMManagementAndFlareList.from_packets(parsed_packets)
             product_type = 'quicklook'
-        elif product == 'xray_l0_user':
+        elif product == 'xray-rpd':
             prod = XrayL0.from_packets(parsed_packets, eng_packets)
             product_type = 'science'
-        elif product == 'xray_l1_user':
+        elif product == 'xray-cpd':
             prod = XrayL1.from_packets(parsed_packets, eng_packets)
             product_type = 'science'
-        elif product == 'xray_l2_user':
+        elif product == 'xray-scpd':
             prod = XrayL2.from_packets(parsed_packets, eng_packets)
             product_type = 'science'
-        elif product == 'xray_l3_user':
+        elif product == 'xray-vis':
             prod = XrayL3.from_packets(parsed_packets, eng_packets)
             product_type = 'science'
-        elif product == 'spectrogram_user': 
+        elif product == 'xray-spec': 
             prod = Spectrogram.from_packets(parsed_packets, eng_packets)
             product_type = 'science'
         elif product == 'aspect':
@@ -246,10 +195,10 @@ def purge_fits_for_raw_file(file_id):
 def create_continous_low_latency_fits(start_unix, end_unix,  output_path=FITS_PATH, overwrite=True, version=1, run_type='daily'):
     pkt_col=db.get_collection('packets')
     file_id=-1
-    for spid, product in LOW_LATENCY_TYPES.items():
+    for spid, product in sdt.LOW_LATENCY_TYPES.items():
         print(spid, product,start_unix, end_unix)
-        if spid in QL_SPID_MAP.keys():
-            packets=db.get_quicklook_packets(QL_SPID_MAP[spid],
+        if spid in std.QL_SPID_MAP.keys():
+            packets=db.get_quicklook_packets(sdt.QL_SPID_MAP[spid],
                 start_unix,
                               end_unix-start_unix,sort_field='header.unix_time')
         elif spid==54102:
@@ -310,7 +259,7 @@ def create_fits_for_bulk_science(bsd_id_start, bsd_id_end, output_path=FITS_PATH
         logger.info(f'Creating fits file for bsd #{bsd["_id"]}, number of packets: {len(pids)}')
         file_id=bsd['run_id']
         spid=bsd['SPID']
-        product = SPID_MAP[spid]
+        product = sdt.SPID_MAP[spid]
         logger.info(f'{spid},{product}')
         create_fits_for_packets(file_id, pkts, spid, product, True, output_path, overwrite, version, remove_duplicates=True)
 
@@ -343,16 +292,16 @@ def create_fits(file_id, output_path, overwrite=True,  version=1):
         return
     for spid in spid_packets:
         spid=int(spid)
-        if spid not in SPID_MAP.keys():
+        if spid not in sdt.SPID_MAP.keys():
             logger.warning(f'Not supported spid : {spid}')
             continue
         logger.info(f'Requesting packets of file {file_id} from MongoDB')
         sort_field='header.unix_time'
         #if spid==54118:
         logger.info(f'Querying packets for SPID: {spid}')
-        product = SPID_MAP[spid]
+        product = sdt.SPID_MAP[spid]
         #process science packets
-        if spid in SCI_REPORT_SPIDS:
+        if spid in sdt.SCI_REPORT_SPIDS:
             #cursor=self.collection_packets.find({'_id':{'$in':pids}}).sort('header.unix_time',1)
             bsd_docs=db.get_bsd_docs_by_run_id(file_id, spid)
             for bsd in bsd_docs:

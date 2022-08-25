@@ -219,18 +219,17 @@ def queue_imaging_tasks(doc,
     for box in boxes:
         energy_range_str = f'{box["energy_range_keV"][0]}-{box["energy_range_keV"][1]}'
         start_utc_str = stu.utc2filename(box['utc_range'][0])
-        fits_prefix = f'stix_imaging_spectroscopy_sci_{bsd_id}_uid_{uid}_{energy_range_str}keV_{start_utc_str}_{flare_image_id}'
+        fits_prefix = f'stix_sci_preview_{bsd_id}_uid_{uid}_{energy_range_str}keV_{start_utc_str}_{flare_image_id}'
         folder = os.path.join(quicklook_path, str(uid))
         if not os.path.exists(folder):
             os.makedirs(folder)
         num_images += 1
         task_id = uuid.uuid4().hex[0:10]
 
-        spectral_model = 'vth+thick2'
+        spectral_model = 'auto'
 
         ospex_config = {
-            'model': spectral_model,
-            'model_id': 1 if 'thick2' in spectral_model else 0
+            'model': spectral_model
         }
         config = {
             'filename': fname,
@@ -238,7 +237,7 @@ def queue_imaging_tasks(doc,
             'raw_file_id': doc['run_id'],
             'unique_id': uid,
             'task_id': task_id,
-            'author': 'bot',
+            'author': 'Pipeline',
             'hidden': False,
             'num_idl_calls': 0,
             'run_type': 'auto',
@@ -274,8 +273,8 @@ def queue_imaging_tasks(doc,
                 'ellipse' if box["energy_range_keV"][1] < 16 else 'multi',
                 'ospex': ospex_config
             },
-            'fits': {},
-            'figs': {}
+            'fits': {}, #placeholder
+            'figs': {}, #placeholder
         }
 
         attach_aspect_solutions(box['unix_time_range'][0] - ASPECT_TIME_TOR,

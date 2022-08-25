@@ -15,9 +15,11 @@ from stix.spice import spice_manager
 from stix.spice.solo import SoloEphemeris
 from astropy import constants as const
 import drms
+from sunpy.map import Map
 from sunpy.net import Fido
 from sunpy.net import attrs as a
-
+import pandas as pd
+from aiapy.calibrate import normalize_exposure, register, update_pointing
 
 def get_ang_vectors(v1, v2):
     vector1 = np.array([v1.x.value, v1.y.value, v1.z.value])
@@ -30,10 +32,6 @@ def get_ang_vectors(v1, v2):
 
 
 def get_flare_spice(sun_x, sun_y, flare_utc, observer='earth'):
-    """
-        get flare auxiliary data from SPICE kernel
-
-    """
     #sun_x, sun_y in unites of arcsec
     date_flare = sdt.utc2datetime(flare_utc)
     et_stix = spice.utc2et(date_flare)
@@ -59,15 +57,12 @@ def get_flare_spice(sun_x, sun_y, flare_utc, observer='earth'):
     solo_hee = HeliocentricEarthEcliptic(solo_hee_spice,
                                          obstime=Time(date_flare).isot,
                                          representation_type='cartesian')
-    """
     if observer == 'earth':
         obs_coord = earth_hee#.transform_to(
             #HeliographicStonyhurst(obstime=date_flare))
     else:
         obs_coord = solo_hee#.transform_to(
             #HeliographicStonyhurst(obstime=date_flare))
-            """
-    obs_coord = earth_hee if observer == 'earth' else solo_hee
 
     flare_skycoord = SkyCoord(flare_coord[0] * u.arcsec,
                               flare_coord[1] * u.arcsec,
@@ -96,9 +91,10 @@ def get_flare_spice(sun_x, sun_y, flare_utc, observer='earth'):
     flare_theta_stix = get_ang_vectors(flare_hee_cart, v_flare_solo)
     flare_theta_earth = get_ang_vectors(flare_hee_cart, v_flare_earth)
 
-    earth_flare_solo_deg = get_ang_vectors(v_flare_earth, v_flare_solo)
+    earth_flare_solo_deg= get_ang_vectors(v_flare_earth, v_flare_solo)
 
-    res = {
+
+    res={
         'flare_earth_lt': flare_earth_t.value,
         'flare_solo_lt': flare_solo_t.value,
         'owlt': owlt.value,
@@ -114,42 +110,27 @@ def get_flare_spice(sun_x, sun_y, flare_utc, observer='earth'):
         'observer': observer
     }
     return res
-
-
+    
 def get_AIA_observer(date_obs):
     """Get reference coordinate for SDO/AIA coordinate frame. If no AIA frame information available, use Earth reference frame (can result in differences up to 10" at the limb)"""
     date_obs_str = date_obs.strftime("%Y.%b.%d_%H:%M:%S")
     client = drms.Client()
     kstr = 'HGLN_OBS,HGLT_OBS,DSUN_OBS,RSUN_OBS,DATE-OBS,RSUN_REF,EXPTIME,INSTRUME,WAVELNTH,WAVEUNIT,TELESCOP,LVL_NUM,CROTA2'
-    qstr = f'aia.lev1_uv_24s[{date_obs}/1m@30s]'  #if no UV data available can also try EUV: qstr=f'aia.lev1_euv_12s[{start_utc}/1m@30s]'
+    qstr = f'aia.lev1_uv_24s[{date_obs}/1m@30s]' #if no UV data available can also try EUV: qstr=f'aia.lev1_euv_12s[{start_utc}/1m@30s]'
     try:
         df = client.query(qstr, key=kstr)
         meta = df.iloc[0].to_dict()
         obstime = meta['DATE-OBS']
-        sdo_observer = SkyCoord(meta['HGLN_OBS'] * u.deg,
-                                meta['HGLT_OBS'] * u.deg,
-                                meta['DSUN_OBS'] * u.m,
-                                frame=HeliographicStonyhurst,
-                                obstime=obstime)
-    except Exception:  #timeout - use Earth position as approximation then
+        sdo_observer = SkyCoord(meta['HGLN_OBS']*u.deg,meta['HGLT_OBS']*u.deg,meta['DSUN_OBS']*u.m,frame=HeliographicStonyhurst,obstime=obstime)
+    except Exception: #timeout - use Earth position as approximation then
         eph = SoloEphemeris()
-        positions = eph.get_earth_spice_HEE(
-            [pd.to_datetime(stix_bp_map.meta['date_obs'])])['positions'][0]
+        positions = eph.get_earth_spice_HEE([pd.to_datetime(stix_bp_map.meta['date_obs'])])['positions'][0]
         obstime = stix_bp_map.meta['date_obs']
-        sdo_observer = SkyCoord(*positions,
-                                frame=HeliocentricEarthEcliptic,
-                                obstime=obstime,
-                                representation_type='cartesian')
-    sdo_refcoord = SkyCoord(
-        0 * u.arcsec,
-        0 * u.arcsec,
-        observer=sdo_observer,
-        frame='helioprojective',
-        obstime=obstime)  #helioprojective instead of stonyhurst
+        sdo_observer = SkyCoord(*positions,frame=HeliocentricEarthEcliptic,obstime=obstime,representation_type='cartesian')
+    sdo_refcoord = SkyCoord(0*u.arcsec,0*u.arcsec,observer=sdo_observer,frame='helioprojective',obstime=obstime) #helioprojective instead of stonyhurst
     return sdo_refcoord
 
-
-def find_cutout_coords(stix_bp_map, padding=10 * u.arcsec):
+def find_cutout_coords(stix_bp_map,padding=10*u.arcsec):
     """Find the coordinates of AIA cutout that upon reprojection
     corresponds to the area of the STIX back projection map. Returns None if the STIX area is not visible from AIA
     
@@ -174,85 +155,106 @@ def find_cutout_coords(stix_bp_map, padding=10 * u.arcsec):
     )
     """
     # Get AIA pointing info
-    sdo_refcoord = get_AIA_observer(
-        pd.to_datetime(
-            stix_bp_map.meta['date-obs']))  #warning no light-time correction
-
+    sdo_refcoord = get_AIA_observer(pd.to_datetime(stix_bp_map.meta['date-obs'])) #warning no light-time correction
+    
     # Get STIX map extent
     stix_bottom_left = stix_bp_map.bottom_left_coord
     stix_top_right = stix_bp_map.top_right_coord
-
+    
     # STIX coords to AIA coords
     bottom_left_transformed = stix_bottom_left.transform_to(sdo_refcoord)
     top_right_transformed = stix_top_right.transform_to(sdo_refcoord)
-
+    
     # Check for NaNs and deal with them
-    bottom_left_xy, top_right_xy = [], []
-    for bl, tr in [(bottom_left_transformed.Tx, top_right_transformed.Tx),
-                   (bottom_left_transformed.Ty, top_right_transformed.Ty)]:
+    bottom_left_xy, top_right_xy = [] ,[]
+    for bl,tr in [(bottom_left_transformed.Tx, top_right_transformed.Tx), (bottom_left_transformed.Ty, top_right_transformed.Ty)]:
         if np.isnan(bl) and np.isnan(tr):
             # All off-disk or not jointly observed.
             return None, None
         elif np.isnan(bl):  # Replace with +-1228"
-            bottom_left_xy.append(-1228 * u.arcsec + padding)
+            bottom_left_xy.append(-1228*u.arcsec+padding)
         elif np.isnan(tr):
-            top_right_xy.append(1228 * u.arcsec - padding)
+            top_right_xy.append(1228*u.arcsec-padding)
         else:
             bottom_left_xy.append(bl)
             top_right_xy.append(tr)
-
+    
     # Pad
-    bottom_left_coord = SkyCoord(
-        bottom_left_xy[0] + np.sign(bottom_left_xy[0]) * padding,
-        bottom_left_xy[1] + np.sign(bottom_left_xy[1]) * padding,
-        frame=bottom_left_transformed.frame)
-    top_right_coord = SkyCoord(
-        top_right_xy[0] + np.sign(top_right_xy[0]) * padding,
-        top_right_xy[1] + np.sign(top_right_xy[1]) * padding,
-        frame=top_right_transformed.frame)
+    bottom_left_coord = SkyCoord(bottom_left_xy[0] + np.sign(bottom_left_xy[0])*padding,
+                                 bottom_left_xy[1] + np.sign(bottom_left_xy[1])*padding,
+                                 frame=bottom_left_transformed.frame)
+    top_right_coord = SkyCoord(top_right_xy[0] + np.sign(top_right_xy[0])*padding,
+                                 top_right_xy[1] + np.sign(top_right_xy[1])*padding,
+                                 frame=top_right_transformed.frame)
 
     return bottom_left_coord, top_right_coord
-
-
-def download_AIA_cutout(time_int,
-                        wave=1600,
-                        series='aia_lev1_uv_24s',
-                        cutout_coords=False,
-                        single_result=True,
-                        aia_file_path=None):
+    
+def download_AIA_cutout(time_int, wave = 1600, series='aia_lev1_uv_24s', cutout_coords=False, single_result=True, aia_file_path=None, jsoc_email = None):
     """Download AIA cutout corresponding to STIX flare."""
     if type(time_int[0]) == str:
-        time_int[0] = dt.strptime(time_int[0], '%Y-%m-%dT%H:%M:%S')
-        time_int[1] = dt.strptime(time_int[1], '%Y-%m-%dT%H:%M:%S')
-
-    wave = a.Wavelength(wave * u.angstrom)
+        time_int[0] = dt.strptime(time_int[0],'%Y-%m-%dT%H:%M:%S')
+        time_int[1] = dt.strptime(time_int[1],'%Y-%m-%dT%H:%M:%S')
+    
+    #if wave in [1600, 1700]:
+    #    series = a.jsoc.aia_lev1_uv_24s
+    wave = a.Wavelength(wave*u.angstrom)
     #instr= sn.attrs.Instrument(instrument)
-    time = a.Time(time_int[0], time_int[1])
-    qs = [time, wave, series]
+    time = a.Time(time_int[0],time_int[1])
+    qs = [time,wave, series]
 
     if cutout_coords != False:
-        cutout = a.jsoc.Cutout(cutout_coords[0], top_right=cutout_coords[1])
-
+        cutout = a.jsoc.Cutout(cutout_coords[0],top_right=cutout_coords[1])
+    
     qs.append(cutout)
-    #qs.append(a.jsoc.Notify(jsoc_email)) # Set this in config
+    qs.append(a.jsoc.Notify(jsoc_email)) # Set this in config
 
-    #    if sample: #Quantity
-    #        sample = a.Sample(sample)
-    #        qs.append(sample)
+#    if sample: #Quantity
+#        sample = a.Sample(sample)
+#        qs.append(sample)
 
     res = Fido.search(*qs)
-    if single_result:  # Take the first result
+    if single_result: # Take the first result
         res = res[0]
 
-    if not aia_file_path:
-        files = Fido.fetch(
-            res,
-            path='./')  #set path in config - destination for downloaded files
-    else:
-        files = Fido.fetch(res, path=f"{aia_file_path}/")
+    if not aia_file_path: files = Fido.fetch(res,path='./') #set path in config - destination for downloaded files
+    else: files = Fido.fetch(res,path=f"{aia_file_path}/")
     return res
 
+def aia_prep_py(files,expnorm=True,path=None):
+    '''Convert from level 1 to level 1.5 data (aia_prep.pro using aiapy instead of IDL)
+    from https://aiapy.readthedocs.io/en/latest/generated/gallery/prepping_level_1_data.html'''
+    fnames=[]
+    if not isinstance(files, list):
+        files = [files]
+    for f in files:
+        m= Map(f)
+        try:
+            m_updated_pointing = update_pointing(m)
+            m_registered = register(m_updated_pointing)
+        except ValueError: #not full-disk image
+            m_registered=m
+        if expnorm:
+            m_out = normalize_exposure(m_registered)
+        else:
+            m_out=m_registered
+        if '/' not in f:
+            fname=f"{path}{f[:-5]}_prepped.fits"
+        else:
+            fname=f"{f[:-5]}_prepped.fits"
+        m_out.save(fname)
+        fnames.append(fname)
+        if len(fnames) == 1:
+            fnames = fnames[0]
+        return fnames
 
-if __name__ == '__main__':
-
-    download_AIA_cutout(['2022-01-01T00:00:00', '2022-01-01T01:00:00'])
+if __name__=='__main__':
+    
+    res=[]
+    for i in range(10):
+        for j in range(10):
+            sun_x=-900+i*100
+            sun_y=-900+j*100
+            res.append({'loc':[sun_x, sun_y],'res':get_flare_spice(sun_x, sun_y, '2021-10-28T00:00:00', observer='solo')})
+    import json
+    f=open('flare_test.json', 'w')
+    json.dump(res,f)

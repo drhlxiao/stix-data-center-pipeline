@@ -13,6 +13,51 @@ from stix.core import idb
 STIX_IDB = idb.idb()
 logger = logger.get_logger()
 
+QL_SPID_MAP = {
+        54118: 'lc',
+        54119:'bkg',
+        54120:'qlspec',
+        54121:'var',
+        54122:'flare',
+        }
+
+SPID_MAP = {
+        # Bulk Science
+        54114: 'xray-rpd',
+        54115: 'xray-cpd',
+        54116: 'xray-scpd',
+        54117: 'xray-vis',
+        54143: 'xray-spec',
+        54125: 'aspect',
+        # Quick look
+        54118: 'ql-lc',
+        54119: 'ql-bkg',
+        54120: 'ql-spec',
+        54121: 'ql-var',
+        54122: 'ql-ffl',
+        54123: 'ql-tm',
+        54124: 'ql-cal',
+        # House keeping
+        54101: 'hk-mini',
+        54102: 'hk-maxi'
+        }
+LOW_LATENCY_TYPES={
+        54102: 'hk-maxi',
+        54118: 'ql-lc',
+        54119: 'ql-bkg',
+        54120: 'ql-spec',
+        54121: 'ql-var',
+        54122: 'ql-ffl'}
+
+SCI_REPORT_SPIDS=[
+        54114,
+        54115,
+        54116,
+        54117,
+        54143,
+        54125
+        ]
+
 
 def copy_object(x, deep_copy):
     if deep_copy:
@@ -53,8 +98,8 @@ class Parameter(object):
                 self._name, self._raw, self._eng, self._children = parameter
             except ValueError:
                 logger.warn(
-                    "Invalid parameter type, parameter value:{}".format(
-                        str(parameter)))
+                        "Invalid parameter type, parameter value:{}".format(
+                            str(parameter)))
 
     def copy(self, name, raw, eng, children):
         self._name = name
@@ -73,9 +118,9 @@ class Parameter(object):
 
     def as_dict(self):
         return {
-            key: value
-            for key, value in zip(self._fields, self.as_tuple())
-        }
+                key: value
+                for key, value in zip(self._fields, self.as_tuple())
+                }
 
     def set_children(self, children=None):
         if children:
@@ -90,7 +135,7 @@ class Parameter(object):
 
     def __str__(self):
         return str(self.parameter())
-        #return self.get(key)
+    #return self.get(key)
 
     def __setitem__(self, key, value):
         if key == 'name':
