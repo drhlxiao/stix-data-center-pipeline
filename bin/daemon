@@ -33,7 +33,7 @@ def daily_jobs():
         fits_creator.create_daily_low_latency_fits_for_all()
         logger.info("Starting flare detection loop..")
         flare_detection.find_flares_in_recent_LC(lc_path=lc_output_dir)
-        logger.info("Importing aspect solutions ..")
+        #logger.info("Importing aspect solutions ..")
         #asp.import_all_aspect_solutions(aspect_path_pattern)
 
         time.sleep(86400)
