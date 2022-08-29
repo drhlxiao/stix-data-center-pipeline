@@ -79,37 +79,38 @@ WHILE (1 ne 0) DO BEGIN
 	y_offset_arcsec=  aux.sun_center[1]    
 	; STIX pointing offsets have opposite signs
 
+	resp="_id="+string(data._id)
+	if (data.signal_data_type  eq "PixelData") then begin
 
-	vis_fwdfit_source_type= data.idl_config.fwdfit_shape ; multi or ellipse
+		vis_fwdfit_source_type= data.idl_config.fwdfit_shape ; multi or ellipse
+		bp_fname=outfile_prefix + "_bp_map.fits" 
+		full_disk_bp_fname=outfile_prefix + "_full_disk_bp_map.fits" 
+		vis_fwdfit_fname=outfile_prefix + "_vis_fwdfit_map.fits" 
+		em_fname=outfile_prefix + "_em_map.fits"
+		clean_fname=outfile_prefix + "_clean_map.fits"
 
+		print, bp_fname+','+full_disk_bp_fname
 
-	bp_fname=outfile_prefix + "_bp_map.fits" 
-	full_disk_bp_fname=outfile_prefix + "_full_disk_bp_map.fits" 
-	vis_fwdfit_fname=outfile_prefix + "_vis_fwdfit_map.fits" 
-	em_fname=outfile_prefix + "_em_map.fits"
-	clean_fname=outfile_prefix + "_clean_map.fits"
-	spectral_fitting_results_filename=outfile_prefix+"_ospex_results.fits"
-
-
-	print, bp_fname+','+full_disk_bp_fname
-
-	stx_image_reconstruct, path_bkg_file, path_sci_file, $
-		start_utc, end_utc, $
-		elow, ehigh, $
-		bp_elow, bp_ehigh, $
-		full_disk_bp_fname,  $
-		bp_fname, $
-		vis_fwdfit_fname, vis_fwdfit_source_type, $
-		em_fname, $
-		clean_fname,  $
-		L0, B0, RSUN, roll_angle, dsun, $
-		x_offset_arcsec, y_offset_arcsec, 0
+		stx_image_reconstruct, path_bkg_file, path_sci_file, $
+			start_utc, end_utc, $
+			elow, ehigh, $
+			bp_elow, bp_ehigh, $
+			full_disk_bp_fname,  $
+			bp_fname, $
+			vis_fwdfit_fname, vis_fwdfit_source_type, $
+			em_fname, $
+			clean_fname,  $
+			L0, B0, RSUN, roll_angle, dsun, $
+			x_offset_arcsec, y_offset_arcsec, 0
+		resp+="&image_bp="+bp_fname+"&image_fwdfit="+vis_fwdfit_fname+"&image_em="+em_fname+"&image_clean="+clean_fname+"&image_full_disk="+full_disk_bp_fname
+	endif
 
 	print, "Performing spectral fitting..."
+	spectral_fitting_results_filename=outfile_prefix+"_ospex_results.fits"
 	result=stx_ospex_pipeline_wrapper(path_sci_file,  path_bkg_file, start_utc,  end_utc, require_nonthermal,thermal_only, spectral_fitting_results_filename)
 
-	print, "writing meshing data to database"
-	resp="_id="+string(data._id)+"&image_bp="+bp_fname+"&image_fwdfit="+vis_fwdfit_fname+"&image_em="+em_fname+"&image_clean="+clean_fname+"&image_full_disk="+full_disk_bp_fname+"&ospex_results="+spectral_fitting_results_filename
+	print, "writing meta data to database"
+	resp+="&ospex_results="+spectral_fitting_results_filename
 	
 	ret=obj->Put(resp, /buffer, /post, url=url_post)
 	print, "done"

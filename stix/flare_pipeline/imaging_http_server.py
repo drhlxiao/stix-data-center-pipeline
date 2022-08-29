@@ -24,7 +24,10 @@ def get_last_pending_request():
     if docs:
         res = docs[0]
         res['pending'] = 1
-        model = str(res['idl_config']['ospex']['model'])
+        try:
+            model = str(res['idl_config']['ospex']['model'])
+        except KeyError:
+            model = 'auto'
         res['require_nonthermal'] = 0
         res['thermal_only'] = 0
         #auto

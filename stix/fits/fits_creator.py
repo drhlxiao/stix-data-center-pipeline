@@ -63,7 +63,7 @@ def _create_fits_for_packets(file_id, packets, spid, product, is_complete,
     if isinstance(file_id, str):
         file_id=int(file_id)
     if not packets:
-        print('No packets found!')
+        logger.warning('No packets found!')
         return
     logger.info('Merging packets...')
 
@@ -120,7 +120,7 @@ def _create_fits_for_packets(file_id, packets, spid, product, is_complete,
             prod = Aspect.from_packets(parsed_packets, eng_packets)
             product_type = 'science'
         else:
-            logger.warning(f'Not implemented {product}, SPID {spid}.')
+            logger.warning(f'Not FITS writer for product {product}, SPID {spid}. Ignored')
             return
         #prod are a , containing a control and data in the dictionary type
         
