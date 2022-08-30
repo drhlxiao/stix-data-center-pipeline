@@ -17,6 +17,9 @@ def kill_me(p, name):
         pass
 
 def run_on_background(func, name="process", args=(), wait=3600*3):
+    """
+    run a process in the background, kill it after time out
+    """
     logger.info(f"Running {name} on background!")
     p = multiprocessing.Process(target=func, name=name, args=args)
     p.start()

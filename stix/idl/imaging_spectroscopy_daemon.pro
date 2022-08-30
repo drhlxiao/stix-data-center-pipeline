@@ -61,26 +61,25 @@ WHILE (1 ne 0) DO BEGIN
 	elow=data.energy_range[0]
 	ehigh=data.energy_range[1]
 
-	print, "Processing "+data._id
+	print, "Processing "+string(data._id)
 
 	aux=data.aux
 	L0=aux.L0
 	B0=aux.B0
 	RSUN=aux.rsun
 	dsun=aux.dsun
+
 	require_nonthermal=data.require_nonthermal
 	thermal_only=data.thermal_only
 	;require_nonthermal=1
 
-	roll_angle=aux.roll
-	;x_offset_arcsec= - aux.sun_center[0]
-	;y_offset_arcsec= - aux.sun_center[1]    
-	x_offset_arcsec=  aux.sun_center[0]
-	y_offset_arcsec=  aux.sun_center[1]    
 	; STIX pointing offsets have opposite signs
 
 	resp="_id="+string(data._id)
 	if (data.signal_data_type  eq "PixelData") then begin
+		roll_angle=aux.roll
+		x_offset_arcsec=  aux.sun_center[0]
+		y_offset_arcsec=  aux.sun_center[1]    
 
 		vis_fwdfit_source_type= data.idl_config.fwdfit_shape ; multi or ellipse
 		bp_fname=outfile_prefix + "_bp_map.fits" 

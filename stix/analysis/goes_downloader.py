@@ -76,8 +76,8 @@ class GOES(object):
             return
         source = np.copy(counts)
         s= ROOT.TSpectrum()
-        for i,c in enumerate(counts):
-            source[i]=c
+        #for i,c in enumerate(counts):
+        #    source[i]=c
         s.Background(source,nbins,w,1,2,0,3,0)
         for   key, bkg in zip(keys, source):
             
