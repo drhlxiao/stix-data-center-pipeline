@@ -219,8 +219,11 @@ def get_flare_goes_class(doc):
     start_utc = time_utils.unix2utc(start_unix)
     end_utc = time_utils.unix2utc(end_unix)
     peak_utc = doc['peak_utc']
-
-    peak_counts = doc['LC_statistics']['lc0']['signal_max']
+    try:
+        peak_counts = doc['LC_statistics']['lc0']['signal_max']
+    except KeyError:
+        logger.warning(f'Failed to calculate flare goes class for flare {doc["_id"]}, due to insufficient information')
+        return  None, None, None
 
     if peak_counts <= threshold:
         logger.info(f"Ignored flares {doc['_id']}, peak counts < {threshold}")

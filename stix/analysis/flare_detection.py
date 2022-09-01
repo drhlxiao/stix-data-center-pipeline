@@ -28,9 +28,10 @@ logger = logger.get_logger()
 
 mdb = db.MongoDB()
 debug = False
+
 PEAK_MIN_NUM_POINTS = 7  #  peak duration must be greater than 28 seconds, used to determine energy range upper limit,
 niter=900
-matplotlib.use('qtagg' if debug else 'agg')
+#matplotlib.use('qtagg' if debug else 'agg')
 try:
     import ROOT
     ROOT_EXISTS=True
@@ -45,10 +46,16 @@ def get_lightcurve_baseline(counts, niter):
     source = np.copy(counts)
     s= ROOT.TSpectrum()
     nbins=counts.size
-    s.Background(source,nbins, niter, #number of iterations
+    niter = min(int((nbins-1)/2), niter) 
+    #niter must be > nbins-1/2 according to the manual
+    if niter < 150:
+        #this algorithm dosen't work 
+        return None
+
+    res=s.Background(source,nbins, niter, #number of iterations
             1, #direction, decreasing 1, increasing 0
             2, #filterOrder
-            0, # boolean,  smoothing
+            1, # boolean,  smoothing
             3, #smooth window
             0) #compton
     return source
@@ -83,10 +90,20 @@ def find_flare_time_ranges(lc_times, lc_counts, peaks, props, lc_baseline,  nois
             i += 1
         right_ip = i
 
+        if left_ip==right_ip:
+            left_ip-=7
+            right_ip+=8
+            #at least last one minutes
+
         boundaries.append(True if left_ip <= 0 or right_ip >= imax else False)
 
         right_ip = min(right_ip, imax - 1)
         left_ip = max(0, left_ip)  #falls at the edge
+
+
+
+
+
 
         #print(i_min, i_max, left_ip, right_ip)
         left_ips.append(left_ip)
@@ -112,7 +129,7 @@ def smooth(y, win=15):
     return y_smoothed
 
 
-def create_lightcurve_plot(data, docs, lc_output_dir,lc_baseline=None, same_plot=False):
+def create_quicklook_plot(data, docs, lc_output_dir,lc_baseline=None, same_plot=False):
     '''
                 '_id': first_id + i,
                 'run_id': result['run_id'],
@@ -187,7 +204,8 @@ def create_lightcurve_plot(data, docs, lc_output_dir,lc_baseline=None, same_plot
             plt.tight_layout()
             plt.savefig(filename, dpi=300)
             logger.info(f'Creating file:{filename}')
-            #plt.show()
+            if debug:
+                plt.show()
             plt.close()
             plt.clf()
         mdb.set_flare_lc_filename(_id, filename)
@@ -283,22 +301,23 @@ def find_flares_in_data(data,
     lightcurve = data['lcs'][0]
     lc_smoothed = smooth(lightcurve)
     lc_baseline=get_lightcurve_baseline(lc_smoothed, niter)
-
     stat = mdb.get_nearest_lc_stats(unix_time[0], max_limit=500)
+
+
+
+
     conf_set=False
-    """
-    if False:
+    if lc_baseline is None:
         #only use the lowest lightcurve for flare identification 
+        logger.warning('Failed to estimated the baseline, probably due to a too short duration of, trying to use quiet sun period estimation')
         if stat['std'][0] < 2 * math.sqrt(
                 stat['median'][0]):  #valid background
-            print("Use quiet sun data")
             height = stat['median'][0] + 2 * stat['std'][0]
             baseline = stat['median'][0]
             prominence = 2 * stat['std'][0]
             noise_rms = stat['std'][0]
             conf_set=True
-            """
-    if not conf_set:
+    else:
         #med = np.median(lightcurve)
         #these default values are still under testing
         med=np.median(lc_baseline)
@@ -307,7 +326,13 @@ def find_flares_in_data(data,
         prominence = 2 * np.sqrt(baseline)
         noise_rms = np.sqrt(baseline)
         baseline = baseline
+        conf_set=True
         #height=300
+
+    if not conf_set :
+        logger.error('Flare detection failed, no sufficient background data!')
+        return
+
         
 
 
@@ -471,7 +496,7 @@ def find_flares_in_data(data,
     doc['properties'] = properties
     data['lc_smoothed'] = lc_smoothed
     same_plot=True if debug else False
-    create_lightcurve_plot(data, doc, lc_output_dir, lc_baseline,  same_plot)
+    create_quicklook_plot(data, doc, lc_output_dir, lc_baseline,  same_plot)
     return xpeaks.size
 
 
