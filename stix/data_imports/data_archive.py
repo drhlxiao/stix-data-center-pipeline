@@ -41,7 +41,7 @@ DATA_ARCHIVE_FILE_INFO = {
     'L1_stix-sci-xray-spec': ('xray-spec', 'L1', 'science', 54143),
     'L1_stix-sci-aspect-burst': ('aspect', 'L1', 'auxiliary', 54125),
     'L2_stix-aux-auxiliary': ('auxiliary', 'L2', 'auxiliary', 54102),
-    'L2_stix-hk-maxi': ('hk_maxi', 'L2', 'housekeeping', 54102)
+    #'L2_stix-hk-maxi': ('hk_maxi', 'L2', 'housekeeping', 54102)
 }
 
 

@@ -116,10 +116,7 @@ class MongoDB(object):
             return False
 
     def get_raw_info(self, run_id):
-        if self.collection_raw_files:
-            cursor = self.collection_raw_files.find_one({'_id': int(run_id)})
-            return cursor
-        return None
+        return self.collection_raw_files.find_one({'_id': int(run_id)})
 
     def get_goes_fluxes(self, start_unix, stop_unix, satellite=16):
         res = []
@@ -195,10 +192,9 @@ class MongoDB(object):
 
 
     def get_filename_of_run(self, run_id):
-        if self.collection_raw_files:
-            cursor = self.collection_raw_files.find({'_id': int(run_id)})
-            for x in cursor:
-                return x['filename']
+        cursor = self.collection_raw_files.find({'_id': int(run_id)})
+        for x in cursor:
+            return x['filename']
         return ''
 
     def get_raw_file_info(self, _id):
@@ -220,53 +216,39 @@ class MongoDB(object):
         return -2
 
     def select_packets_by_id(self, pid):
-        if self.collection_packets:
-            cursor = self.collection_packets.find({'_id': int(pid)})
-            return cursor
-        return []
+        return self.collection_packets.find({'_id': int(pid)})
 
     def delete_one_run(self, run_id, keep_raw=False):
         run_id = int(run_id)
-        if self.collection_packets:
-            cursor = self.collection_packets.delete_many({'run_id': run_id})
+        cursor = self.collection_packets.delete_many({'run_id': run_id})
 
-        if self.collection_raw_files:
-            if keep_raw:
-                cursor = self.collection_raw_files.update_one({'_id': run_id},{'$set':{'hidden':True}})
-            else:
-                cursor = self.collection_raw_files.delete_many({'_id': run_id})
+        if keep_raw:
+            cursor = self.collection_raw_files.update_one({'_id': run_id},{'$set':{'hidden':True}})
+        else:
+            cursor = self.collection_raw_files.delete_many({'_id': run_id})
 
-        if self.collection_calibration:
-            cursor = self.collection_calibration.delete_many(
+        cursor = self.collection_calibration.delete_many(
+            {'run_id': run_id})
+
+        self.collection_lc_stats.delete_many({'file_id': run_id})
+
+        cursor = self.collection_ql.delete_many({'run_id': run_id})
+
+        cursor = self.collection_science_data.delete_many(
                 {'run_id': run_id})
+        cursor = self.collection_flares.delete_many({'run_id': run_id})
+        fits_docs = self.collection_fits.find({'file_id': run_id})
+        for doc in fits_docs:
+            filename = os.path.join(doc['path'], doc['filename'])
+            try:
+                os.remove(filename)
+            except OSError as e:
+                pass
+        cursor = self.collection_fits.delete_many({'file_id': int(run_id)})
 
-        if self.collection_lc_stats:
-            self.collection_lc_stats.delete_many({'file_id': run_id})
-
-        if self.collection_ql:
-            cursor = self.collection_ql.delete_many({'run_id': run_id})
-
-        if self.collection_science_data:
-            cursor = self.collection_science_data.delete_many(
-                {'run_id': run_id})
-        if self.collection_flares:
-            cursor = self.collection_flares.delete_many({'run_id': run_id})
-        if self.collection_fits:
-            fits_docs = self.collection_fits.find({'file_id': run_id})
-            for doc in fits_docs:
-                filename = os.path.join(doc['path'], doc['filename'])
-                try:
-                    os.remove(filename)
-                except OSError as e:
-                    pass
-            cursor = self.collection_fits.delete_many({'file_id': int(run_id)})
-
-        if self.collection_time_bins:
-            self.collection_time_bins.delete_many({'file_id': int(run_id)})
-        if self.collection_qlspectra:
-            self.collection_qlspectra.delete_many({'run_id': int(run_id)})
-        if self.collection_qllc:
-            self.collection_qllc.delete_many({'run_id': int(run_id)})
+        self.collection_time_bins.delete_many({'file_id': int(run_id)})
+        self.collection_qlspectra.delete_many({'run_id': int(run_id)})
+        self.collection_qllc.delete_many({'run_id': int(run_id)})
 
     def delete_runs(self, runs, keep_raw=False):
         for run in runs:
@@ -280,17 +262,16 @@ class MongoDB(object):
         if not isinstance(SPIDs, list):
             SPIDs = [SPIDs]
         pkts = []
-        if self.collection_packets:
-            query_string = {'run_id': int(run_id)}
-            if SPIDs:
-                query_string = {
-                    'run_id': int(run_id),
-                    'header.SPID': {
-                        '$in': SPIDs
-                    }
+        query_string = {'run_id': int(run_id)}
+        if SPIDs:
+            query_string = {
+                'run_id': int(run_id),
+                'header.SPID': {
+                    '$in': SPIDs
                 }
-            pkts = self.collection_packets.find(query_string).sort(
-                sort_field, order)
+            }
+        pkts = self.collection_packets.find(query_string).sort(
+            sort_field, order)
         return pkts
 
     def close(self):
@@ -298,36 +279,28 @@ class MongoDB(object):
             self.connect.close()
 
     def select_all_runs(self, order=-1):
-        if self.collection_raw_files:
-            runs = self.collection_raw_files.find().sort('_id', order)
-            return runs
-        return None
+        runs = self.collection_raw_files.find().sort('_id', order)
+        return runs
 
     def set_run_ql_pdf(self, _id, pdf_filename):
-        if self.collection_raw_files:
-            run = self.collection_raw_files.find_one({'_id': _id})
-            run['quicklook_pdf'] = pdf_filename
-            self.collection_raw_files.save(run)
+        run = self.collection_raw_files.find_one({'_id': _id})
+        run['quicklook_pdf'] = pdf_filename
+        self.collection_raw_files.save(run)
 
 
     def get_run_ql_pdf(self, _id):
-        if self.collection_raw_files:
-            run = self.collection_raw_files.find_one({'_id': _id})
-            if 'quicklook_pdf' in run:
-                return run['quicklook_pdf']
+        run = self.collection_raw_files.find_one({'_id': _id})
+        if 'quicklook_pdf' in run:
+            return run['quicklook_pdf']
         return None
 
     def get_calibration_run_data(self, calibration_id):
         _id = int(calibration_id)
-        rows = []
-        if self.collection_calibration:
-            rows = self.collection_calibration.find({'_id': _id})
-        return rows
+        return self.collection_calibration.find({'_id': _id})
 
     def update_calibration_analysis_report(self, calibration_id, data):
         _id = int(calibration_id)
-        if self.collection_calibration:
-            self.collection_calibration.update_one({'_id': _id}, {'$set':{'analysis_report':data}})
+        self.collection_calibration.update_one({'_id': _id}, {'$set':{'analysis_report':data}})
 
     def get_calibration_runs_for_processing(self):
         #search for calibration runs which have  not been yet processed
@@ -385,8 +358,8 @@ class MongoDB(object):
         except Exception as e:
             pass
 
-        if self.collection_flares:
-            first_id = self.get_next_flare_id()
+        first_id = self.get_next_flare_id()
+
         new_inserted_flares = []
 
         num_inserted = 0
@@ -426,7 +399,7 @@ class MongoDB(object):
 
             inserted_ids[i] = doc['_id']
             logger.info(f'Inserting flare: {doc["_id"]}')
-            self.collection_flares.save(doc)
+            self.collection_flares.insert_one(doc)
         #return new_inserted_flares
         result['inserted_ids'] = inserted_ids
 
@@ -505,8 +478,7 @@ class MongoDB(object):
         ]
 
     def delete_flares_of_file(self, run_id):
-        if self.collection_flares:
-            self.collection_flares.delete_many({'run_id': int(run_id)})
+        self.collection_flares.delete_many({'run_id': int(run_id)})
 
 
     def search_flares_by_tw(self,
@@ -516,17 +488,16 @@ class MongoDB(object):
                             threshold=0):
         #flares to be confirmed
         results = []
-        if self.collection_flares:
-            query_string = {
-                'peak_unix_time': {
-                    '$gte': start_unix,
-                    '$lt': start_unix + duration
-                },
-                'peak_counts': {
-                    '$gte': threshold
-                }
+        query_string = {
+            'peak_unix_time': {
+                '$gte': start_unix,
+                '$lt': start_unix + duration
+            },
+            'peak_counts': {
+                '$gte': threshold
             }
-            results = self.collection_flares.find(query_string).sort(
+        }
+        results = self.collection_flares.find(query_string).sort(
                 'peak_unix_time', -1).limit(num)
         return results
 

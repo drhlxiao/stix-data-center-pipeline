@@ -71,7 +71,7 @@ class StixCalibrationReportAnalyzer(object):
         return self.calibration_run_ids
 
     def capture(self, run_id, packet_id, pkt):
-        if not self.db_collection:
+        if self.db_collection is None:
             return
         packet = sdt.Packet(pkt)
         if not packet['parameters']:
@@ -236,7 +236,7 @@ class StixQuickLookReportAnalyzer(object):
             return 
         doc={'run_id':run_id, 'packet_id':packet_id, 'time': unix_time, 'lightcurves': lightcurves,'rcr':rcr,'trig':trig,
                 'energy_bins':energy_bins,'num':len(unix_time),'start_unix': unix_time[0],'end_unix':unix_time[-1]}
-        self.qllc_db.save(doc)
+        self.qllc_db.insert_one(doc)
 
     def write_ql_spec_to_db(self, packet, run_id, packet_id):
         #write ql spectra to ql_spectra database
@@ -265,7 +265,7 @@ class StixQuickLookReportAnalyzer(object):
                  'tbin':tbin,
                  'packet_id':packet_id
                 }
-            self.qlspec_db.save(doc)
+            self.qlspec_db.insert_one(doc)
     def write_ql_flare_loc_to_db(self, packet, run_id, packet_id):
         #write ql spectra to ql_spectra database
         if not isinstance(packet, sdt.Packet):
@@ -297,11 +297,9 @@ class StixQuickLookReportAnalyzer(object):
                  'obs_time': start_unix+i*tbin,
                  'packet_id':packet_id
                 }
-            self.qlloc_db.save(doc)
+            self.qlloc_db.insert_one(doc)
 
     def capture(self, run_id, packet_id, pkt):
-        if not self.ql_db_collection:
-            return
         packet = sdt.Packet(pkt)
 
         if packet.SPID not in QL_REPORT_SPIDS:
@@ -386,8 +384,6 @@ class StixUserDataRequestReportAnalyzer(object):
             self.current_id = 0
 
     def capture(self, run_id, packet_id, pkt):
-        if not self.bsd_db:
-            return
         packet = sdt.Packet(pkt)
         if packet.SPID not in DATA_REQUEST_REPORT_SPIDS:
             return
@@ -408,7 +404,7 @@ class StixUserDataRequestReportAnalyzer(object):
         doc=self.bsd_db.find_one({'unique_id':unique_id})
         if not doc:
             logger.info(f"Inserting new BSD #{bsd_doc['_id']} into to DB")
-            self.bsd_db.save(bsd_doc)
+            self.bsd_db.insert_one(bsd_doc)
             updated_existing=False
         else:
             doc['packet_ids'].extend(bsd_doc['packet_ids'])
