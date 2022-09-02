@@ -59,7 +59,7 @@ def get_sun_center_from_aspect(y_srf, z_srf):
     """
     offset_x, offset_y = y_srf + 60, -z_srf + 8
     #here it is sun center, so we should add the minus sign
-    return (-offset_x, -offset_y)
+    return (offset_x, offset_y)
 
 
 def attach_aspect_solutions(start_unix, end_unix, config):
@@ -139,8 +139,12 @@ def queue_imaging_tasks(doc,
 
     flare_image_id = mdb.get_next_flare_image_id()
 
-    bsd_start_unix = doc['start_unix']
-    bsd_end_unix = doc['end_unix']
+    try:
+        bsd_start_unix = doc['start_unix']
+        bsd_end_unix = doc['end_unix']
+    except KeyError:
+        logger.warning(f'Imcomplete packet {bsd_id} (uid {uid})')
+        return
 
     fits_doc = mdb.get_bsd_fits_info_by_request_id(uid)
     if not fits_doc:

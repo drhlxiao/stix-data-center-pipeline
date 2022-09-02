@@ -139,6 +139,9 @@ def find_goes_class_flares_in_file(file_id):
     goes_class_list = []
     for doc in flares:
         peak_utc, goes_class, goes_estimated = get_flare_goes_class(doc)
+        if peak_utc is None:
+            continue
+
         goes_class_list.append((peak_utc, goes_class, goes_estimated))
 
     return goes_class_list
@@ -223,11 +226,11 @@ def get_flare_goes_class(doc):
         peak_counts = doc['LC_statistics']['lc0']['signal_max']
     except KeyError:
         logger.warning(f'Failed to calculate flare goes class for flare {doc["_id"]}, due to insufficient information')
-        return  None, None, None
+        return None,None,None
 
     if peak_counts <= threshold:
         logger.info(f"Ignored flares {doc['_id']}, peak counts < {threshold}")
-        return
+        return None, None, None
 
     ephs = solo.SoloEphemeris.get_solo_ephemeris(peak_utc, peak_utc, 1)
     eph = get_first_element(ephs)

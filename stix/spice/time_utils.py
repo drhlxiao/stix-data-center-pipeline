@@ -69,6 +69,14 @@ def utc2datetime(utc):
     except:
         return None
 
+def utc2isoformat(utc):
+    if not utc.endswith('Z'):
+        utc += 'Z'
+    try:
+        return dtparser.parse(utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    except:
+        return None
+
 
 
 def unix2datetime(timestamp):
