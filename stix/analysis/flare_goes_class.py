@@ -175,7 +175,7 @@ def estimate_goes_class(counts: float,
 
     cnts = counts * dsun**2
     if cnts <= 0:
-        return {'min': None, 'max': None, 'max': None}
+        return {'min': 'NA', 'center': 'NA', 'max': 'NA'}
     x = np.log10(cnts)
 
     g = lambda y: sum([coeffs[i] * y**i for i in range(len(coeffs))])
@@ -247,8 +247,8 @@ def get_flare_goes_class(doc):
                                           GOES_STIX_COEFFS,
                                           GOES_STIX_ERROR_LUT)
 
-    is_ok = goes_class > estimated_class[
-        'min'] and goes_class < estimated_class['max']
+    #is_ok = goes_class > estimated_class[
+    #    'min'] and goes_class < estimated_class['max']
     updated_data = {
         'goes': {
             'low': {

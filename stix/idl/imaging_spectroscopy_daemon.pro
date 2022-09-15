@@ -18,6 +18,8 @@ WHILE (1 ne 0) DO BEGIN
 		wait, 10
 		continue
 	endif
+	resp="_id="+string(data._id)+"&idl_status=started"
+	ret=obj->Put(resp, /buffer, /post, url=url_post)
 
    CATCH, Error_status
  
@@ -26,7 +28,7 @@ WHILE (1 ne 0) DO BEGIN
       PRINT, 'Error index: ', Error_status
       PRINT, 'Error message: ', !ERROR_STATE.MSG
       ; Handle the error by extending A:
-		resp="_id="+string(data._id)+"&error=yes"
+		resp="_id="+string(data._id)+"&idl_status=failed&error="+!ERROR_STATE.MSG
 		ret=obj->Put(resp, /buffer, /post, url=url_post)
 	  continue
       CATCH, /CANCEL
@@ -82,6 +84,9 @@ WHILE (1 ne 0) DO BEGIN
 		y_offset_arcsec=  aux.sun_center[1]    
 
 		vis_fwdfit_source_type= data.idl_config.fwdfit_shape ; multi or ellipse
+		if vis_fwdfit_source_type eq 'multi' then begin
+			vis_fwdfit_source_type= ['circle','circle']
+		endif
 		bp_fname=outfile_prefix + "_bp_map.fits" 
 		full_disk_bp_fname=outfile_prefix + "_full_disk_bp_map.fits" 
 		vis_fwdfit_fname=outfile_prefix + "_vis_fwdfit_map.fits" 
@@ -109,7 +114,7 @@ WHILE (1 ne 0) DO BEGIN
 	result=stx_ospex_pipeline_wrapper(path_sci_file,  path_bkg_file, start_utc,  end_utc, require_nonthermal,thermal_only, spectral_fitting_results_filename)
 
 	print, "writing meta data to database"
-	resp+="&ospex_results="+spectral_fitting_results_filename
+	resp+="&idl_status=success&ospex_results="+spectral_fitting_results_filename
 	
 	ret=obj->Put(resp, /buffer, /post, url=url_post)
 	print, "done"

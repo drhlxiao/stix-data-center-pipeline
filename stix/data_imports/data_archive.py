@@ -40,7 +40,7 @@ DATA_ARCHIVE_FILE_INFO = {
     'L1_stix-sci-xray-cpd': ('xray-cpd', 'L1', 'science', 54115),
     'L1_stix-sci-xray-spec': ('xray-spec', 'L1', 'science', 54143),
     'L1_stix-sci-aspect-burst': ('aspect', 'L1', 'auxiliary', 54125),
-    'L2_stix-aux-auxiliary': ('auxiliary', 'L2', 'auxiliary', 54102),
+    'L2_stix-aux-': ('auxiliary', 'L2', 'auxiliary', 54102),
     #'L2_stix-hk-maxi': ('hk_maxi', 'L2', 'housekeeping', 54102)
 }
 
@@ -111,7 +111,7 @@ def import_data_archive_products(path=DATA_ARCHIVE_FITS_PATH):
             logger.info(f'inserting metadata for {basename} to fits_db..')
             fits_db.insert_one(meta)
             #update if
-        if 'L2_stix-aux-auxiliary' in fname:
+        if 'L2_stix-aux-' in fname:
             import_auxiliary(fname)
 
 

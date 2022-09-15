@@ -32,7 +32,7 @@ for doc in flare_images_db.find():
         'idl_config':{
             'folder':f'/data/quicklook/flare_images/{doc["unique_id"]}',
             'prefix':f'stix_image_sci_{doc["bsd_id"]}_uid_{doc["unique_id"]}_{doc["energy_range"][0]}_{doc["energy_range"][1]}_{start}_{doc["_id"]}',
-            'fwdfit_shape': 'ellipse' if doc['energy_range'][1]<15 else 'multi'
+            'fwdfit_shape': 'ellipse' if doc['energy_range'][1]<15 else 'loop'
             },
         "creation_time":datetime.now(),
         "aux.dsun":stix_aux['solo_sun_r'],

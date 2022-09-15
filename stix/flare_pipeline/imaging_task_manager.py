@@ -62,9 +62,9 @@ def get_sun_center_from_aspect(y_srf, z_srf):
     return (offset_x, offset_y)
 
 
-def attach_aspect_solutions(start_unix, end_unix, config):
+def attach_aux(start_unix, end_unix, config):
     """
-    attach aspect solutions
+    attach auxiliary data to the flare
     """
     #return
     mean_time = (start_unix + end_unix) / 2.
@@ -237,16 +237,17 @@ def queue_imaging_tasks(doc,
         }
         config = {
             'filename': fname,
+            'signal_data_type':'PixelData',
             'bsd_id': doc['_id'],
             'raw_file_id': doc['run_id'],
             'unique_id': uid,
-            'signal_data_type':'PixelData',
             'task_id': task_id,
             'author': 'Pipeline',
             'hidden': False,
             'num_idl_calls': 0,
             'run_type': 'auto',
             'idl_status': '',
+            'idl_message':'',#placeholder
             'aux': {
                 'B0': B0.to(u.deg).value,
                 'L0': L0.to(u.deg).value,
@@ -282,7 +283,7 @@ def queue_imaging_tasks(doc,
             'figs': {}, #placeholder
         }
 
-        attach_aspect_solutions(box['unix_time_range'][0] - ASPECT_TIME_TOR,
+        attach_aux(box['unix_time_range'][0] - ASPECT_TIME_TOR,
                                 box['unix_time_range'][1] + ASPECT_TIME_TOR,
                                 config)
 
@@ -316,15 +317,16 @@ def register_imaging_tasks_for_file(file_id):
 def update_auxiliary_data():
     db_flare_images = mdb.get_collection('flare_images')
     for doc in db_flare_images.find():
-        attach_aspect_solutions(doc['start_unix'] - ASPECT_TIME_TOR,
+        attach_aux(doc['start_unix'] - ASPECT_TIME_TOR,
                                 doc['end_unix'] + ASPECT_TIME_TOR, doc)
         doc['num_idl_calls'] = 0
+        #reset
         logger.info(f'updating {doc["_id"]}...')
         db_flare_images.update_one({'_id': doc['_id']}, {'$set': doc})
 
 
 if __name__ == '__main__':
-    update_auxiliary_data()
+    #update_auxiliary_data()
     """
     if len(sys.argv) == 1:
         print('Usage:')

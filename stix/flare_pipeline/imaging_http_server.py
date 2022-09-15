@@ -48,24 +48,17 @@ def update_request():
         return jsonify({"error": 'ID not specified'})
     _id = int(data['_id'].strip())
     db = mdb.get_collection('flare_images')
-    
     fields={}
-
     fits = {}
-    idl_status = False
-    idl_message =''
-    if 'error' not in data:
-        for key, value in data.items():
-            value = value.strip()
-            if key == '_id' or not value:
-                continue
-            if os.path.exists(value):
-                fits[key] = value
-        idl_status = True
-        #print("Updating: ", _id)
-    if 'error' in data:
-        idl_message=data['error']
-
+    idl_status=data.get('idl_status','')
+    error=data.get('error',None)
+    idl_message='' if error is None else error
+    for key, value in data.items():
+        value = value.strip()
+        if key in ['_id', 'idl_status', 'error'] or not value:
+            continue
+        if os.path.exists(value):
+            fits[key] = value
     fields={
             'fits': fits,
             'processing_date': datetime.now(),
@@ -73,7 +66,6 @@ def update_request():
             'idl_status': idl_status,
             'idl_message': idl_message
         }
-
     db.update_one({'_id': _id}, {
         '$set': fields
     }, upsert=False)

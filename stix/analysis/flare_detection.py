@@ -143,17 +143,19 @@ def create_quicklook_plot(data, docs, lc_output_dir,lc_baseline=None, same_plot=
     #print(inserted_ids)
     tstart=data['time'][0]
     if same_plot:
-        fig,(ax, ax2)= plt.subplots(2,1)
+        #fig,(ax, ax2)= plt.subplots(2,1)
+        fig,ax= plt.subplots(1,1)
         lc = data['lcs'][0]
-        ax.plot(data['time']-tstart, lc, label="4-10 keV LC")
-        ax.plot(data['time']-tstart, data['lc_smoothed'], label="smoothed")
+        dt=data['time']-tstart
+        ax.plot(dt, lc, label="STIX 4-10 keV LC")
+        ax.plot(dt, data['lc_smoothed'], label="Smoothed LC")
         if lc_baseline is not None:
-            ax.plot(data['time']-tstart, lc_baseline, label="baseline")
-            ax2.plot(data['time']-tstart, data['lc_smoothed']-lc_baseline, label="baseline")
-            ax2.set_xlabel(f'T [s] - Start at {tstart}')
-            ax2.set_ylabel('Counts')
-            ax2.set_title('Baseline subtracted counts')
-            ax2.set_yscale('log')
+            ax.plot(dt, lc_baseline, label="Baseline")
+            #ax2.plot(dt, data['lc_smoothed']-lc_baseline, label="Baseline")
+            #ax2.set_xlabel(f'Start at {st.unix2utc(tstart)}')
+            #ax2.set_ylabel('Counts')
+            #ax2.set_title('Baseline subtracted counts')
+            #ax2.set_yscale('log')
             
     
     num_ids=len(inserted_ids)
