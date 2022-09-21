@@ -302,18 +302,17 @@ def create_fits(file_id, output_path, overwrite=True,  version=1):
         product = sdt.SPID_MAP[spid]
         #process science packets
         if spid in sdt.SCI_REPORT_SPIDS:
-            #cursor=self.collection_packets.find({'_id':{'$in':pids}}).sort('header.unix_time',1)
             bsd_docs=db.get_bsd_docs_by_run_id(file_id, spid)
             for bsd in bsd_docs:
                 pids=bsd['packet_ids']
                 pkts=db.get_collection('packets').find({'_id':{'$in':pids}}).sort('header.unix_time',1).max_time_ms(300*1000)
+                #sort packets by time
                 logger.info(f'Creating fits file for bsd #{bsd["_id"]}')
                 create_fits_for_packets(file_id, pkts, spid, product, True, output_path, overwrite, version, remove_duplicates=True)
 
             continue
 
         #process low latency packets
-
         cursor= db.select_packets_by_run(file_id, [spid],sort_field=sort_field)
         
 

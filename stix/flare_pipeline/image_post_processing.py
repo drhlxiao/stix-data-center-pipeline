@@ -24,6 +24,8 @@ from photutils.detection import DAOStarFinder
 from shapely.geometry import Polygon, Point
 
 from stix.core import mongo_db as db
+from stix.spice import time_utils as sdt
+from stix.spice import solo 
 from stix.core import logger
 from stix.utils import bson
 
@@ -32,15 +34,15 @@ flare_image_db = mdb.get_collection('flare_images')
 logger = logger.get_logger()
 
 def extract_image_meta(flare_image_doc, which_image='image_em',
-        contour_level=50,  savefig=True, fig_path=None):
+        contour_level=50,  savefig=True, fig_path=None, ignore_existing=True):
     """
         extract meta data from an image
     """
-
-    image_meta=flare_image_doc.get('image_meta',None)
-    if image_meta:
-        logger.info(f'Imaging run  {flare_image_doc["_id"]} processed, ignore')
-        return
+    if  ignore_existing:
+        image_meta=flare_image_doc.get('image_meta',None)
+        if image_meta:
+            logger.info(f'Imaging run  {flare_image_doc["_id"]} processed, ignore')
+            return
     
     try:
         filename=flare_image_doc['fits'][which_image]
@@ -62,9 +64,14 @@ def extract_image_meta(flare_image_doc, which_image='image_em',
 
 
     peak_wcs_coords=[]
+    flare_utc=sdt.unix2utc(flare_image_doc['start_unix'])
+    flare_aux=None
     for pos in peak_pix_coords: #iterate over peaks
         peak_coord=imap.pixel_to_world(pos[0]*u.pix, pos[1]*u.pix)
-        peak_wcs_coords.append((peak_coord.Tx.value, peak_coord.Ty.value))
+        peak_coord_wcs=(peak_coord.Tx.value, peak_coord.Ty.value)
+        if flare_aux is None:
+            flare_aux =solo.SoloEphemeris.get_flare_spice(peak_coord_wcs[0], peak_coord_wcs[1], flare_utc, observer='earth')
+        peak_wcs_coords.append(peak_coord_wcs)
 
     clevels = np.array([contour_level])*u.percent
 
@@ -76,7 +83,7 @@ def extract_image_meta(flare_image_doc, which_image='image_em',
     imap.draw_limb(axes=ax, color='w', alpha=0.5)
 
     ax.set_aspect('equal')
-    ax1 = fig.add_subplot(122)
+    ax1 = fig.add_subplot(122, projection=imap)
 
     
 
@@ -120,7 +127,8 @@ def extract_image_meta(flare_image_doc, which_image='image_em',
                 'image': which_image, 
                 'level':contour_level,
                 'rsun':flare_image_doc['aux']['rsun'],
-                'area':pgon.area},
+                'area':pgon.area
+                },
                 'peaks':[p_wcs for p_wcs in peak_wcs_coords if pgon.contains(Point(p_wcs))]
                     })
 
@@ -134,6 +142,7 @@ def extract_image_meta(flare_image_doc, which_image='image_em',
     plt.suptitle(f'{flare_image_doc["_id"]}')
     fig.savefig(fname)
     logger.info(f'Writing image filename:{fname}')
+    meta['flare_aux']=flare_aux
     meta_json = bson.dict_to_json(meta)
     flare_image_db.update_one({'_id':flare_image_doc['_id']},{'$set':{'image_meta': meta_json}})
 
@@ -141,7 +150,12 @@ def extract_image_meta(flare_image_doc, which_image='image_em',
 
 
 if __name__=='__main__':
-    for doc in flare_image_db.find({'figs.0':{'$exists':True}, 'image_meta':{'$exists':False}}).sort('_id', -1):
-        extract_image_meta(doc)
+    ignore_existing=False
+    query={'figs.0':{'$exists':True}, 'image_meta':{'$exists':False}} if ignore_existing else {'figs.0':{'$exists':True}}
+    for doc in flare_image_db.find(query).sort('_id', -1):
+        try:
+            extract_image_meta(doc, ignore_existing=ignore_existing)
+        except Exception as e:
+            logger.error(str(e))
 
 
