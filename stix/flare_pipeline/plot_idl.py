@@ -25,7 +25,6 @@ from astropy import units as u
 from astropy.time import Time
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
-from astropy.wcs import WCS
 from dateutil.parser import parse as dtparse
 
 import sunpy
@@ -80,107 +79,14 @@ def plot_idl(doc_id: int):
 
 
 def rotate_map(m, recenter=False):
-    #further checks are required
-    #rotate map
+    """ rotate a map
+    
+    """
+    if m.meta['crota2'] == 0:
+        #do nothing
+        return m
     return m.rotate(angle=(m.meta['crota2']) * u.deg, recenter=recenter)
 
-
-def reproject_map(m):
-    """Reprojects AIA map into STIX frame. If reprojection does not contain a reasonable amount of non-NaN pixels, return None (no AIA map will be underplotted)
-    
-    Inputs:
-    m : sunpy.map.Map
-    AIA (cutout) map from FITS file"""
-    # Get reference coordinate
-    eph = SoloEphemeris().get_solo_ephemeris(m.meta['date-obs'],
-                                             m.meta['date-obs'],
-                                             num_steps=1)
-    #rsun_arcsec=((eph['sun_angular_diameter'][0]/2)*u.arcmin).to(u.arcsec)
-    solo_obs = SkyCoord(eph['solo_hee'][0][0] * u.km,
-                        eph['solo_hee'][0][1] * u.km,
-                        eph['solo_hee'][0][2] * u.km,
-                        representation_type='cartesian',
-                        frame=HeliocentricEarthEcliptic,
-                        obstime=Time(m.meta['date-obs']))
-    solo_refcoord = SkyCoord(0 * u.arcsec,
-                             0 * u.arcsec,
-                             frame='helioprojective',
-                             observer=solo_obs,
-                             obstime=Time(m.meta['date-obs']))
-    # Reproject map
-    try:
-        reprojected_aia_header = modify_header(m, solo_refcoord)
-        reprojected_aia = m.reproject_to(reprojected_aia_header)
-        return reprojected_aia
-    except ValueError:
-        return None
-
-
-def find_reprojected_extent(smap,
-                            sobs,
-                            swcs=None,
-                            full_disk=False,
-                            nan_threshold=0.5):
-    """Find extent in NAXIS1 and NAXIS2 of reprojected map
-    Inputs:
-    smap: sunpy.map.Map
-    sobs: SkyCoord reference coordinate
-    swcs: astropy.wcs
-    """
-    if full_disk:
-        rsun_arcsec = int(
-            sunpy.map.solar_angular_radius(sobs).value)  #assuming 1":1px scale
-        return -rsun_arcsec, rsun_arcsec, -rsun_arcsec, rsun_arcsec
-
-    if not swcs:  #make the WCS from observer information
-        swcs = WCS(sunpy.map.make_fitswcs_header((1, 1), sobs))
-
-    # Obtain the pixel locations of the edges of the reprojected map
-    edges_pix = np.concatenate(
-        sunpy.map.map_edges(smap)
-    )  #what about if off disk? currently doesn't work correctly in that case
-    edges_coord = smap.pixel_to_world(edges_pix[:, 0], edges_pix[:, 1])
-    new_edges_coord = edges_coord.transform_to(sobs)
-    new_edges_xpix, new_edges_ypix = swcs.world_to_pixel(new_edges_coord)
-
-    #check for NaNs...
-    if new_edges_xpix[np.isnan(new_edges_xpix)].size > 0 or new_edges_ypix[
-            np.isnan(new_edges_ypix)].size > 0:
-        cc = sunpy.map.all_coordinates_from_map(smap).transform_to(sobs)
-        on_disk = sunpy.map.coordinate_is_on_solar_disk(cc)
-        on_disk_coordinates = cc[on_disk]
-        nan_percent = 1. - len(on_disk_coordinates) / len(cc.flatten())
-        if nan_percent > nan_threshold:
-            raise ValueError(
-                f"Warning - {nan_percent*100:.1f}% of pixels in reprojected map are NaN!"
-            )
-
-    # Determine the extent needed - use of nanmax/nanmin means only on-disk coords are considered
-    left, right = np.nanmin(new_edges_xpix), np.nanmax(new_edges_xpix)
-    bottom, top = np.nanmin(new_edges_ypix), np.nanmax(new_edges_ypix)
-    return left, right, bottom, top
-
-
-def modify_header(smap, sobs, swcs=None, full_disk=False):
-    """Modify the header information to be passed to sunpy.map.Map.reproject_to()
-    to contain WCS keywords corresponding to the new location and extent of the reprojected map
-
-    Inputs:
-    smap: sunpy.map.Map
-    sobs: SkyCoord reference coordinate
-    swcs: astropy.wcs
-    """
-    left, right, bottom, top = find_reprojected_extent(smap,
-                                                       sobs,
-                                                       swcs,
-                                                       full_disk=full_disk)
-    # Adjust the CRPIX and NAXIS values
-    modified_header = make_fitswcs_header((1, 1), sobs)
-    modified_header['crpix1'] -= left
-    modified_header['crpix2'] -= bottom
-    modified_header['naxis1'] = int(np.ceil(right - left))
-    modified_header['naxis2'] = int(np.ceil(top - bottom))
-    return modified_header
 
 
 def zoom(m, ax, ratio=2):
@@ -369,7 +275,10 @@ def plot_imaging_and_ospex_results(doc):
     new_values = {'processing_date': datetime.now()}
     figs=[]
 
-    ospex_fig_obj = plot_ospex_results(doc)
+    try:
+        ospex_fig_obj = plot_ospex_results(doc)
+    except Exception as e:
+        logger.error("Error occurred when creating spectral fitting result..")
 
     img_fname=plot_images(doc, ospex_fig_obj)
     if img_fname is not None:
@@ -478,8 +387,6 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI):
     #bp
     mbp = sunpy.map.Map(fits_filename['image_bp'])
     mbp = rotate_map(mbp)
-    # Composite BP map with AIA underneath
-
 
     if fits_filename.get('image_aia', None) is not None:
         comp_map = sunpy.map.map(mbp,
@@ -489,7 +396,7 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI):
                                  composite=True)
         levels = [70, 80, 90]
         comp_map.set_levels(index=1, levels=levels, percent=True)
-        # Reverse AIA colormap (optional)
+
         aia_plot_settings = comp_map.get_plot_settings(0)
         aia_plot_settings['cmap'] = reverse_colormap(aia_plot_settings['cmap'])
         comp_map.set_plot_settings(0, aia_plot_settings)
