@@ -87,6 +87,8 @@ def rotate_map(m, recenter=False):
         return m
     return m.rotate(angle=(m.meta['crota2']) * u.deg, recenter=recenter)
 
+def plot_aspect_data(ax, start_unix, end_unix, stix_x=None, stix_y=None):
+    pass
 
 
 def zoom(m, ax, ratio=2):
@@ -375,32 +377,25 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI):
     text_xy = [0.02, 0.95]
 
     ax_lc = fig.add_subplot(231)
-    lightcurves.plot_QL_lc_for_bsd(bsd_id,
+    try: 
+        lightcurves.plot_QL_lc_for_bsd(bsd_id,
                                    fill_between_times=[start_utc, end_utc],
                                    ax=ax_lc)
+    except Exception as e:
+        logger.error(str(e))
     #Full-disk image
 
 
+    logger.info("Creating full disk images...")
 
     mbp_full = sunpy.map.Map(fits_filename['image_full_disk'])
     mbp_full = rotate_map(mbp_full, recenter=True)
     #bp
+    logger.info("Creating BP images...")
     mbp = sunpy.map.Map(fits_filename['image_bp'])
     mbp = rotate_map(mbp)
 
-    if fits_filename.get('image_aia', None) is not None:
-        comp_map = sunpy.map.map(mbp,
-                                 sunpy.map.Map(fits_filename['image_aia']).submap(
-                                     mbp.bottom_left_coord,
-                                     top_right=mbp.top_right_coord),
-                                 composite=True)
-        levels = [70, 80, 90]
-        comp_map.set_levels(index=1, levels=levels, percent=True)
 
-        aia_plot_settings = comp_map.get_plot_settings(0)
-        aia_plot_settings['cmap'] = reverse_colormap(aia_plot_settings['cmap'])
-        comp_map.set_plot_settings(0, aia_plot_settings)
-        mbp = comp_map
 
     # CLEAN map
     #fix_clean_map_fits_header(task_doc, fits_filename['image_clean'])
@@ -525,7 +520,10 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI):
             ax.set_ylabel('solar_y [arcsec]')
             plt.suptitle(descr, fontsize=10)
             plt.subplots_adjust(top=0.95, wspace=0.2, hspace=2)
-            pdf.savefig(pfig)
+            try:
+                pdf.savefig(pfig)
+            except IndexError:
+                logger.error("Index error when saving figures ")
             plt.close()
 
         if ospex_fig_obj:

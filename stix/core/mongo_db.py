@@ -92,7 +92,7 @@ class MongoDB(object):
             return None
 
     def get_aspect_solutions(self, start_unix, end_unix):
-        return self.collection_aspect.find({'unix_time':{'$gte':start_unix,'$lte':end_unix}})
+        return self.collection_aspect.find({'unix_time':{'$gte':start_unix,'$lte':end_unix}}).sort('unix_time',1)
 
 
 

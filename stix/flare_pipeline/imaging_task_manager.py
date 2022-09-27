@@ -62,33 +62,57 @@ def get_sun_center_from_aspect(y_srf, z_srf):
     return (offset_x, offset_y)
 
 
-def attach_aux(start_unix, end_unix, config):
+
+def attach_aspect_solutions(start_unix, end_unix, config):
     """
-    attach auxiliary data to the flare
+    attach aspect solutions
     """
     #return
-    mean_time = (start_unix + end_unix) / 2.
-    docs = mdb.get_aspect_solutions(start_unix, end_unix)
-    min_dt = np.inf
+    mean_time=(start_unix+end_unix)/2.
+    docs=mdb.get_aspect_solutions(start_unix, end_unix)
+    first = None
+    second = None
     for doc in docs:
-        try:
-            if np.abs(doc['unix_time'] - mean_time) < min_dt:
-                config['aux']['L0'], config['aux']['B0'] = doc[
-                    'solo_loc_carrington_lonlat']
-                #config['aux']['sun_center']=(-doc['y_srf'],doc['z_srf'])
-                config['aux']['sun_center'] = get_sun_center_from_aspect(
-                    doc['y_srf'], doc['z_srf'])
-                #Not sure about the sign, need to be confirmed
-                config['aux']['rsun'] = doc['spice_disc_size']
-                config['aux']['roll'] = doc['roll_angle_rpy'][0]
-                config['aux']['dsun'] = doc['solo_loc_carrington_dist'][
-                    0] * 1000  # distance to sun, in units of km
-                config['aux']['data_source_file'] = doc['filename']
-                config['aux']['data_source_type'] = 'Aspect'
-                config['aux']['utc'] = stu.unix2utc(doc['unix_time'])
-                min_dt = doc['unix_time']
-        except (KeyError, IndexError):
-            pass
+        if doc['unix_time'] < mean_time:
+            first = doc
+        if doc['unix_time'] >= mean_time:
+            second = doc
+            break
+    def interp(doc_a, doc_b, key, mean_time, elem=None):
+        """
+            linear interpolation between two consecutive  data plots
+        """
+        t0, t1 =doc_a['unix_time'], doc_b['unix_time']
+        if t0==t1:
+            if elem is None:
+                return doc_a[key]
+            else:
+                return doc_a[key][elem]
+        if elem is None:
+            y0=doc_a[key]
+            y1=doc_b[key]
+        else:
+            y0=doc_a[key][elem]
+            y1=doc_b[key][elem]
+        return (y0*(t1-mean_time)+y1*(mean_time-t0))/(t1-t0)
+    if first is None and second is None:
+        config['aux']['error']='Aspect solution not found'
+
+
+    if first is not None and second is not None:
+        config['aux']['L0']=interp(first, second, 'solo_loc_carrington_lonlat', mean_time, elem=0)
+        config['aux']['B0']=interp(first, second, 'solo_loc_carrington_lonlat', mean_time, elem=1)
+        config['aux']['sun_center']=get_sun_center_from_aspect(
+                interp(first, second, 'y_srf', mean_time),
+                interp(first, second, 'z_srf', mean_time))
+        config['aux']['rsun']=interp(first, second, 'spice_disc_size', mean_time)
+        config['aux']['roll']=interp(first, second, 'roll_angle_rpy', mean_time, elem=0)
+        config['aux']['dsun']=interp(first, second, 'solo_loc_carrington_dist', mean_time, elem=0)*1000
+        # distance to sun, in units of km
+        config['aux']['data_source_file']=doc['filename']
+        config['aux']['data_source_type']='Aspect'
+        config['aux']['utc']=stu.unix2utc(mean_time)
+        config['aux']['comments']=f'Interpolation of  two measurements at {stu.unix2utc(first["unix_time"])} and {stu.unix2utc(second["unix_time"])}' 
 
 
 def register_imaging_task_for_science_data(bsd_ids=[]):
@@ -242,7 +266,7 @@ def queue_imaging_tasks(doc,
             'raw_file_id': doc['run_id'],
             'unique_id': uid,
             'task_id': task_id,
-            'author': 'Pipeline',
+            'author': 'bot',
             'hidden': False,
             'num_idl_calls': 0,
             'run_type': 'auto',
@@ -327,7 +351,6 @@ def update_auxiliary_data():
 
 if __name__ == '__main__':
     #update_auxiliary_data()
-    """
     if len(sys.argv) == 1:
         print('Usage:')
         print('imaging_take_manager regtask [ids]')
@@ -336,4 +359,3 @@ if __name__ == '__main__':
     else:
         ids = [int(i) for i in sys.argv[2:]]
         register_imaging_task_for_science_data(ids)
-    """
