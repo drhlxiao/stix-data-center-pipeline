@@ -386,7 +386,7 @@ class Spectra(Product):
 
     def __init__(self, control, data):
         super().__init__(control=control, data=data)
-        self.name = 'spectra'
+        self.name = 'spectrum'
         self.level = 'L1A'
 
     @classmethod
@@ -628,7 +628,7 @@ class FlareFlagAndLocation(Product):
     """
     def __init__(self, control, data):
         super().__init__(control=control, data=data)
-        self.name = 'flareflag'
+        self.name = 'flare_flag'
         self.level = 'L1A'
 
     @classmethod
@@ -661,7 +661,7 @@ class TMManagementAndFlareList(Product):
     """
     def __init__(self, control, data):
         super().__init__(control=control, data=data)
-        self.name = 'flareflag'
+        self.name = 'flare_list'
         self.level = 'L1A'
 
     @classmethod

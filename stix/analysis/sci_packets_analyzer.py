@@ -22,22 +22,6 @@ level1_products_path = config.get_config(
     'pipeline.daemon.level1_products_path')
 
 bsd_collection = mdb.get_collection_bsd()
-DATA_REQUEST_REPORT_SPIDS = [54114, 54115, 54116, 54117, 54143, 54125]
-DATA_REQUEST_REPORT_NAME = {
-    54114: 'L0',
-    54115: 'L1',
-    54116: 'L2',
-    54117: 'L3',
-    54143: 'L4',
-    54125: 'ASP'
-}
-SCI_REPORT_SPID=[
-    54114,
-    54115,
-    54116,
-    54117,
-    54143,
-    ]
 
 MAX_L1_REQ_DURATION=3600
 #max l1 data request duration, used to load flares before l1 processing
@@ -757,7 +741,7 @@ def process_science_request_doc(doc):
 
     cursor = mdb.get_packets_of_bsd_request(doc['_id'], header_only=False)
     synopsis=None
-    data_type=DATA_REQUEST_REPORT_NAME.get(spid,'UNKNOWN')
+    data_type=sdt.SPID_MAP.get(spid,'UNKNOWN')
     if not cursor:
         logger.info(f'No packets found for {doc["_id"]}...')
         return

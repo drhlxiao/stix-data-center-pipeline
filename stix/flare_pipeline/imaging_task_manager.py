@@ -59,12 +59,12 @@ def get_sun_center_from_aspect(y_srf, z_srf):
     """
     offset_x, offset_y = y_srf + 60, -z_srf + 8
     #here it is sun center, so we should add the minus sign
-    return (-offset_x, -offset_y)
+    return (offset_x, offset_y)
 
 
-def attach_aspect_solutions(start_unix, end_unix, config):
+def attach_aux(start_unix, end_unix, config):
     """
-    attach aspect solutions
+    attach auxiliary data to the flare
     """
     #return
     mean_time = (start_unix + end_unix) / 2.
@@ -139,8 +139,12 @@ def queue_imaging_tasks(doc,
 
     flare_image_id = mdb.get_next_flare_image_id()
 
-    bsd_start_unix = doc['start_unix']
-    bsd_end_unix = doc['end_unix']
+    try:
+        bsd_start_unix = doc['start_unix']
+        bsd_end_unix = doc['end_unix']
+    except KeyError:
+        logger.warning(f'Imcomplete packet {bsd_id} (uid {uid})')
+        return
 
     fits_doc = mdb.get_bsd_fits_info_by_request_id(uid)
     if not fits_doc:
@@ -219,30 +223,31 @@ def queue_imaging_tasks(doc,
     for box in boxes:
         energy_range_str = f'{box["energy_range_keV"][0]}-{box["energy_range_keV"][1]}'
         start_utc_str = stu.utc2filename(box['utc_range'][0])
-        fits_prefix = f'stix_imaging_spectroscopy_sci_{bsd_id}_uid_{uid}_{energy_range_str}keV_{start_utc_str}_{flare_image_id}'
+        fits_prefix = f'stix_sci_preview_{bsd_id}_uid_{uid}_{energy_range_str}keV_{start_utc_str}_{flare_image_id}'
         folder = os.path.join(quicklook_path, str(uid))
         if not os.path.exists(folder):
             os.makedirs(folder)
         num_images += 1
         task_id = uuid.uuid4().hex[0:10]
 
-        spectral_model = 'vth+thick2'
+        spectral_model = 'auto'
 
         ospex_config = {
-            'model': spectral_model,
-            'model_id': 1 if 'thick2' in spectral_model else 0
+            'model': spectral_model
         }
         config = {
             'filename': fname,
+            'signal_data_type':'PixelData',
             'bsd_id': doc['_id'],
             'raw_file_id': doc['run_id'],
             'unique_id': uid,
             'task_id': task_id,
-            'author': 'bot',
+            'author': 'Pipeline',
             'hidden': False,
             'num_idl_calls': 0,
             'run_type': 'auto',
             'idl_status': '',
+            'idl_message':'',#placeholder
             'aux': {
                 'B0': B0.to(u.deg).value,
                 'L0': L0.to(u.deg).value,
@@ -274,11 +279,11 @@ def queue_imaging_tasks(doc,
                 'ellipse' if box["energy_range_keV"][1] < 16 else 'multi',
                 'ospex': ospex_config
             },
-            'fits': {},
-            'figs': {}
+            'fits': {}, #placeholder
+            'figs': {}, #placeholder
         }
 
-        attach_aspect_solutions(box['unix_time_range'][0] - ASPECT_TIME_TOR,
+        attach_aux(box['unix_time_range'][0] - ASPECT_TIME_TOR,
                                 box['unix_time_range'][1] + ASPECT_TIME_TOR,
                                 config)
 
@@ -312,15 +317,16 @@ def register_imaging_tasks_for_file(file_id):
 def update_auxiliary_data():
     db_flare_images = mdb.get_collection('flare_images')
     for doc in db_flare_images.find():
-        attach_aspect_solutions(doc['start_unix'] - ASPECT_TIME_TOR,
+        attach_aux(doc['start_unix'] - ASPECT_TIME_TOR,
                                 doc['end_unix'] + ASPECT_TIME_TOR, doc)
         doc['num_idl_calls'] = 0
+        #reset
         logger.info(f'updating {doc["_id"]}...')
         db_flare_images.update_one({'_id': doc['_id']}, {'$set': doc})
 
 
 if __name__ == '__main__':
-    update_auxiliary_data()
+    #update_auxiliary_data()
     """
     if len(sys.argv) == 1:
         print('Usage:')

@@ -289,7 +289,7 @@ class StixMongoDB(StixPacketWriter):
         self.ipacket += 1
 
     def close(self):
-        if not self.collection_raw_files:
+        if self.collection_raw_files is None:
             logger.warning('MongoDB is not initialized ')
             return None
         logger.info('{} packets have been inserted into MongoDB'.format(
@@ -316,7 +316,7 @@ class StixMongoDB(StixPacketWriter):
             )
             self.science_report_analyzer.clear()
 
-            self.collection_raw_files.save(run)
+            self.collection_raw_files.update_one({'_id':run['_id']}, {'$set':run})
             logger.info('File info updated successfully.')
             logger.info('File ID:{}'.format(run['_id']))
 

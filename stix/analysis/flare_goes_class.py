@@ -139,6 +139,9 @@ def find_goes_class_flares_in_file(file_id):
     goes_class_list = []
     for doc in flares:
         peak_utc, goes_class, goes_estimated = get_flare_goes_class(doc)
+        if peak_utc is None:
+            continue
+
         goes_class_list.append((peak_utc, goes_class, goes_estimated))
 
     return goes_class_list
@@ -172,7 +175,7 @@ def estimate_goes_class(counts: float,
 
     cnts = counts * dsun**2
     if cnts <= 0:
-        return {'min': None, 'max': None, 'max': None}
+        return {'min': 'NA', 'center': 'NA', 'max': 'NA'}
     x = np.log10(cnts)
 
     g = lambda y: sum([coeffs[i] * y**i for i in range(len(coeffs))])
@@ -219,12 +222,15 @@ def get_flare_goes_class(doc):
     start_utc = time_utils.unix2utc(start_unix)
     end_utc = time_utils.unix2utc(end_unix)
     peak_utc = doc['peak_utc']
-
-    peak_counts = doc['LC_statistics']['lc0']['signal_max']
+    try:
+        peak_counts = doc['LC_statistics']['lc0']['signal_max']
+    except KeyError:
+        logger.warning(f'Failed to calculate flare goes class for flare {doc["_id"]}, due to insufficient information')
+        return None,None,None
 
     if peak_counts <= threshold:
         logger.info(f"Ignored flares {doc['_id']}, peak counts < {threshold}")
-        return
+        return None, None, None
 
     ephs = solo.SoloEphemeris.get_solo_ephemeris(peak_utc, peak_utc, 1)
     eph = get_first_element(ephs)
@@ -241,8 +247,8 @@ def get_flare_goes_class(doc):
                                           GOES_STIX_COEFFS,
                                           GOES_STIX_ERROR_LUT)
 
-    is_ok = goes_class > estimated_class[
-        'min'] and goes_class < estimated_class['max']
+    #is_ok = goes_class > estimated_class[
+    #    'min'] and goes_class < estimated_class['max']
     updated_data = {
         'goes': {
             'low': {
