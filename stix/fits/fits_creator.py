@@ -209,7 +209,7 @@ def purge_fits_for_science_request(unique_id: int):
 
         try:
             fits_filename = os.path.join(cur['path'], cur['filename'])
-            logger.info(f'Removing file: {fits_filename}')
+            logger.info(f'Removing older version of FITS file : {fits_filename}')
             os.unlink(fits_filename)
         except Exception as e:
             logger.warning(
