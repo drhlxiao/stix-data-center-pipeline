@@ -18,6 +18,7 @@ from scipy import ndimage
 from matplotlib import cm
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.dates as mdates
 
 from datetime import datetime, timedelta as td
 
@@ -33,6 +34,8 @@ from sunpy.coordinates.frames import HeliocentricEarthEcliptic, HeliographicSton
 
 from stix.flare_pipeline import lightcurves
 from stix.flare_pipeline import ospex
+from stix.flare_pipeline import sdo_aia
+from stix.flare_pipeline import imaging_task_manager as itm
 from stix.core import mongo_db as db
 from stix.core import logger
 from stix.utils import bson
@@ -51,9 +54,6 @@ mdb = db.MongoDB()
 flare_image_db = mdb.get_collection('flare_images')
 
 SMALL_SIZE = 9
-PDF_FIGURE_SIZE_NORMAL = (16, 7)
-PDF_FIGURE_SIZE_SHORT = (16, 5)
-PDF_FIGURE_SIZE_LONG = (16, 10)
 
 DEFAULT_PLOT_DPI = 300
 
@@ -76,6 +76,12 @@ def plot_idl(doc_id: int):
     except Exception as e:
         #don't raise any exception
         logger.error(e)
+    try:
+        logger.info(f'Creating aia images for {doc["_id"]}..')
+        plot_aia(doc)
+    except Exception as e:
+        logger.error(e)
+        #don't raise any exception
 
 
 def rotate_map(m, recenter=False):
@@ -87,8 +93,52 @@ def rotate_map(m, recenter=False):
         return m
     return m.rotate(angle=(m.meta['crota2']) * u.deg, recenter=recenter)
 
-def plot_aspect_data(ax, start_unix, end_unix, stix_x=None, stix_y=None):
-    pass
+def plot_aspect_data(filename, start_unix, end_unix, flare_sun_x=0, flare_sun_y=0):
+    asp_docs=mdb.get_aspect_solutions(start_unix, end_unix)
+    timestamps=[]
+    fig, axes=plt.subplots(1,2, figsize=(7,3))
+    flare_unix_time=(start_unix+end_unix)/2.
+
+    sun_x=[]
+    sun_y=[]
+    for doc in asp_docs:
+        timestamps.append(ut.unix2datetime(doc['unix_time']))
+        x, y = itm.get_sun_center_from_aspect(doc['y_srf'], doc['z_srf'])
+        sun_x.append(x)
+        sun_y.append(y)
+    if timestamps:
+        axes[0].plot(timestamps, sun_x, label="sun_x")
+        axes[1].plot(timestamps, sun_y, label="sun_y")
+    else:
+        plt.suptitle('Aspect solution not available')
+
+    flare_dt=[ut.unix2datetime(flare_unix_time)]
+    axes[0].plot(flare_dt, [flare_sun_x],'x',  label="offset_x used")
+    axes[1].plot(flare_dt, [flare_sun_y],'x',  label="offset_y used")
+    axes[0].set_xlabel('Time')
+    axes[0].set_ylabel('X (arcsec)')
+    axes[0].legend()
+
+    locator = mdates.AutoDateLocator(minticks=3, maxticks=7)
+    formatter = mdates.ConciseDateFormatter(locator)
+    axes[0].xaxis.set_major_locator(locator)
+    axes[0].xaxis.set_major_formatter(formatter)
+
+    axes[1].set_xlabel('Time')
+    axes[1].set_ylabel('2 (arcsec)')
+    axes[1].legend()
+    locator = mdates.AutoDateLocator(minticks=3, maxticks=7)
+    formatter = mdates.ConciseDateFormatter(locator)
+    axes[1].xaxis.set_major_locator(locator)
+    axes[1].xaxis.set_major_formatter(formatter)
+
+    fig.suptitle('STIX aspect solutions')
+    #fig.autofmt_xdate()
+    fig.tight_layout()
+    logger.info(f'Writing aspect solution to :{filename}')
+    fig.savefig(filename, dpi=DEFAULT_PLOT_DPI)
+    
+
 
 
 def zoom(m, ax, ratio=2):
@@ -182,7 +232,6 @@ def fix_map_fits_header(image_filename):
         hduls = fits.open(image_filename)
         for hdu in hduls:
             hdu.header['DATE-OBS']=ut.utc2isoformat(hdu.header['DATE_OBS'])
-            print("#############", ut.utc2isoformat(hdu.header['DATE_OBS']))
         hduls.writeto(image_filename, overwrite=True, checksum=True)
     except Exception as e:
         logger.error(str(e))
@@ -217,58 +266,6 @@ def create_images_for_ids_between(start_id, end_id):
         plot_imaging_and_ospex_results(doc)
 
 
-def create_pdf_title_page(pdf,
-                          img_id=0,
-                          asp_source=None,
-                          start_utc='',
-                          end_utc='',
-                          expt='',
-                          sig_id='',
-                          bkg_id='',
-                          erange='',
-                          fig=None,
-                          ax=None):
-    if fig is None or ax is None:
-        fig, ax = plt.subplots(figsize=PDF_FIGURE_SIZE_SHORT)
-    title = f'STIX imaging and spectroscopy report #{img_id}'
-    descr = f'''Time range:{start_utc} – {end_utc}\nIntegration time: {round(expt,2)}\nSignal file UID: {sig_id}\nBackground file UID: {bkg_id}\nEnergy range: {erange} (keV)'''
-    remark_lines = [
-        f'Absolute flare location accuracy ~ 1 arcmin'
-        if asp_source is None else f'Auxiliary data file: {asp_source}',
-        f'\nCreator: STIX Data Center Web Imaging Tool\nCreation time: {datetime.today().strftime("%B %d, %Y")}'
-    ]
-    remarks = ''.join(remark_lines)
-    ax.axis("off")
-    ax.text(0.1, 0.9, title, transform=fig.transFigure, size=24, ha="left")
-    ax.text(0.1,
-            0.8,
-            descr,
-            transform=fig.transFigure,
-            size=14,
-            ha="left",
-            va='top')
-    ax.text(0.1,
-            0.5,
-            remarks,
-            transform=fig.transFigure,
-            size=12,
-            ha="left",
-            va='top')
-    pdf.savefig()
-    plt.close()
-
-
-def reverse_colormap(palette_name):
-    """reverses matplotlib colormap"""
-    if not palette_name.endswith('_r'):
-        new_cdata = cm.revcmap(plt.get_cmap(palette_name)._segmentdata)
-        new_cmap = matplotlib.colors.LinearSegmentedColormap(
-            f'{palette_name}_r', new_cdata)
-        return new_cmap
-    else:
-        return None
-
-
 def plot_imaging_and_ospex_results(doc):
     """
     Plot STIX images and ospex result and save them to pdf and pdf files 
@@ -282,9 +279,19 @@ def plot_imaging_and_ospex_results(doc):
     except Exception as e:
         logger.error("Error occurred when creating spectral fitting result..")
 
-    img_fname=plot_images(doc, ospex_fig_obj)
+    img_fname, report=plot_images(doc, ospex_fig_obj)
     if img_fname is not None:
         figs.append({'images': img_fname})
+
+    if report is not None:
+        if ospex_fig_obj:
+            if 'output' in ospex_fig_obj:
+                report.append({'filename':ospex_fig_obj['output'], 
+                    'title':'Spectral fitting result',
+                    'type':'ospex'})
+        new_values['report']=report
+
+
 
     if ospex_fig_obj is not None:
         new_values['ospex_meta'] = bson.dict_to_json(ospex_fig_obj['meta'])
@@ -312,10 +319,11 @@ def plot_ospex_results(task_doc, dpi=DEFAULT_PLOT_DPI):
     ospex_fig_obj = None
     ospex_fname = fits_filename.get('ospex_results', None)
     #ospex result fits filename 
-
+    out_folder=task_doc['idl_config']['folder']
+    fout_prefix=task_doc["idl_config"]["prefix"]
     fname= os.path.join(
-        task_doc['idl_config']['folder'],
-        f'{task_doc["idl_config"]["prefix"]}_ospex.png')
+        out_folder,
+        f'{fout_prefix}_ospex.png')
     #png filename
 
     if ospex_fname:
@@ -335,7 +343,9 @@ def plot_ospex_results(task_doc, dpi=DEFAULT_PLOT_DPI):
 
     return ospex_fig_obj
 
-def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI):
+
+
+def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_report=True):
     if task_doc.get('signal_data_type', None) != 'PixelData':
         logger.warning('Images can not only created for PixelData!')
         return None
@@ -350,11 +360,10 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI):
     # key should be like "image_xxx" 
     for _, fname in fits_filename.items():
         fix_map_fits_header(fname)
-
-    pdf_fname = os.path.join(task_doc['idl_config']['folder'],
-                             f'{task_doc["idl_config"]["prefix"]}.pdf')
-    img_fname = os.path.join(task_doc['idl_config']['folder'],
-                             f'{task_doc["idl_config"]["prefix"]}.png')
+    out_folder=task_doc['idl_config']['folder']
+    fout_prefix=task_doc["idl_config"]["prefix"]
+    img_fname = os.path.join(out_folder,
+                             f'{fout_prefix}.png')
 
     fig = plt.figure(figsize=(12, 7), dpi=dpi, facecolor='white')
 
@@ -395,11 +404,6 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI):
     mbp = sunpy.map.Map(fits_filename['image_bp'])
     mbp = rotate_map(mbp)
 
-
-
-    # CLEAN map
-    #fix_clean_map_fits_header(task_doc, fits_filename['image_clean'])
-    #add dsun to the header
     mclean = sunpy.map.Map(fits_filename['image_clean'])
     #mclean=mclean[4]
     mclean = rotate_map(mclean)
@@ -416,6 +420,7 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI):
     descr = f'{start_utc} – {end_utc}\n{energy_range_str} {aspect_info} '
 
     maps = [mbp_full, mbp, mclean, mem, mfwd]
+    map_names=['Full-disk', 'Back-projection', 'CLEAN', 'MEM', 'VIS_FWDFIT']
     try:
         fwdshape = f"({task_doc['idl_config']['fwdfit_shape']})"
     except (KeyError, TypeError):
@@ -451,21 +456,12 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI):
     logger.info(f"Images have been written to file:{img_fname}")
 
 
-    ## Print plots to pdf
-    logger.info('Creating PDF...')
-    with PdfPages(pdf_fname) as pdf:
-        aspect_source_file = task_doc['aux'].get('data_source_file', None)
-        create_pdf_title_page(pdf,
-                              task_doc['_id'],
-                              aspect_source_file,
-                              start_utc=start_utc,
-                              end_utc=end_utc,
-                              expt=duration,
-                              sig_id=bsd_uid,
-                              bkg_id=bkg_uid,
-                              erange=energy_range)
+    logger.info('Creating plots for detailed report ...')
+    report = []
+    if create_report:
+        #create high resolution plots for analysis report
         pfig, (ax_lc_pdf,
-               ax_spec) = plt.subplots(1, 2, figsize=PDF_FIGURE_SIZE_SHORT)
+               ax_spec) = plt.subplots(1, 2, figsize=(12, 5))
 
         #plot light curves and spectrogram
         lightcurves.plot_QL_lc_for_bsd(bsd_id,
@@ -479,16 +475,25 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI):
         }
         l1.plot_spectrogram(ax_spec, selection_box)
 
-        plt.subplots_adjust(top=0.95, wspace=0.2, hspace=2)
-        pdf.savefig(pfig)
+        #plt.subplots_adjust(top=0.95, wspace=0.2, hspace=2)
+        pfig.tight_layout()
 
+        lc_and_spec_fname = os.path.join(out_folder,
+                                 f'{fout_prefix}_lc_and_spec.png')
+
+        plt.savefig(lc_and_spec_fname, dpi=DEFAULT_PLOT_DPI)
+        report.append(
+                {'filename':lc_and_spec_fname, 
+                    'title':'Light curves and spectrogram',
+                    'type':'lc_and_spec'
+                    })
 
         levels = np.array([0.3, 0.5, 0.7, 0.9])
 
         for i, imap in enumerate(maps):
             if i == 0:
                 continue
-            pfig = plt.figure(figsize=PDF_FIGURE_SIZE_NORMAL)
+            pfig = plt.figure(figsize=(17,6))
             
 
             plot_flare_image(imap,
@@ -520,23 +525,88 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI):
             ax.set_ylabel('solar_y [arcsec]')
             plt.suptitle(descr, fontsize=10)
             plt.subplots_adjust(top=0.95, wspace=0.2, hspace=2)
+            img_filename = os.path.join(out_folder,
+                             f'{fout_prefix}_{map_names[i]}.png')
             try:
-                pdf.savefig(pfig)
+                plt.savefig(img_filename)
+                report.append({'filename':img_filename, 
+                    'title':f'{map_names[i]} map',
+                    'type':f'image_{map_names[i]}'})
+
             except IndexError:
                 logger.error("Index error when saving figures ")
             plt.close()
 
-        if ospex_fig_obj:
-            ospex_fig=ospex_fig_obj['figure']
-            ospex_fig.set_figheight(6)
-            ospex_fig.set_figwidth(7)
-            pdf.savefig(ospex_fig)
-        d = pdf.infodict()
-        d['Title'] = 'STIX preview images and spectral fitting results'
-        d['Author'] = 'STIX web imaging tool v1.0 (contact: hualin.xiao@fhnw.ch)'
-        d['CreationDate'] = datetime.now()
+        asp_filename = os.path.join(out_folder,
+                         f'{fout_prefix}_aspect.png')
 
-    return img_fname
+        logger.info("Creating aspect solution plot ...")
+        try:
+            plot_aspect_data(asp_filename, task_doc['start_unix'], task_doc['end_unix'], task_doc['aux']['sun_center'][0], task_doc['aux']['sun_center'][1])
+            report.append({'filename':asp_filename, 
+                    'title':'STIX pointing information',
+                    'type':'aspect'})
+        except Exception as e:
+            logger.error(str(e))
+    return img_fname, report
+
+def plot_aia(doc, wavelen=171):
+    try:
+        image_em=doc['fits']['image_em']
+    except (KeyError, TypeError):
+        logger.info('Could not create AIA image, EM image not ready!')
+        return
+   
+    out_folder=doc['idl_config']['folder']
+    fout_prefix=doc["idl_config"]["prefix"]
+    aia_rep_map, stix_bp_map, aia_map =sdo_aia.get_projected_aia_map(image_em, wavelen)
+
+    aia_fits= os.path.join(out_folder,  f'{fout_prefix}_aia_{wavelen}.fits')
+    aia_rep_fits= os.path.join(out_folder,  f'{fout_prefix}_aia_{wavelen}_reprojected.fits')
+    aia_map.save(aia_fits, overwrite=True)
+    aia_rep_map.save(aia_rep_fits, overwrite=True)
+
+    erange=f"{doc['energy_range'][0]} – {doc['energy_range'][1]} keV"
+    fig_aia=sdo_aia.plot_map_reproj(aia_map, aia_rep_map, stix_bp_map, stix_descr=f'STIX EM {erange} ')
+
+
+    logger.info(f'creating {aia_fname}')
+    aia_fname= os.path.join(out_folder,  f'{fout_prefix}_aia_{wavelen}.png')
+    fig_aia.savefig(aia_fname)
+
+    orbit_fname= os.path.join(out_folder,  f'{fout_prefix}_orbit.png')
+    fig_orbit=sdo_aia.plot_orbit(aia_map, aia_rep_map)
+    logger.info(f'creating {orbit_fname}')
+    fig_orbit.savefig(orbit_fname)
+
+    report=doc.get('report',[])
+    aia_meta=doc.get('aia',[])
+    aia_meta.append({'map': aia_fits,  'rep_map': aia_rep_fits, 'wavelen':wavelen})
+
+    report.append({'filename':aia_fname,
+                    'title':f'AIA {wavelen} image and STIX image',
+                    'type':f'aia-{wavelen}'})
+    report.append({'filename':orbit_fname,
+                    'title':'orbit',
+                    'type':'orbit'})
+    flare_image_db.update_one({'_id': doc['_id']},{'$set':{'report':report, 'aia': aia_meta  }})
+
+
+
+
+    
+
+def create_all_for_all():
+    docs = flare_image_db.find().sort({'_id':-1})
+    for doc in docs:
+        try:
+            logger.info(f'Creating aia images for {doc["_id"]}..')
+            plot_aia(doc)
+        except Exception as e:
+            logger.error(e)
+            #don't raise any exception
+
+
 
 
 
