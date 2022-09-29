@@ -1,0 +1,111 @@
+#!/usr/bin/python3
+import sys
+import os
+import argparse
+from collections import defaultdict
+from datetime import datetime
+from itertools import chain
+from pathlib import Path
+
+from stix.core import datatypes as sdt
+from stix.fits import fits_creator
+
+
+from stix.core import mongo_db, logger
+logger = logger.get_logger()
+
+
+
+if  __name__ == '__main__':
+    ap = argparse.ArgumentParser()
+    required = ap.add_argument_group('Required arguments')
+    optional = ap.add_argument_group('Optional arguments')
+
+
+    optional.add_argument(
+        "-p",
+        dest='path',
+        default=FITS_PATH,
+        required=False,
+        help="Output fits path. ")
+
+    optional.add_argument(
+        "-f",
+        dest='file_id',
+        default=None,
+        required=False,
+        help="File ID")
+    optional.add_argument(
+        "-fs",
+        dest='file_id_range',
+         nargs=2,
+        default=None,
+        required=False,
+        help="File ID range")
+
+    optional.add_argument(
+        "-d",
+        dest='date',
+        default=None,
+        required=False,
+        help="Start time to select LL data")
+    optional.add_argument(
+        "-ds",
+        dest='date_range',
+         nargs=2,
+        default=None,
+        required=False,
+        help="End time to select LL data")
+
+    optional.add_argument(
+        "-b",
+        dest='bsd_id',
+        default=None,
+        required=False,
+        help="bsd id")
+    optional.add_argument(
+        "-bs",
+        dest='bsd_id_range',
+         nargs=2,
+        default=None,
+        required=False,
+        help="Bulk science data id range")
+    optional.add_argument(
+        "-da",
+        dest='daily_all',
+         nargs=2,
+        default=None,
+        required=False,
+        help="Generate daily FITS files for low latency data starting from the end date of last processing run ")
+
+
+    args = vars(ap.parse_args())
+    path=args['path']
+
+    if args['bsd_id']:
+        bsd_id_start=int(args['bsd_id'])
+        bsd_id_end=bsd_id_start
+        fits_creator.create_fits_for_bulk_science(bsd_id_start, bsd_id_end, path, overwrite=True, version=1)
+    if args['bsd_id_range']:
+        bsd_id_start=int(args['bsd_id_range'][0])
+        bsd_id_end=int(args['bsd_id_range'][1])
+        fits_creator.create_fits_for_bulk_science(bsd_id_start, bsd_id_end, path, overwrite=True, version=1)
+    if args['file_id']:
+        create_fits(int(args['file_id']), path, overwrite=True, version=1)
+    if args['file_id_range']:
+        for i in range(int(args['file_id_range'][0]),int(args['file_id_range'][1])+1):
+            fits_creator.create_fits(i, path, overwrite=True, version=1)
+
+    if args['date_range']:
+        date_start=args['date_range'][0]
+        date_end=args['date_range'][1]
+        fits_creator.create_low_latency_fits_between_dates(date_start, date_end, path)
+    if args['date']:
+        date=args['date']
+        fits_creator.create_daily_low_latency_fits(date, path)
+
+
+    if args['daily_all']:
+        create_daily_low_latency_fits_for_all()
+
+

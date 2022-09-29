@@ -48,7 +48,7 @@ am = u.def_unit("meters", 1 * u.m)
 ad = u.def_unit("degrees", 1 * u.deg)
 u.add_enabled_units([ar, am, ad])
 #define unit arcsecs is the same arcsec
-
+matplotlib.use('Agg')
 logger = logger.get_logger()
 mdb = db.MongoDB()
 flare_image_db = mdb.get_collection('flare_images')
@@ -65,7 +65,8 @@ matplotlib.rc('axes', titlesize=SMALL_SIZE)
 CMAP = 'std_gamma_2'  #color map
 
 
-def plot_idl(doc_id: int):
+
+def plot_idl(doc_id: int, create_aia=False):
     doc = flare_image_db.find_one({'_id': doc_id})
     if not doc:
         logger.error(f'Doc {doc_id} not found in the database')
@@ -76,10 +77,14 @@ def plot_idl(doc_id: int):
     except Exception as e:
         #don't raise any exception
         logger.error(e)
+    if not create_aia:
+        return
+    doc = flare_image_db.find_one({'_id': doc_id})
     try:
         logger.info(f'Creating aia images for {doc["_id"]}..')
         plot_aia(doc)
     except Exception as e:
+        raise
         logger.error(e)
         #don't raise any exception
 
@@ -125,7 +130,7 @@ def plot_aspect_data(filename, start_unix, end_unix, flare_sun_x=0, flare_sun_y=
     axes[0].xaxis.set_major_formatter(formatter)
 
     axes[1].set_xlabel('Time')
-    axes[1].set_ylabel('2 (arcsec)')
+    axes[1].set_ylabel('Y (arcsec)')
     axes[1].legend()
     locator = mdates.AutoDateLocator(minticks=3, maxticks=7)
     formatter = mdates.ConciseDateFormatter(locator)
@@ -286,9 +291,8 @@ def plot_imaging_and_ospex_results(doc):
     if report is not None:
         if ospex_fig_obj:
             if 'output' in ospex_fig_obj:
-                report.append({'filename':ospex_fig_obj['output'], 
-                    'title':'Spectral fitting result',
-                    'type':'ospex'})
+                report['ospex']={'filename':ospex_fig_obj['output'], 
+                    'title':'Spectral fitting result'}
         new_values['report']=report
 
 
@@ -449,7 +453,7 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
     image_id_str = f'(#{task_doc["_id"]})'
 
     fig.suptitle(descr, fontsize=10)
-    fig.subplots_adjust(top=0.85, wspace=0.2, hspace=0.4)
+    fig.subplots_adjust(top=0.85, wspace=0.4, hspace=0.4)
 
     fig.savefig(img_fname, format='png', dpi=dpi)
 
@@ -457,7 +461,7 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
 
 
     logger.info('Creating plots for detailed report ...')
-    report = []
+    report = task_doc.get('report',{})
     if create_report:
         #create high resolution plots for analysis report
         pfig, (ax_lc_pdf,
@@ -482,57 +486,47 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
                                  f'{fout_prefix}_lc_and_spec.png')
 
         plt.savefig(lc_and_spec_fname, dpi=DEFAULT_PLOT_DPI)
-        report.append(
-                {'filename':lc_and_spec_fname, 
-                    'title':'Light curves and spectrogram',
-                    'type':'lc_and_spec'
-                    })
+        report['A_lc_and_spec']=      {'filename':lc_and_spec_fname, 
+                    'title':'Light curves and spectrogram'
+                    }
+        #the prefix is used for sorting 
 
         levels = np.array([0.3, 0.5, 0.7, 0.9])
 
         for i, imap in enumerate(maps):
             if i == 0:
                 continue
-            pfig = plt.figure(figsize=(17,6))
+            pfig = plt.figure(figsize=(13,7))
             
 
             plot_flare_image(imap,
                              pfig,
-                             panel_grid=131,
+                             panel_grid=121,
                              title=titles[i],
                              descr='',
                              draw_image=True,
                              contour_levels=[],
                              zoom_ratio=1)
-            plot_flare_image(imap,
-                             pfig,
-                             panel_grid=132,
-                             title=titles[i] + ' (2x)',
-                             descr='',
-                             draw_image=True,
-                             contour_levels=[],
-                             zoom_ratio=3)
             ax = plot_flare_image(imap,
                                   pfig,
-                                  panel_grid=133,
+                                  panel_grid=122,
                                   title=titles[i],
                                   descr='',
                                   draw_image=False,
                                   contour_levels=[0.3, 0.5, 0.7],
-                                  zoom_ratio=2,
+                                  zoom_ratio=1,
                                   color='k')
             ax.set_xlabel('solar_x [arcsec]')
             ax.set_ylabel('solar_y [arcsec]')
-            plt.suptitle(descr, fontsize=10)
-            plt.subplots_adjust(top=0.95, wspace=0.2, hspace=2)
+            pfig.suptitle(descr, fontsize=10)
+            pfig.subplots_adjust(top=0.95, wspace=0.2, hspace=4)
             img_filename = os.path.join(out_folder,
                              f'{fout_prefix}_{map_names[i]}.png')
             try:
-                plt.savefig(img_filename)
-                report.append({'filename':img_filename, 
-                    'title':f'{map_names[i]} map',
-                    'type':f'image_{map_names[i]}'})
-
+                logger.info(img_filename)
+                pfig.savefig(img_filename)
+                report[f'B_image_{map_names[i]}']={'title':f'{map_names[i]} map',
+                        'filename':img_filename} 
             except IndexError:
                 logger.error("Index error when saving figures ")
             plt.close()
@@ -543,53 +537,69 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
         logger.info("Creating aspect solution plot ...")
         try:
             plot_aspect_data(asp_filename, task_doc['start_unix'], task_doc['end_unix'], task_doc['aux']['sun_center'][0], task_doc['aux']['sun_center'][1])
-            report.append({'filename':asp_filename, 
-                    'title':'STIX pointing information',
-                    'type':'aspect'})
+            report['C_aspect']={'filename':asp_filename, 
+                    'title':'STIX pointing information'}
         except Exception as e:
             logger.error(str(e))
     return img_fname, report
 
-def plot_aia(doc, wavelen=171):
+def plot_aia(doc, wavelen=1600):
     try:
         image_em=doc['fits']['image_em']
     except (KeyError, TypeError):
-        logger.info('Could not create AIA image, EM image not ready!')
+        logger.info('Could not create AIA image, can not read info from STIX EM image !')
         return
    
+    def exists(objs, ts):
+        for o in objs:
+            if o['type'] == ts:
+                return True
+        return False
+
+    report=doc.get('report',{})
+    aia_meta=doc.get('aia',{})
     out_folder=doc['idl_config']['folder']
     fout_prefix=doc["idl_config"]["prefix"]
+
+
     aia_rep_map, stix_bp_map, aia_map =sdo_aia.get_projected_aia_map(image_em, wavelen)
+    if aia_map is None:
+        logger.info('AIA image is None!')
+        return
 
-    aia_fits= os.path.join(out_folder,  f'{fout_prefix}_aia_{wavelen}.fits')
-    aia_rep_fits= os.path.join(out_folder,  f'{fout_prefix}_aia_{wavelen}_reprojected.fits')
-    aia_map.save(aia_fits, overwrite=True)
-    aia_rep_map.save(aia_rep_fits, overwrite=True)
-
-    erange=f"{doc['energy_range'][0]} – {doc['energy_range'][1]} keV"
-    fig_aia=sdo_aia.plot_map_reproj(aia_map, aia_rep_map, stix_bp_map, stix_descr=f'STIX EM {erange} ')
-
-
-    logger.info(f'creating {aia_fname}')
-    aia_fname= os.path.join(out_folder,  f'{fout_prefix}_aia_{wavelen}.png')
-    fig_aia.savefig(aia_fname)
 
     orbit_fname= os.path.join(out_folder,  f'{fout_prefix}_orbit.png')
-    fig_orbit=sdo_aia.plot_orbit(aia_map, aia_rep_map)
+    fig_orbit=sdo_aia.plot_orbit(aia_map, stix_bp_map)
     logger.info(f'creating {orbit_fname}')
     fig_orbit.savefig(orbit_fname)
+    report['D_location']={'filename':orbit_fname,
+                        'title':'SolO location'}
 
-    report=doc.get('report',[])
-    aia_meta=doc.get('aia',[])
-    aia_meta.append({'map': aia_fits,  'rep_map': aia_rep_fits, 'wavelen':wavelen})
 
-    report.append({'filename':aia_fname,
-                    'title':f'AIA {wavelen} image and STIX image',
-                    'type':f'aia-{wavelen}'})
-    report.append({'filename':orbit_fname,
-                    'title':'orbit',
-                    'type':'orbit'})
-    flare_image_db.update_one({'_id': doc['_id']},{'$set':{'report':report, 'aia': aia_meta  }})
+    if aia_rep_map is None or aia_map is None:
+        logger.info('Could not create AIA image, AIA map is none!')
+    else:
+        aia_fits= os.path.join(out_folder,  f'{fout_prefix}_aia_{wavelen}.fits')
+        aia_rep_fits= os.path.join(out_folder,  f'{fout_prefix}_aia_{wavelen}_reprojected.fits')
+
+        aia_map.save(aia_fits, overwrite=True)
+        aia_rep_map.save(aia_rep_fits, overwrite=True)
+
+        erange=f"{doc['energy_range'][0]} – {doc['energy_range'][1]} keV"
+        fig_aia=sdo_aia.plot_map_reproj(aia_map, aia_rep_map, stix_bp_map, stix_descr=f'STIX EM {erange} ')
+
+
+        aia_fname= os.path.join(out_folder,  f'{fout_prefix}_aia_{wavelen}.png')
+        logger.info(f'creating {aia_fname}')
+        fig_aia.savefig(aia_fname)
+        aia_meta[f'{wavelen}']={'map': aia_fits,  'rep_map': aia_rep_fits}
+        report[f'F_aia-{wavelen}']={'filename':aia_fname,
+                        'title':f'AIA {wavelen} image and STIX image'}
+    updates={'report':report}
+    if aia_meta:
+        updates['aia']=aia_meta 
+
+    flare_image_db.update_one({'_id': doc['_id']},{'$set':updates})
 
 
 
@@ -597,11 +607,11 @@ def plot_aia(doc, wavelen=171):
     
 
 def create_all_for_all():
-    docs = flare_image_db.find().sort({'_id':-1})
+    docs = flare_image_db.find({'signal_data_type':'PixelData', 'aia':{'$exists':False}}).sort('_id',-1)
     for doc in docs:
         try:
             logger.info(f'Creating aia images for {doc["_id"]}..')
-            plot_aia(doc)
+            plot_idl(doc['_id'], True)
         except Exception as e:
             logger.error(e)
             #don't raise any exception

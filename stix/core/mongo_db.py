@@ -132,7 +132,7 @@ class MongoDB(object):
         return self.collection_packets.find({'_id':file_id, 'header.SPID':54102})
 
     def get_LC_pkt_by_tw(self, start_unix_time, span):
-        if not self.collection_ql:
+        if self.collection_ql is None:
             yield []
         span = float(span)
         start_unix_time = float(start_unix_time)
@@ -204,7 +204,7 @@ class MongoDB(object):
         return None
 
     def get_file_id(self, filename):
-        if not self.collection_raw_files:
+        if self.collection_raw_files is None:
             return -1
         basename = os.path.basename(filename)
         abspath = os.path.abspath(filename)
@@ -445,7 +445,7 @@ class MongoDB(object):
         stop_unix_time = start_unix_time + span
         SPID = QL_SPIDS[packet_type]
         collection = self.collection_ql
-        if not collection:
+        if collection is None:
             return []
         query_string ={
                 'stop_unix_time': {

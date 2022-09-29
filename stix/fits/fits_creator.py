@@ -23,7 +23,7 @@ logger = logger.get_logger()
 db = mongo_db.MongoDB()
 #logger = get_logger(__name__)
 bsd_db = db.get_collection('bsd')
-fits_db = db.get_collection('bsd')
+fits_db = db.get_collection('fits')
 packets_db = db.get_collection('packets')
 
 FITS_PATH = '/data/fits/'
@@ -610,6 +610,7 @@ if __name__ == '__main__':
     if args['date']:
         date = args['date']
         create_daily_low_latency_fits(date, path)
+
 
     if args['recreate_date_offsets']:
         start_off = int(args['recreate_date_offsets'][0])
