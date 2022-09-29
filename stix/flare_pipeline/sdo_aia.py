@@ -191,7 +191,7 @@ def download_AIA(time_int,
     aia_map = sunpy.map.Map(files)
     if isinstance(aia_map, list):
         aia_map=aia_map[0]
-    f cutout_coords != False:
+    if cutout_coords != False:
         aia_map = aia_map.submap(cutout_coords[0], top_right=cutout_coords[1])
     uid=str(uuid.uuid1())
     out_fname =os.path.join(aia_file_path,  f"{uid}.fits")
