@@ -361,7 +361,7 @@ def  get_projected_aia_map(stix_image_fname, wavelen=171):
     log.info('Re-projecting map...')
     reprojected_aia = reproject_map(aia_map) # a sunpy map
     return reprojected_aia, stix_bp_map,  aia_map
-def plot_map_reproj(aia_map, reprojected_map, stix_map, levels = np.array([0.3, 0.5, 0.7, 0.9]), stix_descr=''):
+def plot_map_reproj(aia_map, reprojected_map, stix_map, descr=''):
     """
     Plot the original map, reprojected map and observer locations
     Parameters
@@ -378,26 +378,39 @@ def plot_map_reproj(aia_map, reprojected_map, stix_map, levels = np.array([0.3, 
     color='w'
     
 
-    fig = plt.figure(figsize=(12, 4))
-    ax1 = fig.add_subplot(1, 2, 1, projection=aia_map)
+    #fig = plt.figure(figsize=(12, 4))
+    #ax1 = fig.add_subplot(1, 2, 1, projection=aia_map)
 
-    aia_map.plot(axes=ax1)#, title=f'{aia_map.detector} map {aia_map.date}')
+    #aia_map.plot(axes=ax1)#, title=f'{aia_map.detector} map {aia_map.date}')
 
     #aia_map.draw_grid(color='w', ls='--', grid_spacing=10 * u.deg)
     #aia_map.draw_limb(axes=ax1, color='w', alpha=0.5)
 
-    ax2 = fig.add_subplot(1, 2, 2, projection=reprojected_map)
+    #ax2 = fig.add_subplot(1, 2, 2, projection=reprojected_map)
     title=f'AIA reprojected {aia_map.date}'
-    reprojected_map.plot(axes=ax2, title=title)
-    try:
-        clevels = np.array(levels) * stix_map.max()
-        cs = stix_map.draw_contours(clevels, axes=ax2)
-        proxy = [plt.Rectangle((0, 0), 2, 0.1, fc=pc.get_edgecolor()[0])
-                for pc in cs.collections]
-        legends = [f'{levels[i]*100:.0f} %' for i, x in enumerate(clevels)]
-        ax2.legend(proxy, legends, title=stix_descr,frameon=False, bbox_to_anchor=(1.01, 1), loc='upper right', fontsize=6)
-    except Exception as e:
-        pass
+    fig = plt.figure(figsize=(5, 5))
+
+    stix_bottom_left = stix_map.bottom_left_coord
+    stix_top_right = stix_map.top_right_coord
+    msub = reprojected_map.submap(stix_bottom_left.transform_to(reprojected_map.coordinate_frame), top_right=stix_top_right.transform_to(reprojected_map.coordinate_frame))
+    comp_map=sunpy.map.Map(msub, stix_map, composite=True)
+    levels = [50, 60, 70,80,90] #contour levels in percent
+    comp_map.set_levels(index=1, levels=levels, percent=True)
+    ax = fig.add_subplot(111, projection=stix_map)
+    comp_map.plot(axes=ax, title=descr)
+
+
+
+    #reprojected_map.plot(axes=ax2, title=title)
+    #try:
+    #    clevels = np.array(levels) * stix_map.max()
+    #    cs = stix_map.draw_contours(clevels, axes=ax2)
+    #    proxy = [plt.Rectangle((0, 0), 2, 0.1, fc=pc.get_edgecolor()[0])
+    #            for pc in cs.collections]
+    #    legends = [f'{levels[i]*100:.0f} %' for i, x in enumerate(clevels)]
+    #    ax2.legend(proxy, legends, title=stix_descr,frameon=False, bbox_to_anchor=(1.01, 1), loc='upper right', fontsize=6)
+    #except Exception as e:
+    #    pass
     return fig
 def plot_orbit(aia_map, reprojected_map):
     fig = plt.figure(figsize=(6, 4))

@@ -585,7 +585,8 @@ def plot_aia(doc, wavelen=1600):
         aia_rep_map.save(aia_rep_fits, overwrite=True)
 
         erange=f"{doc['energy_range'][0]} – {doc['energy_range'][1]} keV"
-        fig_aia=sdo_aia.plot_map_reproj(aia_map, aia_rep_map, stix_bp_map, stix_descr=f'STIX EM {erange} ')
+        descr= f'AIA {wavelen} reprojected {aia_map.date}  \n STIX {erange} {stix_bp_map.date}'
+        fig_aia=sdo_aia.plot_map_reproj(aia_map, aia_rep_map, stix_bp_map, descr=descr)
 
 
         aia_fname= os.path.join(out_folder,  f'{fout_prefix}_aia_{wavelen}.png')
@@ -593,7 +594,7 @@ def plot_aia(doc, wavelen=1600):
         fig_aia.savefig(aia_fname)
         aia_meta[f'{wavelen}']={'map': aia_fits,  'rep_map': aia_rep_fits}
         report[f'F_aia-{wavelen}']={'filename':aia_fname,
-                        'title':f'AIA {wavelen} image and STIX image'}
+                        'title':f'AIA {wavelen} reprojected image and STIX image'}
     updates={'report':report}
     if aia_meta:
         updates['aia']=aia_meta 
@@ -601,6 +602,17 @@ def plot_aia(doc, wavelen=1600):
     flare_image_db.update_one({'_id': doc['_id']},{'$set':updates})
 
 
+
+
+def create_stix_for_all():
+    docs = flare_image_db.find({'signal_data_type':'PixelData'}).sort('_id',-1)
+    for doc in docs:
+        try:
+            logger.info(f'Creating aia images for {doc["_id"]}..')
+            plot_idl(doc['_id'], False, True)
+        except Exception as e:
+            logger.error(e)
+            #don't raise any exception
 
 
     

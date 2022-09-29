@@ -72,7 +72,6 @@ def query_esa_tap_server(start_dt, end_dt, instrument='EUI', level='L2'):
             'QUERY': sql, 
             'PAGE': 1,
             'PAGE_SIZE': 500}
-    print(sql)
     x = requests.post(esa_url, data = data)
     return x.json()
 
@@ -125,14 +124,14 @@ def process_one(image_run_id):
     process_one_doc(doc)
 
 def process_between(start, end):
-    logger.info(f'Processing: {image_run_id}')
     docs=flare_image_db.find({'_id':{'$gt':start, '$lt':end} } ).sort('_id',1)
     for doc in docs:
+        logger.info(f'processing STIX image {doc["_id"]}')
         try:
             process_one_doc(doc)
         except Exception as e:
-            logger.info(f'No STIX image {doc["_id"]}')
-            pass
+            logger.error(f'Failed when processing STIX image {doc["_id"]}')
+            logger.error(str(e))
 def process_one_doc(doc):
     if not doc:
         logger.info(f'Could not create EUI image, no flare image {doc["_id"]}')
@@ -173,8 +172,6 @@ def process_one_doc(doc):
 
 
     report=doc.get('report',{})
-    print("STIX coord:")
-    print(stix_bottom_left, stix_top_right)
     gcolor='w'
 
 
@@ -193,8 +190,11 @@ def process_one_doc(doc):
         title=f"EUI {wavlen} {m.meta['date-obs'] } \n STIX {erange} {stix_map.meta['date_avg']}  "
         comp_map.plot(axes=ax, title=title)
         fname=os.path.join(out_folder, f'{fout_prefix}_eui_{wavlen}.png')
+        eui_croped_fits=os.path.join(out_folder, f'{fout_prefix}_eui_{wavlen}.fits')
         fig.savefig(fname)
+        msub.save(eui_croped_fits, overwrite=True)
         report[f'V_eui-{wavlen}']={'filename':fname,
+                'fits':eui_croped_fits,
                 'title': f'Solar Orbiter EUI {wavlen} image'}
         
 
@@ -207,6 +207,6 @@ if __name__=='__main__':
     if len(sys.argv)==2:
         process_one(int(sys.argv[1]))
     elif len(sys.argv)==3:
-        process_between(int(sys.argv[1])),int(sys.argv[2]))
+        process_between(int(sys.argv[1]),int(sys.argv[2]))
     else:
         print('process <id> or process start  end_id')
