@@ -160,9 +160,9 @@ def download_AIA(time_int,
         time_int[0] = dt.strptime(time_int[0], '%Y-%m-%dT%H:%M:%S')
         time_int[1] = dt.strptime(time_int[1], '%Y-%m-%dT%H:%M:%S')
 
-    series=a.jsoc.Series('aia.lev1_uv_24s') if wavelen==1600 else a.jsoc.Series('aia.lev1_euv_12s')
+    #series=a.jsoc.Series('aia.lev1_uv_24s') if wavelen==1600 else a.jsoc.Series('aia.lev1_euv_12s')
 
-    #series=a.Sample(24*u.second) if wavelen==1600 else a.Sample(12*u.second)
+    series=a.Sample(24*u.second) if wavelen==1600 else a.Sample(12*u.second)
 
 
 
@@ -170,12 +170,13 @@ def download_AIA(time_int,
     time = a.Time(time_int[0], time_int[1])
 
     qs = [time, wavelen, series]
+    """
     if cutout_coords != False:
         cutout = a.jsoc.Cutout(cutout_coords[0], top_right=cutout_coords[1])
-
-    qs.append(cutout)
-    jsoc_email='stix.datacenter@gmail.com'#'test@gmail.com'
-    qs.append(a.jsoc.Notify(jsoc_email))  # Set this in config
+        qs.append(cutout)
+        jsoc_email='stix.datacenter@gmail.com'#'test@gmail.com'
+        qs.append(a.jsoc.Notify(jsoc_email))  # Set this in config
+        """
 
     res = Fido.search(*qs)
     print("Fido result:", res)
@@ -185,18 +186,18 @@ def download_AIA(time_int,
     if isinstance(files, list):
         files=files[0]
 
-    return files
-    """
+    #return files
+    #"""
     aia_map = sunpy.map.Map(files)
     if isinstance(aia_map, list):
         aia_map=aia_map[0]
-    #if cutout_coords != False:
-    #    aia_map = aia_map.submap(cutout_coords[0], top_right=cutout_coords[1])
+    f cutout_coords != False:
+        aia_map = aia_map.submap(cutout_coords[0], top_right=cutout_coords[1])
     uid=str(uuid.uuid1())
     out_fname =os.path.join(aia_file_path,  f"{uid}.fits")
     aia_map.save(out_fname)
     return out_fname
-    """
+    #"""
 
 
 

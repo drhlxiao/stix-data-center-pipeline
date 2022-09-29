@@ -66,17 +66,16 @@ CMAP = 'std_gamma_2'  #color map
 
 
 
-def plot_idl(doc_id: int, create_aia=False):
+def plot_idl(doc_id: int, create_aia=False, create_stix_images=True):
     doc = flare_image_db.find_one({'_id': doc_id})
     if not doc:
         logger.error(f'Doc {doc_id} not found in the database')
         return
-
-    try:
-        plot_imaging_and_ospex_results(doc)
-    except Exception as e:
-        #don't raise any exception
-        logger.error(e)
+    if create_stix_images:
+        try:
+            plot_imaging_and_ospex_results(doc)
+        except Exception as e:
+            logger.error(e)
     if not create_aia:
         return
     doc = flare_image_db.find_one({'_id': doc_id})
