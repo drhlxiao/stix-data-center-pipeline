@@ -54,7 +54,6 @@ def query_esa_tap_server(start_utc, end_utc, instrument='EUI', level='L2'):
 
     sql=f'''SELECT * FROM v_sc_data_item WHERE data_type='SCI'  AND   (end_time >'{start_utc}')   AND   (begin_time <'{end_utc}')   AND   ( (instrument ='EUI') )   AND   ( (level ='L2') )'''
 
-
     data={'REQUEST': 'doQuery',
             'LANG': 'ADQL',
             'FORMAT': 'JSON',
@@ -76,14 +75,22 @@ def plot_eui(folder, start_utc, end_utc, peak_utc, instrument='EUI'):
         print("eui not available")
         return None
     peak_ut=utc2datetime(peak_utc).timestamp()
-    cloz_dict={ abs(utc2datetime(row[0]).timestamp()-peak_ut ):row  for row in resp['data']}
-    url=get_url(cloz_dict[min(cloz_dict.keys())])
+    eui_fsi174 = { abs(utc2datetime(row[0]).timestamp() - peak_ut):row  for row in resp['data'] if 'FSI174' in row[4]}
+    eui_fsi304= { abs(utc2datetime(row[0]).timestamp() - peak_ut):row  for row in resp['data'] if 'FSI304' in row[4]}
     temp_folder=tempfile.gettempdir()
-    filename=wget.download(url,out=temp_folder)
-    imap=Map(filename)
-    imap.peek()
-    print(filename)
-    print(url)
+    map_fsi304, map_fsi174=None, None
+    if eui_fsi174:
+        url_fsi174=get_url(eui_fsi174[min(eui_fsi174.keys())])
+        filename_fsi174=wget.download(url_fsi174, out=temp_folder)
+        map_fsi174=Map(filename_fsi174)
+        os.unlink(filename_fsi174)
+    if eui_fsi304:
+        url_fsi304=get_url(eui_fsi304[min(eui_fsi304.keys())])
+        filename_fsi304=wget.download(url_fsi304, out=temp_folder)
+        map_fsi304=Map(filename_fsi304)
+        os.unlink(filename_fsi304)
+
+    return  map_fsi304, map_fsi174
 
 
 if __name__=='__main__':

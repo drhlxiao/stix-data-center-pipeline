@@ -119,7 +119,7 @@ def plot_aspect_data(filename, start_unix, end_unix, flare_sun_x=0, flare_sun_y=
     flare_dt=[ut.unix2datetime(flare_unix_time)]
     axes[0].plot(flare_dt, [flare_sun_x],'x',  label="offset_x used")
     axes[1].plot(flare_dt, [flare_sun_y],'x',  label="offset_y used")
-    axes[0].set_xlabel('Time')
+    #axes[0].set_xlabel('Time')
     axes[0].set_ylabel('X (arcsec)')
     axes[0].legend()
 
@@ -128,7 +128,7 @@ def plot_aspect_data(filename, start_unix, end_unix, flare_sun_x=0, flare_sun_y=
     axes[0].xaxis.set_major_locator(locator)
     axes[0].xaxis.set_major_formatter(formatter)
 
-    axes[1].set_xlabel('Time')
+    #axes[1].set_xlabel('Time')
     axes[1].set_ylabel('Y (arcsec)')
     axes[1].legend()
     locator = mdates.AutoDateLocator(minticks=3, maxticks=7)
