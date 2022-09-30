@@ -189,6 +189,7 @@ def process_one_doc(doc):
         erange=f"{doc['energy_range'][0]} - {doc['energy_range'][1]} keV "
         title=f"EUI {wavlen} {m.meta['date-obs'] } \n STIX {erange} {stix_map.meta['date_avg']}  "
         comp_map.plot(axes=ax, title=title)
+
         fname=os.path.join(out_folder, f'{fout_prefix}_eui_{wavlen}.png')
         eui_croped_fits=os.path.join(out_folder, f'{fout_prefix}_eui_{wavlen}.fits')
         fig.savefig(fname)

@@ -19,8 +19,9 @@ from matplotlib import cm
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.dates as mdates
-
+from matplotlib.ticker import FuncFormatter
 from datetime import datetime, timedelta as td
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from astropy import units as u
 from astropy.time import Time
@@ -35,6 +36,7 @@ from sunpy.coordinates.frames import HeliocentricEarthEcliptic, HeliographicSton
 from stix.flare_pipeline import lightcurves
 from stix.flare_pipeline import ospex
 from stix.flare_pipeline import sdo_aia
+from stix.flare_pipeline import solo_eui 
 from stix.flare_pipeline import imaging_task_manager as itm
 from stix.core import mongo_db as db
 from stix.core import logger
@@ -42,6 +44,7 @@ from stix.utils import bson
 from stix.spice import time_utils as ut
 from stix.spice.solo import SoloEphemeris
 from stix.analysis.science_l1 import ScienceL1
+
 
 ar = u.def_unit("arcsecs", 1 * u.arcsec)
 am = u.def_unit("meters", 1 * u.m)
@@ -66,7 +69,8 @@ CMAP = 'std_gamma_2'  #color map
 
 
 
-def plot_idl(doc_id: int, create_aia=False, create_stix_images=True):
+def plot_idl(doc_id: int, create_stix_images=True, create_eui=True, create_aia=False):
+    logger.info(f"Processing {doc_id}")
     doc = flare_image_db.find_one({'_id': doc_id})
     if not doc:
         logger.error(f'Doc {doc_id} not found in the database')
@@ -76,16 +80,16 @@ def plot_idl(doc_id: int, create_aia=False, create_stix_images=True):
             plot_imaging_and_ospex_results(doc)
         except Exception as e:
             logger.error(e)
-    if not create_aia:
-        return
-    doc = flare_image_db.find_one({'_id': doc_id})
-    try:
-        logger.info(f'Creating aia images for {doc["_id"]}..')
-        plot_aia(doc)
-    except Exception as e:
-        raise
-        logger.error(e)
-        #don't raise any exception
+    if create_eui:
+        try:
+            solo_eui.process_one(doc['_id'])
+        except Exception as e:
+            logger.error(e)
+    if create_aia:
+        try:
+            plot_aia(doc['_id'])
+        except Exception as e:
+            logger.error(e)
 
 
 def rotate_map(m, recenter=False):
@@ -97,7 +101,9 @@ def rotate_map(m, recenter=False):
         return m
     return m.rotate(angle=(m.meta['crota2']) * u.deg, recenter=recenter)
 
-def plot_aspect_data(filename, start_unix, end_unix, flare_sun_x=0, flare_sun_y=0):
+def plot_aspect_data(filename, start_unix, end_unix, flare_sun_x=0, flare_sun_y=0, padding=600):
+    end_unix=end_unix+padding
+    start_unix=start_unix-padding
     asp_docs=mdb.get_aspect_solutions(start_unix, end_unix)
     timestamps=[]
     fig, axes=plt.subplots(1,2, figsize=(7,3))
@@ -111,14 +117,14 @@ def plot_aspect_data(filename, start_unix, end_unix, flare_sun_x=0, flare_sun_y=
         sun_x.append(x)
         sun_y.append(y)
     if timestamps:
-        axes[0].plot(timestamps, sun_x, label="sun_x")
-        axes[1].plot(timestamps, sun_y, label="sun_y")
+        axes[0].plot(timestamps, sun_x, '--o', label="sun_x", alpha=0.5)
+        axes[1].plot(timestamps, sun_y,'--o', label="sun_y", alpha=0.5)
     else:
         plt.suptitle('Aspect solution not available')
 
     flare_dt=[ut.unix2datetime(flare_unix_time)]
-    axes[0].plot(flare_dt, [flare_sun_x],'x',  label="offset_x used")
-    axes[1].plot(flare_dt, [flare_sun_y],'x',  label="offset_y used")
+    axes[0].plot(flare_dt, [flare_sun_x],'+',  label="offset_x used")
+    axes[1].plot(flare_dt, [flare_sun_y],'+',  label="offset_y used")
     #axes[0].set_xlabel('Time')
     axes[0].set_ylabel('X (arcsec)')
     axes[0].legend()
@@ -136,37 +142,12 @@ def plot_aspect_data(filename, start_unix, end_unix, flare_sun_x=0, flare_sun_y=
     axes[1].xaxis.set_major_locator(locator)
     axes[1].xaxis.set_major_formatter(formatter)
 
-    fig.suptitle('STIX aspect solutions')
+    fig.suptitle('STIX aspect solutions \nand the solution used for pointing correction')
     #fig.autofmt_xdate()
     fig.tight_layout()
     logger.info(f'Writing aspect solution to :{filename}')
     fig.savefig(filename, dpi=DEFAULT_PLOT_DPI)
     
-
-
-
-def zoom(m, ax, ratio=2):
-    """Zoom in/out image
-    Parameters:
-    -----------
-    m: sunpy.map.Map
-        sunpy map
-    ax: matplotlib axes
-    ratio:  float
-        zoom ratio
-    Returns
-    -----------
-    None
-    """
-    max_coord= np.where(np.max(m.data)==m.data)
-    xc,yc=max_coord[0][0], max_coord[1][0]
-    y0, y1 = ax.get_ylim()
-    x0, x1 = ax.get_xlim()
-    if x0 < xc < x1:
-        ax.set_xlim(xc - (xc - x0) / ratio, xc + (x1 - xc) / ratio)
-    if y0 < yc < y1:
-        ax.set_ylim(yc - (yc - y0) / ratio, yc + (y1 - yc) / ratio)
-
 
 def plot_flare_image(imap,
                      fig,
@@ -178,7 +159,7 @@ def plot_flare_image(imap,
                      zoom_ratio=1,
                      cmap=CMAP,
                      color='w',
-                     grid_spacing=10 * u.deg,
+                     grid_spacing=5* u.deg,
                      text_xy=[0.02, 0.95],
                      desc_xy=[0.95, 0.98],
                      vmin=None):
@@ -192,7 +173,7 @@ def plot_flare_image(imap,
             imap.plot(cmap=cmap, axes=ax, title="")
         else:
             imap.plot(cmap=cmap, axes=ax, title="", vmin=vmin * imap.max())
-    imap.draw_grid(color=color, ls='--', grid_spacing=10 * u.deg)
+    imap.draw_grid(color=color, ls='--', grid_spacing=grid_spacing)
     imap.draw_limb(axes=ax, color=color, alpha=0.5)
     if title:
         ax.text(text_xy[0],
@@ -211,19 +192,11 @@ def plot_flare_image(imap,
                 transform=ax.transAxes,
                 color=color)
     if contour_levels:
-        #print(contour_levels)
-        clevels = np.array(contour_levels) * imap.max()
+        clevels = contour_levels * u.percent
         cs = imap.draw_contours(clevels)
-        proxy = [
-            plt.Rectangle((1, 1), 2, 1, fc=pc.get_edgecolor()[0])
-            for pc in cs.collections
-        ]
-        legends = [
-            f'{contour_levels[i]*100:.0f} %' for i, x in enumerate(clevels)
-        ]
-        plt.legend(proxy, legends)
-    if zoom_ratio != 1:
-        zoom(imap, ax, zoom_ratio)
+        h,_ = cs.legend_elements()
+        labels=[f'{x}%' for x in contour_levels]
+        ax.legend(h, labels,  framealpha=0)
     ax.set_aspect('equal')
     return ax
 
@@ -235,7 +208,11 @@ def fix_map_fits_header(image_filename):
     try:
         hduls = fits.open(image_filename)
         for hdu in hduls:
-            hdu.header['DATE-OBS']=ut.utc2isoformat(hdu.header['DATE_OBS'])
+            try:
+                hdu.header['DATE-OBS']=ut.utc2isoformat(hdu.header['DATE_OBS'])
+            except KeyError:
+                hdu.header['DATE-OBS']=ut.utc2isoformat(hdu.header['DATE_AVG'])
+
         hduls.writeto(image_filename, overwrite=True, checksum=True)
     except Exception as e:
         logger.error(str(e))
@@ -398,29 +375,32 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
     #Full-disk image
 
 
-    logger.info("Creating full disk images...")
+    logger.info("Loading full disk images...")
 
     mbp_full = sunpy.map.Map(fits_filename['image_full_disk'])
     mbp_full = rotate_map(mbp_full, recenter=True)
     #bp
-    logger.info("Creating BP images...")
+    logger.info("Loading BP images...")
     mbp = sunpy.map.Map(fits_filename['image_bp'])
     mbp = rotate_map(mbp)
 
+    logger.info("Creating clean map...")
     mclean = sunpy.map.Map(fits_filename['image_clean'])
     #mclean=mclean[4]
     mclean = rotate_map(mclean)
     #MEM
+    logger.info("Creating em map...")
     mem = sunpy.map.Map(fits_filename['image_em'])
     mem = rotate_map(mem)
     # FWD-fit
+    logger.info("Creating fwdfit map...")
     mfwd = sunpy.map.Map(fits_filename['image_fwdfit'])
     mfwd = rotate_map(mfwd)
     aspect_info = 'Aspect corrected' if task_doc['aux'].get(
         'data_source_type', None) == 'Aspect' else 'Aspect not corrected'
 
-    descr_full = f'{start_utc} – {end_utc} \n4 - 10 keV  {aspect_info}'
-    descr = f'{start_utc} – {end_utc}\n{energy_range_str} {aspect_info} '
+    descr_full = f'STIX 4 - 10 keV image ({aspect_info})\n {start_utc} – {end_utc} UT '
+    descr= f'STIX {energy_range_str} image ({aspect_info})\n {start_utc} – {end_utc} UT'
 
     maps = [mbp_full, mbp, mclean, mem, mfwd]
     map_names=['Full-disk', 'Back-projection', 'CLEAN', 'MEM', 'VIS_FWDFIT']
@@ -436,9 +416,12 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
         'MEM',
         f'VIS_FWDFIT {fwdshape}'
     ]
+    
+    logger.info("Plotting images...")
     panel_ids = [232, 233, 234, 235, 236]
     for i, imap in enumerate(maps):
         vmin = 0.4 if i == 0 else None
+        logger.info(f"Creating image # {i}")
         plot_flare_image(imap,
                          fig,
                          panel_grid=panel_ids[i],
@@ -451,10 +434,13 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
 
     image_id_str = f'(#{task_doc["_id"]})'
 
-    fig.suptitle(descr, fontsize=10)
-    fig.subplots_adjust(top=0.85, wspace=0.4, hspace=0.4)
-
-    fig.savefig(img_fname, format='png', dpi=dpi)
+    try:
+        fig.suptitle(descr, fontsize=10)
+        fig.subplots_adjust(top=0.85, wspace=0.3, hspace=0.4)
+        fig.savefig(img_fname, format='png', dpi=dpi)
+    except Exception as e:
+        logger.error(f"Failed to create image {str(e)}")
+        pass
 
     logger.info(f"Images have been written to file:{img_fname}")
 
@@ -478,8 +464,7 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
         }
         l1.plot_spectrogram(ax_spec, selection_box)
 
-        #plt.subplots_adjust(top=0.95, wspace=0.2, hspace=2)
-        pfig.tight_layout()
+        plt.subplots_adjust(top=0.95, wspace=0.3, hspace=0.2)
 
         lc_and_spec_fname = os.path.join(out_folder,
                                  f'{fout_prefix}_lc_and_spec.png')
@@ -512,13 +497,14 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
                                   title=titles[i],
                                   descr='',
                                   draw_image=False,
-                                  contour_levels=[0.3, 0.5, 0.7],
+                                  contour_levels=[50,60,70, 80,90],
                                   zoom_ratio=1,
                                   color='k')
             ax.set_xlabel('solar_x [arcsec]')
             ax.set_ylabel('solar_y [arcsec]')
-            pfig.suptitle(descr, fontsize=10)
-            pfig.subplots_adjust(top=0.95, wspace=0.2, hspace=4)
+            pfig.suptitle(descr, fontsize=12)
+            pfig.subplots_adjust(top=0.95, wspace=0.3)
+            #pfig.tight_layout()
             img_filename = os.path.join(out_folder,
                              f'{fout_prefix}_{map_names[i]}.png')
             try:
@@ -527,6 +513,7 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
                 report[f'B_image_{map_names[i]}']={'title':f'{map_names[i]} map',
                         'filename':img_filename} 
             except IndexError:
+                raise
                 logger.error("Index error when saving figures ")
             plt.close()
 
@@ -542,7 +529,8 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
             logger.error(str(e))
     return img_fname, report
 
-def plot_aia(doc, wavelen=1600):
+def plot_aia(_id, wavelen=1600):
+    doc=flare_image_db.find_one({'_id':_id})
     try:
         image_em=doc['fits']['image_em']
     except (KeyError, TypeError):
@@ -604,18 +592,16 @@ def plot_aia(doc, wavelen=1600):
 
 
 
-def create_stix_for_all():
-    docs = flare_image_db.find({'signal_data_type':'PixelData'}).sort('_id',-1)
-    for doc in docs:
+def create_stix_for_all(start_id, end_id=8700):
+    for _id in range(start_id, end_id):
         try:
-            logger.info(f'Creating aia images for {doc["_id"]}..')
-            plot_idl(doc['_id'], False, True)
+            plot_idl(_id, True, True)
         except Exception as e:
             logger.error(e)
             #don't raise any exception
 
 
-    
+
 
 def create_all_for_all():
     docs = flare_image_db.find({'signal_data_type':'PixelData', 'aia':{'$exists':False}}).sort('_id',-1)
