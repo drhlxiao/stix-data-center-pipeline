@@ -497,7 +497,7 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
                                   title=titles[i],
                                   descr='',
                                   draw_image=False,
-                                  contour_levels=[50,60,70, 80,90],
+                                  contour_levels=[30,40, 50,60,70, 80,90],
                                   zoom_ratio=1,
                                   color='k')
             ax.set_xlabel('solar_x [arcsec]')
@@ -532,7 +532,7 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
 def plot_aia(_id, wavelen=1600):
     doc=flare_image_db.find_one({'_id':_id})
     try:
-        image_em=doc['fits']['image_em']
+        image_clean=doc['fits']['image_clean']
     except (KeyError, TypeError):
         logger.info('Could not create AIA image, can not read info from STIX EM image !')
         return
@@ -549,7 +549,7 @@ def plot_aia(_id, wavelen=1600):
     fout_prefix=doc["idl_config"]["prefix"]
 
 
-    aia_rep_map, stix_bp_map, aia_map =sdo_aia.get_projected_aia_map(image_em, wavelen)
+    aia_rep_map, stix_bp_map, aia_map =sdo_aia.get_projected_aia_map(image_clean, wavelen)
     if aia_map is None:
         logger.info('AIA image is None!')
         return

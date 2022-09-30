@@ -85,14 +85,7 @@ def extract_image_meta(flare_image_doc, which_image='image_em',
     ax.set_aspect('equal')
     ax1 = fig.add_subplot(122, projection=imap)
 
-    
-
-
-
     cs=imap.draw_contours(clevels, axes=ax1)
-
-
-
     apertures = CircularAperture(peak_pix_coords, r=20.)
     norm = ImageNormalize(stretch=SqrtStretch())
     ax1.imshow(imap.data, cmap='Greys', origin='lower', norm=norm,

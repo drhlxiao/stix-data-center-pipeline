@@ -138,7 +138,7 @@ def process_one_doc(doc):
         return
 
     try:
-        image_em=doc['fits']['image_em']
+        image_clean=doc['fits']['image_clean']
     except (KeyError, TypeError):
         logger.info('Could not create EUI image, can not read info from STIX EM image !')
         return
@@ -149,7 +149,7 @@ def process_one_doc(doc):
                 return True
         return False
 
-    stix_map = sunpy.map.Map(image_em)
+    stix_map = sunpy.map.Map(image_clean)
 
     stix_bottom_left = stix_map.bottom_left_coord
     stix_top_right = stix_map.top_right_coord
@@ -187,7 +187,7 @@ def process_one_doc(doc):
         comp_map.set_levels(index=1, levels=levels, percent=True)
         ax = fig.add_subplot(111, projection=stix_map)
         erange=f"{doc['energy_range'][0]} - {doc['energy_range'][1]} keV "
-        title=f"EUI {wavlen} {m.meta['date-obs'] } \n STIX {erange} {stix_map.meta['date_avg']}  "
+        title=f"EUI {wavlen} {m.meta['date-obs'] } \n STIX CLEAN {erange} {stix_map.meta['date_avg']}  "
         comp_map.plot(axes=ax, title=title)
 
         fname=os.path.join(out_folder, f'{fout_prefix}_eui_{wavlen}.png')
