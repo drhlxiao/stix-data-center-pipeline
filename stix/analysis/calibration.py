@@ -225,15 +225,20 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
     #peak_ex=[.0, 0., 0.]
     gpeaks = None
     if len(peak_x) >= 2:
+        fpol1= TF1(f'fpol1_{name}', '[0]+[1]*x[0]', peak_x[0],peak_x[-1])
+        fpol1.SetParLimits(0, 200, 250)
+        fpol1.SetParLimits(1, 2.2, 2.4)
+
         gpeaks = create_graph_errors(peak_x, peak_y, peak_ex, peak_ey, title,
                               'Energy (keV)', 'Peak position (ADC)')
-        gpeaks.Fit('pol1', 'Q')
+        gpeaks.Fit(fpol1, 'Q')
+
         gpeaks.GetYaxis().SetRangeUser(0.9 * peak_y[0], peak_y[-1] * 1.1)
         gpeaks.Write('gpeaks_{}'.format(name))
 
-        calibration_params = gpeaks.GetFunction('pol1').GetParameters()
-        chisquare = gpeaks.GetFunction('pol1').GetChisquare()
-        fcal_errors = gpeaks.GetFunction('pol1').GetParErrors()
+        calibration_params = fpol1.GetParameters()
+        chisquare = fpol1.GetChisquare()
+        fcal_errors = fpol1.GetParErrors()
         result['fcal'] = {
             'p0': calibration_params[0],
             'p1': calibration_params[1],

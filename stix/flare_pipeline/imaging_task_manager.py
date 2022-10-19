@@ -95,11 +95,10 @@ def attach_aspect_solutions(start_unix, end_unix, config):
             y0=doc_a[key][elem]
             y1=doc_b[key][elem]
         return (y0*(t1-mean_time)+y1*(mean_time-t0))/(t1-t0)
+
     if first is None and second is None:
         config['aux']['error']='Aspect solution not found'
-
-
-    if first is not None and second is not None:
+    else:
         config['aux']['L0']=interp(first, second, 'solo_loc_carrington_lonlat', mean_time, elem=0)
         config['aux']['B0']=interp(first, second, 'solo_loc_carrington_lonlat', mean_time, elem=1)
         config['aux']['sun_center']=get_sun_center_from_aspect(
@@ -261,7 +260,6 @@ def queue_imaging_tasks(doc,
         }
         config = {
             'filename': fname,
-            'signal_data_type':'PixelData',
             'bsd_id': doc['_id'],
             'raw_file_id': doc['run_id'],
             'unique_id': uid,
@@ -306,15 +304,19 @@ def queue_imaging_tasks(doc,
             'fits': {}, #placeholder
             'figs': {}, #placeholder
         }
+        
 
-        attach_aux(box['unix_time_range'][0] - ASPECT_TIME_TOR,
+        attach_aspect_solutions(box['unix_time_range'][0] - ASPECT_TIME_TOR,
                                 box['unix_time_range'][1] + ASPECT_TIME_TOR,
                                 config)
 
         imaging_inputs = bson.dict_to_json(config)
-        imaging_inputs['creation_time'] = datetime.now()
+        imaging_inputs.update({
+            'creation_time': datetime.now(), 
+            '_id':  flare_image_id,
+            'signal_data_type': 'PixelData'
+            })
         logger.info(f"Inserting data into db for bsd #{bsd_id} ")
-        imaging_inputs['_id'] = flare_image_id
         flare_image_ids.append(flare_image_id)
         mdb.insert_flare_image(imaging_inputs)
         flare_image_id += 1
@@ -341,7 +343,7 @@ def register_imaging_tasks_for_file(file_id):
 def update_auxiliary_data():
     db_flare_images = mdb.get_collection('flare_images')
     for doc in db_flare_images.find():
-        attach_aux(doc['start_unix'] - ASPECT_TIME_TOR,
+        attach_aspect_solutions(doc['start_unix'] - ASPECT_TIME_TOR,
                                 doc['end_unix'] + ASPECT_TIME_TOR, doc)
         doc['num_idl_calls'] = 0
         #reset

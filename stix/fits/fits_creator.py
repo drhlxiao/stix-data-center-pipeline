@@ -246,7 +246,7 @@ def create_continous_low_latency_fits(start_unix,
     file_id = -1
     for spid, product in sdt.LOW_LATENCY_TYPES.items():
         print(spid, product, start_unix, end_unix)
-        if spid in std.QL_SPID_MAP.keys():
+        if spid in sdt.QL_SPID_MAP.keys():
             packets = db.get_quicklook_packets(sdt.QL_SPID_MAP[spid],
                                                start_unix,
                                                end_unix - start_unix,
@@ -610,8 +610,6 @@ if __name__ == '__main__':
     if args['date']:
         date = args['date']
         create_daily_low_latency_fits(date, path)
-
-
     if args['recreate_date_offsets']:
         start_off = int(args['recreate_date_offsets'][0])
         end_off = int(args['recreate_date_offsets'][1])

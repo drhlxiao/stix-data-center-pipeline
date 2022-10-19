@@ -399,7 +399,7 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
     aspect_info = 'Aspect corrected' if task_doc['aux'].get(
         'data_source_type', None) == 'Aspect' else 'Aspect not corrected'
 
-    descr_full = f'STIX 4 - 10 keV image ({aspect_info})\n {start_utc} – {end_utc} UT '
+    descr_full = f'STIX 4 – 10 keV image ({aspect_info})\n {start_utc} – {end_utc} UT '
     descr= f'STIX {energy_range_str} image ({aspect_info})\n {start_utc} – {end_utc} UT'
 
     maps = [mbp_full, mbp, mclean, mem, mfwd]

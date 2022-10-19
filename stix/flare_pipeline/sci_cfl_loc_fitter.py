@@ -22,7 +22,7 @@ import json
 import numpy as np
 from datetime import datetime
 from stix.core import datatypes as sdt
-from stix.spice import datetime as st
+from stix.spice import time_utils as st
 from stix.core import mongo_db as db
 from stix.core import logger
 from stix.core import config
@@ -465,8 +465,7 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         print('flare_location_solver run_id')
         print('flare_location_solver run_id_start id_end')
-
-        flp.process_L1_BSD(2720, 2722)
+        flp.process_L1_BSD(2722, 13012)
     elif len(sys.argv) == 2:
         flp.process_L1_BSD_in_file(int(sys.argv[1]))
     else:

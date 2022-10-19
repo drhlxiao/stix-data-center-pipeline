@@ -66,12 +66,6 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 
 	;;******* Compute the Back Projection map (around the flare location)
 	bp_map = stx_bproj(vis,map_size,pixel_size, aux_data)
-	;bp_map.L0 = L0
-	;bp_map.B0 = B0
-	;bp_map.RSUN = RSUN
-	;bp_map.roll_angle = roll_angle
-	;bp_map.xc += x_offset_arcsec
-	;bp_map.yc += y_offset_arcsec
 
 
 
@@ -80,14 +74,6 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 
 	;;******* Compute the FWDFIT reconstruction (around the flare location)
 	vis_fwdfit_pso_map = stx_vis_fwdfit_pso(vis_fwdfit_source_type, vis, aux_data, imsize=map_size, pixel=pixel_size, /silent)
-	;vis_fwdfit_pso_map.L0 = L0
-	;vis_fwdfit_pso_map.B0 = B0
-	;vis_fwdfit_pso_map.RSUN = RSUN
-	;vis_fwdfit_pso_map.roll_angle = roll_angle
-	;vis_fwdfit_pso_map.xc += x_offset_arcsec
-	;vis_fwdfit_pso_map.yc += y_offset_arcsec
-	;vis_fwdfit_pso_map.time= flare_start_UTC
-	;vis_fwdfit_pso_map.dur=duration
 
 	;;******* Compute the CLEAN reconstruction (around the flare location)
 
