@@ -17,7 +17,6 @@ from stix.fits.products.science import XrayL0, Aspect, XrayL1, XrayL2, XrayL3, S
 #from stix.utils.logger import get_logger
 
 from stix.core import mongo_db, logger
-
 logger = logger.get_logger()
 
 db = mongo_db.MongoDB()
@@ -36,9 +35,9 @@ def create_fits_for_packets(file_id,
                             spid,
                             product,
                             is_complete,
-                            base_path_name=FITS_PATH,
-                            overwrite=True,
-                            version=1,
+                            base_path_name = FITS_PATH,
+                            overwrite = True,
+                            version = 1,
                             remove_duplicates=True,
                             run_type='file'):
     try:
@@ -245,7 +244,7 @@ def create_continous_low_latency_fits(start_unix,
                                       run_type='daily'):
     file_id = -1
     for spid, product in sdt.LOW_LATENCY_TYPES.items():
-        print(spid, product, start_unix, end_unix)
+        #print(spid, product, start_unix, end_unix)
         if spid in sdt.QL_SPID_MAP.keys():
             packets = db.get_quicklook_packets(sdt.QL_SPID_MAP[spid],
                                                start_unix,

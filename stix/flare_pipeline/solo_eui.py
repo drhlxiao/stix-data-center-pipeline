@@ -78,7 +78,7 @@ def query_esa_tap_server(start_dt, end_dt, instrument='EUI', level='L2'):
 def get_url(row):
     file_id=row[1]
     return f'http://soar.esac.esa.int/soar-sl-tap/data?retrieval_type=PRODUCT&data_item_id={file_id}&product_type=SCIENCE'
-def get_eui_maps(start_utc, end_utc, peak_utc=None, instrument='EUI', padding = 60):
+def get_eui_maps(start_utc, end_utc, peak_utc=None, instrument='EUI', padding = 300):
 
     res=[]
     start_dt=stu.utc2datetime(start_utc) - timedelta(seconds=padding)

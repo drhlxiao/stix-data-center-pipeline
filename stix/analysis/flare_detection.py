@@ -306,7 +306,6 @@ def find_flares_in_data(data,
 
 
 
-
     conf_set=False
     if lc_baseline is None:
         #only use the lowest lightcurve for flare identification 

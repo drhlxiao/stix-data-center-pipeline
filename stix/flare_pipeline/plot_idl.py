@@ -123,8 +123,8 @@ def plot_aspect_data(filename, start_unix, end_unix, flare_sun_x=0, flare_sun_y=
         plt.suptitle('Aspect solution not available')
 
     flare_dt=[ut.unix2datetime(flare_unix_time)]
-    axes[0].plot(flare_dt, [flare_sun_x],'+',  label="offset_x used")
-    axes[1].plot(flare_dt, [flare_sun_y],'+',  label="offset_y used")
+    axes[0].plot(flare_dt, [flare_sun_x],'+',  label="x_offset used")
+    axes[1].plot(flare_dt, [flare_sun_y],'+',  label="y_offset used")
     #axes[0].set_xlabel('Time')
     axes[0].set_ylabel('X (arcsec)')
     axes[0].legend()

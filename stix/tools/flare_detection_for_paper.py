@@ -23,7 +23,7 @@ from stix.core import logger
 #from stix.spice import solo
 from stix.analysis import ql_analyzer as qla
 logger = logger.get_logger()
-matplotlib.use('Agg')
+#matplotlib.use('Agg')
 
 import pickle
 mdb = db.MongoDB()
@@ -126,7 +126,6 @@ def make_lightcurve_snapshot(data, docs, snapshot_path):
     #print(inserted_ids)
     fig=plt.figure()
     plt.plot(data['time'], data['lcs'][0], label="4 -- 10 keV LC")
-    plt.plot(data['time'], data['lc'][0], label="4 -- 10 keV LC")
 
     for i, inserted_id in enumerate(inserted_ids):
         if inserted_id == None:

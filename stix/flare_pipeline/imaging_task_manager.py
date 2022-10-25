@@ -305,7 +305,10 @@ def queue_imaging_tasks(doc,
             'figs': {}, #placeholder
         }
         
-
+        #if config['aux']['solo_sun_r'] > 0.75:
+        #    config['aux']['comments']=f'''The aspect solution is unreliable due to the SolO-Sun distance exceeding 0.75 AU. 
+        #    The pointing offsets were calculated using the SPICE kernel.'''
+        #else:
         attach_aspect_solutions(box['unix_time_range'][0] - ASPECT_TIME_TOR,
                                 box['unix_time_range'][1] + ASPECT_TIME_TOR,
                                 config)
