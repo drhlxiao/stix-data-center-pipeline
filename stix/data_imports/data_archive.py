@@ -19,10 +19,13 @@ from stix.utils import bson
 
 from stix.spice import time_utils as sdt
 from stix.core import logger
+from stix.utils import checksum
 
 logger = logger.get_logger()
 
 mdb = db.MongoDB()
+fits_db = mdb.get_collection('fits')
+
 
 DEFAULT_ASP_PATH_PATTEN = "/data/pub099/fits/L2/*/*/*/*/*aux*.fits"
 DATA_ARCHIVE_FITS_PATH = "/data/pub099/fits/**/*.fits"
@@ -36,7 +39,7 @@ DATA_ARCHIVE_FILE_INFO = {
     'L1_stix-ql-variance': ('ql-var', 'L1', 'quicklook', 54121),
     'L1_stix-hk-maxi': ('hk-maxi', 'L1', 'housekeeping', 54102),
     'L1_stix-hk-mini': ('hk-mini', 'L1', 'housekeeping', 54101),
-    'L1_stix-cal-energy': ('al-cal', 'L1', 'quicklook', 54124),
+    'L1_stix-cal-energy': ('ql-cal', 'L1', 'quicklook', 54124),
     'L1_stix-sci-xray-cpd': ('xray-cpd', 'L1', 'science', 54115),
     'L1_stix-sci-xray-spec': ('xray-spec', 'L1', 'science', 54143),
     'L1_stix-sci-aspect-burst': ('aspect', 'L1', 'auxiliary', 54125),
@@ -90,26 +93,29 @@ def read_data_archive_fits_meta(filename, file_info):
 
 def import_data_archive_products(path=DATA_ARCHIVE_FITS_PATH):
     logger.info(f'Checking folder:{path}...')
-    fits_db = mdb.get_collection('fits')
     file_types = DATA_ARCHIVE_FILE_INFO.keys()
     for fname in glob.glob(path, recursive=True):
         print("FILENAME:", fname)
         file_type = [t for t in file_types if t in fname]
         basename = os.path.basename(fname)
+
+        md5checksum=checksum.get_file_md5(fname)
+
         if not file_type:
             logger.info(f'{basename} not supported type. Skipped!')
             continue
-        if fits_db.find_one({'filename': basename}):
+        if fits_db.find_one({'md5': md5checksum}):
             logger.info(f'{basename} already inserted in the database')
             continue
 
         file_type = file_type[0]
         logger.info(f'Add {basename} to fits file database')
-        meta = read_data_archive_fits_meta(fname,
+        meta = read_data_archive_fits_meta(fname, 
                                            DATA_ARCHIVE_FILE_INFO[file_type])
         if meta:
             logger.info(f'inserting metadata for {basename} to fits_db..')
-            fits_db.insert_one(meta)
+            meta['md5']=md5checksum
+            fits_db.update_one({'md5':md5}, {'$set':meta}, upsert=True)
             #update if
         if 'L2_stix-aux-' in fname:
             import_auxiliary(fname)
@@ -161,10 +167,22 @@ def import_auxiliary(fname):
     else:
         logger.warn(f'{fname} contains empty valid entries!')
 
+def init_md5():
+    for doc in fits_db.find():
+        filename=os.path.join(doc['path'], doc['filename'])
+        md5=checksum.get_file_md5(filename)
+        fits_db.update_one({'_id':doc['_id']},{'$set':{'md5':md5}})
+        print('updating ', doc['_id'])
+
+
 
 if __name__ == '__main__':
+    init_md5()
+    """
     if len(sys.argv) != 2:
         logger.info('read_and_import_aspect <filename')
         import_data_archive_products()
     else:
         import_auxiliary(sys.argv[1])
+        
+        """

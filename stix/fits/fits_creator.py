@@ -7,6 +7,7 @@ from itertools import chain
 from pathlib import Path
 
 from stix.core import datatypes as sdt
+
 from stix.fits.io.processors import FitsL1Processor
 from stix.fits.io import hk_fits_writer as hkw
 from stix.spice import time_utils as st
@@ -17,6 +18,7 @@ from stix.fits.products.science import XrayL0, Aspect, XrayL1, XrayL2, XrayL3, S
 #from stix.utils.logger import get_logger
 
 from stix.core import mongo_db, logger
+from stix.utils import checksum
 logger = logger.get_logger()
 
 db = mongo_db.MongoDB()
@@ -172,8 +174,11 @@ def _create_fits_for_packets(file_id,
             except:
                 file_size = 0
 
+            md5=checksum.get_file_md5(abs_path)
+
             doc = {
                 #'_id':unique_id,
+                'md5':md5,
                 'packet_id_start': parsed_packets['min_id'],
                 'packet_id_end': parsed_packets['max_id'],
                 'packet_spid': spid,
@@ -191,6 +196,7 @@ def _create_fits_for_packets(file_id,
                 'creation_time': datetime.utcnow(),
                 'path': base_path_name,
                 'file_size': file_size
+
             }
             print(doc)
             doc.update(metadata)
