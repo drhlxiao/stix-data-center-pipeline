@@ -29,14 +29,14 @@ DATA_ARCHIVE_FITS_PATH = "/data/pub099/fits/**/*.fits"
 processed_list = []
 
 DATA_ARCHIVE_FILE_INFO = {
-    'L1_stix-ql-background': ('ql_background', 'L1', 'quicklook', 54119),
-    'L1_stix-ql-flareflag': ('flareflag_location', 'L1', 'quicklook', 54122),
-    'L1_stix-ql-lightcurve': ('ql_light_curves', 'L1', 'quicklook', 54118),
-    'L1_stix-ql-spectra': ('ql_spectrogram', 'L1', 'quicklook', 54120),
-    'L1_stix-ql-variance': ('ql_variance', 'L1', 'quicklook', 54121),
-    'L1_stix-hk-maxi': ('hk_maxi', 'L1', 'housekeeping', 54102),
-    'L1_stix-hk-mini': ('hk_mini', 'L1', 'housekeeping', 54101),
-    'L1_stix-cal-energy': ('calibration_spectrum', 'L1', 'quicklook', 54124),
+    'L1_stix-ql-background': ('ql-bkg', 'L1', 'quicklook', 54119),
+    'L1_stix-ql-flareflag': ('ql-ffl', 'L1', 'quicklook', 54122),
+    'L1_stix-ql-lightcurve': ('ql-lc', 'L1', 'quicklook', 54118),
+    'L1_stix-ql-spectra': ('ql-spec', 'L1', 'quicklook', 54120),
+    'L1_stix-ql-variance': ('ql-var', 'L1', 'quicklook', 54121),
+    'L1_stix-hk-maxi': ('hk-maxi', 'L1', 'housekeeping', 54102),
+    'L1_stix-hk-mini': ('hk-mini', 'L1', 'housekeeping', 54101),
+    'L1_stix-cal-energy': ('al-cal', 'L1', 'quicklook', 54124),
     'L1_stix-sci-xray-cpd': ('xray-cpd', 'L1', 'science', 54115),
     'L1_stix-sci-xray-spec': ('xray-spec', 'L1', 'science', 54143),
     'L1_stix-sci-aspect-burst': ('aspect', 'L1', 'auxiliary', 54125),
