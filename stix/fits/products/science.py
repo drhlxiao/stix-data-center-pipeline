@@ -167,7 +167,7 @@ class XrayL0(Product):
     """
     def __init__(self, control, data):
         super().__init__(control=control, data=data)
-        self.name = 'xray-l0'
+        self.name = 'xray-rpd'
         self.level = 'L1A'
 
     @classmethod
@@ -269,7 +269,7 @@ class XrayL1(Product):
     """
     def __init__(self, control, data):
         super().__init__(control=control, data=data)
-        self.name = 'xray-l1'
+        self.name = 'xray-cpd'
         self.level = 'L1A'
 
     @classmethod
@@ -722,7 +722,7 @@ class XrayL2(XrayL1):
     """
     def __init__(self, control, data):
         super().__init__(control=control, data=data)
-        self.name = 'xray-l2'
+        self.name = 'xray-scpd'
         self.level = 'L1A'
 
 
@@ -732,7 +732,7 @@ class XrayL3(Product):
     """
     def __init__(self, control, data):
         super().__init__(control=control, data=data)
-        self.name = 'xray-l3'
+        self.name = 'xray-vis'
         self.level = 'L1A'
 
     @classmethod
@@ -833,7 +833,7 @@ class Spectrogram(Product):
     """
     def __init__(self, control, data):
         super().__init__(control=control, data=data)
-        self.name = 'spectrogram'
+        self.name = 'xray-spec'
         self.level = 'L1A'
 
     @classmethod

@@ -161,15 +161,23 @@ class FitsL1Processor:
 
     def write_fits(self, product):
         self.metadata=[]
-        if callable(getattr(product, 'to_days', None)):
+
+        if callable(getattr(product, 'to_requests', None)):
             #print("# to_days")
-            products = product.to_days()
-        else:
-            #print("# to_request")
             products = product.to_requests()
+            logger.info("Split products by requests")
+        elif 'daily' not in self.run_type:
+            logger.info("Split products by date")
+            products = product.to_days()
+            #print("# to_request")
+        else:
+            logger.info("Products are not split by date")
+            #don't split products for different days as packets are already split when selecting packets
+            products=[product]
         for prod in products:
             #create an fits for each request
             filename = self.generate_filename(product=prod)
+            logger.info(f"Filename will be :{filename}")
             start_date = prod.obs_beg.to_datetime()
             if prod.type == 'ql':
                 start_date = prod.obs_avg.to_datetime()
@@ -181,7 +189,7 @@ class FitsL1Processor:
             path=self.archive_path
             #path.mkdir(parents=True, exist_ok=True)
             fitspath = path / filename
-            logger.info(f'Fits filename:{fitspath.as_posix()}')
+            #logger.info(f'Fits filename:{fitspath.as_posix()}')
             #if fitspath.exists():
             #    logger.info(f'Fits file %s exists appending data {fitspath.name}')
             #    existing = prod.from_fits(fitspath)
@@ -283,9 +291,10 @@ class FitsL1Processor:
         if 'tc_packet_seq_control' in product.control.colnames and user_req != '':
             tc_control = f'_{product.control["tc_packet_seq_control"][0]}'
 
-        if product.type == 'ql':
-            date_range = product.obs_avg.to_datetime().strftime("%Y%m%d")
-        else:
+        #if product.type == 'ql':
+        #    date_range = product.obs_avg.to_datetime().strftime("%Y%m%d")
+        #else:
+        if True:
             start_obs = product.obs_beg.to_datetime().strftime("%Y%m%dT%H%M%S")
             end_obs = product.obs_end.to_datetime().strftime("%Y%m%dT%H%M%S")
             date_range = f'{start_obs}-{end_obs}'

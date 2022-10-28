@@ -205,6 +205,8 @@ class Product:
                f' {self.control.__repr__()}\n' \
                f' {self.data.__repr__()}\n' \
                f'>'
+    
+    
 
     def to_days(self):
         days = set([(t.year, t.month, t.day) for t in self.data['time'].to_datetime()])

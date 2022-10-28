@@ -444,9 +444,6 @@ class MongoDB(object):
             return []
         stop_unix_time = start_unix_time + span
         SPID = QL_SPIDS[packet_type]
-        collection = self.collection_ql
-        if collection is None:
-            return []
         query_string ={
                 'stop_unix_time': {
                     '$gt': start_unix_time
@@ -456,9 +453,8 @@ class MongoDB(object):
                 },
                 'SPID': SPID
             }
-        ret = collection.find(query_string, {'packet_id': 1}).sort('_id', 1)
+        ret = self.collection_ql.find(query_string, {'packet_id': 1}).sort('_id', 1)
         packet_ids = [x['packet_id'] for x in ret]
-
         if packet_ids:
             query_string = {'_id': {'$in': packet_ids}}
             cursor = self.collection_packets.find(query_string).sort(

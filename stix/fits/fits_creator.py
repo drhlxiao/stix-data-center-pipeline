@@ -37,7 +37,7 @@ def create_fits_for_packets(file_id,
                             is_complete,
                             base_path_name = FITS_PATH,
                             overwrite = True,
-                            version = 1,
+                            version = 3,
                             remove_duplicates=True,
                             run_type='file'):
     try:
@@ -45,7 +45,6 @@ def create_fits_for_packets(file_id,
                                  base_path_name, overwrite, version,
                                  remove_duplicates, run_type)
     except Exception as e:
-        print(e)
         logger.error(e)
 
 
@@ -160,8 +159,10 @@ def _create_fits_for_packets(file_id,
                                       overwrite, version, run_type)
             metadata_entries = [metadata]
         else:
+            logger.info(f"Creating fits structure for file {unique_id}")
             fits_processor = FitsL1Processor(base_path, unique_id, version,
                                              run_type)
+            logger.info(f"Writing fits file {unique_id}")
             fits_processor.write_fits(prod)
             metadata_entries = fits_processor.get_metadata()
         for metadata in metadata_entries:
@@ -191,9 +192,10 @@ def _create_fits_for_packets(file_id,
                 'path': base_path_name,
                 'file_size': file_size
             }
+            print(doc)
             doc.update(metadata)
             db.write_fits_index_info(doc)
-            logger.info(f'created  fits file:  {metadata["filename"]}')
+            logger.info(f'Created  fits file:  {metadata["filename"]}')
     except Exception as e:
         raise
         logger.error(str(e))
@@ -243,14 +245,19 @@ def create_continous_low_latency_fits(start_unix,
                                       version=1,
                                       run_type='daily'):
     file_id = -1
+    logger.info(f"data time span:{end_unix-start_unix}")
     for spid, product in sdt.LOW_LATENCY_TYPES.items():
         #print(spid, product, start_unix, end_unix)
+        #if spid!=54118:
+        #    print(" we only create lc this time >>>")
+        #    continue
+
         if spid in sdt.QL_SPID_MAP.keys():
             packets = db.get_quicklook_packets(sdt.QL_SPID_MAP[spid],
                                                start_unix,
                                                end_unix - start_unix,
                                                sort_field='header.unix_time')
-        elif spid == 54102:
+        elif spid == 54102 or spid == 54101:
             packets = packets_db.find({
                 'header.unix_time': {
                     '$gte': start_unix,
@@ -270,16 +277,16 @@ def create_continous_low_latency_fits(start_unix,
                                 run_type=run_type)
 
 
-def create_daily_low_latency_fits(date, path=FITS_PATH):
+def create_daily_low_latency_fits(date, path=FITS_PATH, tpad=0, version=1):
     start_datetime = f'{date}T00:00:00'
     print("creating daily fits file for data on ", start_datetime)
     start_unix = st.utc2unix(start_datetime)
     end_unix = 86400 + start_unix
-    create_continous_low_latency_fits(start_unix,
-                                      end_unix,
+    create_continous_low_latency_fits(start_unix-tpad,
+                                      end_unix+tpad,
                                       output_path=path,
                                       overwrite=True,
-                                      version=1,
+                                      version=version,
                                       run_type='daily')
 
 
