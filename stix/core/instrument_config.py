@@ -38,7 +38,7 @@ ELUT_ENERGY_BINS = [
 #4:15 keV
 def attach_timestamp(header, result):
     utc = header['UTC']
-    dt = time_utils.utc2time_utils(utc)
+    dt = time_utils.utc2datetime(utc)
     unix = time_utils.utc2unix(utc)
     date = dt.strftime('%Y%m%d')
     result.update({
