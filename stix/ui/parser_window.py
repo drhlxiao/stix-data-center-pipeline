@@ -762,6 +762,7 @@ class Ui(mainwindow.Ui_MainWindow):
             self.progressDiag.hide()
 
     def onProgressUpdated(self, progress):
+        progress=int(progress)
         if not self.progressDiag:
             return
         self.progressDiag.setValue(progress)

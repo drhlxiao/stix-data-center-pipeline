@@ -168,7 +168,7 @@ def import_auxiliary(fname):
         logger.warn(f'{fname} contains empty valid entries!')
 
 def init_md5():
-    for doc in fits_db.find():
+    for doc in fits_db.find({'_id':{'$gt':132086}}):
         filename=os.path.join(doc['path'], doc['filename'])
         md5=checksum.get_file_md5(filename)
         fits_db.update_one({'_id':doc['_id']},{'$set':{'md5':md5}})
@@ -177,12 +177,11 @@ def init_md5():
 
 
 if __name__ == '__main__':
-    init_md5()
-    """
+    #init_md5()
     if len(sys.argv) != 2:
         logger.info('read_and_import_aspect <filename')
         import_data_archive_products()
     else:
         import_auxiliary(sys.argv[1])
         
-        """
+    #    """

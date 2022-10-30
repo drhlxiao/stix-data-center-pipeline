@@ -43,8 +43,8 @@ class Ui_Dialog(object):
             checkBox = QtWidgets.QCheckBox(self.groupBox)
             checkBox.setChecked(True)
             checkBox.setObjectName('checkbox' + str(service))
-            row = i / 2
-            col = i % 2
+            row = int(i / 2)
+            col =int(i % 2)
             self.gridLayout.addWidget(checkBox, row + 1, col, 1, 1)
             checkBox.setChecked(True)
             self.checkBoxes.append(checkBox)
