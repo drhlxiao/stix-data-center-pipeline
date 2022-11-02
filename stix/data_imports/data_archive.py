@@ -95,7 +95,6 @@ def import_data_archive_products(path=DATA_ARCHIVE_FITS_PATH):
     logger.info(f'Checking folder:{path}...')
     file_types = DATA_ARCHIVE_FILE_INFO.keys()
     for fname in glob.glob(path, recursive=True):
-        print("FILENAME:", fname)
         file_type = [t for t in file_types if t in fname]
         basename = os.path.basename(fname)
 
@@ -105,7 +104,7 @@ def import_data_archive_products(path=DATA_ARCHIVE_FITS_PATH):
             logger.info(f'{basename} not supported type. Skipped!')
             continue
         if fits_db.find_one({'md5': md5checksum}):
-            logger.info(f'{basename} already inserted in the database')
+            logger.info(f'{basename} ({md5checksum}) already inserted in the database')
             continue
 
         file_type = file_type[0]
@@ -115,7 +114,7 @@ def import_data_archive_products(path=DATA_ARCHIVE_FITS_PATH):
         if meta:
             logger.info(f'inserting metadata for {basename} to fits_db..')
             meta['md5']=md5checksum
-            fits_db.update_one({'md5':md5}, {'$set':meta}, upsert=True)
+            fits_db.update_one({'md5':md5checksum}, {'$set':meta}, upsert=True)
             #update if
         if 'L2_stix-aux-' in fname:
             import_auxiliary(fname)
@@ -133,7 +132,7 @@ def import_all_aspect_solutions(path_patten=DEFAULT_ASP_PATH_PATTEN):
             #reduce checking of database
 
 
-def read_fits_to_dict(fname):
+def read_fits_to_dict(fname, md5):
     """
     read fits file and convert data to dict
     """
@@ -145,6 +144,7 @@ def read_fits_to_dict(fname):
     for i in range(data.size):
         row = {key: data[i][key] for key in keys}
         row['filename'] = os.path.basename(fname)
+        row['md5'] = md5
         try:
             row['unix_time'] = sdt.utc2unix(row['time_utc'])
         except KeyError:
@@ -157,10 +157,13 @@ def read_fits_to_dict(fname):
 def import_auxiliary(fname):
     logger.info(f'Importing aspect solutions from {fname} ...')
     asp_db = mdb.get_collection('aspect')
-    if asp_db.find_one({'filename': os.path.basename(fname)}):
+    md5checksum=checksum.get_file_md5(fname)
+    if asp_db.find_one({'md5': md5checksum}):
         logger.warn(f'{fname} ignored because it has been imported!')
         return
-    rows = read_fits_to_dict(fname)
+    asp_db.delete_many({'filename':fname})
+    #delete the only entries
+    rows = read_fits_to_dict(fname, md5checksum)
     if rows:
         num = asp_db.insert_many(rows)
         logger.info(f"Inserted entries {len(rows)}, File: {fname}")
