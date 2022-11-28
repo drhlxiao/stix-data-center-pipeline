@@ -26,7 +26,6 @@ logger = logger.get_logger()
 mdb = db.MongoDB()
 fits_db = mdb.get_collection('fits')
 
-
 DEFAULT_ASP_PATH_PATTEN = "/data/pub099/fits/L2/*/*/*/*/*aux*.fits"
 DATA_ARCHIVE_FITS_PATH = "/data/pub099/fits/**/*.fits"
 processed_list = []
@@ -98,23 +97,25 @@ def import_data_archive_products(path=DATA_ARCHIVE_FITS_PATH):
         file_type = [t for t in file_types if t in fname]
         basename = os.path.basename(fname)
 
-        md5checksum=checksum.get_file_md5(fname)
+        md5checksum = checksum.get_file_md5(fname)
 
         if not file_type:
             logger.info(f'{basename} not supported type. Skipped!')
             continue
         if fits_db.find_one({'md5': md5checksum}):
-            logger.info(f'{basename} ({md5checksum}) already inserted in the database')
+            logger.info(
+                f'{basename} ({md5checksum}) already inserted in the database')
             continue
 
         file_type = file_type[0]
         logger.info(f'Add {basename} to fits file database')
-        meta = read_data_archive_fits_meta(fname, 
+        meta = read_data_archive_fits_meta(fname,
                                            DATA_ARCHIVE_FILE_INFO[file_type])
         if meta:
             logger.info(f'inserting metadata for {basename} to fits_db..')
-            meta['md5']=md5checksum
-            fits_db.update_one({'md5':md5checksum}, {'$set':meta}, upsert=True)
+            meta['md5'] = md5checksum
+            fits_db.update_one({'md5': md5checksum}, {'$set': meta},
+                               upsert=True)
             #update if
         if 'L2_stix-aux-' in fname:
             import_auxiliary(fname)
@@ -157,11 +158,11 @@ def read_fits_to_dict(fname, md5):
 def import_auxiliary(fname):
     logger.info(f'Importing aspect solutions from {fname} ...')
     asp_db = mdb.get_collection('aspect')
-    md5checksum=checksum.get_file_md5(fname)
+    md5checksum = checksum.get_file_md5(fname)
     if asp_db.find_one({'md5': md5checksum}):
         logger.warn(f'{fname} ignored because it has been imported!')
         return
-    asp_db.delete_many({'filename':fname})
+    asp_db.delete_many({'filename': fname})
     #delete the only entries
     rows = read_fits_to_dict(fname, md5checksum)
     if rows:
@@ -170,14 +171,16 @@ def import_auxiliary(fname):
     else:
         logger.warn(f'{fname} contains empty valid entries!')
 
+"""
+
 def init_md5():
-    for doc in fits_db.find({'_id':{'$gt':132086}}):
-        filename=os.path.join(doc['path'], doc['filename'])
-        md5=checksum.get_file_md5(filename)
-        fits_db.update_one({'_id':doc['_id']},{'$set':{'md5':md5}})
+    for doc in fits_db.find({'_id': {'$gt': 132086}}):
+        filename = os.path.join(doc['path'], doc['filename'])
+        md5 = checksum.get_file_md5(filename)
+        fits_db.update_one({'_id': doc['_id']}, {'$set': {'md5': md5}})
         print('updating ', doc['_id'])
 
-
+"""
 
 if __name__ == '__main__':
     #init_md5()
@@ -186,5 +189,5 @@ if __name__ == '__main__':
         import_data_archive_products()
     else:
         import_auxiliary(sys.argv[1])
-        
+
     #    """

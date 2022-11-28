@@ -260,16 +260,18 @@ def plot_imaging_and_ospex_results(doc):
     except Exception as e:
         logger.error("Error occurred when creating spectral fitting result..")
 
-    img_fname, report=plot_images(doc, ospex_fig_obj)
+    img_fname, im_report=plot_images(doc, ospex_fig_obj)
     if img_fname is not None:
         figs.append({'images': img_fname})
+    report={}
+    if ospex_fig_obj:
+        if 'output' in ospex_fig_obj:
+            report['ospex']={'filename':ospex_fig_obj['output'], 
+                'title':'Spectral fitting result'}
+    if isinstance(im_report, dict):
+        report.update(im_report)
 
-    if report is not None:
-        if ospex_fig_obj:
-            if 'output' in ospex_fig_obj:
-                report['ospex']={'filename':ospex_fig_obj['output'], 
-                    'title':'Spectral fitting result'}
-        new_values['report']=report
+    new_values['report']=report
 
 
 
@@ -328,15 +330,15 @@ def plot_ospex_results(task_doc, dpi=DEFAULT_PLOT_DPI):
 def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_report=True):
     if task_doc.get('signal_data_type', None) != 'PixelData':
         logger.warning('Images can not only created for PixelData!')
-        return None
+        return None, None
     try:
         fits_filename = task_doc['fits']
     except (KeyError, TypeError):
         logger.error('No fits information found in the database')
-        return None
+        return None,None
     if not fits_filename:
         logger.error('No fits file information in the database')
-        return None
+        return None,None
     # key should be like "image_xxx" 
     for _, fname in fits_filename.items():
         fix_map_fits_header(fname)
@@ -513,7 +515,6 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
                 report[f'B_image_{map_names[i]}']={'title':f'{map_names[i]} map',
                         'filename':img_filename} 
             except IndexError:
-                raise
                 logger.error("Index error when saving figures ")
             plt.close()
 

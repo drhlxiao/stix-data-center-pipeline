@@ -33,6 +33,10 @@
 ;
 ;                - 04.07.2022: A. F. Battaglia (andrea-battaglia@fhnw.ch)
 ;                  Keyword ALL_CLEAN added. By default, only the clean_map[0] is stored
+;
+;                - 04.11.2022: A. F. Battaglia
+;                  DATE-OBS added (before only DATE_OBS). For better compatibility with
+;                  other languages.
 ; -
 
    pro stx_map2fits,in_map,file,path_sci_file,path_bkg_file=path_bkg_file,$
@@ -152,6 +156,17 @@
     break_file,path_sci_file,disk_log,dir_l1,fn_sci_file,ext_sci_file
     if keyword_set(path_bkg_file) then break_file,path_bkg_file,disk_log,dir_bkg,fn_bkg_file,ext_bkg_file
     
+    ; Get the proper time format
+    time_structure = anytim(time_range[0],/utc_ext)
+    this_date_str = num2str(time_structure.year,format='(I10.4)')+'-'$
+      +num2str(time_structure.month,format='(I10.2)')+'-'$
+      +num2str(time_structure.day,format='(I10.2)')
+    this_time_str = num2str(time_structure.hour,format='(I10.2)')+':'$
+      +num2str(time_structure.minute,format='(I10.2)')+':'$
+      +num2str(time_structure.second,format='(I10.2)')+'.'$
+      +num2str(time_structure.millisecond,format='(I10.3)')
+    this_date_obs = this_date_str + ' ' + this_time_str
+    
     ; Let us add parameters to the header structure
     fxaddpar, header, 'TELESCOP', sxpar(this_header,'TELESCOP'), 'Telescope name'
     fxaddpar, header, 'INSTRUME', sxpar(this_header,'INSTRUME'), 'Instrument name'
@@ -164,6 +179,8 @@
     fxaddpar, header, 'ORIGIN  ', sxpar(this_header,'ORIGIN  '), 'Location where file has been generated'
     fxaddpar, header, 'CREATOR ', 'stx_map2fits, IDL', 'FITS creation software'
     fxaddpar, header, 'OBS_TYPE', 'STIX-map'
+    fxaddpar, header, 'DATE-OBS', this_date_obs, 'Start time of the map interval - SolO UT'
+    ;fxaddpar, header, 'DATE-OBS', anytim(time_range[0],/ccsds), 'Start time of the map interval - SolO UT'
     fxaddpar, header, 'DATE_OBS', anytim(time_range[0],/ccsds), 'Start time of the map interval - SolO UT'
     fxaddpar, header, 'DATE_BEG', anytim(time_range[0],/ccsds), 'Start time of the map interval - SolO UT'
     fxaddpar, header, 'DATE_AVG', anytim((anytim(time_range[0])+anytim(time_range[1]))/2,/ccsds), 'Average time of the map interval - SolO UT'

@@ -342,7 +342,7 @@ class MongoDB(object):
         except IndexError:
             return 0
 
-    def save_flare_info(self, result):
+    def save_flare_info(self, result, dry_run=False):
         """
             write flare info into database
         """
@@ -399,7 +399,8 @@ class MongoDB(object):
 
             inserted_ids[i] = doc['_id']
             logger.info(f'Inserting flare: {doc["_id"]}')
-            self.collection_flares.insert_one(doc)
+            if not dry_run:
+                self.collection_flares.insert_one(doc)
         #return new_inserted_flares
         result['inserted_ids'] = inserted_ids
 

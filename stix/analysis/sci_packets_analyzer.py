@@ -722,6 +722,15 @@ def process_science_request(_id):
     bsd_doc= bsd_collection.find_one({'_id': _id})
     process_science_request_doc(bsd_doc)
 
+def process_remaining_requests():
+    docs=bsd_collection.find({'level1':{'$exists':False}, 'SPID':54115}).sort('_id',-1)
+    for doc in docs:
+        print(f"Processing:{doc['_id']} ...")
+        try:
+            process_science_request_doc(doc)
+        except IndexError:
+            continue
+
 
 
 
@@ -791,8 +800,12 @@ if __name__ == '__main__':
         print('process_sci_packets -file run_id')
         print('process_sci_packets -file run_id_start id_end')
         print('process_sci_packets -bsd <bsd_id>')
+        print('process_sci_packets -re all #process all science data without cache created')
     else:
         opt=sys.argv[1]
+        if opt=='-re':
+            process_remaining_requests()
+
         if len(sys.argv)==3:
             if opt=='-file':
                 process_one(int(sys.argv[2]))
