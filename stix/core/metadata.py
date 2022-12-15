@@ -30,10 +30,10 @@ QL_REPORT_SPIDS = [54118, 54119, 54121, 54120, 54122]
 
 class StixScienceReportAnalyzer(object):
     def __init__(self, db):
-        self.calibration_analyzer = StixCalibrationReportAnalyzer(
+        self.calibration_analyzer = StixCalibrationPacketAnalyzer(
             db['calibration_runs'])
-        self.ql_analyzer = StixQuickLookReportAnalyzer(db)
-        self.user_request_analyzer = StixUserDataRequestReportAnalyzer(db)
+        self.ql_analyzer = StixQuickLookPacketAnalyzer(db)
+        self.user_request_analyzer = StixSciencePacketAnalyzer(db)
 
     def start(self, run_id, packet_id, packet):
         self.calibration_analyzer.capture(run_id, packet_id, packet)
@@ -46,7 +46,7 @@ class StixScienceReportAnalyzer(object):
         return self.calibration_analyzer.get_calibration_run_ids()
 
 
-class StixCalibrationReportAnalyzer(object):
+class StixCalibrationPacketAnalyzer(object):
     """
       Capture calibration reports and fill calibration information into MongoDB 
 
@@ -178,7 +178,7 @@ class StixCalibrationReportAnalyzer(object):
             self.packet_index = np.zeros((8, 12 * 32), dtype=np.int32)
 
 
-class StixQuickLookReportAnalyzer(object):
+class StixQuickLookPacketAnalyzer(object):
     """
     capture quicklook reports and fill packet information into a MongoDB collection
     """
@@ -367,7 +367,7 @@ class StixQuickLookReportAnalyzer(object):
         self.current_report_id += 1
 
 
-class StixUserDataRequestReportAnalyzer(object):
+class StixSciencePacketAnalyzer(object):
     def __init__(self, db):
         self.bsd_db = db['bsd']
         self.db_bsd_forms = db['data_requests']

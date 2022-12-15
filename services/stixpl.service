@@ -1,0 +1,10 @@
+[Unit]
+Description=STIX data processing pipeline
+
+[Service]
+User=root
+ExecStart=/opt/stix/pystix/bin/stixpl
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

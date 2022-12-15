@@ -306,9 +306,9 @@ def pipeline(instrument, filename, notification_enabled=True, debugging=False):
     single file processing pipeline
     """
     file_id=piepeline_parsing_and_basic_analysis(instrument, filename, notification_enabled, debugging)
-    task_manager.run_on_background(pipeline_fits_creation_packets_merging_and_imaging,
-            'fits-creation-pkt-merging', args=(file_id,))
-    #pipeline_fits_creation_packets_merging_and_imaging(file_id)
+    #task_manager.run_on_background(pipeline_fits_creation_packets_merging_and_imaging,
+    #        'fits-creation-pkt-merging', args=(file_id,))
+    pipeline_fits_creation_packets_merging_and_imaging(file_id)
 
 
 

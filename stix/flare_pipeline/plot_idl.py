@@ -254,6 +254,7 @@ def plot_imaging_and_ospex_results(doc):
     """
     new_values = {'processing_date': datetime.now()}
     figs=[]
+    logger.info("Start to create STIX images and spectral fitting plot...")
 
     try:
         ospex_fig_obj = plot_ospex_results(doc)
@@ -291,10 +292,10 @@ def plot_ospex_results(task_doc, dpi=DEFAULT_PLOT_DPI):
     try:
         fits_filename = task_doc['fits']
     except (KeyError, TypeError):
-        logger.error('No fits information found in the database')
+        logger.error('No imaging or spectral fitting fits file found in the database')
         return None
     if not fits_filename:
-        logger.error('No fits file information in the database')
+        logger.error('No imaging or spectral fitting fits file found in the database')
         return None
     # key should be like "image_xxx"
 
@@ -415,7 +416,7 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
         'Back-projection (Full disk)',
         'Back-projection',  # might want to edit this for composite maps
         'CLEAN',
-        'MEM',
+        'MEM GE',
         f'VIS_FWDFIT {fwdshape}'
     ]
     
@@ -535,7 +536,7 @@ def plot_aia(_id, wavelen=1600):
     try:
         image_clean=doc['fits']['image_clean']
     except (KeyError, TypeError):
-        logger.info('Could not create AIA image, can not read info from STIX EM image !')
+        logger.info('Could not create AIA image, failed to find stix clean map !')
         return
    
     def exists(objs, ts):

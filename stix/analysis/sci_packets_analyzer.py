@@ -720,7 +720,10 @@ def process_packets_in_file(file_id, remove_existing=True):
 
 def process_science_request(_id):
     bsd_doc= bsd_collection.find_one({'_id': _id})
-    process_science_request_doc(bsd_doc)
+    try:
+        process_science_request_doc(bsd_doc)
+    except Exception:
+        pass
 
 def process_remaining_requests():
     docs=bsd_collection.find({'level1':{'$exists':False}, 'SPID':54115}).sort('_id',-1)
@@ -730,7 +733,15 @@ def process_remaining_requests():
             process_science_request_doc(doc)
         except IndexError:
             continue
-
+def process_requests_between(start_id:int, end_id:int):
+    docs=bsd_collection.find({'_id':{'$gte':start_id, 
+        '$lte':end_id}}).sort('_id',1)
+    for doc in docs:
+        print(f"Processing:{doc['_id']} ...")
+        try:
+            process_science_request_doc(doc)
+        except IndexError:
+            continue
 
 
 
@@ -738,7 +749,12 @@ def process_science_request_doc(doc):
     """
     process science data request report
     """
-    spid = int(doc['SPID'])
+    try:
+        spid = int(doc['SPID'])
+    except (TypeError, ValueError, KeyError):
+        logger.info(f'can not find spid for : {doc["_id"]}')
+        return
+
     logger.info(f'processing bsd id: {doc["_id"]}, spid:{spid}')
     if 'first_pkt' not in doc or 'last_pkt' not in doc:
         #don't process incomplete packets
@@ -805,12 +821,16 @@ if __name__ == '__main__':
         opt=sys.argv[1]
         if opt=='-re':
             process_remaining_requests()
+        if opt=='-all':
+            process_remaining_requests()
 
         if len(sys.argv)==3:
             if opt=='-file':
                 process_one(int(sys.argv[2]))
             elif opt=='-bsd':
-                process_science_request(int(sys.argv[2]))
+                start_id=int(sys.argv[2])
+                end_id=start_id
+                process_requests_between(start_id, end_id)
 
         elif len(sys.argv)==4:
             for i in range(int(sys.argv[2]),int(sys.argv[3])+1):

@@ -119,7 +119,8 @@ def get_eui_maps(start_utc, end_utc, peak_utc=None, instrument='EUI', padding = 
     return  res, desc
 
 def process_one(image_run_id):
-    logger.info(f'Processing: {image_run_id}')
+
+    logger.info(f'Creating EUI image for : {image_run_id}')
     doc=flare_image_db.find_one({'_id':image_run_id})
     process_one_doc(doc)
 
