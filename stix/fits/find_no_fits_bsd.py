@@ -19,10 +19,6 @@ db = connect["stix"]
 col_bsd=db['bsd']
 col_fits=db['fits']
 
-#start_id=0
-#end_id=100000
-#bsd_query={'_id':{'$gte':start_bsd_id, 'lte':end_bsd_id}}
-bsd_query={}
 
 def create_fits(bsd_id_start):
     bsd_id_end=bsd_id_start
@@ -32,15 +28,20 @@ def create_fits(bsd_id_start):
     except Exception as e:
         raise
 
-for doc in col_bsd.find(bsd_query).sort('_id',-1):
-    request_id=doc.get('unique_id',None)
-    if request_id is None:
-        create_fits(doc['_id'])
-        continue
-    fdoc=col_fits.find_one({'request_id':request_id})
-    if not fdoc:
-        create_fits(doc['_id'])
-        continue
+def main(num_docs=1000):
+    cursor = col_bsd.find().sort('_id',-1).limit(num_docs) if not None else col_bsd.find().sort('_id',-1)
+    for doc in  cursor:
+        request_id=doc.get('unique_id',None)
+        if request_id is None:
+            create_fits(doc['_id'])
+            continue
+        fdoc=col_fits.find_one({'request_id':request_id})
+        if not fdoc:
+            create_fits(doc['_id'])
+            continue
 
-    if not Path(fdoc['path'],fdoc['filename']).is_file():
-        create_fits(doc['_id'])
+        if not Path(fdoc['path'],fdoc['filename']).is_file():
+            create_fits(doc['_id'])
+if __name__=='__main__':
+    print('A script to create FITS files for bulk science data that do not have  FITS files created') 
+    main()

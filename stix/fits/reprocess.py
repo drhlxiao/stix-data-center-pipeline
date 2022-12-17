@@ -98,4 +98,4 @@ def process_science(bsd_id_start, bsd_id_end):
                                 remove_duplicates=True)
 
 #reprocess_low_latency('2020-04-12T00:00:00', '2022-10-26T00:00:00')
-process_science(1, 14161)
+#process_science(1, 14161)
