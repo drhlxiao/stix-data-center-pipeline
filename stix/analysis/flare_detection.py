@@ -26,7 +26,7 @@ from stix.core import logger
 logger = logger.get_logger()
 
 mdb = db.MongoDB()
-debug = False
+debug = True
 
 PEAK_MIN_NUM_POINTS = 7  #  peak duration must be greater than 28 seconds, used to determine energy range upper limit,
 niter=900
@@ -37,6 +37,7 @@ try:
 except ImportError:
     ROOT_EXISTS=False
 
+DEFAULT_FLARE_LC_DIR = '/data/flare_lc'
 
 def get_lightcurve_baseline(counts, niter):
     """
@@ -191,25 +192,29 @@ def create_quicklook_plot(data, docs, lc_output_dir,lc_baseline=None, same_plot=
         ax.plot([docs['peak_unix_time'][i] -T0], [peak_counts], marker='+', color='red')
         
         ax.axvspan(xmin, xmax, color='cyan', ec='b', alpha=0.5)
+        multiple='_multi' if same_plot else ''
 
         filename = os.path.join(lc_output_dir,
-                f'flare_lc_{_id}_{flare_id}.png')
+                f'flare_lc_{_id}_{flare_id}{multiple}.png') 
+        
+
         if not same_plot or i == num_ids-1:
             ax.set_xlabel(f'T [s] - Start at {st.unix2utc(T0)}')
             ax.set_ylabel('Counts')
-            filename = os.path.join(lc_output_dir,
-                f'flare_lc_{_id}.png')
+            #filename = os.path.join(lc_output_dir,
+            #    f'flare_lc_{_id}.png')
             ax.set_title(f'Flare #{flare_id} (major: {is_major[i]})')
             ax.set_yscale('log')
             ax.legend()
             plt.tight_layout()
             plt.savefig(filename, dpi=300)
             logger.info(f'Creating file:{filename}')
-            if debug:
-                plt.show()
+            #if debug:
+            #    plt.show()
             plt.close()
             plt.clf()
-        mdb.set_flare_lc_filename(_id, filename)
+        if not same_plot:
+            mdb.set_flare_lc_filename(_id, filename)
 
 
 def find_major_peaks(lefts, rights, peak_values):
@@ -243,9 +248,9 @@ def find_flares_in_one_file(run_id,
     if not data:
         logger.info(f'No QL LC packets found for Run {run_id}')
         return 0
-    auxilary = {'run_id': run_id}
+    auxiliary = {'run_id': run_id}
     return find_flares_in_data(data, peak_min_width, peak_min_distance,
-            rel_height, lc_output_dir, auxilary)
+            rel_height, lc_output_dir, auxiliary)
 
 
 def find_flares_in_recent_LC(start_date_off=-3, end_date_off=0, lc_path='.'):
@@ -260,6 +265,8 @@ def find_flares_in_recent_LC(start_date_off=-3, end_date_off=0, lc_path='.'):
             lc_output_dir=lc_path)
 
 
+
+
 def find_flares_in_time_range(start_unix,
         end_unix,
         peak_min_width=15,
@@ -271,12 +278,12 @@ def find_flares_in_time_range(start_unix,
         logger.info(f'No QL LC packets found ')
         return 0
     data = qla.LightCurveAnalyzer.parse(packets)
-    auxilary = {'run_id': -1}
+    auxiliary = {'run_id': -1}
     if not data:
         logger.info(f'No QL LC packets found ')
         return 0
     return find_flares_in_data(data, peak_min_width, peak_min_distance,
-            rel_height, lc_output_dir, auxilary)
+            rel_height, lc_output_dir, auxiliary)
 
 
 def find_flares_in_data(data,
@@ -284,7 +291,7 @@ def find_flares_in_data(data,
         peak_min_distance=150,
         rel_height=0.9,
         lc_output_dir='.',
-        auxilary=None):
+        auxiliary=None):
     """
     find flare peak times in data
     Parameters
@@ -295,13 +302,14 @@ def find_flares_in_data(data,
         min. interval (number of data points) between two peaks 
 
     """
-    if auxilary is None:
-        auxilary={'run_id':-1} 
+    if auxiliary is None:
+        auxiliary={'run_id':-1} 
 
     unix_time = data['time']
     lightcurve = data['lcs'][0]
     lc_smoothed = smooth(lightcurve)
     lc_baseline=get_lightcurve_baseline(lc_smoothed, niter)
+
     stat = mdb.get_nearest_lc_stats(unix_time[0], max_limit=500)
 
 
@@ -320,9 +328,10 @@ def find_flares_in_data(data,
     else:
         #med = np.median(lightcurve)
         #these default values are still under testing
+        logger.warning('Use the estimated background to estimate the threshold ')
         med=np.median(lc_baseline)
         baseline=np.min(lc_baseline)
-        height = baseline+ 3 * np.sqrt(baseline) #statistic 
+        height = baseline+ 2 * np.sqrt(baseline) #statistic 
         prominence = 2 * np.sqrt(baseline)
         noise_rms = np.sqrt(baseline)
         baseline = baseline
@@ -349,7 +358,7 @@ def find_flares_in_data(data,
             rel_height=rel_height,  #T90 calculation
             distance=peak_min_distance)
     if xpeaks.size == 0:
-        logger.info(f'No peaks found for file {run_id}')
+        logger.info(f'No peaks found for file {auxiliary["run_id"]}')
         return 0
     logger.info('Number of peaks:{}'.format(xpeaks.size))
     conditions = {
@@ -392,6 +401,11 @@ def find_flares_in_data(data,
             for ilc in range(0, 5):
                 flare_stat = {}
                 lc_cnts = data['lcs'][ilc][left_ips[ipeak]:right_ips[ipeak]]
+                lc_unix_times=data['time'][left_ips[ipeak]:right_ips[ipeak]]
+
+                
+                peak_time = lc_unix_times[np.argmax(lc_cnts)]
+
                 if not np.any(lc_cnts):
                     continue
                 num_2sigma = int(
@@ -407,9 +421,11 @@ def find_flares_in_data(data,
                         'bkg_sigma': stat['std'][ilc],
                             'signal_median': int(np.median(lc_cnts)),
                             'signal_max': int(np.max(lc_cnts)),
+                            'peak_unix_time':float(peak_time), 
+                            'peak_utc':st.unix2datetime(peak_time), 
                             'signal_min': int(np.min(lc_cnts)),
-                            'num_points_above_2sigma': num_2sigma, 
-                            'num_points_above_3sigma':  num_3sigma} 
+                            'num_above_2sigma': num_2sigma, 
+                            'num_above_3sigma':  num_3sigma} 
 
                 flare_stats['lc' + str(ilc)] = flare_stat
 
@@ -458,11 +474,14 @@ def find_flares_in_data(data,
         unix_time[H50_res[3].astype(int)])).T
     #calculate peak width at 50% of the maximum count
 
+    att_in = np.any(np.array(data['rcr'])>0)
+
     doc = {
             'num_peaks': xpeaks.size,
             'peak_unix_time': peak_unix_times.tolist(),
             'peak_counts': peak_values.tolist(),
             'peak_utc': peaks_utc,
+            'att_in': bool(att_in),
             'flare_id': flare_ids,
             'baseline': baseline,
             'threshold': threshold,
@@ -488,7 +507,7 @@ def find_flares_in_data(data,
             'is_major': is_major_flags,
             'LC_statistics': LC_statistics,
             }
-    doc.update(auxilary)
+    doc.update(auxiliary)
 
     mdb.save_flare_info(doc)
 
@@ -496,11 +515,12 @@ def find_flares_in_data(data,
     doc['properties'] = properties
     data['lc_smoothed'] = lc_smoothed
     same_plot=True if debug else False
-    create_quicklook_plot(data, doc, lc_output_dir, lc_baseline,  same_plot)
+    create_quicklook_plot(data, doc, lc_output_dir, lc_baseline,  same_plot=False)
+    create_quicklook_plot(data, doc, lc_output_dir, lc_baseline,  same_plot=True)
     return xpeaks.size
 
 
-def find_flares_in_files(fid_start, fid_end, img_path='/data/flare_lc'):
+def find_flares_in_files(fid_start, fid_end, img_path=DEFAULT_FLARE_LC_DIR):
     for i in range(fid_start, fid_end + 1):
         print(f'deleting flares of Files {i}')
         mdb.delete_flares_of_file(i)
@@ -508,16 +528,50 @@ def find_flares_in_files(fid_start, fid_end, img_path='/data/flare_lc'):
         find_flares_in_one_file(i, lc_output_dir=img_path)
 
 
+def detect_flares_between(start_utc, end_utc, step_duration =  8 * 3600 ):
+
+    start_unix=st.utc2unix(start_utc)
+    end_unix=st.utc2unix(end_utc)
+
+    cursor=start_unix
+
+    while cursor < end_unix:
+
+
+
+        start=cursor - 2*3600
+        end =cursor +step_duration + 2*3600
+        print("detecting flare in :", st.unix2utc(start), st.unix2utc(end))
+
+        cursor+=step_duration
+        find_flares_in_time_range(start,
+            end, 
+            lc_output_dir=DEFAULT_FLARE_LC_DIR)
+
+
+
 if __name__ == '__main__':
     import sys
     #debug = True
+
+
     if len(sys.argv) < 2:
-        print('flare_detection file_number')
+        print('flare_detection file_number or flare_detection')
     elif len(sys.argv) == 2:
         res = find_flares_in_one_file(int(sys.argv[1]),
-                lc_output_dir='/data/flare_lc')
+                lc_output_dir=DEFAULT_FLARE_LC_DIR)
         print('Number of peaks:', res)
-    else:
-        find_flares_in_files(int(sys.argv[1]),
-                int(sys.argv[2]),
-                img_path='/data/flare_lc')
+    elif len(sys.argv)==3:
+        try:
+            start=int(sys.argv[1])
+            end=int(sys.argv[2])
+        except ValueError:
+            start=sys.argv[1]
+            end=sys.argv[2]
+        print("Flare detection: ", start, end)
+
+        if isinstance(start, int) and isinstance(end, int):
+            find_flares_in_files(start,  end, 
+                img_path=DEFAULT_FLARE_LC_DIR)
+        else:
+            detect_flares_between(start, end)

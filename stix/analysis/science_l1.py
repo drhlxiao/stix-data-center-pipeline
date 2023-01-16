@@ -305,27 +305,24 @@ class ScienceL1(ScienceData):
         time_ranges = []
 
         for i, sci_range in enumerate(sci_energy_ranges):
+            for flare in flare_time_ranges:
+                start, end, total_counts, pixel_counts =self.get_time_and_counts( sci_range[0], sci_range[1], integration_time, flare['peak_unix_time']-integration_time/2., flare['peak_unix_time'] + integration_time/2)
 
-            start, end, total_counts, pixel_counts =self.get_time_and_counts( sci_range[0], sci_range[1], integration_time)
-            if start is None:
-                continue
-            if total_counts>min_counts:
-                boxes.append({
+                if start is None:
+                    continue
+                if total_counts>min_counts:
+                    boxes.append({
                     'total_counts':  total_counts,
                     'pixel_counts':  pixel_counts,
                     'energy_range_sci': sci_range,
                     'energy_range_keV': imaging_energies[i],
                     'unix_time_range': [start,  end],
                     'utc_range': [sdt.unix2utc(start),  sdt.unix2utc(end)]})
-            else:
-                #this might be a small flare, take the whole time period
-                for flare in flare_time_ranges:
-                    #create images for flaring time
-                    if flare['peak']:
-                        #try again
-                        start, end, total_counts, pixel_counts =self.get_time_and_counts(sci_range[0], sci_range[1], integration_time, flare['start'],flare['end'])
-                        if total_counts>min_counts:
-                            boxes.append({
+
+                else:
+                    start, end, total_counts, pixel_counts =self.get_time_and_counts(sci_range[0], sci_range[1], integration_time, flare['start'],flare['end'])
+                    if total_counts>min_counts:
+                        boxes.append({
                                 'total_counts':  total_counts,
                                 'pixel_counts':  pixel_counts,
                                 'energy_range_sci': sci_range,

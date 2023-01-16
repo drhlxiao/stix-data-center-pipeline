@@ -23,6 +23,7 @@ class LightCurveAnalyzer(QLAnalyzer):
         lightcurves = {}
         unix_time = []
         energy_bins={}
+        rcrs=[]
         last_time=0
         for pkt in packets:
             packet = sdt.Packet(pkt)
@@ -55,6 +56,7 @@ class LightCurveAnalyzer(QLAnalyzer):
             lc = packet.get('NIX00270/NIX00271/*.eng')[0]
             rcr = packet.get('NIX00275/*.raw')
             UTC = packet['header']['UTC']
+            rcrs.extend(rcr[0])
             for i in range(len(lc)):
                 if i not in lightcurves:
                     lightcurves[i] = []
@@ -66,7 +68,7 @@ class LightCurveAnalyzer(QLAnalyzer):
 
         if not lightcurves:
             return None
-        return {'time': np.array(unix_time), 'lcs': {x: np.array(lightcurves[x]) for x in lightcurves},
+        return {'time': np.array(unix_time), 'lcs': {x: np.array(lightcurves[x]) for x in lightcurves}, 'rcr':np.array(rcrs),
                 'energy_bins':energy_bins,'num':len(unix_time),'start_unix': unix_time[0],'end_unix':unix_time[-1]}
 
 class BackgroundReportAnalyzer(QLAnalyzer):

@@ -269,7 +269,7 @@ def piepeline_parsing_and_basic_analysis(instrument, filename, notification_enab
     return file_id
 
 
-def pipeline_fits_creation_packets_merging_and_imaging(file_id):
+def pipeline_fits_creation_packets_merging(file_id):
     logger.info('Creating fits files...')
     try:
         fits_creator.create_fits(file_id, daemon_config['fits_path'])
@@ -281,15 +281,13 @@ def pipeline_fits_creation_packets_merging_and_imaging(file_id):
         sci_packets_analyzer.process_packets_in_file(file_id)
     except Exception as e:
         logger.error(str(e))
-    logger.info('preparing imaging inputs...')
-    try:
-        logger.info(f'submitting imaging tasks for File {file_id}')
-        itm.register_imaging_tasks_for_file(file_id)
-    except Exception as e:
-        logger.error(str(e))
+    #logger.info('preparing imaging inputs...')
+    #try:
+    #    logger.info(f'submitting imaging tasks for File {file_id}')
+    #    itm.register_imaging_tasks_for_file(file_id)  #removed on Jan 5, 2022, it should be called as crontab job
+    #except Exception as e:
+    #    logger.error(str(e))
 
-
-    #return summary
 
 def process_one(filename):
     file_id = MDB.get_file_id(filename)
@@ -308,7 +306,7 @@ def pipeline(instrument, filename, notification_enabled=True, debugging=False):
     file_id=piepeline_parsing_and_basic_analysis(instrument, filename, notification_enabled, debugging)
     #task_manager.run_on_background(pipeline_fits_creation_packets_merging_and_imaging,
     #        'fits-creation-pkt-merging', args=(file_id,))
-    pipeline_fits_creation_packets_merging_and_imaging(file_id)
+    pipeline_fits_creation_packets_merging(file_id)
 
 
 

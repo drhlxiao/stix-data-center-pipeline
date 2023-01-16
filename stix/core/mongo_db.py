@@ -351,12 +351,9 @@ class MongoDB(object):
         if result['num_peaks'] == 0:
             return None
 
-        try:
+        if result.get('run_id', -1) >= 0: 
             cursor = self.collection_flares.delete_many(
-                {'run_id': int(result['run_id'])})
-            #delete
-        except Exception as e:
-            pass
+                    {'run_id': int(result['run_id'])})
 
         first_id = self.get_next_flare_id()
 
