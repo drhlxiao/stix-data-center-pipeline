@@ -150,7 +150,17 @@ def _create_fits_for_packets(file_id,
 
         logger.info("Preparing data for writing fits file...")
 
-        base_path = Path(base_path_name)
+        try:
+            obs_time = parsed_packets['unix_time'][0]
+            dt = st.unix2datetime(obs_time)
+            sub_folder=dt.strftime("%Y%m")
+        except Exception as e :
+            logger.error(e)
+            sub_folder='000000'
+
+            
+
+        base_path = Path(base_path_name)/sub_folder
         base_path.mkdir(parents=True, exist_ok=True)
 
         unique_id = db.get_next_fits_id()
