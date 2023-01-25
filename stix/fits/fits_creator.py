@@ -204,7 +204,7 @@ def _create_fits_for_packets(file_id,
                 'version': version,
                 'level': DATA_LEVEL,
                 'creation_time': datetime.utcnow(),
-                'path': base_path_name,
+                'path': base_path.as_posix(),
                 'file_size': file_size
 
             }
