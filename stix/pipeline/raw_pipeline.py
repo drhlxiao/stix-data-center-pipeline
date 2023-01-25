@@ -94,7 +94,7 @@ class _Notification(object):
         if not warnings:
             content+='\n'.join(warnings)
         else:
-            content+='\nNo abnormality detected.'
+            content+='\nNo failure of instrument detected.'
         self.messages.append(content)
 
 
@@ -241,17 +241,20 @@ def piepeline_parsing_and_basic_analysis(instrument, filename, notification_enab
         except Exception as e:
             logger.error(str(e))
     if actions['time_bins_simulation']:
+        logger.info("Estimating time bins...")
         try:
             integration_time_estimator.process_file(file_id)
         except Exception as e:
             logger.error(str(e))
 
     try:
+        logger.info("Detecting instrument abnormalities using HK data...")
         Notification.scan_housekeeping(file_id)
     except Exception as e:
         logger.error(str(e))
 
     try:
+        logger.info("Send email to the operations team...")
         Notification.append_pipeline_message(base, service_5_headers, summary,
                                        num_flares, goes_class_list)
     except Exception as e:

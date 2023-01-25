@@ -585,7 +585,10 @@ class MongoDB(object):
             ]
         return self.collection_data_requests.aggregate(query)
        
-    def get_packets_by_ids(self,id_list):
+    def get_packets_by_ids(self,id_list, sort='header.unix_time'):
+        if sort:
+            id_list=[doc['_id'] for doc  in self.collection_packets.find({'_id': {'$in': id_list}}, {'_id':1}).sort(sort)]
+            #to improve the speed
         for _id in id_list:
             yield self.collection_packets.find_one({'_id': _id})
 

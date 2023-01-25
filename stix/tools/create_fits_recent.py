@@ -11,13 +11,9 @@ from stix.core import mongo_db as db
 from stix.spice import time_utils as sdt
 from stix.fits import fits_creator
 import matplotlib.ticker as mticker
+from stix.core import logger
 from pathlib import Path
-import pymongo
 mdb = db.MongoDB()
-connect = pymongo.MongoClient()
-db = connect["stix"]
-col_bsd=db['bsd']
-col_fits=db['fits']
 
 
 def create_fits(bsd_id_start):
@@ -28,9 +24,11 @@ def create_fits(bsd_id_start):
     except Exception as e:
         raise
 
-def main(num_docs=1000):
-    cursor = col_bsd.find().sort('_id',-1).limit(num_docs) if not None else col_bsd.find().sort('_id',-1)
-    for doc in  cursor:
+def create_fits_recent(last_num=1000):
+    bsd_query={}
+    col_bsd=mdb.get_collection('bsd')
+    col_fits=mdb.get_collection('fits')
+    for doc in col_bsd.find(bsd_query).sort('_id',-1).limit(last_num):
         request_id=doc.get('unique_id',None)
         if request_id is None:
             create_fits(doc['_id'])
@@ -39,9 +37,8 @@ def main(num_docs=1000):
         if not fdoc:
             create_fits(doc['_id'])
             continue
-
         if not Path(fdoc['path'],fdoc['filename']).is_file():
             create_fits(doc['_id'])
+
 if __name__=='__main__':
-    print('A script to create FITS files for bulk science data without FITS files') 
-    main()
+    create_fits_recent()
