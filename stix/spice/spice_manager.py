@@ -64,9 +64,6 @@ class _SpiceManager(object):
         cwd=os.getcwd()
         spice_folder=config.get_config('spice')
         mk_folder=os.path.join(spice_folder,'mk')
-        os.chdir(mk_folder)
-        #pred_mk='solo_ANC_soc-pred-mk.tm'
-        #print(mk_folder)
         self.latest_mk=None
         for filename in glob.glob(f'{mk_folder}/solo_ANC_soc-flown-mk*.tm'):
             date_str=re.findall(r"\d{4}\d{2}\d{2}", filename)
@@ -78,17 +75,26 @@ class _SpiceManager(object):
 
         #if latest_mk!=None and utc<self.version_date:
         
-        if self.loaded_kernel_filename !=  self.latest_mk and self.latest_mk is not None:
-            fnames=self.get_kernel_files_from_mk(self.latest_mk)
-            for fname in fnames:
-                try:
-                    spiceypy.furnsh(os.path.join(spice_folder, fname))
-                except spiceypy.utils.exceptions.SpiceNOSUCHFILE:
-                    print('Failed to load:', fname)
-            print('loading kernel:',self.latest_mk)
-            self.loaded_kernel_filename=self.latest_mk
-        else:
-            print(f'SPICE kernel loaded already: {self.loaded_kernel_filename}.')
+        if self.loaded_kernel_filename ==  self.latest_mk or self.latest_mk is None:
+            logger.info(f'SPICE kernel loaded already: {self.loaded_kernel_filename}.')
+            return 
+        try: 
+            logger.info(f'Loading kernel from mk file:{self.latest_mk}')
+            spiceypy.furnsh(self.latest_mk)
+            return
+        except spiceypy.utils.exceptions.SpiceNOSUCHFILE:
+            logger.warning('Failed to load mk file, try loading one by one')
+
+        os.chdir(mk_folder)
+        fnames=self.get_kernel_files_from_mk(self.latest_mk)
+        for fname in fnames:
+            try:
+                spiceypy.furnsh(os.path.join(spice_folder, fname))
+            except spiceypy.utils.exceptions.SpiceNOSUCHFILE:
+                print('Failed to load:', fname)
+        print('loading kernel:',self.latest_mk)
+        self.loaded_kernel_filename=self.latest_mk
+
         os.chdir(cwd)
 
 

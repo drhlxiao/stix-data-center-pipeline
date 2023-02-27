@@ -24,8 +24,11 @@ from stix.spice import time_utils as st
 from stix.analysis import ql_analyzer as qla
 from stix.core import logger
 logger = logger.get_logger()
+ 
+import matplotlib.dates as mdates
 
-mdb = db.MongoDB()
+
+mdb = db.MongoDB()#port=9000)
 debug = True
 
 PEAK_MIN_NUM_POINTS = 7  #  peak duration must be greater than 28 seconds, used to determine energy range upper limit,
@@ -37,6 +40,14 @@ try:
 except ImportError:
     ROOT_EXISTS=False
 
+import matplotlib as mpl
+params = {'legend.fontsize': 12,
+          'figure.figsize': (6, 4),
+         'axes.labelsize': 18,
+         'axes.titlesize':18,
+         'xtick.labelsize':16,
+         'ytick.labelsize':16}
+mpl.rcParams.update(params)
 
 def get_lightcurve_baseline(counts, niter):
     """
@@ -140,11 +151,12 @@ def create_quicklook_plot(data, docs, lc_output_dir,lc_baseline=None, same_plot=
         #fig,(ax, ax2)= plt.subplots(2,1)
         fig,ax= plt.subplots(1,1)
         lc = data['lcs'][0]
-        dt=data['time']-tstart
-        ax.plot(dt, lc, label="STIX 4-10 keV LC")
-        ax.plot(dt, data['lc_smoothed'], label="Smoothed LC")
+        print(data['time'])
+        dt=[st.unix2datetime( t) for t in  data['time']]
+        ax.plot(dt, lc, label="STIX LC (4 – 10 keV)", alpha=0.7)
+        ax.plot(dt, data['lc_smoothed'], label="Smoothed LC", alpha=0.7)
         if lc_baseline is not None:
-            ax.plot(dt, lc_baseline, label="Baseline")
+            ax.plot(dt, lc_baseline, label="Envelope")
             #ax2.plot(dt, data['lc_smoothed']-lc_baseline, label="Baseline")
             #ax2.set_xlabel(f'Start at {st.unix2utc(tstart)}')
             #ax2.set_ylabel('Counts')
@@ -174,21 +186,22 @@ def create_quicklook_plot(data, docs, lc_output_dir,lc_baseline=None, same_plot=
         lc = data['lcs'][0][where]
         peak_counts = docs['peak_counts'][i]
 
-        xmin = docs['start_unix'][i] - T0
-        xmax = docs['end_unix'][i] - T0
+        xmin = st.unix2datetime(docs['start_unix'][i] )#- T0
+        xmax = st.unix2datetime(docs['end_unix'][i] )#- T0
 
-        ax.plot([docs['peak_unix_time'][i] -T0], [peak_counts], marker='+', color='red')
         
-        ax.axvspan(xmin, xmax, color='cyan', ec='b', alpha=0.5)
+        ax.axvspan(xmin, xmax, color='grey',  alpha=0.3)
+        ax.plot([st.unix2datetime(docs['peak_unix_time'][i] )], [peak_counts], marker='+', color='blue', markersize=12)
 
     filename = os.path.join(lc_output_dir,
                 f'flare_lc_stix_{tstart}.png')
     ax.set_yscale('log')
-    ax.set_xlabel('Time (s)')
     ax.set_ylabel('Counts')
-    start_utc=st.unix2utc(start_unix)
-    ax.set_title(f"STIX 4 - 10 keV LC (T0: {start_utc}) ")
+    #start_utc=st.unix2utc(start_unix)
     print(filename)
+    plt.legend()
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
+    ax.set_xlabel(f"Jan. 02, 2022 ")
     #plt.savefig(filename)
     plt.show()
 
@@ -449,9 +462,12 @@ def detect_flares_in_time_range(start_utc, end_utc):
     find_flares_in_time_range(start_unix, end_unix)
 
 if __name__=='__main__':
-    if len(sys.argv)!=3:
-        print("Usage:  detect flare in time range <start> <end>")
-    else:
-        detect_flares_in_time_range(sys.argv[1], sys.argv[2])
+    start_utc='2023-01-02T00:30:00'
+    end_utc='2023-01-02T09:00:00'
+    detect_flares_in_time_range(start_utc, end_utc)
+    #if len(sys.argv)!=3:
+    #    print("Usage:  detect flare in time range <start> <end>")
+    #else:
+    #    detect_flares_in_time_range(sys.argv[1], sys.argv[2])
 
 

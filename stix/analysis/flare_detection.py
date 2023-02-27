@@ -12,6 +12,7 @@ import os
 import sys
 sys.path.append('.')
 from scipy import signal
+from pprint import pprint
 import numpy as np
 import math
 import matplotlib
@@ -306,6 +307,8 @@ def find_flares_in_data(data,
         auxiliary={'run_id':-1} 
 
     unix_time = data['time']
+
+    logger.info(f"Data time range:{st.unix2utc(unix_time[0])} - {st.unix2utc(unix_time[-1])}")
     lightcurve = data['lcs'][0]
     lc_smoothed = smooth(lightcurve)
     lc_baseline=get_lightcurve_baseline(lc_smoothed, niter)
@@ -369,6 +372,7 @@ def find_flares_in_data(data,
             'bkg_statistics': stat,
             'min_height': height,
             }
+    pprint(conditions)
     doc = {}
 
     #threshold=height
@@ -376,6 +380,8 @@ def find_flares_in_data(data,
     peak_values = properties['peak_heights']
     peak_unix_times = unix_time[xpeaks]
     peaks_utc = [st.unix2utc(x) for x in peak_unix_times]
+    logger.info("Peak UTCs:\n")
+    logger.info(str(peaks_utc))
     flare_ids = [
             st.unix2datetime(x).strftime("%y%m%d%H%M") for x in peak_unix_times
             ]
@@ -529,7 +535,6 @@ def find_flares_in_files(fid_start, fid_end, img_path=DEFAULT_FLARE_LC_DIR):
 
 
 def detect_flares_between(start_utc, end_utc, step_duration =  8 * 3600 ):
-
     start_unix=st.utc2unix(start_utc)
     end_unix=st.utc2unix(end_utc)
 
@@ -539,8 +544,8 @@ def detect_flares_between(start_utc, end_utc, step_duration =  8 * 3600 ):
 
 
 
-        start=cursor - 2*3600
-        end =cursor +step_duration + 2*3600
+        start=cursor - 4*3600
+        end =cursor +step_duration + 4*3600
         print("detecting flare in :", st.unix2utc(start), st.unix2utc(end))
 
         cursor+=step_duration

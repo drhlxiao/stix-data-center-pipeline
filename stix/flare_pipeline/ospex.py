@@ -176,13 +176,13 @@ def plot_ospex(fname, fig=None):
     ax.set_xlim(ebins[0], ebins[-1])
     energy_range_str = f'{ebins[0]} – {ebins[-1]} keV'
     water_mark = 'Not suitable for publication'
-    title = f"{water_mark}\n{hdu[0].header['DATE-OBS']} – {hdu[0].header['DATE-END']}\n{energy_range_str}"
+    title = f"{water_mark}\n{hdu[0].header['DATE-OBS'][0:19]} – {hdu[0].header['DATE-END'][0:19]}"
 
     ax.grid('on')
     ax.legend(loc='lower left')
     ax.set_title(title)
 
-    ax.set_ylabel(r"Count flux [cnts s$^{-1}$ keV$^{-1}$ cm$^{-2}$]")
+    ax.set_ylabel(r"Flux (cnts s$^{-1}$ keV$^{-1}$ cm$^{-2}$)")
     ax.set_yscale('log')
 
     # display fit results
