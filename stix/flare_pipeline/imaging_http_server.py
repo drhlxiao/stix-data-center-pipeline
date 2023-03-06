@@ -60,6 +60,7 @@ def update_request():
         if os.path.exists(value):
             fits[key] = value
     fields={
+            'py_calls':0,
             'fits': fits,
             'processing_date': datetime.now(),
             'num_idl_calls': 1,

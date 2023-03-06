@@ -20,42 +20,40 @@ from stix.fits import fits_creator
 from stix.core import logger
 from stix.core import config
 logger = logger.get_logger()
-goes=gd.GOES()
 
-def daily_jobs():
-    time.sleep(600)
-    #lower priority
-    daemon_config = config.get_config('pipeline.daemon')
-    lc_output_dir=daemon_config['flare_lc_snapshot_path']
-    #aspect_path_pattern=daemon_config['aspect_l2_path_pattern']
+
+
+def do_task():
+    logger.info('Starting thread')
+    pd.main()
+
+
+# Define a function to check if the thread is running for more than 2 hours
+def check_running_thread(thread):
+    if not thread.is_alive():
+        logger.info("pipeline not running, restarting...")
+        start_thread()
+        return
+    else:
+        if time.time() - thread.start_time > 7200: # 2 hours in seconds
+            logger.warning("Thread has been running for more than 2 hours, restarting...")
+            thread.kill()
+            start_thread()
+
+# Define a function to start the thread
+def start_thread():
+    thread = threading.Thread(target=do_task)
+    thread.daemon = True
+    thread.start_time = time.time()
+    thread.kill = lambda: None
+    thread.start()
+
+    # Check the thread every 5 minutes
     while True:
-        logger.info("Starting LL fits creator loop..")
-        fits_creator.create_daily_low_latency_fits_for_all()
-        logger.info("Starting flare detection loop..")
-        flare_detection.find_flares_in_recent_LC(lc_path=lc_output_dir)
-        #logger.info("Importing aspect solutions ..")
-        #asp.import_all_aspect_solutions(aspect_path_pattern)
+        time.sleep(120) # 5 minutes in seconds
+        check_running_thread(thread)
 
-        time.sleep(86400)
-
-
-def minutely_jobs():
-    while True:
-        pd.main()
-        time.sleep(60)
-
-def start_threads():
-
-    minutely_thread= threading.Thread(target=minutely_jobs)
-    minutely_thread.start()
-
-    goes_thread= threading.Thread(target=goes.loop)
-    goes_thread.start()
-
-    daily_thread=threading.Thread(target=daily_jobs)
-    daily_thread.start()
-
-
+# Start the thread
 if __name__ == '__main__':
-    start_threads()
+    start_thread()
 

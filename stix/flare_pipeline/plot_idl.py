@@ -12,6 +12,7 @@
 import os
 import sys
 import matplotlib
+import time
 import numpy as np
 from scipy import ndimage
 
@@ -42,7 +43,6 @@ from stix.core import mongo_db as db
 from stix.core import logger
 from stix.utils import bson
 from stix.spice import time_utils as ut
-from stix.spice.solo import SoloEphemeris
 from stix.analysis.science_l1 import ScienceL1
 
 
@@ -69,9 +69,17 @@ CMAP = 'std_gamma_2'  #color map
 
 
 
-def plot_idl(doc_id: int, create_stix_images=True, create_eui=True, create_aia=False):
+def plot_idl(anydoc, create_stix_images=True, create_eui=True, create_aia=False):
+    if isinstance(anydoc, int):
+        doc = flare_image_db.find_one({'_id': anydoc})
+        doc_id=anydoc
+    else:
+        doc=anydoc
+        doc_id=doc['_id']
     logger.info(f"Processing {doc_id}")
-    doc = flare_image_db.find_one({'_id': doc_id})
+    flare_image_db.update_one({'_id': doc_id}, {'$set': {'py_calls':1} })
+    #will not be called again
+
     if not doc:
         logger.error(f'Doc {doc_id} not found in the database')
         return
@@ -82,12 +90,12 @@ def plot_idl(doc_id: int, create_stix_images=True, create_eui=True, create_aia=F
             logger.error(e)
     if create_eui:
         try:
-            solo_eui.process_one(doc['_id'])
+            solo_eui.process_one(doc_id)
         except Exception as e:
             logger.error(e)
     if create_aia:
         try:
-            plot_aia(doc['_id'])
+            plot_aia(doc_id)
         except Exception as e:
             logger.error(e)
 
@@ -615,6 +623,15 @@ def create_all_for_all():
             logger.error(e)
             #don't raise any exception
 
+def daemon_idl():
+    while True:
+        docs = flare_image_db.find( {'py_calls':0 }).sort('_id',-1).limit(5)
+        for doc in docs:
+            plot_idl(doc['_id'], True)
+        time.sleep(5)
+        logger.info(f"Waiting for 5 seconds")
+        
+
 
 
 
@@ -626,6 +643,7 @@ def test():
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
-        print('Usage plot_idl <doc_id>')
+        print('Usage plot_idl <doc_id> or plot_idl to start daemon')
+        daemon_idl()
     else:
         plot_idl(int(sys.argv[1]))

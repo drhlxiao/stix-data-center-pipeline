@@ -19,8 +19,13 @@ NUM_KERNEL_FILES_LIMIT=10
 
 logger = logger.get_logger()
 
+
 mdb=mongo_db.MongoDB()
 # SOLAR ORBITER naif identifier
+
+IGNORE_ATT = True
+#loading att files takes a lot time
+
 class _SpiceManager(object):
     """taken from https://issues.cosmos.esa.int/solarorbiterwiki/display/SOSP/Translate+from+OBT+to+UTC+and+back
     """
@@ -78,24 +83,28 @@ class _SpiceManager(object):
         if self.loaded_kernel_filename ==  self.latest_mk or self.latest_mk is None:
             logger.info(f'SPICE kernel loaded already: {self.loaded_kernel_filename}.')
             return 
-        try: 
-            logger.info(f'Loading kernel from mk file:{self.latest_mk}')
-            spiceypy.furnsh(self.latest_mk)
-            return
-        except spiceypy.utils.exceptions.SpiceNOSUCHFILE:
-            logger.warning('Failed to load mk file, try loading one by one')
 
         os.chdir(mk_folder)
+        #try: 
+        #    logger.info(f'Loading kernel from mk file:{self.latest_mk}')
+        #    spiceypy.furnsh(os.path.join(mk_folder, self.latest_mk))
+        #except spiceypy.utils.exceptions.SpiceNOSUCHFILE:
+        #    logger.warning('Failed to load mk file, try loading one by one')
+
         fnames=self.get_kernel_files_from_mk(self.latest_mk)
         for fname in fnames:
+            if 'flown-att' in fname and IGNORE_ATT:
+                logger.warning(f'Ignored ATT file:{fname}')
+                continue
             try:
+                logger.info(f'Loading kernel: {fname}')
                 spiceypy.furnsh(os.path.join(spice_folder, fname))
             except spiceypy.utils.exceptions.SpiceNOSUCHFILE:
-                print('Failed to load:', fname)
-        print('loading kernel:',self.latest_mk)
-        self.loaded_kernel_filename=self.latest_mk
+                logger.warning(f'Failed to load: {fname}')
 
+        self.loaded_kernel_filename=self.latest_mk
         os.chdir(cwd)
+        #change back to folder
 
 
     def obt2utc(self, obt_string):

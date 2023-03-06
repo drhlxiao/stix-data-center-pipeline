@@ -337,6 +337,8 @@ def main():
     flist=find_new_telemetry_files()
     if flist:
         process_files(flist)
+    else:
+        logger.info("No new files found!")
 
 
 
