@@ -1,0 +1,60 @@
+#!/usr/bin/python3
+# @author       : Hualin Xiao
+# @date         : May. 11, 2021
+
+import os
+import sys
+
+import time
+import threading
+
+currentdir = os.path.dirname(os.path.realpath(__file__))
+parentdir = os.path.dirname(currentdir)
+sys.path.append(parentdir)
+
+from stix.pipeline import raw_pipeline as pd
+from stix.analysis import goes_downloader as gd
+from stix.analysis import flare_detection
+#from stix.aspect import aspect_to_db as asp
+from stix.fits import fits_creator
+from stix.core import logger
+from stix.core import config
+from stix.pipeline import task_manager as tm
+from stix.flare_pipeline import imaging_task_manager as itm
+from stix.fits import find_no_fits_bsd as fdnf
+from stix.fits import fits_creator as fc
+from stix.data_imports import data_archive as da
+
+logger = logger.get_logger()
+
+goes=gd.GOES()
+def daily_tasks():
+    #lower priority
+    daemon_config = config.get_config('pipeline.daemon')
+    lc_output_dir=daemon_config['flare_lc_snapshot_path']
+    logger.info("Starting LL fits creator loop..")
+    fits_creator.create_daily_low_latency_fits_for_all()
+    logger.info("Starting flare detection loop..")
+    flare_detection.find_flares_in_recent_LC(lc_path=lc_output_dir)
+    logger.info("Downloading goes..")
+    goes.download()
+    logger.info("creating fits files ..")
+    fdnf.main()
+    logger.info("Importing aspect data..")
+    da.import_data_archive_products()
+    logger.info("Recreating fits ..")
+    fc.recreate_fits_for_science_data(14,13)
+    logger.info("Registering imaging tasks..")
+    itm.register_imaging_tasks_for_last_flares()
+
+
+
+
+def main():
+    t=tm.TaskManager('stixpl_daily')
+    t.run(daily_tasks, sleep_time=24*3600, max_exec_time=24*3600)
+
+    
+if __name__ == '__main__':
+    main()
+

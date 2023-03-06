@@ -12,14 +12,13 @@ sys.path.append(parentdir)
 from stix.pipeline import raw_pipeline as pd
 from stix.core import logger
 from stix.pipeline import task_manager as tm
+from stix.flare_pipeline import plot_idl as pl
 logger = logger.get_logger()
-
-
 
 def start_pipeline():
     logger.info('Starting thread')
-    t=tm.TaskManager('stixpl')
-    t.run(pd.main, sleep_time=120, max_exec_time=7200)
+    t=tm.TaskManager('plot_idl')
+    t.run(pl.process_latest, sleep_time=5, max_exec_time=3600)
 
 
 # Start the thread

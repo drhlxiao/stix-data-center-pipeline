@@ -623,13 +623,10 @@ def create_all_for_all():
             logger.error(e)
             #don't raise any exception
 
-def daemon_idl():
-    while True:
-        docs = flare_image_db.find( {'py_calls':0 }).sort('_id',-1).limit(5)
-        for doc in docs:
-            plot_idl(doc['_id'], True)
-        time.sleep(5)
-        logger.info(f"Waiting for 5 seconds")
+def process_latest():
+    docs = flare_image_db.find( {'py_calls':0 }).sort('_id',-1).limit(5)
+    for doc in docs:
+        plot_idl(doc['_id'], True)
         
 
 
