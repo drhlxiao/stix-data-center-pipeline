@@ -51,8 +51,8 @@ def daily_tasks():
 
 
 def main():
-    t=tm.TaskManager('stixpl_daily')
-    t.run(daily_tasks, sleep_time=24*3600, max_exec_time=24*3600)
+    t=tm.TaskManager(daily_tasks, sleep_time=24*3600, max_exec_time=24*3600, task_name='stixpl-daily')
+    t.start()
 
     
 if __name__ == '__main__':

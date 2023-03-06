@@ -11,31 +11,30 @@ logger = logger.get_logger()
 
 
 class TaskManager(object):
-    def __init__(self, task_name=''):
-        self.sleep_time=120
-        self.max_exec_time = 3600
+    def __init__(self, func,  sleep_time=120, max_exec_time=7200, task_name=''):
         self.task_name=task_name
+        self.sleep_time = sleep_time
+        self.max_exec_time = max_exec_time
+        self.func= func
     def check_running_thread(self,thread):
         # Define a function to check if the thread is running for more than 2 hours
         if not thread.is_alive():
             logger.info(f"Task {self.task_name} not running, restarting...")
-            self.run()
+            self.start()
             return
         else:
             if time.time() - thread.start_time > self.max_exec_time:  
                 logger.warning(f"Task {self.task_name} has been running for more than {self.max_exec_time} sec, restarting...")
                 thread.kill()
-                self.run()
+                self.start()
 
-    def run(self, func,  sleep_time=120, max_exec_time=7200  ):
-        # Define a function to start the thread
+    def start(self): 
+        #start the thread
         """
         sleep time: excuation time
         """
-        self.sleep_time = sleep_time
-        self.max_exec_time = max_exec_time
         logger.info(f'starting task {self.task_name}...')
-        thread = threading.Thread(target=func)
+        thread = threading.Thread(target=self.func)
         thread.daemon = True
         thread.start_time = time.time()
         thread.kill = lambda: None

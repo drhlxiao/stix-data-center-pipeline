@@ -17,8 +17,8 @@ logger = logger.get_logger()
 
 def start_pipeline():
     logger.info('Starting thread')
-    t=tm.TaskManager('plot_idl')
-    t.run(pl.process_latest, sleep_time=5, max_exec_time=3600)
+    t=tm.TaskManager(pl.process_latest, sleep_time=5, max_exec_time=3600, task_name='plot_idl')
+    t.start()
 
 
 # Start the thread

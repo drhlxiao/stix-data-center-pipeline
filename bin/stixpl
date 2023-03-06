@@ -18,8 +18,8 @@ logger = logger.get_logger()
 
 def start_pipeline():
     logger.info('Starting thread')
-    t=tm.TaskManager('stixpl')
-    t.run(pd.main, sleep_time=120, max_exec_time=7200)
+    t=tm.TaskManager(pd.main, sleep_time=120, max_exec_time=7200, task_name='stixpl')
+    t.start()
 
 
 # Start the thread
