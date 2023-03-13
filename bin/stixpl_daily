@@ -36,24 +36,29 @@ async def daily_task_runner():
         task.cancel()
 
 
-def daily_tasks():
+async def daily_tasks():
+    """ create daily tasks"""
     #lower priority
     daemon_config = config.get_config('pipeline.daemon')
     lc_output_dir=daemon_config['flare_lc_snapshot_path']
     logger.info("Starting LL fits creator loop..")
-    fits_creator.create_daily_low_latency_fits_for_all()
-    logger.info("Starting flare detection loop..")
-    flare_detection.find_flares_in_recent_LC(lc_path=lc_output_dir)
-    logger.info("Downloading goes..")
-    goes.download()
-    logger.info("creating fits files ..")
-    fdnf.main()
-    logger.info("Importing aspect data..")
-    da.import_data_archive_products()
-    logger.info("Recreating fits ..")
-    fc.recreate_fits_for_science_data(14,13)
-    logger.info("Registering imaging tasks..")
-    itm.register_imaging_tasks_for_last_flares()
+    try:
+        fits_creator.create_daily_low_latency_fits_for_all()
+        logger.info("Starting flare detection loop..")
+        flare_detection.find_flares_in_recent_LC(lc_path=lc_output_dir)
+        logger.info("Downloading goes..")
+        goes.download()
+        logger.info("Importing aspect data..")
+        da.import_data_archive_products()
+        logger.info("creating fits files ..")
+        fdnf.main()
+        logger.info("Recreating fits ..")
+        fc.recreate_fits_for_science_data(14,13)
+        logger.info("Registering imaging tasks..")
+        itm.register_imaging_tasks_for_last_flares()
+    except Exception as e:
+        logger.error(str(e))
+
 
 
 

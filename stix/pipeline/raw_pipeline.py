@@ -272,7 +272,7 @@ def piepeline_parsing_and_basic_analysis(instrument, filename, notification_enab
     clear_ngnix_cache()
     return file_id
 
-def pipeline_fits_creation_packets_merging_multiple(file_ids):
+async def pipeline_fits_creation_packets_merging_multiple(file_ids):
     for file_id in file_ids:
         pipeline_fits_creation_packets_merging(file_id)
 

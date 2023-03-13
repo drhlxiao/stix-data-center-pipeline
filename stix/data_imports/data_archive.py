@@ -6,6 +6,7 @@
 import os
 import re
 import sys
+import time
 
 sys.path.append('/opt/stix/parser/')
 import re
@@ -90,13 +91,13 @@ def read_data_archive_fits_meta(filename, file_info):
     return meta
 
 
-def import_data_archive_products(path=DATA_ARCHIVE_FITS_PATH):
+def import_data_archive_products(path=DATA_ARCHIVE_FITS_PATH, max_age_days=2):
     logger.info(f'Checking folder:{path}...')
     file_types = DATA_ARCHIVE_FILE_INFO.keys()
-    for fname in glob.glob(path, recursive=True):
-        file_type = [t for t in file_types if t in fname]
+    oldest_time = time.time()-86400* max_age_days
+    filenames =[f for f in  glob.glob(path, recursive=True) if os.path.getmtime(f)>= oldest_time and f in file_types]
+    for fname in filenames:
         basename = os.path.basename(fname)
-
         md5checksum = checksum.get_file_md5(fname)
 
         if not file_type:
@@ -186,7 +187,7 @@ if __name__ == '__main__':
     #init_md5()
     if len(sys.argv) != 2:
         logger.info('read_and_import_aspect <filename')
-        import_data_archive_products()
+        import_data_archive_products(max_age_days=2)
     else:
         import_auxiliary(sys.argv[1])
 
