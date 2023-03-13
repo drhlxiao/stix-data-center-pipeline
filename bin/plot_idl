@@ -5,6 +5,7 @@
 import os
 import sys
 
+import time
 
 currentdir = os.path.dirname(os.path.realpath(__file__))
 parentdir = os.path.dirname(currentdir)
@@ -16,9 +17,12 @@ from stix.flare_pipeline import plot_idl as pl
 logger = logger.get_logger()
 
 def start_pipeline():
-    logger.info('Starting thread')
-    t=tm.TaskManager(pl.process_latest, sleep_time=10, timeout=3600, task_name='plot_idl')
-    t.start()
+    while True:
+        pl.process_latest()
+        time.sleep(10)
+    #logger.info('Starting thread')
+    #t=tm.TaskManager(pl.process_latest, sleep_time=10, timeout=3600, task_name='plot_idl')
+    #t.start()
 
 
 # Start the thread

@@ -1,5 +1,0 @@
-#!/usr/bin/python3
-# @author       : Hualin Xiao
-# @date         : May. 11, 2021
-from stix.flare_pipeline import imaging_http_server as s
-s.run_server(port=8022)

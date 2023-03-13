@@ -3,7 +3,7 @@ Description=STIX data processing pipeline
 
 [Service]
 User=root
-ExecStart=bash -c 'source /opt/root6_python3/bin/thisroot.sh && /opt/stix/pystix/bin/stixpl'
+ExecStart=bash -c 'source /opt/root6_python3/bin/thisroot.sh && /opt/stix/pystix/bin/stixpl_daily'
 Restart=always
 
 [Install]
