@@ -6,7 +6,7 @@ import os
 import sys
 
 import time
-import threading
+import asyncio
 
 currentdir = os.path.dirname(os.path.realpath(__file__))
 parentdir = os.path.dirname(currentdir)
@@ -19,7 +19,6 @@ from stix.analysis import flare_detection
 from stix.fits import fits_creator
 from stix.core import logger
 from stix.core import config
-from stix.pipeline import task_manager as tm
 from stix.flare_pipeline import imaging_task_manager as itm
 from stix.fits import find_no_fits_bsd as fdnf
 from stix.fits import fits_creator as fc
@@ -28,6 +27,15 @@ from stix.data_imports import data_archive as da
 logger = logger.get_logger()
 
 goes=gd.GOES()
+async def daily_task_runner():
+    task=asyncio.create_task(daily_tasks())
+    try:
+        await asyncio.wait_for(task, timeout=3600*4)
+    except asyncio.TimeoutError:
+        logger.error("daily tasks timeout , kill it")
+        task.cancel()
+
+
 def daily_tasks():
     #lower priority
     daemon_config = config.get_config('pipeline.daemon')
@@ -51,8 +59,9 @@ def daily_tasks():
 
 
 def main():
-    t=tm.TaskManager(daily_tasks, sleep_time=24*3600, max_exec_time=24*3600, task_name='stixpl-daily')
-    t.start()
+    while True:
+        asyncio.run(daily_task_runner())
+        time.sleep(24*3600)
 
     
 if __name__ == '__main__':

@@ -88,16 +88,17 @@ def plot_idl(anydoc, create_stix_images=True, create_eui=True, create_aia=False)
             plot_imaging_and_ospex_results(doc)
         except Exception as e:
             logger.error(e)
-    if create_eui:
-        try:
-            solo_eui.process_one(doc_id)
-        except Exception as e:
-            logger.error(e)
-    if create_aia:
-        try:
-            plot_aia(doc_id)
-        except Exception as e:
-            logger.error(e)
+    return
+    #if create_eui:
+    #    try:
+    #        solo_eui.process_one(doc_id)
+    #    except Exception as e:
+    #        logger.error(e)
+    #if create_aia:
+    #    try:
+    #        plot_aia(doc_id)
+    #    except Exception as e:
+    #        logger.error(e)
 
 
 def rotate_map(m, recenter=False):
@@ -290,6 +291,7 @@ def plot_imaging_and_ospex_results(doc):
 
     new_values['figs'] = figs
     updates = {'$set': new_values}
+    plt.close('all')
     flare_image_db.update_one({'_id': doc['_id']}, updates)
 
 def plot_ospex_results(task_doc, dpi=DEFAULT_PLOT_DPI):
@@ -331,6 +333,7 @@ def plot_ospex_results(task_doc, dpi=DEFAULT_PLOT_DPI):
             logger.warning('Failed to create spectral fitting result plot')
         ospex_fig_obj['output']=fname
         ospex_fig_obj['figure']=ospex_fig
+
 
     return ospex_fig_obj
 
@@ -624,10 +627,17 @@ def create_all_for_all():
             #don't raise any exception
 
 def process_latest():
-    docs = flare_image_db.find( {'py_calls':0 }).sort('_id',-1).limit(5)
+    docs = flare_image_db.find( {'py_calls':0 }).sort('_id',-1).limit(1)
     for doc in docs:
         plot_idl(doc['_id'], True)
         
+def process_all():
+    while True:
+        try:
+            process_latest()
+        except:
+            pass
+        time.sleep(10)
 
 
 
@@ -641,6 +651,6 @@ def test():
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         print('Usage plot_idl <doc_id> or plot_idl to start daemon')
-        daemon_idl()
+        process_all()
     else:
         plot_idl(int(sys.argv[1]))

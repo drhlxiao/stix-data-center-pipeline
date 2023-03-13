@@ -7,8 +7,43 @@ from dateutil import parser as dtparser
 from astropy.time import Time
 from stix.spice import spice_manager as spm
 import spiceypy
+from datetime import datetime
+import pandas as pd
+from astropy.time import Time
+
 from stix.core import logger
 
+def anytime(dt, fm='iso'):
+    if isinstance(dt, Time):
+        dt=dt.to_datetime()
+    t=pd.to_datetime(dt,utc=True)
+    if fm=='iso':
+        return t.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+    elif fm=='unix':
+        return t.timestamp()
+    elif fm=='datetime':
+        return t.to_pydatetime()
+    return t
+
+
+
+def utc2unix(dt):
+    t=pd.to_datetime(dt,utc=True)
+    return t.timestamp()
+    
+
+def utc2datetime(t):
+    return pd.to_datetime(t, utc=True).to_pydatetime()
+
+def datetime2unix(t):
+   t=pd.to_datetime(t, utc=True)
+   return t.timestamp()
+
+
+
+
+def unix2datetime(unix_timestamp):
+    return datetime.utcfromtimestamp(unix_timestamp)
 
 def format_datetime(dt):
     if isinstance(dt, datetime):
@@ -49,25 +84,6 @@ def utc2scet(utc):
     return spm.spice.utc2obt(utc)
 
 
-def utc2unix(utc):
-    if isinstance(utc, str):
-        if not utc.endswith('Z'):
-            utc += 'Z'
-        try:
-            return dtparser.parse(utc).timestamp()
-        except:
-            return 0
-    elif isinstance(utc, int) or isinstance(utc, float):
-        return utc
-    else:
-        return 0
-def utc2datetime(utc):
-    if not utc.endswith('Z'):
-        utc += 'Z'
-    try:
-        return dtparser.parse(utc)
-    except:
-        return None
 
 def utc2isoformat(utc):
     if not utc.endswith('Z'):
@@ -93,22 +109,6 @@ def unix2datetime(timestamp):
         dt = timestamp
     return dt
 
-
-def datetime2unix(timestamp):
-    dt = None
-    if isinstance(timestamp, float):
-        dt = datetime.utcfromtimestamp(timestamp)
-    elif isinstance(timestamp, str):
-        try:
-            ts = float(timestamp)
-            dt = datetime.utcfromtimestamp(ts)
-        except ValueError:
-            dt = dtparser.parse(timestamp)
-    elif isinstance(timestamp, datetime.datetime):
-        dt = timestamp
-    if dt:
-        return dt.timestamp()
-    return 0
 
 
 def scet2unix(coarse, fine=0):
@@ -156,10 +156,6 @@ def is_scet_valid(scet):
 
 
 
-def utc2datetime(utc):
-    if not utc.endswith('Z'):
-        utc += 'Z'
-    return dtparser.parse(utc)
 
 
 def scet_to_utc(scet):

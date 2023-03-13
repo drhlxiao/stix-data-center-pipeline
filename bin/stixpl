@@ -11,15 +11,16 @@ parentdir = os.path.dirname(currentdir)
 sys.path.append(parentdir)
 from stix.pipeline import raw_pipeline as pd
 from stix.core import logger
-from stix.pipeline import task_manager as tm
 logger = logger.get_logger()
 
 
 
 def start_pipeline():
-    logger.info('Starting thread')
-    t=tm.TaskManager(pd.main, sleep_time=120, max_exec_time=7200, task_name='stixpl')
-    t.start()
+    logger.info('Starting pipeline')
+    while True:
+        pd.main()
+        time.sleep(300)
+
 
 
 # Start the thread

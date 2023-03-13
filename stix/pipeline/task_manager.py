@@ -5,44 +5,32 @@
 
 
 import time
-import threading
+import multiprocessing
 from stix.core import logger
 logger = logger.get_logger()
 
 
+
 class TaskManager(object):
-    def __init__(self, func,  sleep_time=120, max_exec_time=7200, task_name=''):
+    def __init__(self, func,  sleep_time=120, timeout=7200, task_name=''):
         self.task_name=task_name
         self.sleep_time = sleep_time
-        self.max_exec_time = max_exec_time
+        self.timeout = timeout
         self.func= func
-    def check_running_thread(self,thread):
-        # Define a function to check if the thread is running for more than 2 hours
-        if not thread.is_alive():
-            logger.info(f"Task {self.task_name} not running, restarting...")
-            self.start()
-            return
-        else:
-            if time.time() - thread.start_time > self.max_exec_time:  
-                logger.warning(f"Task {self.task_name} has been running for more than {self.max_exec_time} sec, restarting...")
-                thread.kill()
-                self.start()
-
     def start(self): 
-        #start the thread
-        """
-        sleep time: excuation time
-        """
+        #start the ps
         logger.info(f'starting task {self.task_name}...')
-        thread = threading.Thread(target=self.func)
-        thread.daemon = True
-        thread.start_time = time.time()
-        thread.kill = lambda: None
-        thread.start()
+        ps = multiprocessing.Process(target=self.func, name=self.task_name)
+        ps.start()
+        # Check the ps every 5 minutes
+        ps.join(self.timeout)
+        if ps.is_alive():
+            logger.info("Time out..")
+            ps.terminate()
 
-        # Check the thread every 5 minutes
-        while True:
-            time.sleep(self.sleep_time) # 5 minutes in seconds
-            self.check_running_thread(thread)
+        time.sleep(self.sleep_time)
+        self.start()
+        
+
 
 

@@ -11,6 +11,7 @@ import os
 import sys
 import glob
 import argparse
+import asyncio
 from datetime import datetime
 from stix.core import config
 from stix.spice import time_utils as sdt
@@ -271,6 +272,9 @@ def piepeline_parsing_and_basic_analysis(instrument, filename, notification_enab
     clear_ngnix_cache()
     return file_id
 
+def pipeline_fits_creation_packets_merging_multiple(file_ids):
+    for file_id in file_ids:
+        pipeline_fits_creation_packets_merging(file_id)
 
 def pipeline_fits_creation_packets_merging(file_id):
     logger.info('Creating fits files...')
@@ -284,13 +288,6 @@ def pipeline_fits_creation_packets_merging(file_id):
         sci_packets_analyzer.process_packets_in_file(file_id)
     except Exception as e:
         logger.error(str(e))
-    #logger.info('preparing imaging inputs...')
-    #try:
-    #    logger.info(f'submitting imaging tasks for File {file_id}')
-    #    itm.register_imaging_tasks_for_file(file_id)  #removed on Jan 5, 2022, it should be called as crontab job
-    #except Exception as e:
-    #    logger.error(str(e))
-
 
 def process_one(filename):
     file_id = MDB.get_file_id(filename)
@@ -300,6 +297,15 @@ def process_one(filename):
         logger.info(f'Already processed:{filename}, {file_id}')
     Notification.send()
 
+async def fits_creator_runner(file_ids):
+    task=asyncio.create_task(pipeline_fits_creation_packets_merging_multiple(file_ids))
+    
+    try:
+        await asyncio.wait_for(task, timeout=3600*3)
+    except asyncio.TimeoutError:
+        logger.error("Fits file created did not finish with 2 hours, kill it")
+        task.cancel()
+
 
 
 def pipeline(instrument, filename, notification_enabled=True, debugging=False):
@@ -307,10 +313,7 @@ def pipeline(instrument, filename, notification_enabled=True, debugging=False):
     single file processing pipeline
     """
     file_id=piepeline_parsing_and_basic_analysis(instrument, filename, notification_enabled, debugging)
-    #task_manager.run_on_background(pipeline_fits_creation_packets_merging_and_imaging,
-    #        'fits-creation-pkt-merging', args=(file_id,))
-    pipeline_fits_creation_packets_merging(file_id)
-
+    return file_id
 
 
 
@@ -319,14 +322,16 @@ def process_files(filelist):
     Process files in the given list
     """
     num_processed = 0
+    file_ids=[]
     for instrument, files in filelist.items():
         goes.download()
         for filename in files:
             #print('Processing file:', filename)
-            pipeline(instrument, filename , True)
+            file_id=pipeline(instrument, filename , True)
+            file_ids.append(file_id)
             num_processed += 1
     Notification.send()
-    #only sending email after all files are processed
+    asyncio.run(fits_creator_runner(file_ids))
     return num_processed
 
 
