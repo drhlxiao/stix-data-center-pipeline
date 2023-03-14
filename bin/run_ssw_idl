@@ -1,0 +1,4 @@
+#!/bin/bash
+# run idl image reconstruction pipeline
+#daily routines 
+cd /opt/stix/pystix/stix/idl/ && ./sswrun.csh top.pro 
