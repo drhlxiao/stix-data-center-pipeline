@@ -13,7 +13,7 @@ from astropy.time import Time
 from stix.fits.calibration.integer_compression import decompress
 from stix.spice.time_utils import scet_to_datetime
 from stix.fits.products.common import _get_detector_mask, _get_pixel_mask, _get_energy_bins, \
-    _get_compression_scheme, _get_num_energies, _get_sub_spectrum_mask
+    _get_compression_scheme, _get_num_energies, _get_sub_spectrum_mask, get_energies_from_mask, get_energies_from_edges
 
 # __all__ = ['LightCurve', 'Background', 'Spectra', 'Variance', 'CalibrationSpectra',
 #            'FlareFlagAndLocation', 'TMManagementAndFlareList', 'get_energies_from_mask']
@@ -173,12 +173,7 @@ class Product:
 
     def get_energies(self):
         obs_time= self.obs_avg
-
-        if 'e_low' in self.control.colnames and 'e_high' in self.control.colnames:
-            energies=get_energies_from_edges(obs_time=obs_time,
-                    e_low=self.control['e_low'][0],
-                    e_high=self.control['e_high'][0])
-        elif 'energy_bin_edge_mask' in self.control.colnames:
+        if 'energy_bin_edge_mask' in self.control.colnames:
             energies = get_energies_from_mask(obs_time=obs_time , 
                     mask=self.control['energy_bin_edge_mask'][0])
         elif 'energy_bin_mask' in self.control.colnames:

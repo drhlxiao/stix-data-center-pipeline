@@ -781,9 +781,6 @@ def get_energies_from_mask(obs_time, mask=None):
         Lower and high energy edges
     """
 
-    print("######Get energies from mask: ")
-    print('mask:', mask, len(mask))
-    print('obs_time:', obs_time)
 
     energy_channels = get_energy_channels(obs_time)
 
