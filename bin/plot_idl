@@ -10,19 +10,13 @@ import time
 currentdir = os.path.dirname(os.path.realpath(__file__))
 parentdir = os.path.dirname(currentdir)
 sys.path.append(parentdir)
-from stix.pipeline import raw_pipeline as pd
 from stix.core import logger
-from stix.pipeline import task_manager as tm
 from stix.flare_pipeline import plot_idl as pl
-logger = logger.get_logger()
 
 def start_pipeline():
     while True:
         pl.process_latest()
         time.sleep(10)
-    #logger.info('Starting thread')
-    #t=tm.TaskManager(pl.process_latest, sleep_time=10, timeout=3600, task_name='plot_idl')
-    #t.start()
 
 
 # Start the thread

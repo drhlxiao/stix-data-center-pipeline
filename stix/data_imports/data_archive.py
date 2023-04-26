@@ -11,6 +11,7 @@ import time
 sys.path.append('/opt/stix/parser/')
 import re
 import glob
+from pathlib  import Path
 import numpy as np
 from astropy.io import fits
 from datetime import datetime
@@ -28,7 +29,7 @@ mdb = db.MongoDB()
 fits_db = mdb.get_collection('fits')
 
 DEFAULT_ASP_PATH_PATTEN = "/data/pub099/fits/L2/*/*/*/*/*aux*.fits"
-DATA_ARCHIVE_FITS_PATH = "/data/pub099/fits/**/*.fits"
+DATA_ARCHIVE_FITS_PATH = "/data/pub099/fits/"
 processed_list = []
 
 DATA_ARCHIVE_FILE_INFO = {
@@ -44,6 +45,7 @@ DATA_ARCHIVE_FILE_INFO = {
     'L1_stix-sci-xray-spec': ('xray-spec', 'L1', 'science', 54143),
     'L1_stix-sci-aspect-burst': ('aspect', 'L1', 'auxiliary', 54125),
     'L2_stix-aux-': ('auxiliary', 'L2', 'auxiliary', 54102),
+    'ql-ql-tmstatusflarelist':('ql-flarelist','L1','quicklook', 54122)
     #'L2_stix-hk-maxi': ('hk_maxi', 'L2', 'housekeeping', 54102)
 }
 
@@ -91,24 +93,37 @@ def read_data_archive_fits_meta(filename, file_info):
     return meta
 
 
+def get_file_type(fname):
+    file_types = DATA_ARCHIVE_FILE_INFO.keys()
+    for f in file_types:
+        if f in fname:
+            return f
+    return None
 def import_data_archive_products(path=DATA_ARCHIVE_FITS_PATH, max_age_days=2):
     logger.info(f'Checking folder:{path}...')
-    file_types = DATA_ARCHIVE_FILE_INFO.keys()
     oldest_time = time.time()-86400* max_age_days
-    filenames =[f for f in  glob.glob(path, recursive=True) if os.path.getmtime(f)>= oldest_time and f in file_types]
-    for fname in filenames:
+    for f in  Path(path).rglob('*.fits'):
+        fname = f.as_posix()
+        if os.path.getmtime(fname)< oldest_time:
+            continue
+        file_type=get_file_type(fname)
+        if not file_type:
+            logger.info(f'{fname} not supported type. Skipped!')
+            continue
+
+
+    
+        #if fname not in file_types:
+        #    continue
+
         basename = os.path.basename(fname)
         md5checksum = checksum.get_file_md5(fname)
 
-        if not file_type:
-            logger.info(f'{basename} not supported type. Skipped!')
-            continue
         if fits_db.find_one({'md5': md5checksum}):
             logger.info(
                 f'{basename} ({md5checksum}) already inserted in the database')
             continue
 
-        file_type = file_type[0]
         logger.info(f'Add {basename} to fits file database')
         meta = read_data_archive_fits_meta(fname,
                                            DATA_ARCHIVE_FILE_INFO[file_type])
@@ -172,23 +187,14 @@ def import_auxiliary(fname):
     else:
         logger.warn(f'{fname} contains empty valid entries!')
 
-"""
-
-def init_md5():
-    for doc in fits_db.find({'_id': {'$gt': 132086}}):
-        filename = os.path.join(doc['path'], doc['filename'])
-        md5 = checksum.get_file_md5(filename)
-        fits_db.update_one({'_id': doc['_id']}, {'$set': {'md5': md5}})
-        print('updating ', doc['_id'])
-
-"""
 
 if __name__ == '__main__':
-    #init_md5()
     if len(sys.argv) != 2:
         logger.info('read_and_import_aspect <filename')
-        import_data_archive_products(max_age_days=2)
+        import_data_archive_products(max_age_days=7)
     else:
-        import_auxiliary(sys.argv[1])
+        if sys.argv[1]=='allaspect':
+            import_all_aspect_solutions()
+        else:
+            import_auxiliary(sys.argv[1])
 
-    #    """

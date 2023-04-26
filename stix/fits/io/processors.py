@@ -207,6 +207,12 @@ class FitsL1Processor:
             energies['e_low'] = elow * u.keV
             energies['e_high'] = ehigh * u.keV
 
+            try:
+                control.remove_columns(['e_low','e_high','e_unit'])
+            except KeyError:
+                #ignore if the key don't exists
+                pass
+            #not needed any more, 
             # Convert time to be relative to start date
             data['time'] = (data['time'] - prod.obs_beg).to(u.s)
 

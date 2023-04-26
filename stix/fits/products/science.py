@@ -15,7 +15,7 @@ from stix.core import config
 from stix.fits.calibration.integer_compression import decompress
 from stix.spice.time_utils import scet_to_datetime
 from stix.fits.products.common import _get_pixel_mask, _get_detector_mask, _get_compression_scheme
-from stix.fits.products.quicklook import get_energies_from_mask, ENERGY_CHANNELS
+from stix.fits.products.common import get_energies_from_mask, get_energy_channels,get_energies_from_edges
 
 from stix.core.logger import get_logger
 logger = get_logger(__name__)
@@ -91,7 +91,7 @@ class Data(QTable):
         pass
 
 
-class Product:
+class Product(object):
     def __init__(self, control, data):
         """
         Generic product composed of control and data
@@ -132,9 +132,33 @@ class Product:
                f' {self.data.__repr__()}\n' \
                f'>'
 
+    def get_energies(self):
+        obs_time = self.obs_avg
+        if 'e_unit' in self.control.colnames:
+            #L4 request
+            energies=get_energies_from_edges(obs_time=obs_time,
+                    e_low=self.control['e_low'][0],
+                    e_high=self.control['e_high'][0], e_unit=self.control['e_unit'][0])
+
+        elif 'e_low' in self.control.colnames and 'e_high' in self.control.colnames:
+            energies=get_energies_from_edges(obs_time=obs_time,
+                    e_low=self.control['e_low'][0],
+                    e_high=self.control['e_high'][0], e_unit=None)
+
+        elif 'energy_bin_edge_mask' in self.control.colnames:
+            energies = get_energies_from_mask(obs_time=obs_time , 
+                    mask=self.control['energy_bin_edge_mask'][0])
+        elif 'energy_bin_mask' in self.control.colnames:
+            energies = get_energies_from_mask(obs_time=obs_time, 
+                    mask=self.control['energy_bin_mask'][0])
+        else:
+            energies = get_energies_from_mask(obs_time=obs_time)
+
+        return energies
+
     @staticmethod
-    def get_energies():
-        return get_energies_from_mask()
+    def get_energy_channel_dict(start_time):
+        return get_energy_channels(start_time)
 
     @classmethod
     def from_fits(cls, fitspath):
@@ -275,6 +299,7 @@ class XrayL1(Product):
     @classmethod
     def from_packets(cls, packets, eng_packets):
         # Control
+
         ssid = packets['SSID'][0]
 
         control = Control.from_packets(packets)
@@ -305,7 +330,6 @@ class XrayL1(Product):
         pixel_sets= np.array(packets['NIX00442'], np.ubyte)
 
         qadd(data,'num_pixel_sets',  pixel_sets)
-        print("pixel set :", pixel_sets)
 
         pixel_masks = _get_pixel_mask(packets, 'NIXD0407')
         pixel_masks = pixel_masks.reshape(-1, pixel_sets[0], 12)
@@ -337,6 +361,10 @@ class XrayL1(Product):
         tmp['num_data_elements'] = np.array(packets['NIX00259'])
         unique_energies_low = np.unique(tmp['e_low'])
         unique_energies_high = np.unique(tmp['e_high']) 
+
+        control['e_low']=[unique_energies_low]
+        control['e_high']=[unique_energies_high]
+
 
         # counts = np.array(eng_packets['NIX00260'], np.uint32)
 
@@ -370,33 +398,18 @@ class XrayL1(Product):
             out_counts = np.zeros((unique_times.size, 32, 4, 32))
             out_var = np.zeros((unique_times.size, 32, 4, 32))
 
-        # energy_index = 0
-        # count_index = 0
-        # for i, time in enumerate(unique_times):
-        #     inds = np.where(data['delta_time'] == time)
-        #     cur_num_energies = data['num_energy_groups'][inds].astype(int).sum()
-        #     low = np.unique(tmp['e_low'][energy_index:energy_index+cur_num_energies])
-        #     high = np.unique(tmp['e_high'][energy_index:energy_index + cur_num_energies])
-        #     cur_num_energies = low.size
-        #     num_counts = tmp['num_data_elements'][energy_index:energy_index+cur_num_energies].sum()
-        #     cur_counts = counts[count_index:count_index+num_counts]
-        #     count_index += num_counts
-        #     pids = data[inds[0][0]]['pixel_masks']
-        #     dids = np.where(data[inds[0][0]]['detector_masks'] == True)
-        #     cids = np.full(32, False)
-        #     cids[low] = True
-        #
-        #     if ssid == 21:
-        #         cur_counts = cur_counts.reshape(cur_num_energies, dids[0].size, pids.sum())
-        #     elif ssid == 22:
-        #         cur_counts = cur_counts.reshape(cur_num_energies, dids[0].size, 4)
-        #
-        dl_energies = np.array([[ENERGY_CHANNELS[lch]['e_lower'], ENERGY_CHANNELS[hch]['e_upper']]
+
+        data['time'] = Time(scet_to_datetime(f'{int(control["time_stamp"][0])}:0')) \
+            + data['delta_time'] + data['integration_time'] / 2
+
+        energy_channels=Product.get_energy_channel_dict(data['time'][0])
+
+        dl_energies = np.array([[energy_channels[lch]['e_lower'], energy_channels[hch]['e_upper']]
             for lch, hch in zip(unique_energies_low, unique_energies_high)]).reshape(-1)
         dl_energies = np.unique(dl_energies)
         
-        sci_energies = np.hstack([[ENERGY_CHANNELS[ch]['e_lower'] for ch in range(32)],
-                                  ENERGY_CHANNELS[31]['e_upper']])
+        sci_energies = np.hstack([[energy_channels[ch]['e_lower'] for ch in range(32)],
+                                  energy_channels[31]['e_upper']])
 
         # If there is any onboard summing of energy channels rebin back to standard sci channels
         #print(config.ASW_VERSION)
@@ -456,7 +469,11 @@ class XrayL1(Product):
             raise ValueError(f'Original and reformatted count totals do not match: {counts.sum()} vs {out_counts.sum()}')
 
         control['energy_bin_mask'] = np.full((1, 32), False, np.ubyte)
-        all_energies = set(np.hstack([tmp['e_low'], tmp['e_high']]))
+
+        #control['energy_science_bins']=np.hstack([unique_energies_low, unique_energies_high])
+        #print("Energy bins:", control['energy_science_bins'])
+        all_sci_energies = np.hstack([tmp['e_low'], tmp['e_high']])
+        all_energies = set(all_sci_energies)
         control['energy_bin_mask'][:, list(all_energies)] = True
         # time x energy x detector x pixel
         # counts = np.array(
@@ -467,8 +484,6 @@ class XrayL1(Product):
         sub_index = np.searchsorted(data['delta_time'], unique_times)
         data = data[sub_index]
 
-        data['time'] = Time(scet_to_datetime(f'{int(control["time_stamp"][0])}:0')) \
-            + data['delta_time'] + data['integration_time'] / 2
 
         logger.info("adding data to qtable..")
         qadd(data,'timedel', data['integration_time'])
@@ -482,236 +497,6 @@ class XrayL1(Product):
                     'num_energy_groups', 'triggers', 'triggers_err', 'counts', 'counts_err']
         data['control_index'] = 0
         logger.info("qtable ready")
-
-        return cls(control=control, data=data)
-
-class XrayL1_Backup(Product):
-    """
-    X-ray Compression Level 1/2 data
-    """
-    def __init__(self, control, data):
-        super().__init__(control=control, data=data)
-        self.name = 'xray-l1'
-        self.level = 'L1A'
-
-    @classmethod
-    def from_packets(cls, packets, eng_packets):
-        # Control
-        ssid = packets['SSID'][0]
-
-        control = Control.from_packets(packets)
-
-        control.remove_column('num_structures')
-        control = unique(control)
-
-        if len(control) != 1:
-            #print(packets[0])
-            #raise ValueError('Creating a science product form packets from multiple products')
-            print('Control is not unique')
-            
-
-        control['index'] = 0
-
-        data = Data()
-        try:
-            data['delta_time'] = (np.array(packets['NIX00441'], np.int32)) * 0.1 * u.s
-        except KeyError:
-            #replaced with NIX00404 for versions after asw v180, 
-            data['delta_time'] = (np.array(packets['NIX00404'], np.int32)) * 0.1 * u.s
-
-        unique_times = np.unique(data['delta_time'])
-
-
-        data['rcr'] = np.array(packets['NIX00401'], np.ubyte)
-        data['num_pixel_sets'] = np.array(packets['NIX00442'], np.ubyte)
-        pixel_masks = _get_pixel_mask(packets, 'NIXD0407')
-        pixel_masks = pixel_masks.reshape(-1, data['num_pixel_sets'][0], 12)
-        if ssid == 21 and data['num_pixel_sets'][0] != 12:
-            pixel_masks = np.pad(pixel_masks, ((0, 0),  (0, 12-data['num_pixel_sets'][0]), (0, 0)))
-        data['pixel_masks'] = pixel_masks
-        data['detector_masks'] = _get_detector_mask(packets)
-        data['integration_time'] = (np.array(packets.get('NIX00405'), np.uint16)) * 0.1 * u.s
-
-        # TODO change once FSW fixed
-        #ts, tk, tm = control['compression_scheme_counts_skm'][0]
-        
-        ts, tk, tm = control['compression_scheme_triggers_skm'][0]
-
-        trigger_from_packets=[packets.get(f'NIX00{i}') for i in range(242, 258)]
-
-
-        triggers, triggers_var = decompress(trigger_from_packets,
-                                            s=ts, k=tk, m=tm,
-                                            return_variance=True)
-        #print('before decompression:')
-        #print(trigger_from_packets, ts, tk, tm)
-        #print('After decompressed!')
-        #print(triggers)
-        #raise 
-
-        data['triggers'] = triggers.T
-        data['triggers_err'] = np.sqrt(triggers_var).T
-        data['num_energy_groups'] = np.array(packets['NIX00258'], np.ubyte)
-
-        tmp = dict()
-        tmp['e_low'] = np.array(packets['NIXD0016'], np.ubyte)
-        tmp['e_high'] = np.array(packets['NIXD0017'], np.ubyte)
-        tmp['num_data_elements'] = np.array(packets['NIX00259'])
-        unique_energies_low = np.unique(tmp['e_low'])
-        unique_energies_high = np.unique(tmp['e_high']) 
-
-        # counts = np.array(eng_packets['NIX00260'], np.uint32)
-
-        cs, ck, cm = control['compression_scheme_counts_skm'][0]
-        counts, counts_var = decompress(packets.get('NIX00260'), s=cs, k=ck, m=cm,
-                                        return_variance=True)
-
-        #print('unique id:', packets['NIX00037'])
-        #print('unique times',len(unique_times), unique_times)
-        #print('pixel mask',len(data['pixel_masks']), pixel_masks.size)
-
-        #print(unique_times.size, 
-        #                        data['detector_masks'][0].sum(), data['num_pixel_sets'][0].sum(),unique_energies_low.size)
-        counts = counts.reshape(unique_times.size, unique_energies_low.size,
-                                data['detector_masks'][0].sum(), data['num_pixel_sets'][0].sum())
-        #comment from Hualin, 2021, Sept. probably there is a bug here, when the number of energy bins is not 32, it cashes
-        #maybe need to replaced to:
-        #print(unique_times.size, 
-        #                        data['detector_masks'][0].sum(), data['num_pixel_sets'][0].sum(),unique_energies_low.size)
-
-        counts_var = counts_var.reshape(unique_times.size, unique_energies_low.size,
-                                        data['detector_masks'][0].sum(),
-                                        data['num_pixel_sets'][0].sum())
-        # t x e x d x p -> t x d x p x e
-        counts = counts.transpose((0, 2, 3, 1))
-        counts_var = np.sqrt(counts_var.transpose((0, 2, 3, 1)))
-        if ssid == 21:
-            out_counts = np.zeros((unique_times.size, 32, 12, 32))
-            out_var = np.zeros((unique_times.size, 32, 12, 32))
-        elif ssid == 22:
-            out_counts = np.zeros((unique_times.size, 32, 4, 32))
-            out_var = np.zeros((unique_times.size, 32, 4, 32))
-
-        # energy_index = 0
-        # count_index = 0
-        # for i, time in enumerate(unique_times):
-        #     inds = np.where(data['delta_time'] == time)
-        #     cur_num_energies = data['num_energy_groups'][inds].astype(int).sum()
-        #     low = np.unique(tmp['e_low'][energy_index:energy_index+cur_num_energies])
-        #     high = np.unique(tmp['e_high'][energy_index:energy_index + cur_num_energies])
-        #     cur_num_energies = low.size
-        #     num_counts = tmp['num_data_elements'][energy_index:energy_index+cur_num_energies].sum()
-        #     cur_counts = counts[count_index:count_index+num_counts]
-        #     count_index += num_counts
-        #     pids = data[inds[0][0]]['pixel_masks']
-        #     dids = np.where(data[inds[0][0]]['detector_masks'] == True)
-        #     cids = np.full(32, False)
-        #     cids[low] = True
-        #
-        #     if ssid == 21:
-        #         cur_counts = cur_counts.reshape(cur_num_energies, dids[0].size, pids.sum())
-        #     elif ssid == 22:
-        #         cur_counts = cur_counts.reshape(cur_num_energies, dids[0].size, 4)
-        #
-        dl_energies = np.array([[ENERGY_CHANNELS[lch]['e_lower'], ENERGY_CHANNELS[hch]['e_upper']]
-            for lch, hch in zip(unique_energies_low, unique_energies_high)]).reshape(-1)
-        dl_energies = np.unique(dl_energies)
-        
-        sci_energies = np.hstack([[ENERGY_CHANNELS[ch]['e_lower'] for ch in range(32)],
-                                  ENERGY_CHANNELS[31]['e_upper']])
-
-        # If there is any onboard summing of energy channels rebin back to standard sci channels
-        #print(config.ASW_VERSION)
-        #print(unique_energies_low)
-        #print(unique_energies_high)
-        if (unique_energies_high - unique_energies_low).sum() > 0:
-            # there is a bug here
-            #print('Onboard summing rebinned ')
-            rebinned_counts = np.zeros((*counts.shape[:-1], 32))
-            rebinned_counts_var = np.zeros((*counts_var.shape[:-1], 32))
-            e_ch_start = 0
-            e_ch_end = counts.shape[-1]
-            if dl_energies[0] == 0.0:
-                rebinned_counts[..., 0] = counts[..., 0]
-                rebinned_counts_var[..., 0] = counts_var[..., 0]
-                e_ch_start += 1
-            elif dl_energies[-1] == np.inf:
-                rebinned_counts[..., -1] = counts[..., -1]
-                rebinned_counts_var[..., -1] = counts_var[..., -1]
-                e_ch_end -= 1
-
-            torebin = np.where((dl_energies >= 4.0) & (dl_energies <= 150.0))
-            rebinned_counts[..., 1:-1] = np.apply_along_axis(rebin_proportional, -1,
-                    counts[..., e_ch_start:e_ch_end].reshape(-1, e_ch_end-e_ch_start),
-                    dl_energies[torebin],
-                    sci_energies[1:-1]).reshape((*counts.shape[:-1], 30))
-
-            rebinned_counts_var[..., 1:-1] = np.apply_along_axis(rebin_proportional, -1,
-                    counts_var[..., e_ch_start:e_ch_end].reshape(-1, e_ch_end-e_ch_start),
-                    dl_energies[torebin],
-                    sci_energies[1:-1]).reshape((*counts_var.shape[:-1], 30))
-
-            energy_indices = np.full(32, True)
-            energy_indices[[0,-1]] = False
-
-            ix = np.ix_(np.full(unique_times.size, True), data['detector_masks'][0].astype(bool),
-                        np.ones(data['num_pixel_sets'][0], dtype=bool), np.full(32, True))
-
-            out_counts[ix] = rebinned_counts
-            out_var[ix] = rebinned_counts_var
-        else:
-            energy_indices = np.full(32, False)
-            energy_indices[unique_energies_low.min():unique_energies_high.max()+1] = True
-
-            ix = np.ix_(np.full(unique_times.size, True),
-                              data['detector_masks'][0].astype(bool),
-                              np.ones(data['num_pixel_sets'][0], dtype=bool),
-                              energy_indices)
-
-            out_counts[ix] = counts
-            out_var[ix] = counts_var
-
-        #     if (high - low).sum() > 0:
-        #         raise NotImplementedError()
-        #         #full_counts = rebin_proportional(dl_energies, cur_counts, sci_energies)
-        #
-        #     dids2 = data[inds[0][0]]['detector_masks']
-        #     cids2 = np.full(32, False)
-        #     cids2[low] = True
-        #     tids2 = time == unique_times
-        #
-        #     if ssid == 21:
-        #         out_counts[np.ix_(tids2, cids2, dids2, pids)] = cur_counts
-        #     elif ssid == 22:
-        #         out_counts[np.ix_(tids2, cids2, dids2)] = cur_counts
-
-        if counts.sum() != out_counts.sum():
-            #import ipdb; ipdb.set_trace()
-            raise ValueError(f'Original and reformatted count totals do not match: {counts.sum()} vs {out_counts.sum()}')
-
-        control['energy_bin_mask'] = np.full((1, 32), False, np.ubyte)
-        all_energies = set(np.hstack([tmp['e_low'], tmp['e_high']]))
-        control['energy_bin_mask'][:, list(all_energies)] = True
-        # time x energy x detector x pixel
-        # counts = np.array(
-        #     eng_packets['NIX00260'], np.uint16).reshape(unique_times.size, num_energies,
-        #                                                 num_detectors, num_pixels)
-        # time x channel x detector x pixel need to transpose to time x detector x pixel x channel
-
-        sub_index = np.searchsorted(data['delta_time'], unique_times)
-        data = data[sub_index]
-
-        data['time'] = Time(scet_to_datetime(f'{int(control["time_stamp"][0])}:0')) \
-            + data['delta_time'] + data['integration_time'] / 2
-        data['timedel'] = data['integration_time']
-        data['counts'] = out_counts * u.ct
-        data['counts_err'] = out_var * u.ct
-        data['control_index'] = control['index'][0]
-        data.remove_columns(['delta_time', 'integration_time'])
-
-        data = data['time', 'timedel', 'rcr', 'pixel_masks', 'detector_masks', 'num_pixel_sets',
-                    'num_energy_groups', 'triggers', 'triggers_err', 'counts', 'counts_err']
-        data['control_index'] = 0
 
         return cls(control=control, data=data)
 
@@ -859,6 +644,8 @@ class Spectrogram(Product):
         e_min = np.array(packets['NIXD0442'])
         e_max = np.array(packets['NIXD0443'])
         energy_unit = np.array(packets['NIXD0019']) + 1
+
+
         num_times = np.array(packets['NIX00089'])
         total_num_times = num_times.sum()
 
@@ -875,12 +662,20 @@ class Spectrogram(Product):
 
         control['energy_bin_mask'] = np.full((1, 32), False, np.ubyte)
         control['energy_bin_mask'][:, cids] = True
+        control['e_low']=[e_min[0]]
+        control['e_high']=[e_max[0]]
+        control['e_unit']=[energy_unit[0]]
+        #print("Emin:",e_min, e_max, energy_unit)
+        
 
-        dl_energies = np.array([[ENERGY_CHANNELS[ch]['e_lower'] for ch in chs]
-                               + [ENERGY_CHANNELS[chs[-1]]['e_upper']] for chs in cids][0])
+        start=scet_to_datetime(f'{int(control["time_stamp"][0])}:0')
+        energy_channels=Product.get_energy_channel_dict(start)
 
-        sci_energies = np.hstack([[ENERGY_CHANNELS[ch]['e_lower'] for ch in range(32)],
-                                  ENERGY_CHANNELS[31]['e_upper']])
+        dl_energies = np.array([[energy_channels[ch]['e_lower'] for ch in chs]
+                               + [energy_channels[chs[-1]]['e_upper']] for chs in cids][0])
+
+        sci_energies = np.hstack([[energy_channels[ch]['e_lower'] for ch in range(32)],
+                                  energy_channels[31]['e_upper']])
         ind = 0
         for nt in num_times:
             e_ch_start = 0

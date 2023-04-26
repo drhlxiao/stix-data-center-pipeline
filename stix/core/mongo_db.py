@@ -28,6 +28,11 @@ QL_SPIDS = {
     'flare': 54122
 }
 
+def db_save(collection, doc):
+    if '_id' in doc:    
+        collection.replace_one({'_id': doc['_id']}, doc)
+    else:
+        collection.insert_one(doc)
 
 class MongoDB(object):
     def __init__(self, server='localhost', port=27017, user='', pwd=''):
@@ -285,7 +290,7 @@ class MongoDB(object):
     def set_run_ql_pdf(self, _id, pdf_filename):
         run = self.collection_raw_files.find_one({'_id': _id})
         run['quicklook_pdf'] = pdf_filename
-        self.collection_raw_files.save(run)
+        db_save(self.collection_raw_files,run)
 
 
     def get_run_ql_pdf(self, _id):
@@ -317,7 +322,7 @@ class MongoDB(object):
         return []
 
     def write_fits_index_info(self, doc):
-        self.collection_fits.save(doc)
+        db_save(self.collection_fits,doc)
 
     def get_next_fits_id(self):
         try:
@@ -332,7 +337,7 @@ class MongoDB(object):
         except IndexError:
             return 0
     def insert_flare_image(self,doc):
-        self.collection_flare_images.save(doc)
+        db_save(self.collection_flare_images,doc)
 
 
     def get_next_flare_id(self):
@@ -503,7 +508,7 @@ class MongoDB(object):
         except IndexError:
             pass
         doc['_id'] = next_id
-        self.collection_lc_stats.save(doc)
+        db_save(self.collection_lc_stats,doc)
 
  
     def get_nearest_lc_stats(self, start_unix, max_limit=500):
@@ -553,7 +558,7 @@ class MongoDB(object):
         file_id=doc['file_id']
         if delete_existing:
             self.collection_time_bins.delete_many({'file_id':file_id})
-        self.collection_time_bins.save(doc)
+        db_save(self.collection_time_bins,doc)
     def get_bsd_fits_info_by_request_id(self, request_id, max_num_fits=1000):
         return self.collection_fits.find({
                 'request_id': request_id

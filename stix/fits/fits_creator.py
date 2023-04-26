@@ -42,11 +42,13 @@ def create_fits_for_packets(file_id,
                             version = 3,
                             remove_duplicates=True,
                             run_type='file'):
+    
     try:
         _create_fits_for_packets(file_id, packets, spid, product, is_complete,
                                  base_path_name, overwrite, version,
                                  remove_duplicates, run_type)
     except Exception as e:
+        #raise e
         logger.error(e)
 
 
@@ -213,7 +215,7 @@ def _create_fits_for_packets(file_id,
             db.write_fits_index_info(doc)
             logger.info(f'Created  fits file:  {metadata["filename"]}')
     except Exception as e:
-        raise
+        #raise e
         logger.error(str(e))
         #raise e
 
