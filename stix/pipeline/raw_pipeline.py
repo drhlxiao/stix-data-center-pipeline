@@ -43,7 +43,7 @@ from stix.spice import spice_manager as spm
 logger = logger.get_logger()
 
 
-actions={'calibration':True,
+task_list={'calibration':True,
         'fits_creation':True,
         'flare_detection':True,
         'time_bins_simulation':True,
@@ -223,14 +223,14 @@ def piepeline_parsing_and_basic_analysis(instrument, filename, notification_enab
 
     file_id = summary['_id']
 
-    if actions['bkg_estimation']:
+    if task_list['bkg_estimation']:
         logger.info('Extracting background information from non-flaring times ..')
         try:
             bkg.process_file(file_id)
         except Exception as e:
             logger.error(str(e))
 
-    if actions['flare_detection']:
+    if task_list['flare_detection']:
         logger.info('Detecting flares..')
         try:
             num_flares = flare_detection.find_flares_in_one_file(
@@ -241,7 +241,7 @@ def piepeline_parsing_and_basic_analysis(instrument, filename, notification_enab
             summary['num_flares']=num_flares
         except Exception as e:
             logger.error(str(e))
-    if actions['time_bins_simulation']:
+    if task_list['time_bins_simulation']:
         logger.info("Estimating time bins...")
         try:
             integration_time_estimator.process_file(file_id)
@@ -260,7 +260,7 @@ def piepeline_parsing_and_basic_analysis(instrument, filename, notification_enab
                                        num_flares, goes_class_list)
     except Exception as e:
         logger.error(str(e))
-    if actions['calibration']:
+    if task_list['calibration']:
         logger.info('Analyzing calibration data ...')
         try:
             calibration_run_ids = summary['calibration_run_ids']
@@ -299,7 +299,6 @@ def process_one(filename):
 
 async def fits_creator_runner(file_ids):
     task=asyncio.create_task(pipeline_fits_creation_packets_merging_multiple(file_ids))
-    
     try:
         await asyncio.wait_for(task, timeout=3600*3)
     except asyncio.TimeoutError:

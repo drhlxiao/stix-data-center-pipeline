@@ -7,6 +7,7 @@
 .run /opt/stix/parser/stix/idl/spex__save_autofit_fits.pro
 .run /opt/stix/parser/stix/idl/stx_auto_fit_ssw.pro
 .run /opt/stix/parser/stix/idl/stx_ospex_pipeline_wrapper.pro
+.run /opt/stix/parser/stix/idl/stx_estimate_flare_location.pro
 .run /opt/stix/parser/stix/idl/imaging_spectroscopy_daemon.pro
 run_daemon(0)
 exit

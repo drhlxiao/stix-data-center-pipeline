@@ -30,7 +30,7 @@ QL_SPIDS = {
 
 def db_save(collection, doc):
     if '_id' in doc:    
-        collection.replace_one({'_id': doc['_id']}, doc)
+        collection.replace_one({'_id': doc['_id']}, doc, upsert=True)
     else:
         collection.insert_one(doc)
 

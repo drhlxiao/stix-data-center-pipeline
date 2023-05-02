@@ -165,18 +165,18 @@ def _create_fits_for_packets(file_id,
         base_path = Path(base_path_name)/sub_folder
         base_path.mkdir(parents=True, exist_ok=True)
 
-        unique_id = db.get_next_fits_id()
+        fits_uid= db.get_next_fits_id()
         metadata_entries = []
         #write extracted information to fits files
         if product_type == 'housekeeping':
-            metadata = hkw.write_fits(base_path, unique_id, prod, product,
+            metadata = hkw.write_fits(base_path, fits_uid, prod, product,
                                       overwrite, version, run_type)
             metadata_entries = [metadata]
         else:
-            logger.info(f"Creating fits structure for file {unique_id}")
-            fits_processor = FitsL1Processor(base_path, unique_id, version,
+            logger.info(f"Creating fits structure for file {fits_uid}")
+            fits_processor = FitsL1Processor(base_path, fits_uid, version,
                                              run_type)
-            logger.info(f"Writing fits file {unique_id}")
+            logger.info(f"Writing fits file {fits_uid}")
             fits_processor.write_fits(prod)
             metadata_entries = fits_processor.get_metadata()
         for metadata in metadata_entries:
@@ -189,7 +189,7 @@ def _create_fits_for_packets(file_id,
             md5=checksum.get_file_md5(abs_path)
 
             doc = {
-                #'_id':unique_id,
+                #'_id':fits_uid,
                 'md5':md5,
                 'packet_id_start': parsed_packets['min_id'],
                 'packet_id_end': parsed_packets['max_id'],
@@ -210,8 +210,8 @@ def _create_fits_for_packets(file_id,
                 'file_size': file_size
 
             }
-            print(doc)
             doc.update(metadata)
+            print(doc)
             db.write_fits_index_info(doc)
             logger.info(f'Created  fits file:  {metadata["filename"]}')
     except Exception as e:
