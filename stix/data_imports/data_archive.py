@@ -110,12 +110,8 @@ def import_data_archive_products(path=DATA_ARCHIVE_FITS_PATH, max_age_days=2):
         if not file_type:
             logger.info(f'{fname} not supported type. Skipped!')
             continue
-
-
-    
         #if fname not in file_types:
         #    continue
-
         basename = os.path.basename(fname)
         md5checksum = checksum.get_file_md5(fname)
 

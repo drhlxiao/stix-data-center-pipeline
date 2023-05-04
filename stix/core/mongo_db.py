@@ -563,12 +563,13 @@ class MongoDB(object):
         return self.collection_fits.find({
                 'request_id': request_id
             }).sort('_id', -1).limit(max_num_fits)
-    def find_L1_background(self, unix_time, max_days_off=14, emin=3, emax=17):
+    def find_L1_background(self, unix_time, max_days_off=14, emin=3, emax=17, level='L1A'):
         start_unix=unix_time-max_days_off*86400
         query=[{
                 '$match': {'request_type':'L1','purpose':'Background','detector_mask':'0xFFFFFFFF', 
                 'emax':{'$gte':str(emax)},
                 'emin':{'$lte':str(emin)},
+                'level':level,
                 'start_unix':{'$gt':start_unix, '$lt':unix_time}
             }},
             {

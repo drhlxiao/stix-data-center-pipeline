@@ -230,9 +230,9 @@ class XrayL0(Product):
         tmp['channel'] = np.array(packets.get('NIXD0154'), np.ubyte)
         tmp['continuation_bits'] = packets.get('NIXD0159', np.ubyte)
 
-        control['energy_bin_mask'] = np.full((1, 32), False, np.ubyte)
+        control['energy_bin_edge_mask'] = np.full((1, 32), False, np.ubyte)
         all_energies = set(tmp['channel'])
-        control['energy_bin_mask'][:, list(all_energies)] = True
+        control['energy_bin_edge_mask'][:, list(all_energies)] = True
 
         # Find contiguous time indices
         unique_times = np.unique(data['start_time'])
@@ -352,7 +352,7 @@ class XrayL1(Product):
                                             return_variance=True)
 
         qadd(data,'triggers', triggers.T)
-        qadd(data,'triggers_err', np.sqrt(triggers_var).T)
+        qadd(data,'triggers_comp_err', np.sqrt(triggers_var).T)
         qadd(data,'num_energy_groups', np.array(packets['NIX00258'], np.ubyte))
 
         tmp = dict()
@@ -468,13 +468,13 @@ class XrayL1(Product):
             #import ipdb; ipdb.set_trace()
             raise ValueError(f'Original and reformatted count totals do not match: {counts.sum()} vs {out_counts.sum()}')
 
-        control['energy_bin_mask'] = np.full((1, 32), False, np.ubyte)
+        control['energy_bin_edge_mask'] = np.full((1, 32), False, np.ubyte)
 
         #control['energy_science_bins']=np.hstack([unique_energies_low, unique_energies_high])
         #print("Energy bins:", control['energy_science_bins'])
         all_sci_energies = np.hstack([tmp['e_low'], tmp['e_high']])
         all_energies = set(all_sci_energies)
-        control['energy_bin_mask'][:, list(all_energies)] = True
+        control['energy_bin_edge_mask'][:, list(all_energies)] = True
         # time x energy x detector x pixel
         # counts = np.array(
         #     eng_packets['NIX00260'], np.uint16).reshape(unique_times.size, num_energies,
@@ -488,13 +488,13 @@ class XrayL1(Product):
         logger.info("adding data to qtable..")
         qadd(data,'timedel', data['integration_time'])
         qadd(data,'counts', out_counts * u.ct)
-        qadd(data,'counts_err', out_var * u.ct)
+        qadd(data,'counts_comp_err', out_var * u.ct)
         qadd(data,'control_index', control['index'][0])
 
         data.remove_columns(['delta_time', 'integration_time'])
 
         data = data['time', 'timedel', 'rcr', 'pixel_masks', 'detector_masks', 'num_pixel_sets',
-                    'num_energy_groups', 'triggers', 'triggers_err', 'counts', 'counts_err']
+                    'num_energy_groups', 'triggers', 'triggers_comp_err', 'counts', 'counts_comp_err']
         data['control_index'] = 0
         logger.info("qtable ready")
 
@@ -562,7 +562,7 @@ class XrayL3(Product):
                                             s=ts, k=tk, m=tm, return_variance=True)
 
         data['triggers'] = triggers.T
-        data['triggers_err'] = np.sqrt(triggers_var).T
+        data['triggers_comp_err'] = np.sqrt(triggers_var).T
 
         tids = np.searchsorted(data['delta_time'], unique_times)
         data = data[tids]
@@ -576,9 +576,9 @@ class XrayL3(Product):
         e_high = np.array(packets['NIXD0017'])
 
         # TODO create energy bin mask
-        control['energy_bin_mask'] = np.full((1, 32), False, np.ubyte)
+        control['energy_bin_edge_mask'] = np.full((1, 32), False, np.ubyte)
         all_energies = set(np.hstack([e_low,e_high]))
-        control['energy_bin_mask'][:, list(all_energies)] = True
+        control['energy_bin_edge_mask'][:, list(all_energies)] = True
 
         data['flux'] = np.array(packets['NIX00261']).reshape(unique_times.size, -1)
         num_detectors = packets['NIX00262'][0]
@@ -660,8 +660,8 @@ class Spectrogram(Product):
         cids = [np.arange(emin, emax+1, eunit) for (emin, emax, eunit)
                 in zip(e_min, e_max, energy_unit)]
 
-        control['energy_bin_mask'] = np.full((1, 32), False, np.ubyte)
-        control['energy_bin_mask'][:, cids] = True
+        control['energy_bin_edge_mask'] = np.full((1, 32), False, np.ubyte)
+        control['energy_bin_edge_mask'][:, cids] = True
         control['e_low']=[e_min[0]]
         control['e_high']=[e_max[0]]
         control['e_unit']=[energy_unit[0]]
@@ -750,9 +750,9 @@ class Spectrogram(Product):
                                             return_variance=True)
 
         data['triggers'] = triggers
-        data['triggers_err'] = np.sqrt(triggers_var)
+        data['triggers_comp_err'] = np.sqrt(triggers_var)
         data['counts'] = full_counts * u.ct
-        data['counts_err'] = np.sqrt(full_counts_var) * u.ct
+        data['counts_comp_err'] = np.sqrt(full_counts_var) * u.ct
         data['control_index'] = 0
 
         return cls(control=control, data=data)

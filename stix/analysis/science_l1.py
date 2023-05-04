@@ -15,6 +15,16 @@ import matplotlib.colors as colors
 from matplotlib.patches import Rectangle
 
 
+def _get_from_keys(data, keys):
+    if isinstance(keys, str):
+        keys=[keys]
+
+    for key in keys:
+        try:
+            return data[key]
+        except KeyError:
+            pass
+
 
 class ScienceData():
     """
@@ -42,7 +52,8 @@ class ScienceData():
         """
 
         self.data = self.hdul['DATA'].data
-        self.T0_utc = self.hdul['PRIMARY'].header['DATE_BEG']
+        self.T0_utc =_get_from_keys(self.hdul['PRIMARY'].header, ['DATE_BEG','DATE-BEG'])
+
         self.counts= self.data['counts']
         #timebin: detector,pixel, energies
 
@@ -87,7 +98,7 @@ class ScienceData():
             f'{a} - {b}'
             for a, b in zip(self.energies['e_low'], self.energies['e_high'])
         ]
-        self.energy_bin_mask = self.hdul["CONTROL"].data["energy_bin_mask"]
+        self.energy_bin_mask = _get_from_keys(self.hdul["CONTROL"].data,  ["energy_bin_mask", 'energy_bin_edge_mask'])
 
         ebin_nz_idx =self.energy_bin_mask.nonzero()
         self.max_ebin = np.max(ebin_nz_idx)  #indices of the non-zero elements

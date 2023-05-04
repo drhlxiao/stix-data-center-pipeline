@@ -49,13 +49,14 @@ async def daily_tasks():
         logger.info("Downloading goes..")
         goes.download()
         logger.info("Importing aspect data..")
-        da.import_data_archive_products()
+        #da.import_data_archive_products()
+        #moved to daemon
         logger.info("creating fits files ..")
         fdnf.main()
         logger.info("Recreating fits ..")
         fc.recreate_fits_for_science_data(14,13)
         logger.info("Registering imaging tasks..")
-        itm.register_imaging_tasks_for_last_flares()
+        #itm.register_imaging_tasks_for_last_flares()
     except Exception as e:
         logger.error(str(e))
 

@@ -238,10 +238,10 @@ class LightCurve(Product):
         data['time'] = time
         data['timedel'] = duration
         data['triggers'] = triggers
-        data['triggers_err'] = np.sqrt(triggers_var)
+        data['triggers_comp_err'] = np.sqrt(triggers_var)
         data['rcr'] = packets['NIX00276']
         data['counts'] = counts * u.ct
-        data['counts_err'] = np.sqrt(counts_var) * u.ct
+        data['counts_comp_err'] = np.sqrt(counts_var) * u.ct
 
         return cls(control=control, data=data)
 
@@ -266,7 +266,7 @@ class Background(Product):
         control = Control.from_packets(packets)
 
         # Control
-        control['energy_bin_mask'] = _get_energy_bins(packets, 'NIX00266', 'NIXD0111')
+        control['energy_bin_edge_mask'] = _get_energy_bins(packets, 'NIX00266', 'NIXD0111')
         control['compression_scheme_background_skm'] = _get_compression_scheme(packets, 'NIXD0108',
                                                                                'NIXD0109',
                                                                                'NIXD0110')
@@ -311,7 +311,7 @@ class Background(Product):
         data['background'] = counts * u.ct
         data['background_err'] = np.sqrt(counts_var) * u.ct
         data['triggers'] = triggers
-        data['triggers_err'] = np.sqrt(triggers_var)
+        data['triggers_comp_err'] = np.sqrt(triggers_var)
 
         return cls(control=control, data=data)
 
@@ -391,7 +391,7 @@ class Spectra(Product):
         data['spectra'] = counts.reshape(-1, 32, num_energies) * u.ct
         data['spectra_err'] = np.sqrt(counts_var.reshape(-1, 32, num_energies))
         data['triggers'] = triggers.reshape(-1, num_energies)
-        data['triggers_err'] = np.sqrt(triggers_var.reshape(-1, num_energies))
+        data['triggers_comp_err'] = np.sqrt(triggers_var.reshape(-1, num_energies))
         data['num_integrations'] = num_integrations.reshape(-1, num_energies)
 
         return cls(control=control, data=data)
@@ -442,7 +442,7 @@ class Variance(Product):
             [bool(int(x)) for x in format(packets.get('NIX00282')[i], '032b')]
             for i in range(len(packets.get('NIX00282')))])
 
-        control['energy_bin_mask'] = energy_masks
+        control['energy_bin_edge_mask'] = energy_masks
         control['num_energies'] = 1
         control['num_samples'] = packets.get('NIX00280')
 
@@ -554,7 +554,7 @@ class CalibrationSpectra(Product):
         full_counts_var = np.zeros((32, 12, 1024))
         full_counts_var[dids, pids] = counts_var_rebinned
         data['counts'] = full_counts.reshape((1, *full_counts.shape))
-        data['counts_err'] = np.sqrt(full_counts_var).reshape((1, *full_counts_var.shape))
+        data['counts_comp_err'] = np.sqrt(full_counts_var).reshape((1, *full_counts_var.shape))
 
         return cls(control=control, data=data)
 

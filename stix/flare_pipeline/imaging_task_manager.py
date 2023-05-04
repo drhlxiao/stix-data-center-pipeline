@@ -42,6 +42,7 @@ fits_db = mdb.get_collection('fits')
 flare_images_db = mdb.get_collection('flare_images')
 req_db = mdb.get_collection('data_requests')
 MIN_COUNTS = 10000
+DATA_LEVEL_FOR_IMAGING='L1'
 
 ASPECT_TIME_TOR = 300  #time tolerance for looking for aspect solution
 
@@ -153,7 +154,7 @@ def create_imaging_tasks_for_flare(flare_entry_id,
     query={'data_start_unix':{'$lte':peak_time - duration},
         'data_end_unix': {'$gte':peak_time + duration},
         'product_type':'xray-cpd',
-        'level':'L1A'
+        'level':DATA_LEVEL_FOR_IMAGING
         }
     fits_files=list(fits_db.find(query).sort('file_size', -1).limit(1) )
     #find the best fits for for imaging
@@ -186,7 +187,7 @@ def create_imaging_tasks_for_flare(flare_entry_id,
         mdb.find_L1_background(peak_time,
                                bkg_max_day_off,
                                emin=box_emin_sci,
-                               emax=box_emax_sci))
+                               emax=box_emax_sci, level=DATA_LEVEL_FOR_IMAGING))
     #find background data acquired within bkg_max_day_off days
     if not bkg_fits_docs:
         logger.warning(

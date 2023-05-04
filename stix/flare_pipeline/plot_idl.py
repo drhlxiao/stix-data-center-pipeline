@@ -467,9 +467,12 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
                ax_spec) = plt.subplots(1, 2, figsize=(12, 5))
 
         #plot light curves and spectrogram
+        logger.info('Creating light curves ...')
         lightcurves.plot_QL_lc_for_bsd(bsd_id,
                                        fill_between_times=[start_utc, end_utc],
                                        ax=ax_lc_pdf)
+
+        logger.info('Creating spectrograms ...')
 
         l1 = ScienceL1.from_fits(task_doc['filename'])
         selection_box = {
@@ -496,6 +499,7 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
                 continue
             pfig = plt.figure(figsize=(13,7))
             
+            logger.info(f'Creating flare image # {titles[i]}')
 
             plot_flare_image(imap,
                              pfig,
@@ -540,6 +544,8 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
                     'title':'STIX pointing information'}
         except Exception as e:
             logger.error(str(e))
+        logger.info("done ...")
+        
     return img_fname, report
 
 def plot_aia(_id, wavelen=1600):
