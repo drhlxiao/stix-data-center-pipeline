@@ -375,19 +375,34 @@ class XrayL1(Product):
         #print('unique id:', packets['NIX00037'])
         #print('unique times',len(unique_times), unique_times)
         #print('pixel mask',len(data['pixel_masks']), pixel_masks.size)
+        print(">>>Counts shape:", counts.shape)
+
 
         #print(unique_times.size, 
         #                        data['detector_masks'][0].sum(), data['num_pixel_sets'][0].sum(),unique_energies_low.size)
-        counts = counts.reshape(unique_times.size, unique_energies_low.size,
-                                data['detector_masks'][0].sum(), data['num_pixel_sets'][0].sum())
-        #comment from Hualin, 2021, Sept. probably there is a bug here, when the number of energy bins is not 32, it cashes
+
+        num_times, num_energies, num_detectors, num_pixels = unique_times.size, unique_energies_low.size, 
+                data['detector_masks'][0].sum(), data['num_pixel_sets'][0].sum()
+        expected_size=num_times*num_energies*num_detectors*num_pixels 
+        real_size=counts.size
+
+        if expected_size != real_size:
+            logger.warning(f"Packet incomplete, expected size: {expected_size}, Real size:  {real_size}")
+            control['is_complete']=False
+            counts=np.pad(counts, (0, expected_size-real_size),'constant', constant_values=(np.nan))
+            #padding with nan
+        else:
+            control['is_complete']=True
+
+
+        counts = counts.reshape(num_times, num_energies, num_detectors, num_pixels)
+        #comment from Hualin, 2021, Sept. Probably there is a bug here, when the number of energy bins is not 32, it cashes
         #maybe need to replaced to:
         #print(unique_times.size, 
-        #                        data['detector_masks'][0].sum(), data['num_pixel_sets'][0].sum(),unique_energies_low.size)
+        #data['detector_masks'][0].sum(), data['num_pixel_sets'][0].sum(),unique_energies_low.size)
+        counts_var = counts_var.reshape(num_times, num_energies, num_detectors, num_pixels)
 
-        counts_var = counts_var.reshape(unique_times.size, unique_energies_low.size,
-                                        data['detector_masks'][0].sum(),
-                                        data['num_pixel_sets'][0].sum())
+
         # t x e x d x p -> t x d x p x e
         counts = counts.transpose((0, 2, 3, 1))
         counts_var = np.sqrt(counts_var.transpose((0, 2, 3, 1)))
