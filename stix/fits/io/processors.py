@@ -293,6 +293,12 @@ class FitsL1Processor:
         if 'request_id' in product.control.colnames:
             user_req = f"-{product.control['request_id'][0]}"
 
+        completeness=''
+        if 'is_complete' in product.control.colnames:
+            is_complete=product.control['is_complete']
+            if not is_complete:
+                completeness= f"_incomplete"
+
         tc_control = ''
         if 'tc_packet_seq_control' in product.control.colnames and user_req != '':
             tc_control = f'_{product.control["tc_packet_seq_control"][0]}'
@@ -307,7 +313,7 @@ class FitsL1Processor:
 
         fits_filename=f'solo_{product.level}_stix-{product.type}-' \
                f'{product.name.replace("_", "-")}{user_req}{self.run_type}' \
-               f'_{date_range}_{self.fits_db_id:06d}_V{self.version:02d}.fits'
+               f'_{date_range}_{self.fits_db_id:06d}{completeness}_V{self.version:02d}.fits'
         return fits_filename
                #f'_{date_range}_V{version:02d}{status}{tc_control}_{self.fits_db_id}.fits'
 

@@ -307,6 +307,17 @@ async def fits_creator_runner(file_ids):
 
 
 
+def create_json_for_web(file_ids):
+    logger.info(
+            'Merging bulk science data and preparing json files for data browsers...')
+    for file_id in file_ids:
+        try:
+            sci_packets_analyzer.process_packets_in_file(file_id)
+        except Exception as e:
+            logger.error(str(e))
+
+
+
 def pipeline(instrument, filename, notification_enabled=True, debugging=False):
     """
     single file processing pipeline

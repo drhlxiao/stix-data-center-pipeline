@@ -601,7 +601,11 @@ class MongoDB(object):
     def find_flares_by_time_range(self, start_unix, end_unix):
         return self.collection_flares.find({'start_unix':{'$lt':end_unix},
             'end_unix':{'$gt':start_unix}} ).sort('start_unix',1)
-        
+    def find_runs_without_fits(self):
+        docs=self.collection_raw_files.find({'fits_created':{'$ne':True}}, {'_id':1}).sort('_id':-1).limit(100)
+        return [doc['_id'] for doc in docs]
+    def set_run_fits_created(self,_id):
+        self.collection_raw_files.update_one({'_id':_id}, {'$set': {'fits_created':True}})
 
     def get_quicklook_packets_of_run(self, packet_type, run):
         collection = None

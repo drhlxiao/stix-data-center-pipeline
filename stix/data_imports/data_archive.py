@@ -69,7 +69,7 @@ def read_data_archive_fits_meta(filename, file_info):
         creation_time) if creation_time is not None else datetime.now()
     meta = {
         '_id': mdb.get_next_fits_id(),
-        'filename': os.path.basename(filename),
+        #'filename': os.path.basename(filename),
         'path': os.path.dirname(filename),
         'complete': True,
         'level': file_info[1],
@@ -120,14 +120,21 @@ def import_data_archive_products(path=DATA_ARCHIVE_FITS_PATH, max_age_days=2):
                 f'{basename} ({md5checksum}) already inserted in the database')
             continue
 
+
+
         logger.info(f'Add {basename} to fits file database')
         meta = read_data_archive_fits_meta(fname,
                                            DATA_ARCHIVE_FILE_INFO[file_type])
         if meta:
             logger.info(f'inserting metadata for {basename} to fits_db..')
             meta['md5'] = md5checksum
-            fits_db.update_one({'md5': md5checksum}, {'$set': meta},
+
+            fits_db.update_one({'filename': basename}, {'$set': meta},
                                upsert=True)
+            # if filename exists, update 
+
+            #fits_db.update_one({'md5': md5checksum}, {'$set': meta},
+            #                   upsert=True)
             #update if
         if 'L2_stix-aux-' in fname:
             import_auxiliary(fname)

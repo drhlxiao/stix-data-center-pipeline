@@ -30,6 +30,7 @@ packets_db = db.get_collection('packets')
 FITS_PATH = '/data/fits/'
 
 DATA_LEVEL = 'L1A'
+DEBUG=True
 
 
 def create_fits_for_packets(file_id,
@@ -48,7 +49,8 @@ def create_fits_for_packets(file_id,
                                  base_path_name, overwrite, version,
                                  remove_duplicates, run_type)
     except Exception as e:
-        #raise e
+        if DEBUG:
+            raise e
         logger.error(e)
 
 
@@ -215,7 +217,8 @@ def _create_fits_for_packets(file_id,
             db.write_fits_index_info(doc)
             logger.info(f'Created  fits file:  {metadata["filename"]}')
     except Exception as e:
-        #raise e
+        if DEBUG:
+            raise e
         logger.error(str(e))
         #raise e
 
@@ -418,6 +421,14 @@ def recreate_fits_for_science_data(start_date_offset: int,
                                      version=version)
 
 
+def create_fits_for_unprocessed_runs():
+    files_ids=db.find_runs_without_fits()
+    for file_id in files_ids:
+        logger.info(f"Creating FITS for file # {file_id}")
+        db.set_run_fits_created(file_id)
+        create_fits(file_id, output_path=FITS_PATH, overwrite=True, version=1)
+
+
 def create_fits(file_id, output_path, overwrite=True, version=1):
     if overwrite:
         purge_fits_for_raw_file(file_id)
@@ -531,6 +542,12 @@ if __name__ == '__main__':
     required = ap.add_argument_group('Required arguments')
     optional = ap.add_argument_group('Optional arguments')
 
+    optional.add_argument("-a",
+                          dest='auto',
+                          default=False,
+                          action="store_true",
+                          help="Run as a daemon")
+
     optional.add_argument("-p",
                           dest='path',
                           default=FITS_PATH,
@@ -635,3 +652,5 @@ if __name__ == '__main__':
                                        path=FITS_PATH,
                                        purge_old=True,
                                        version=2)
+    if args['auto']:
+        create_fits_for_unprocessed_runs()
