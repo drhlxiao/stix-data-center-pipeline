@@ -403,8 +403,9 @@ def process_one_run(calibration_id, create_pdf=True, pdf_path=DEFAULT_OUTPUT_DIR
        
     sub_sum_spec = {}
 
-    points = 1150
-    energy_range = np.linspace(-10, 450, points)
+    #points = 1150
+    energy_range = np.arange(-10, 450, 0.4)
+    points=energy_range.size
     sbspec_sum = np.zeros(points)
     for key, val in sum_spectra.items():  #mongodb doesn't support array
         sub_sum_spec['sbspec - {}'.format(key)] = [

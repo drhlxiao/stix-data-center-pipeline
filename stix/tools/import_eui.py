@@ -1,67 +1,82 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
 import pymongo
+import sqlite3
+import requests
+import os
+from datetime import datetime
 from dateutil import parser as dtparser
-#fname='/home/xiaohl/FHNW/STIX/SolarFlareAnalysis/eui/fsi09.csv'
-import pandas as pd
-import csv
 from stix.spice import time_utils as sdt
 import sys
-port=9000
-connect = pymongo.MongoClient('localhost', port)
+connect = pymongo.MongoClient('localhost')
 mdb = connect["stix"]
 db = mdb['eui']
 
-
-# In[22]:
-
-def main(fname):
-    with open(fname) as f:
-        lines=csv.reader(f,delimiter='\t')
-        #print(lines)
-        rows=[row for row in lines]
-        print(rows[4])
-        #continue
-        for row in rows[1:]:
-            if not row:
-                continue
-            ut=sdt.utc2unix(row[0])
-            try:
-                link=''
-                for col in row[7:]:
-                    if '.fits' in col:
-                        link=col
-                        break
-                
-                doc={'start_unix': ut,
+def read_eui_db(filename):
+    
+    last_doc = list(db.find({}).sort('start_utc',-1).limit(1))
+    start_utc =   last_doc[0]['start_utc']  if last_doc  else 0
+    sqlite_conn = sqlite3.connect(filename)
+    sqlite_cursor = sqlite_conn.cursor()
+    sqlite_query = f'SELECT "date-avg", imgtype, detector, wavelnth,filename,filter FROM fits_file WHERE "date-avg" > "{start_utc}";'
+    print(sqlite_query)
+    sqlite_cursor.execute(sqlite_query)
+    #selected_records = sqlite_cursor.fetchall()
+    print('inserting data to database...')
+    num=0
+    for row in sqlite_cursor:
+        print(row[1])
+        doc={'start_unix': sdt.utc2unix(row[0]),
                  'start_utc':row[0],
-                 'detector':row[1],
-                 'filter':row[6],
-                 'link':link
+                 #'detector':row[2],
+                 'imgtype':row[1],
+                 'filter':row[5],
+                 'wavelength':row[3],
+                 'link': row[4]
                     }
-                print(doc)
-                #docs.append(doc)
-                db.update_one({'start_utc':doc['start_utc'], 'filter':doc['filter']},{'$set': doc},upsert=True)
-
-            except Exception as e:
-                print(row)
-                print(e)
-            #print(doc)
+        num+=1
+        if num%1000==0:
+             print(f'Number of records inserted: {num}')
+        db.update_one({'start_utc':doc['start_utc'], 'filter':doc['filter']},{'$set': doc},upsert=True)
         
 
+def download_file(url, local_filename='/data/EUI/metadata.db'):
+    # Check if the local file exists
+    if os.path.exists(local_filename):
+        # Get the last modified time of the local file
+        local_file_time = os.path.getmtime(local_filename)
+        local_file_datetime = datetime.fromtimestamp(local_file_time)
 
-# In[14]:
-if __name__=='__main__':
-    print('import eui <filaneme>')
-    main(sys.argv[1])
+        # Send a HEAD request to get the last modified time of the remote file
+        response = requests.head(url)
+        remote_last_modified = response.headers.get('last-modified')
+        if remote_last_modified:
+            remote_file_datetime = datetime.strptime(remote_last_modified, '%a, %d %b %Y %H:%M:%S %Z')
+
+            # Compare the last modified times
+            if remote_file_datetime <= local_file_datetime:
+                print(f"The file '{local_filename}' is up to date. No need to download.")
+                return local_filename
+            else:
+                print(f"The file '{local_filename}' is outdated. Downloading the updated file.")
+        else:
+            print("Failed to retrieve the last modified time of the remote file. Downloading anyway.")
+    else:
+        print("The local file does not exist. Downloading the file.")
+
+    # Download the file
+    print(f"Downloading file ...")
+    response = requests.get(url)
+    with open(local_filename, 'wb') as f:
+        f.write(response.content)
+    return local_filename
+    print(f"Downloaded and saved the file as '{local_filename}'.")
 
 
+if __name__ == "__main__":
+    url= "https://www.sidc.be/EUI/data/metadata.db"
+    filename= "/data/EUI/metadata.db"
+    fname=download_file(url, filename)
+    read_eui_db(fname)
 
-# In[ ]:
 
 
 

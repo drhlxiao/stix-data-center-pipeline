@@ -29,7 +29,7 @@ mdb = db.MongoDB()
 fits_db = mdb.get_collection('fits')
 
 DEFAULT_ASP_PATH_PATTEN = "/data/pub099/fits/L2/*/*/*/*/*aux*.fits"
-DATA_ARCHIVE_FITS_PATH = "/data/pub099/fits/"
+DATA_ARCHIVE_FITS_PATHS = ["/data/pub099/fits/L1","/data/pub099/fits/L2"]
 processed_list = []
 
 DATA_ARCHIVE_FILE_INFO = {
@@ -99,7 +99,12 @@ def get_file_type(fname):
         if f in fname:
             return f
     return None
-def import_data_archive_products(path=DATA_ARCHIVE_FITS_PATH, max_age_days=2):
+
+def import_data_archive_products(max_age_days=2):
+    for folder in DATA_ARCHIVE_FITS_PATHS:
+        import_data_archive_products_from_path(folder, max_age_days)
+
+def import_data_archive_products_from_path(path, max_age_days=2):
     logger.info(f'Checking folder:{path}...')
     oldest_time = time.time()-86400* max_age_days
     for f in  Path(path).rglob('*.fits'):
@@ -128,7 +133,9 @@ def import_data_archive_products(path=DATA_ARCHIVE_FITS_PATH, max_age_days=2):
         if meta:
             logger.info(f'inserting metadata for {basename} to fits_db..')
             meta['md5'] = md5checksum
-
+            if fits_db.find_one({'filename':basename}):
+                del meta['_id']
+                #if existis then don't change the id 
             fits_db.update_one({'filename': basename}, {'$set': meta},
                                upsert=True)
             # if filename exists, update 
@@ -194,7 +201,8 @@ def import_auxiliary(fname):
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         logger.info('read_and_import_aspect <filename')
-        import_data_archive_products(max_age_days=7)
+        for folder in DATA_ARCHIVE_FITS_PATHS:
+            import_data_archive_products_from_path(folder, max_age_days=7)
     else:
         if sys.argv[1]=='allaspect':
             import_all_aspect_solutions()
