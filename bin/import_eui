@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+import sys
+sys.path.append('/opt/stix/pystix')
+from stix.tools import import_eui as ime
+if  __name__ == '__main__':
+	ime.main()
+

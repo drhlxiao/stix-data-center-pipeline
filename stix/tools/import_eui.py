@@ -13,17 +13,21 @@ db = mdb['eui']
 def read_eui_db(filename):
     
     last_doc = list(db.find({}).sort('start_utc',-1).limit(1))
-    start_utc =   last_doc[0]['start_utc']  if last_doc  else 0
+    start_unix =   last_doc[0]['start_unix']  if last_doc  else None
     sqlite_conn = sqlite3.connect(filename)
     sqlite_cursor = sqlite_conn.cursor()
-    sqlite_query = f'SELECT "date-avg", imgtype, detector, wavelnth,filename,filter FROM fits_file WHERE "date-avg" > "{start_utc}";'
+    if start_unix:
+        start_utc=sdt.unix2utc(start_unix)
+        sqlite_query = f'SELECT "date-avg", imgtype, detector, wavelnth,filename,filter FROM fits_file WHERE "date-avg" > "{start_utc}";'
+    else:
+        sqlite_query = f'SELECT "date-avg", imgtype, detector, wavelnth,filename,filter FROM fits_file'
+
     print(sqlite_query)
     sqlite_cursor.execute(sqlite_query)
     #selected_records = sqlite_cursor.fetchall()
     print('inserting data to database...')
     num=0
     for row in sqlite_cursor:
-        print(row[1])
         doc={'start_unix': sdt.utc2unix(row[0]),
                  'start_utc':row[0],
                  #'detector':row[2],
@@ -34,7 +38,8 @@ def read_eui_db(filename):
                     }
         num+=1
         if num%1000==0:
-             print(f'Number of records inserted: {num}')
+            print(row[0])
+            print(f'Number of records inserted: {num}')
         db.update_one({'start_utc':doc['start_utc'], 'filter':doc['filter']},{'$set': doc},upsert=True)
         
 
@@ -71,12 +76,15 @@ def download_file(url, local_filename='/data/EUI/metadata.db'):
     print(f"Downloaded and saved the file as '{local_filename}'.")
 
 
-if __name__ == "__main__":
+def main():
+
     url= "https://www.sidc.be/EUI/data/metadata.db"
-    filename= "/data/EUI/metadata.db"
+    filename= "/mnt/nas05/stix/EUI/metadata.db"
     fname=download_file(url, filename)
     read_eui_db(fname)
 
+if __name__ == "__main__":
+    main()
 
 
 
