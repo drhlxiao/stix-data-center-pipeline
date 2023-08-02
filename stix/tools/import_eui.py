@@ -12,21 +12,26 @@ db = mdb['eui']
 
 def read_eui_db(filename):
     
-    last_doc = list(db.find({}).sort('start_utc',-1).limit(1))
-    start_unix =   last_doc[0]['start_unix']  if last_doc  else None
+    #last_doc = list(db.find({}).sort('start_utc',-1).limit(1))
+    #start_unix =   last_doc[0]['start_unix']  if last_doc  else None
     sqlite_conn = sqlite3.connect(filename)
     sqlite_cursor = sqlite_conn.cursor()
-    if start_unix:
-        start_utc=sdt.unix2utc(start_unix)
-        sqlite_query = f'SELECT "date-avg", imgtype, detector, wavelnth,filename,filter FROM fits_file WHERE "date-avg" > "{start_utc}";'
-    else:
-        sqlite_query = f'SELECT "date-avg", imgtype, detector, wavelnth,filename,filter FROM fits_file'
+
+    db.deleteMany()
+
+    # we do a purge, it is much faster than insert many by one
+    #if start_unix:
+    #    start_utc=sdt.unix2utc(start_unix)
+    #    sqlite_query = f'SELECT "date-avg", "imgtype", detector, wavelnth,filename,filter FROM fits_file WHERE "date-avg" > "{start_utc}";'
+    #else:
+    sqlite_query = f'SELECT "date-avg", imgtype, detector, wavelnth,filename,filter FROM fits_file'
 
     print(sqlite_query)
     sqlite_cursor.execute(sqlite_query)
     #selected_records = sqlite_cursor.fetchall()
     print('inserting data to database...')
     num=0
+    new_docs=[]
     for row in sqlite_cursor:
         doc={'start_unix': sdt.utc2unix(row[0]),
                  'start_utc':row[0],
@@ -36,11 +41,14 @@ def read_eui_db(filename):
                  'wavelength':row[3],
                  'link': row[4]
                     }
+        new_docs.append(doc)
         num+=1
         if num%1000==0:
             print(row[0])
             print(f'Number of records inserted: {num}')
-        db.update_one({'start_utc':doc['start_utc'], 'filter':doc['filter']},{'$set': doc},upsert=True)
+            db.insert_many(new_docs)
+            new_docs=[]
+            #db.update_one({'start_utc':doc['start_utc'], 'filter':doc['filter']},{'$set': doc},upsert=True)
         
 
 def download_file(url, local_filename='/data/EUI/metadata.db'):

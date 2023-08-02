@@ -30,7 +30,10 @@ from stix.spice import solo
 from stix.utils import energy_bins as eb
 from stix.utils import bson
 from stix.spice import time_utils as stu
+from stix.spice import spice_manager as spm
 from pathlib import Path
+
+spm.spice.load_kernels(reload_all=True)
 
 ##### Constants
 mdb = db.MongoDB()
@@ -43,10 +46,12 @@ flare_images_db = mdb.get_collection('flare_images')
 req_db = mdb.get_collection('data_requests')
 MIN_COUNTS = 10000
 DATA_LEVEL_FOR_IMAGING='L1'
+BKG_FILE_MAX_DAY_OFFSET=180
 
 ASPECT_TIME_TOR = 300  #time tolerance for looking for aspect solution
 
 last_bkg_fits_doc = {}
+
 
 
 def get_sun_center_from_aspect(y_srf, z_srf):
@@ -122,7 +127,7 @@ def create_imaging_tasks_for_flare(flare_entry_id,
                         min_counts=MIN_COUNTS,
                         duration=60,
                         energy_bands=[[4, 10], [16, 28]],
-                        bkg_max_day_off=60, overwritten=False):
+                        bkg_max_day_off=BKG_FILE_MAX_DAY_OFFSET, overwritten=False):
     """
     This function only register imaging tasks
     Parameters
@@ -150,6 +155,7 @@ def create_imaging_tasks_for_flare(flare_entry_id,
     flare_id=flare_doc.get('flare_id',None)
 
     if peak_time is None:
+        logger.info(f'No peak time found for {flare_entry_id}!, ignore this time')
         return
     query={'data_start_unix':{'$lte':peak_time - duration},
         'data_end_unix': {'$gte':peak_time + duration},
@@ -160,6 +166,7 @@ def create_imaging_tasks_for_flare(flare_entry_id,
     #find the best fits for for imaging
     if not fits_files:
         logger.warning(f'No signal FITS file found for flare # {flare_id}')
+        print(query)
         return
     fits_doc=fits_files[0]
 
@@ -211,8 +218,8 @@ def create_imaging_tasks_for_flare(flare_entry_id,
         signal_utc = stu.unix2utc(peak_time)
         B0, L0, roll, rsun, dsun, solo_hee, solo_sun_r, sun_center = solo.SoloEphemeris.get_ephemeris_for_imaging(
             signal_utc)
-    except ValueError:
-        logger.warning(f'No ephemeris data found for {bsd_id} (uid {uid})')
+    except Exception as e:
+        logger.warning(f'No ephemeris data found for {bsd_id} (uid {uid}), error: {str(e)}')
         return
     #sun_center=ephem['sun_center']
 
@@ -228,25 +235,33 @@ def create_imaging_tasks_for_flare(flare_entry_id,
         'end': flare_doc['end_unix']
     } ]
 
-    try:
-        l1 = ScienceL1.from_fits(fname)
-    except IndexError:
-        logger.warning(
-            f'Failed to read fits file for BSD # {bsd_id} (uid {uid})')
-        return
-    boxes = l1.get_time_ranges_for_imaging(flare_time_ranges, energy_bands,
-                                           min_counts, duration)
-    #two energies at the peak
-    #optimize time ranges
 
-    if boxes is None:
-        logger.warning(f'No boxes selected for BSD {bsd_id} (uid {uid})')
-        return
+    if flare_doc['peak_counts']> 3000:
+        start, end= flare_doc['peak_unix_time']-30, flare_doc['peak_unix_time']+30
+    else:
+        start, end= fits_doc['data_start_unix'], fits_doc['data_end_unix']
+    energies =[[4,10]] 
+    try:
+        if flare_doc['LC_statistics']['upper_ilc'] >1:
+            energies.append([16,28])
+
+    except (KeyError, TypeError):
+        pass
+
+
+    boxes=[{'total_counts':  0,
+                    'pixel_counts':  0,
+                    #'energy_range_sci': sci_range,
+                    'energy_range_keV': erange,
+                    'unix_time_range': [start,  end],
+                    'utc_range': [stu.unix2utc(start),  stu.unix2utc(end)]}
+                    for erange in energies]
+
     num_images = 0
     flare_image_ids = []
-
     for box in boxes:
         energy_range_str = f'{box["energy_range_keV"][0]}-{box["energy_range_keV"][1]}'
+        logger.info(f'box: {box["energy_range_keV"]}')
         start_utc_str = stu.utc2filename(box['utc_range'][0])
         fits_prefix = f'stix_sci_preview_{bsd_id}_{flare_id}_uid_{uid}_{energy_range_str}keV_{start_utc_str}_{flare_image_id}'
         folder = os.path.join(quicklook_path, str(uid))
@@ -254,7 +269,6 @@ def create_imaging_tasks_for_flare(flare_entry_id,
             os.makedirs(folder)
         num_images += 1
         task_id = uuid.uuid4().hex[0:10]
-
         spectral_model = 'auto'
 
         ospex_config = {
@@ -366,6 +380,7 @@ def update_auxiliary_data():
         doc['num_idl_calls'] = 0
         #reset
         logger.info(f'updating {doc["_id"]}...')
+
         db_flare_images.update_one({'_id': doc['_id']}, {'$set': doc})
 
 
@@ -378,6 +393,8 @@ if __name__ == '__main__':
 
     elif len(sys.argv)==2:
         create_imaging_tasks_for_flare(int(sys.argv[1]) )
-    else:
+    elif len(sys.argv)==3:
         create_imaging_tasks_for_flares_between(int(sys.argv[1]), 
                 int(sys.argv[2]) )
+    #else:
+    #update_ephmeris()

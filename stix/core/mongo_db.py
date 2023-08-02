@@ -569,7 +569,7 @@ class MongoDB(object):
                 '$match': {'request_type':'L1','purpose':'Background','detector_mask':'0xFFFFFFFF', 
                 'emax':{'$gte':str(emax)},
                 'emin':{'$lte':str(emin)},
-                'level':level,
+                'request_type':level,
                 'start_unix':{'$gt':start_unix, '$lt':unix_time}
             }},
             {

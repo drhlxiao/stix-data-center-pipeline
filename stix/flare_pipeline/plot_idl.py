@@ -43,6 +43,7 @@ from stix.core import mongo_db as db
 from stix.core import logger
 from stix.utils import bson
 from stix.spice import time_utils as ut
+from stix.spice import solo 
 from stix.analysis.science_l1 import ScienceL1
 
 
@@ -270,7 +271,7 @@ def plot_imaging_and_ospex_results(doc):
     except Exception as e:
         logger.error("Error occurred when creating spectral fitting result..")
 
-    img_fname, im_report=plot_images(doc, ospex_fig_obj)
+    img_fname, im_report, ephemeris=plot_images(doc, ospex_fig_obj)
     if img_fname is not None:
         figs.append({'images': img_fname})
     report={}
@@ -282,6 +283,7 @@ def plot_imaging_and_ospex_results(doc):
         report.update(im_report)
 
     new_values['report']=report
+    new_values['flare_ephemeris']=ephemeris
 
 
 
@@ -336,6 +338,27 @@ def plot_ospex_results(task_doc, dpi=DEFAULT_PLOT_DPI):
 
 
     return ospex_fig_obj
+
+def update_ephemeris_all():
+    docs = flare_image_db.find()
+    for doc in docs:
+        try:
+            fits_filename = doc['fits']
+            em_file=fits_filename['image_em']
+        except Exception as e:
+            print('EM file not found')
+            continue
+        
+        mem = sunpy.map.Map(em_file)
+        mem = rotate_map(mem)
+        try:
+            flare_ephm=get_flare_ephemeris(mem)
+        except Exception as e:
+            print(e)
+            flare_ephm=None
+
+        if flare_ephm:
+            flare_image_db.update_one({'_id': doc['_id']},{'$set':{'flare_ephemeris':flare_ephm}})
 
 
 
@@ -406,10 +429,18 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
     logger.info("Creating em map...")
     mem = sunpy.map.Map(fits_filename['image_em'])
     mem = rotate_map(mem)
+    try:
+        flare_ephm=get_flare_ephemeris(mem)
+    except Exception as e:
+        flare_ephm={'error':str(e)}
+
+
     # FWD-fit
     logger.info("Creating fwdfit map...")
     mfwd = sunpy.map.Map(fits_filename['image_fwdfit'])
     mfwd = rotate_map(mfwd)
+
+
     aspect_info = 'Aspect corrected' if task_doc['aux'].get(
         'data_source_type', None) == 'Aspect' else 'Aspect not corrected'
 
@@ -546,7 +577,7 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
             logger.error(str(e))
         logger.info("done ...")
         
-    return img_fname, report
+    return img_fname, report, flare_ephm
 
 def plot_aia(_id, wavelen=1600):
     doc=flare_image_db.find_one({'_id':_id})
@@ -619,6 +650,29 @@ def create_stix_for_all(start_id, end_id=8700):
             logger.error(e)
             #don't raise any exception
 
+def get_flare_ephemeris(flare_map):
+    data = flare_map.data
+    peak_index = np.where(data==data.max())
+    peak_coord = flare_map.pixel_to_world(peak_index[0]*u.pix, peak_index[1]*u.pix)
+    flare_utc=peak_coord.obstime.value
+    sun_x, sun_y=peak_coord.Tx.value, peak_coord.Ty.value
+    sun_x,sun_y=sun_x[0],sun_y[0]
+    meta=solo.SoloEphemeris.get_flare_spice(sun_x,sun_y,flare_utc, observer='earth')
+
+    meta.update({
+        'flare_x':sun_x,
+        'flare_y': sun_y,
+        #'flare_x_units':'arcsec',
+        #'flare_y_units':'arcsec',
+        })
+
+    if 'observer' in meta:
+        meta.pop('observer')
+    
+    return meta
+        
+    
+    
 
 
 
@@ -657,6 +711,7 @@ def test():
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         print('Usage plot_idl <doc_id> or plot_idl to start daemon')
-        process_all()
+        #process_all()
+        update_ephemeris_all()
     else:
         plot_idl(int(sys.argv[1]))

@@ -51,6 +51,7 @@ class _SpiceManager(object):
 
         self.loaded_kernel_filename = None
         self.latest_mk = None
+        self.loaded_kernels=[]
         self.load_kernels()
 
     def get_kernel_files_from_mk(self, mk_filename):
@@ -65,10 +66,12 @@ class _SpiceManager(object):
     def get_kernel_filename(self):
         return self.loaded_kernel_filename
 
-    def load_kernels(self):
+    def load_kernels(self,reload_all=False):
         cwd = os.getcwd()
         spice_folder = config.get_config('spice')
         mk_folder = os.path.join(spice_folder, 'mk')
+        if reload_all:
+            self.version_date = datetime.strptime('19700101', "%Y%m%d")
         self.latest_mk = None
         for filename in glob.glob(f'{mk_folder}/solo_ANC_soc-flown-mk*.tm'):
             date_str = re.findall(r"\d{4}\d{2}\d{2}", filename)
@@ -79,13 +82,19 @@ class _SpiceManager(object):
                     self.version_date = fdt
 
         #if latest_mk!=None and utc<self.version_date:
+        if self.latest_mk is None:
+            logger.info(
+                f' Can not find any mk file!')
+            return
 
-        if self.loaded_kernel_filename == self.latest_mk or self.latest_mk is None:
+
+        if self.loaded_kernel_filename == self.latest_mk and not reload_all:
             logger.info(
                 f'SPICE kernel loaded already: {self.loaded_kernel_filename}.')
             return
 
         os.chdir(mk_folder)
+        
         #try:
         #    logger.info(f'Loading kernel from mk file:{self.latest_mk}')
         #    spiceypy.furnsh(os.path.join(mk_folder, self.latest_mk))
@@ -96,12 +105,15 @@ class _SpiceManager(object):
         num_ignored, num_loaded = 0, 0
         logger.info(f'Loading kernel files...')
         for fname in fnames:
-            if 'flown-att' in fname and IGNORE_ATT:
+            if 'flown-att' in fname and IGNORE_ATT and not reload_all:
                 num_ignored += 1
                 continue
             try:
                 num_loaded += 1
-                spiceypy.furnsh(os.path.join(spice_folder, fname))
+                if fname not in self.loaded_kernels:
+                    spiceypy.furnsh(os.path.join(spice_folder, fname))
+                    self.loaded_kernels.append(fname)
+
             except spiceypy.utils.exceptions.SpiceNOSUCHFILE:
                 logger.warning(f'Failed to load: {fname}')
         if num_ignored > 0:

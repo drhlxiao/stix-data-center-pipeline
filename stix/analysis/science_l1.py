@@ -247,6 +247,7 @@ class ScienceL1(ScienceData):
         #timebin: detector,pixel, energies
 
         total_counts=np.sum(pixel_total_counts)
+        print("extracting L1: ",start, end, total_counts, pixel_total_counts)
         return start, end, total_counts, pixel_total_counts
     
     def plot_spectrogram(self, ax=None, selection_box=None):
@@ -315,13 +316,18 @@ class ScienceL1(ScienceData):
 
         time_ranges = []
 
+        print(flare_time_ranges, imaging_energies, sci_energy_ranges)
+
         for i, sci_range in enumerate(sci_energy_ranges):
             for flare in flare_time_ranges:
                 start, end, total_counts, pixel_counts =self.get_time_and_counts( sci_range[0], sci_range[1], integration_time, flare['peak_unix_time']-integration_time/2., flare['peak_unix_time'] + integration_time/2)
 
                 if start is None:
+                    print('start is None')
                     continue
+                print(f'total counts:{total_counts}')
                 if total_counts>min_counts:
+                    print('total > min counts')
                     boxes.append({
                     'total_counts':  total_counts,
                     'pixel_counts':  pixel_counts,
@@ -340,6 +346,8 @@ class ScienceL1(ScienceData):
                                 'energy_range_keV': imaging_energies[i],
                                 'unix_time_range': [start,  end],
                                 'utc_range': [sdt.unix2utc(start),  sdt.unix2utc(end)]})
+                    else:
+                        print(f'toot less counts:{total_counts}')
 
 
 
