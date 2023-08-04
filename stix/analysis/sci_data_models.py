@@ -1,6 +1,5 @@
 #!/usr/bin/python
 import numpy as np
-from stix.utils import energy_bins
 '''
    data models
    spectrogram and spectrum

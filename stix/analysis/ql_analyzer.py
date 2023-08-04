@@ -3,7 +3,7 @@ import sys
 import numpy as np
 from stix.spice import time_utils
 from stix.core import datatypes as sdt
-from stix.utils import energy_bins as ebin_utils
+from stix.core.energy_bins import StixEnergyBins
 
 QLLC_SPID = 54118
 QLBKG_SPID= 54120
@@ -16,6 +16,22 @@ class QLAnalyzer(object):
     def parse(cls, packets):
         pass
 class LightCurveAnalyzer(QLAnalyzer):
+
+    def __init__(self):
+        self.data=None
+    
+    @staticmethod
+    def compute_ql_counts_with_BKG(self):
+        """
+        compute QL curves using BKG light curves
+        """
+        pass
+
+
+
+
+
+    
     @classmethod
     def parse(cls, packets, exclude_duplicated=True):
         if not packets:
@@ -48,9 +64,6 @@ class LightCurveAnalyzer(QLAnalyzer):
             compression_s = packet[8].raw
             compression_k = packet[9].raw
             compression_m = packet[10].raw
-            if not energy_bins:
-                energy_bin_mask= packet[16].raw
-                energy_bins=ebin_utils.get_emask_energy_bins(energy_bin_mask)
 
             num_lc_points = packet.get('NIX00270/NIX00271')[0]
             lc = packet.get('NIX00270/NIX00271/*.eng')[0]
@@ -65,6 +78,11 @@ class LightCurveAnalyzer(QLAnalyzer):
                 time_utils.scet2unix(start_scet + x * int_duration)
                 for x in range(num_lc_points[0])
             ])
+
+            if not energy_bins:
+                energy_bin_mask= packet[16].raw
+                tstart=time_utils.scet2unix(start_scet)
+                energy_bins=StixEnergyBins.get_emask_energy_bins(energy_bin_mask, tstart)
 
         if not lightcurves:
             return None

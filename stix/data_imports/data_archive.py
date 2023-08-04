@@ -99,7 +99,6 @@ def get_file_type(fname):
         if f in fname:
             return f
     return None
-
 def import_data_archive_products(max_age_days=2):
     for folder in DATA_ARCHIVE_FITS_PATHS:
         import_data_archive_products_from_path(folder, max_age_days)
@@ -138,6 +137,14 @@ def import_data_archive_products_from_path(path, max_age_days=2):
                 #if existis then don't change the id 
             fits_db.update_one({'filename': basename}, {'$set': meta},
                                upsert=True)
+
+            #now we check if it is a pre-release file
+
+            if '_V01U.fits' not in basename and '_V01.fits' in basename:
+                incomplete_fname=basename.replace('_V01.fits','_V01U.fits')
+                fits_db.delete_one({'filename': incomplete_fname})
+
+
             # if filename exists, update 
 
             #fits_db.update_one({'md5': md5checksum}, {'$set': meta},

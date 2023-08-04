@@ -27,7 +27,7 @@ from stix.analysis.science_l1 import ScienceL1
 
 from stix.core import logger
 from stix.spice import solo
-from stix.utils import energy_bins as eb
+from stix.core.energy_bins import StixEnergyBins
 from stix.utils import bson
 from stix.spice import time_utils as stu
 from stix.spice import spice_manager as spm
@@ -187,8 +187,8 @@ def create_imaging_tasks_for_flare(flare_entry_id,
 
     boxes_energy_low = np.min(np.array(energy_bands))
     boxes_energy_high = np.max(np.array(energy_bands))
-    box_emin_sci, box_emax_sci = eb.keV2sci(boxes_energy_low,
-                                            boxes_energy_high)
+    box_emin_sci, box_emax_sci = StixEnergyBins.keV2sci(boxes_energy_low,
+                                            boxes_energy_high, flare_start_unix)
     #energy range
     bkg_fits_docs = list(
         mdb.find_L1_background(peak_time,

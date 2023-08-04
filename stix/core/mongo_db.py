@@ -70,7 +70,7 @@ class MongoDB(object):
             self.collection_qlspectra=self.db['ql_spectra']
             self.collection_qllc=self.db['ql_lightcurves']
             self.collection_qloc=self.db['ql_flare_locs']
-            self.collection_sw_config=self.db['sw_config']
+            #self.collection_sw_config=self.db['sw_config']
             self.collection_flare_images= self.db['flare_images']
             self.collection_aspect= self.db['aspect']
 
@@ -81,6 +81,13 @@ class MongoDB(object):
 
     def get_db(self):
         return self.db
+    def get_next_event_id(self):
+        try:
+            return self.collection_events.find({}).sort(
+                '_id', -1).limit(1)[0]['_id'] + 1
+        except IndexError:
+            return 0
+
 
     def get_group_users(self,group):
         return list(self.col_user_groups.find({'group': group}))
@@ -254,6 +261,17 @@ class MongoDB(object):
         self.collection_time_bins.delete_many({'file_id': int(run_id)})
         self.collection_qlspectra.delete_many({'run_id': int(run_id)})
         self.collection_qllc.delete_many({'run_id': int(run_id)})
+
+    def get_ql_lightcurves_in_timewindow(self, start_unix, duration):
+        end_unix = start_unix + duration
+        return self.db_lightcurves.find({
+            'start_unix': {
+                '$lte': end_unix
+            },
+            'end_unix': {
+                '$gte': start_unix
+            }
+        }).sort('start_unix', 1)
 
     def delete_runs(self, runs, keep_raw=False):
         for run in runs:

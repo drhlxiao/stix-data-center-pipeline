@@ -33,7 +33,6 @@ from matplotlib.patches import Circle, Rectangle, PathPatch
 import matplotlib.colors as colors
 from matplotlib.path import Path
 from stix.utils import bson
-from stix.utils import energy_bins as seb
 from stix.flare_pipeline import flare_spice as fsp
 import matplotlib
 

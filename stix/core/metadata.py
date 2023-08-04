@@ -12,7 +12,7 @@ import numpy as np
 from stix.core import datatypes as sdt
 from stix.spice import time_utils
 from stix.core import logger
-from stix.utils import energy_bins as ebin_utils
+from stix.core.energy_bins import StixEnergyBins
 from datetime import datetime
 
 logger = logger.get_logger()
@@ -188,12 +188,62 @@ class StixQuickLookPacketAnalyzer(object):
         self.qllc_db=db.get_collection('ql_lightcurves')
         self.qlloc_db=db.get_collection('ql_flare_locs')
         self.ql_db_collection = db.get_collection('quick_look')
+        self.events_db= db.get_collection('events')
         self.report = None
         try:
             self.current_report_id = self.ql_db_collection.find().sort(
                 '_id', -1).limit(1)[0]['_id'] + 1
         except IndexError:
             self.current_report_id = 0
+
+        try:
+            self.current_event_id=self.events_db.find({}).sort(
+                '_id', -1).limit(1)[0]['_id'] + 1
+        except IndexError:
+            self.current_event_id=0
+
+
+    def record_rcr_status_change_events(self, times,  rcrs):
+        """
+         detect if rcr status changed, if so record them in event db
+
+        """
+        logger.info('Checking changes of crc')
+        if not times or not rcrs:
+            return
+        times=np.array(times).flatten().tolist()
+        rcrs=np.array(rcrs).flatten().tolist()
+        last_rcr = rcrs[0]
+        for t, rcr in zip(times, rcrs):
+            if last_rcr!=rcr:
+                utc=time_utils.unix2utc(t)
+                end_utc=time_utils.unix2utc(t+1)
+                status='inserted' if last_rcr==0 and rcr>0  else 'removed'
+                description=f'Attenuator {status} at {utc}'
+                exist_doc=self.events_db.find_one({'rcr':rcr,'start_unix':{'$gte':t-1, '$lte':t+1}})
+                if not exist_doc:
+                    logger.info(f'Inserting event:{description}')
+                    self.current_event_id+=1
+                    print('current_id:',self.current_event_id)
+                    self.events_db.insert_one({
+                            '_id': self.current_event_id,
+                            'start_utc':utc,
+                            'start_unix':t,
+                            'end_utc': end_utc,
+                            'rcr':rcr,
+                            'end_unix':t+1,
+                            'status':0,
+                            'submit':'',
+                            'description': description,
+                            'author':'pystix',
+                            "hidden":False,
+                            'subject':"Attenuator status changed",
+                            'warn_users':'true',
+                            'creation_time':time_utils.now(),
+                            'event_type':'StatusChange',
+                    })
+            last_rcr=rcr
+            
 
     def write_qllc_to_db(self, packet, run_id, packet_id):
         lightcurves = {}
@@ -215,14 +265,18 @@ class StixQuickLookPacketAnalyzer(object):
         compression_s = packet[8].raw
         compression_k = packet[9].raw
         compression_m = packet[10].raw
+        UTC = packet['header']['UTC']
+
+        tstart = time_utils.scet2unix(scet_coarse)
+        
         if not energy_bins:
             energy_bin_mask= packet[16].raw
-            energy_bins=ebin_utils.get_emask_energy_bins(energy_bin_mask)
+            energy_bins=StixEnergyBins.get_emask_energy_bins(energy_bin_mask, tstart)
         num_lc_points = packet.get('NIX00270/NIX00271')[0]
         lc = packet.get('NIX00270/NIX00271/*.eng')[0]
         rcr = packet.get('NIX00275/*.raw')
+    
         trig= packet.get('NIX00273/*.eng')
-        UTC = packet['header']['UTC']
         for i in range(len(lc)):
             if i not in lightcurves:
                 lightcurves[str(i)] = []
@@ -234,6 +288,8 @@ class StixQuickLookPacketAnalyzer(object):
 
         if not lightcurves:
             return 
+        self.record_rcr_status_change_events(unix_time,rcr)
+
         doc={'run_id':run_id, 'packet_id':packet_id, 'time': unix_time, 'lightcurves': lightcurves,'rcr':rcr,'trig':trig,
                 'energy_bins':energy_bins,'num':len(unix_time),'start_unix': unix_time[0],'end_unix':unix_time[-1]}
         self.qllc_db.insert_one(doc)
