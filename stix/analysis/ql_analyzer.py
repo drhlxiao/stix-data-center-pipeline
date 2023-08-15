@@ -313,7 +313,7 @@ class LightCurveMerger(QLAnalyzer):
         ax.legend()
         ax.set_yscale('log')
         return ax
-    def correct_att_in_counts(self):
+    def correct_att_in_counts(self,tgap=20):
         """
          here we should ensure the time selected should be between
          20 seconds before the ATT moving in and  20 second after ATT moving out, for both LC and BKG data
@@ -328,7 +328,6 @@ class LightCurveMerger(QLAnalyzer):
             rcr=ql_data['rcr']
         except (TypeError, KeyError):
             print('rcr not exists in QL data:')
-            print(ql_data)
             return
         
 
@@ -344,15 +343,19 @@ class LightCurveMerger(QLAnalyzer):
 
         sel=np.where(ql_data['rcr']==1)
         rcr_in_times=ql_times[sel]
+
+        #print(rcr_in_times)
+
         tin,tout=rcr_in_times[0],rcr_in_times[-2]
-
-        tgap=20
-
-        ql_time_sel=np.where( (ql_times>=tin-tgap)  & (tin+tgap >= ql_times))
-
+        #print('sel:',time_utils.unix2utc(tin), time_utils.unix2utc(tin-tgap) )
+        #print(ql_times-ql_times[0])
+        ql_time_sel=np.where( (ql_times>=tin-tgap)  & (ql_times <= tin))
+        #here still correct
+        #print('ql_time sel:', ql_time_sel)
+        ql_time_before_in=ql_times[ql_time_sel]
+        #print("QL before in:", [time_utils.unix2utc(x) for x in ql_time_before_in])
+        #this is wrong
         ql_before_in=np.squeeze(ql_lcs[:, ql_time_sel])
-
-        ql_time_befor_in=ql_times[ql_time_sel]
 
         
         #calculated the max counts before moved in
@@ -380,13 +383,12 @@ class LightCurveMerger(QLAnalyzer):
 
         bkg_min_cnts=np.min(bkg_after_in,axis=1)
 
-        stat = mdb.get_nearest_lc_stats(ql_time_befor_in[0], max_limit=500)
+        stat = mdb.get_nearest_lc_stats(ql_time_before_in[0], max_limit=500)
 
         BKG_baseline=[14,3,3,42,20] #we assume the BKG BKG is stable
         try:
-            QL_baseline=stat['media'] #we assume the BKG BKG is stable
+            QL_baseline=stat['median'] #we assume the BKG BKG is stable
         except Exception as e:
-            print(e)
             QL_baseline=[271,41,67,799,450] #default background
 
         slopes=[]
@@ -403,12 +405,21 @@ class LightCurveMerger(QLAnalyzer):
         sel_t_bkg=np.where((bkg_times >= tin) & (tout >=bkg_times))
         bkg_att_in_lcs = []
         for i in range(5):
-            
             bkg_att_in_lcs.append(np.array(bkg_lcs[i][sel_t_bkg]*slopes[i]+QL_baseline[i]) if slopes[i]>0 else bkg_lcs[0][sel_t_bkg]*0)
 
         bkg_att_in_times=bkg_times[sel_t_bkg]
 
-        return bkg_att_in_times, bkg_att_in_lcs, ql_max_cnts, bkg_min_cnts
+        return {'time':bkg_att_in_times, 
+                'counts': bkg_att_in_lcs, 
+                'ql_time_before_in': [time_utils.unix2utc(x) for x in ql_time_before_in],
+                'ql_max_cnts_before_in': ql_max_cnts, 
+                'bkg_min_cnts_after_in': bkg_min_cnts, 
+                'ql_bkg':QL_baseline, 
+                'ql_counts_before_in':ql_before_in,
+                'BKG_bkg': BKG_baseline,
+                'bkg_stat':stat
+                }
+    
 
 
 

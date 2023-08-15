@@ -1,4 +1,5 @@
 import json
+import datetime
 import numpy 
 class CustomEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -8,6 +9,8 @@ class CustomEncoder(json.JSONEncoder):
             return float(obj)
         elif isinstance(obj, numpy.ndarray):
             return obj.tolist()
+        elif isinstance(obj, datetime.datetime):
+            return obj.isoformat()
         else:
             return super(CustomEncoder, self).default(obj)
         

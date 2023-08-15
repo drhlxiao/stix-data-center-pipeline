@@ -24,37 +24,36 @@ from stix.analysis import ql_analyzer as qla
 from stix.core import logger
 logger = logger.get_logger()
 
-mdb = db.MongoDB(port=9123)
-qla.set_db(mdb)
+mdb = db.MongoDB()
+#qla.set_db(mdb)
 qlc_att_db=mdb.get_collection('qlc_att_in')
 
-def correct_ql_counts_in_time_range(start_unix, end_unix):
+def correct_ql_counts_in_time_range(start_unix, end_unix, tgap=20):
+    """
+    correct counts for periods for ATT is in,
+    we need to specify for a gap to get the max counts before ATT inserted for correction
+    """
     start_utc, end_utc=st.unix2utc(start_unix), st.unix2utc(end_unix)
     logger.info(f"Find ATT in time range in:  {start_utc} - {end_utc}")
 
     time_ranges=mdb.find_att_in_time_ranges(start_unix, end_unix)
     for tr in time_ranges:
-        start_utc=st.unix2utc(tr[0]) 
-        end_utc=st.unix2utc(tr[1]) 
+        start_utc=st.unix2utc(tr[0]-tgap) 
+        end_utc=st.unix2utc(tr[1]+tgap) 
         logger.info(f"Correcting LCs for {start_utc} - {end_utc}")
         try:
             res=qla.LightCurveMerger.from_database(start_utc, end_utc)
-            times,corrected_counts ,ql_max, bkg_min =res.correct_att_in_counts()
+            doc=res.correct_att_in_counts(tgap=tgap)
         except Exception as e:
             print(e)
-            raise
             continue
-
-        doc={
+         
+        doc.update({
                 'start_unix':tr[0],
                 'end_unix':tr[1],
                 'start_utc':start_utc,
                 'end_utc':end_utc,
-                'ql_max_counts':ql_max,
-                'bkg_min_counts':bkg_min,
-                'time':times,
-                'counts':corrected_counts
-                }
+                })
         
         doc=bs.dict_to_json(doc)
         qlc_att_db.update_one({'start_unix':tr[0],'end_unix':tr[1]},{'$set':doc},upsert=True)
@@ -85,7 +84,11 @@ def process_new(start_unix=None, end_unix=None):
 
 
 if __name__=='__main__':
-    process_new()
+    start, end = None, None
+    if len(sys.argv)==3:
+        start=st.utc2unix(sys.argv[1])
+        end=st.utc2unix(sys.argv[2])
+    process_new(start, end)
 
 
 
