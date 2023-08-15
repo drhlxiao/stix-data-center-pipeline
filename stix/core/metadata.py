@@ -214,12 +214,16 @@ class StixQuickLookPacketAnalyzer(object):
         times=np.array(times).flatten().tolist()
         rcrs=np.array(rcrs).flatten().tolist()
         last_rcr = rcrs[0]
+
+        att_in_times=[]
+
         for t, rcr in zip(times, rcrs):
             if last_rcr!=rcr:
                 utc=time_utils.unix2utc(t)
                 end_utc=time_utils.unix2utc(t+1)
                 status='inserted' if last_rcr==0 and rcr>0  else 'removed'
                 description=f'Attenuator {status} at {utc}'
+                subject=f'Attenuator {status}'
                 exist_doc=self.events_db.find_one({'rcr':rcr,'start_unix':{'$gte':t-1, '$lte':t+1}})
                 if not exist_doc:
                     logger.info(f'Inserting event:{description}')
@@ -237,7 +241,7 @@ class StixQuickLookPacketAnalyzer(object):
                             'description': description,
                             'author':'pystix',
                             "hidden":False,
-                            'subject':"Attenuator status changed",
+                            'subject': subject,
                             'warn_users':'true',
                             'creation_time':time_utils.now(),
                             'event_type':'StatusChange',

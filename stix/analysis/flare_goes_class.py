@@ -205,6 +205,7 @@ def estimate_goes_class(counts: float,
     return result
 
 
+
 def get_flare_goes_class(doc):
     """
     estimate flare GOES class, and store data into MongoDB
@@ -235,6 +236,7 @@ def get_flare_goes_class(doc):
     ephs = solo.SoloEphemeris.get_solo_ephemeris(peak_utc, peak_utc, 1)
     eph = get_first_element(ephs)
     dsun = eph.get('sun_solo_r', 1)
+
     try:
         delta_lt = eph['light_time_diff']
     except (KeyError, IndexError):

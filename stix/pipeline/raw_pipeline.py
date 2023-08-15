@@ -27,6 +27,7 @@ from stix.analysis import sci_packets_analyzer
 from stix.analysis import integration_time_estimator
 from stix.analysis import flare_goes_class as fgc
 from stix.analysis import goes_downloader as gdl
+from stix.analysis import correct_qlc_with_att as cql
 from stix.flare_pipeline import imaging_task_manager as itm
 from stix.pipeline import task_manager 
 
@@ -50,7 +51,8 @@ task_list={'calibration':True,
         'bsd_report_merging':True,
         'bsd_l1_preprocessing':False,
         'imaging':True,
-        'bkg_estimation':True
+        'bkg_estimation':True,
+        'correct_qlc_with_att':True
         }
         
 
@@ -230,6 +232,14 @@ def piepeline_parsing_and_basic_analysis(instrument, filename, notification_enab
         except Exception as e:
             logger.error(str(e))
 
+    if task_list['correct_qlc_with_att']:
+        logger.info('Correcting light curves for periods when ATT was inserted...')
+        try:
+            cql.process_new()
+        except Exception as e:
+            logger.error(str(e))
+
+
     if task_list['flare_detection']:
         logger.info('Detecting flares..')
         try:
@@ -269,6 +279,7 @@ def piepeline_parsing_and_basic_analysis(instrument, filename, notification_enab
                 calibration.process_one_run(run_id,create_pdf=True, pdf_path=report_path)
         except Exception as e:
             logger.error(str(e))
+
     clear_ngnix_cache()
     return file_id
 

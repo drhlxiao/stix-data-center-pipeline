@@ -70,6 +70,7 @@ class MongoDB(object):
             self.collection_qlspectra=self.db['ql_spectra']
             self.collection_qllc=self.db['ql_lightcurves']
             self.collection_qloc=self.db['ql_flare_locs']
+            self.collection_qlc_att_in=self.db['qlc_att_in']
             #self.collection_sw_config=self.db['sw_config']
             self.collection_flare_images= self.db['flare_images']
             self.collection_aspect= self.db['aspect']
@@ -106,7 +107,28 @@ class MongoDB(object):
     def get_aspect_solutions(self, start_unix, end_unix):
         return self.collection_aspect.find({'unix_time':{'$gte':start_unix,'$lte':end_unix}}).sort('unix_time',1)
 
+    
+    def get_last_att_in_time(self, start_unix, end_unix):
+        pass
 
+    
+    def find_att_in_time_ranges(self, start_unix, end_unix):
+        """
+            find att inserted times
+        """
+        docs = self.collection_events.find({'rcr':{'$exists':True}, 'start_unix': {'$gte':start_unix},
+            'end_unix': {'$lte':end_unix} }).sort('start_unix',1)
+        time_ranges=[]
+        inserted = False
+        inserted_time = 0
+        for doc in docs:
+            if inserted and doc['rcr']==0:
+                time_ranges.append((inserted_time,doc['start_unix']))
+                
+            if doc['rcr']==1:
+                inserted = True
+                inserted_time=doc['start_unix']
+        return time_ranges
 
     def get_collection_calibration(self):
         return self.collection_calibration

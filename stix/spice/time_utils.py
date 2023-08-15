@@ -2,21 +2,31 @@
 
 import re
 import glob
+import spiceypy
+import pandas as pd
 from datetime import datetime
 from dateutil import parser as dtparser
 from astropy.time import Time
 from stix.spice import spice_manager as spm
-import spiceypy
 from datetime import datetime
-import pandas as pd
 from astropy.time import Time
 
 from stix.core import logger
 
 def anytime(dt, fm='iso'):
+    try:
+        dt=float(dt)
+    except ValueError:
+        pass
+
+
     if isinstance(dt, Time):
         dt=dt.to_datetime()
-    t=pd.to_datetime(dt,utc=True)
+
+    if isinstance(dt, float):
+        t=pd.to_datetime(dt,unit='s', utc=True)
+    else:
+        t=pd.to_datetime(dt,utc=True)
     if fm=='iso':
         return t.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
     elif fm=='unix':
@@ -34,6 +44,8 @@ def utc2unix(dt):
 
 def utc2datetime(t):
     return pd.to_datetime(t, utc=True).to_pydatetime()
+def unix2datetime(t):
+    return pd.to_datetime(t, unit='s', utc=True).to_pydatetime()
 
 def datetime2unix(t):
    t=pd.to_datetime(t, utc=True)
@@ -42,8 +54,6 @@ def datetime2unix(t):
 
 
 
-def unix2datetime(unix_timestamp):
-    return datetime.utcfromtimestamp(unix_timestamp)
 
 def format_datetime(dt):
     if isinstance(dt, datetime):
@@ -95,22 +105,6 @@ def utc2isoformat(utc):
 
 
 
-def unix2datetime(timestamp):
-    dt = None
-    if isinstance(timestamp, float):
-        dt = datetime.utcfromtimestamp(timestamp)
-    elif isinstance(timestamp, str):
-        try:
-            ts = float(timestamp)
-            dt = datetime.utcfromtimestamp(ts)
-        except ValueError:
-            dt = dtparser.parse(timestamp)
-    elif isinstance(timestamp, datetime.datetime):
-        dt = timestamp
-    return dt
-
-
-
 def scet2unix(coarse, fine=0):
     try:
         utc = scet2utc(coarse, fine)
@@ -136,8 +130,6 @@ def scet2datetime(coarse, fine=0):
     return datetime.utcfromtimestamp(unixtimestamp)
 
 
-def unix2datetime(unix_timestamp):
-    return datetime.utcfromtimestamp(unix_timestamp)
 
 def is_unix_time_valid(unix):
     unix=float(unix)
@@ -147,15 +139,6 @@ def is_scet_valid(scet):
     j2000=946724400
     scet=float(scet)
     return is_unix_time_valid(j2000+scet)
-
-
-'''
-    code taken from Shane's datetime script
-'''
-
-
-
-
 
 
 def scet_to_utc(scet):
