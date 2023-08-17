@@ -63,7 +63,7 @@ def get_QL_background(start, end, file_id):
                 '$gt': (start + end) / 2
             }
     }).count() > 0:
-        #background exists
+        # background exists
         return
 
     unix_time = []
@@ -78,7 +78,7 @@ def get_QL_background(start, end, file_id):
                 continue
         except:
             continue
-        #fig = None
+        # fig = None
         if packet['header']['unix_time'] < last_unix:
             continue
 
@@ -141,6 +141,7 @@ def get_QL_background(start, end, file_id):
         'min': amin,
     }
     mdb.insert_lc_stats(doc)
+
 
 if __name__ == '__main__':
     import sys

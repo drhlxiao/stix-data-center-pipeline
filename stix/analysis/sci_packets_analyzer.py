@@ -16,6 +16,7 @@ from stix.core import mongo_db as db
 from stix.core import logger
 from stix.core import config
 from stix.analysis import sci_data_models as sdm
+
 mdb = db.MongoDB()
 logger = logger.get_logger()
 level1_products_path = config.get_config(
@@ -23,11 +24,11 @@ level1_products_path = config.get_config(
 
 bsd_collection = mdb.get_collection_bsd()
 
-MAX_L1_REQ_DURATION=3600
-#max l1 data request duration, used to load flares before l1 processing
-FLARE_SELECTION_SPAN=2*60
+MAX_L1_REQ_DURATION = 3600
+# max l1 data request duration, used to load flares before l1 processing
+FLARE_SELECTION_SPAN = 2 * 60
 FLARE_SCI_EMAX = 13
-FLARE_SELECTION_MIN_QL_COUNTS=0 # flares with ql counts <100 will not be preocessed
+FLARE_SELECTION_MIN_QL_COUNTS = 0  # flares with ql counts <100 will not be preocessed
 
 PROCESS_METHODS = {
     'normal': [54114, 54117, 54143, 54125],
@@ -42,15 +43,13 @@ def get_process_method(spid):
     return 'unknown'
 
 
-
-
-
 class StixBulkL0Analyzer(object):
+
     def __init__(self):
         self.request_id = -1
         self.packet_unix = 0
-        self.start_unix=None
-        self.end_unix=None
+        self.start_unix = None
+        self.end_unix = None
 
         self.auxiliary = {
             'pixel_mask': [],
@@ -73,15 +72,15 @@ class StixBulkL0Analyzer(object):
             'packet_unix': self.packet_unix,
             'boxes': self.boxes,
             'auxiliary': self.auxiliary,
-            'request_id':self.request_id,
-            'start_unix':self.start_unix,
-            'end_unix':self.end_unix
+            'request_id': self.request_id,
+            'start_unix': self.start_unix,
+            'end_unix': self.end_unix
         }
         return report
 
     def process_packets(self, cursor):
-        hash_list=[]
-        last_header_time=0
+        hash_list = []
+        last_header_time = 0
         for pkt in cursor:
             if pkt['hash'] in hash_list:
                 continue
@@ -89,7 +88,7 @@ class StixBulkL0Analyzer(object):
 
             if pkt['header']['unix_time'] < last_header_time:
                 continue
-            last_header_time=pkt['header']['unix_time']
+            last_header_time = pkt['header']['unix_time']
 
             packet = sdt.Packet(pkt)
 
@@ -116,8 +115,8 @@ class StixBulkL0Analyzer(object):
                 offset = i * 23
                 unix_time = children[offset][1] * 0.1 + T0
                 if self.start_unix is None:
-                    self.start_unix=unix_time
-                self.end_unix=unix_time
+                    self.start_unix = unix_time
+                self.end_unix = unix_time
 
                 self.auxiliary['time'].append(unix_time)
                 self.auxiliary['rcr'].append(children[offset + 1][1])
@@ -158,22 +157,24 @@ class StixBulkL1L2Analyzer(object):
         - reads L1,L2 packets
         - generates synopsis  used by by web pages 
     '''
+
     def __init__(self):
         self.time = []
         self.rcr = []
         self.dt = []
         self.pixel_mask = []
         self.detector_mask = []
-        self.pixel_indexes=None
-        self.extract_masks=True
+        self.pixel_indexes = None
+        self.extract_masks = True
         self.triggers = []
-        self.pixel_rate_spec= np.zeros((12*32, 32))  # total hits
-        self.pixel_time_int_spectra= np.zeros((12*32, 32))  # total hits
+        self.pixel_rate_spec = np.zeros((12 * 32, 32))  # total hits
+        self.pixel_time_int_spectra = np.zeros((12 * 32, 32))  # total hits
 
-        self.flare_peak_pixel_spectra=np.zeros((12*32, 32))  # spectrum of each pixel near flare peaks
-        self.flare_pixel_counts=[0]*384
-        self.energy_bins=[]
-        #self.hits_time_ene_int = np.zeros(
+        self.flare_peak_pixel_spectra = np.zeros(
+            (12 * 32, 32))  # spectrum of each pixel near flare peaks
+        self.flare_pixel_counts = [0] * 384
+        self.energy_bins = []
+        # self.hits_time_ene_int = np.zeros(
         #    (33, 12))  # energy integrated total hits
         # self.T0=[]
         self.eacc_SKM = ()
@@ -182,41 +183,41 @@ class StixBulkL1L2Analyzer(object):
         self.packet_unix = 0
         self.groups = []
         self.pixel_total_counts = [0] * 384
-        self.sci_ebins=[]
+        self.sci_ebins = []
         self.num_time_bins = 0
-        self.start_unix=None
-        self.end_unix=None
-        self.spectrogram=sdm.Spectrogram()
+        self.start_unix = None
+        self.end_unix = None
+        self.spectrogram = sdm.Spectrogram()
 
-    def get_flare_times(self,start_unix, duration=MAX_L1_REQ_DURATION):
-        flares=mdb.search_flares_by_tw(
-                            start_unix,
-                            duration,
-                            threshold=FLARE_SELECTION_MIN_QL_COUNTS)
-        flare_ids, flare_peak_unix_times, flare_start_times, flare_end_times, peak_counts=[],[],[],[],[]
+    def get_flare_times(self, start_unix, duration=MAX_L1_REQ_DURATION):
+        flares = mdb.search_flares_by_tw(
+            start_unix, duration, threshold=FLARE_SELECTION_MIN_QL_COUNTS)
+        flare_ids, flare_peak_unix_times, flare_start_times, flare_end_times, peak_counts = [], [], [], [], []
         for doc in flares:
-            flare_ids.append(doc['flare_id']) #QL always arrive earlier than SCI data
+            flare_ids.append(
+                doc['flare_id'])  # QL always arrive earlier than SCI data
             flare_peak_unix_times.append(doc['peak_unix_time'])
             flare_start_times.append(doc['start_unix'])
             flare_end_times.append(doc['end_unix'])
             peak_counts.append(doc['peak_counts'])
         return flare_ids, flare_peak_unix_times, flare_start_times, flare_end_times, peak_counts
 
-    def is_near_flare_peak(self, start_times:list, end_times:list,  current_time):
-        #If current_time is 2 minutes near a peak, return true else false
+    def is_near_flare_peak(self, start_times: list, end_times: list,
+                           current_time):
+        # If current_time is 2 minutes near a peak, return true else false
         for t0, t1 in zip(start_times, end_times):
-            if t0 <= current_time <=t1:
+            if t0 <= current_time <= t1:
                 return True
         return False
 
     def format_report(self):
-        duration=self.end_unix-self.start_unix
-        integration_times=[x['integrations']*0.1 for x in self.groups]
+        duration = self.end_unix - self.start_unix
+        integration_times = [x['integrations'] * 0.1 for x in self.groups]
         if integration_times:
-            duration+=(integration_times[0]+integration_times[-1])*0.5
-        if duration >0:
-            self.pixel_rate_spec = self.pixel_time_int_spectra/duration
-        #print(duration, len(self.groups))
+            duration += (integration_times[0] + integration_times[-1]) * 0.5
+        if duration > 0:
+            self.pixel_rate_spec = self.pixel_time_int_spectra / duration
+        # print(duration, len(self.groups))
         self.sci_ebins.sort()
         report = {
             'request_id': self.request_id,
@@ -225,53 +226,63 @@ class StixBulkL1L2Analyzer(object):
             'trig_skm': self.trig_SKM,
             'eacc_skm': self.eacc_SKM,
             'start_unix': self.start_unix,
-            'energy_bins':self.sci_ebins,
-            'pixel_indexes':self.pixel_indexes,
-            'detector_mask':self.detector_mask,
+            'energy_bins': self.sci_ebins,
+            'pixel_indexes': self.pixel_indexes,
+            'detector_mask': self.detector_mask,
             'num_time_bins': self.num_time_bins,
-            'pixel_mask':self.pixel_mask,
+            'pixel_mask': self.pixel_mask,
             'end_unix': self.end_unix,
             'pixel_total_counts': self.pixel_total_counts,
-            }
-        #print('time bins',self.num_time_bins)
-        emin,emax=-1,-1
+        }
+        # print('time bins',self.num_time_bins)
+        emin, emax = -1, -1
         if self.sci_ebins:
-            emin=min([x[0] for x in self.sci_ebins])
-            emax=max([x[1] for x in self.sci_ebins])
-        flare_ids, flare_peak_unix_times, flare_start_times, flare_end_times, peak_counts=self.get_flare_times(self.start_unix, duration)
-        #synopsis will be used by the flare processing pipeline
+            emin = min([x[0] for x in self.sci_ebins])
+            emax = max([x[1] for x in self.sci_ebins])
+        flare_ids, flare_peak_unix_times, flare_start_times, flare_end_times, peak_counts = self.get_flare_times(
+            self.start_unix, duration)
+        # synopsis will be used by the flare processing pipeline
 
-        is_background=False if flare_ids else True #if no flare found it is background
-        timebins, ebins, spectrogram=self.spectrogram.get_spectrogram('list')
-        synopsis={
-                'pixel_rate_spec': self.pixel_rate_spec.tolist(),
-                'duration':duration,
-                'spectrogram': {
-                    'timebins':timebins,
-                    'ebins':ebins,
-                    'data':spectrogram
-                    },
-                'sci_ebins':self.sci_ebins,
-                'emin':emin,
-                'emax':emax,
-                'is_background':is_background,
-                'pixel_total_counts': self.pixel_total_counts
-                }
+        is_background = False if flare_ids else True  # if no flare found it is background
+        timebins, ebins, spectrogram = self.spectrogram.get_spectrogram('list')
+        synopsis = {
+            'pixel_rate_spec': self.pixel_rate_spec.tolist(),
+            'duration': duration,
+            'spectrogram': {
+                'timebins': timebins,
+                'ebins': ebins,
+                'data': spectrogram
+            },
+            'sci_ebins': self.sci_ebins,
+            'emin': emin,
+            'emax': emax,
+            'is_background': is_background,
+            'pixel_total_counts': self.pixel_total_counts
+        }
         if not is_background:
-            synopsis['flares']={
-                    'peak_pixel_spec': self.flare_peak_pixel_spectra.tolist(),
-                    'flare_pixel_counts':{
-                        'counts':self.flare_pixel_counts,
-                        'emax': FLARE_SCI_EMAX,
-                        'emin':emin,
-                        },
-                    'integration_times': [t1-t0 for t0,t1 in  zip(flare_start_times, flare_end_times)],
-                    'flare_ids':flare_ids,
-                    'QL_peak_counts':peak_counts,
-                    'peak_unix_times':flare_peak_unix_times,
-                    'start_unix_times':flare_start_times,
-                    'end_unix_times':flare_end_times,
-                    }
+            synopsis['flares'] = {
+                'peak_pixel_spec':
+                self.flare_peak_pixel_spectra.tolist(),
+                'flare_pixel_counts': {
+                    'counts': self.flare_pixel_counts,
+                    'emax': FLARE_SCI_EMAX,
+                    'emin': emin,
+                },
+                'integration_times': [
+                    t1 - t0
+                    for t0, t1 in zip(flare_start_times, flare_end_times)
+                ],
+                'flare_ids':
+                flare_ids,
+                'QL_peak_counts':
+                peak_counts,
+                'peak_unix_times':
+                flare_peak_unix_times,
+                'start_unix_times':
+                flare_start_times,
+                'end_unix_times':
+                flare_end_times,
+            }
         return report, synopsis
 
     def get_spectrum_pixel_indexes(self, detector_mask, pixel_mask_array):
@@ -296,31 +307,38 @@ class StixBulkL1L2Analyzer(object):
         return pixel_indexes
 
     def process_packets(self, cursor):
-        #it doesn't know the start time and end time of the data request 
-        ipkt=0
-        flare_start_times, flare_end_times=[],[]
-        hash_list=[]
+        # it doesn't know the start time and end time of the data request
+        ipkt = 0
+        flare_start_times, flare_end_times = [], []
+        hash_list = []
         group = {}
         last_time_bin = 0
-        #print('start processing packets', cursor.count())
+        # print('start processing packets', cursor.count())
         current_time = 0
-        segs=[0]*4
-        last_header_time=0
-        stat={'hash_excluded':0, 'obs_time_excluded':0, 'header_time_excluded':0, 'total':0, 'valid':0, 'dup':0}
+        segs = [0] * 4
+        last_header_time = 0
+        stat = {
+            'hash_excluded': 0,
+            'obs_time_excluded': 0,
+            'header_time_excluded': 0,
+            'total': 0,
+            'valid': 0,
+            'dup': 0
+        }
 
         for pkt in cursor:
-            #print('flare start')
-            stat['total']+=1
+            # print('flare start')
+            stat['total'] += 1
             if pkt['hash'] in hash_list:
-                stat['hash_excluded']+=1
+                stat['hash_excluded'] += 1
                 continue
             hash_list.append(pkt['hash'])
 
             if pkt['header']['unix_time'] < last_header_time:
                 logger.info('time stamp rolling back, ignore')
-                stat['header_time_excluded']+=1
+                stat['header_time_excluded'] += 1
                 continue
-            last_header_time=pkt['header']['unix_time']
+            last_header_time = pkt['header']['unix_time']
 
             packet = sdt.Packet(pkt)
             self.request_id = packet[3].raw
@@ -328,27 +346,26 @@ class StixBulkL1L2Analyzer(object):
             T0 = time_utils.scet2unix(packet[12].raw)
 
             if T0 < current_time:
-                stat['obs_time_excluded']+=1
+                stat['obs_time_excluded'] += 1
                 logger.warning("Time stamps roll back, ignored")
                 continue
             current_time = T0
 
-            segs[pkt['header']['seg_flag']]+=1
-            if segs[1]>1 or segs[2]>1:
-                stat['dup']+=1
-                logger.warning("Duplicated requests or duplicated data, ignore")
+            segs[pkt['header']['seg_flag']] += 1
+            if segs[1] > 1 or segs[2] > 1:
+                stat['dup'] += 1
+                logger.warning(
+                    "Duplicated requests or duplicated data, ignore")
                 break
 
+            if ipkt == 0:
+                _, _, flare_start_times, flare_end_times, peak_counts = self.get_flare_times(
+                    T0, MAX_L1_REQ_DURATION)
+            ipkt += 1
+            # the data end time is known here
+            # loads all flares in the next MAX_L1_REQ_DURATION
 
-
-            if ipkt==0:
-                _, _, flare_start_times,flare_end_times, peak_counts=self.get_flare_times(T0, MAX_L1_REQ_DURATION)
-            ipkt+=1
-            #the data end time is known here 
-            # loads all flares in the next MAX_L1_REQ_DURATION 
-
-            stat['valid']+=1
-
+            stat['valid'] += 1
 
             num_structures = packet[13].raw
             self.eacc_SKM = (packet[5].raw, packet[6].raw, packet[7].raw)
@@ -362,40 +379,41 @@ class StixBulkL1L2Analyzer(object):
             if sum(self.eacc_SKM) > 0:
                 counts_idx = 2
             children = packet[13].children
-            self.end_time=0
+            self.end_time = 0
             for i in range(0, num_structures):
-                #print("i:",i)
+                # print("i:",i)
                 offset = i * 22
                 time = children[offset][1] * 0.1 + T0
-                is_flare_data=self.is_near_flare_peak(flare_start_times, flare_end_times,time)
-                #not all are for requested for flares
-                #check if current time stamp fall between the start/end time of a flare in the preload flare list
-                #if is_flare_data:
+                is_flare_data = self.is_near_flare_peak(
+                    flare_start_times, flare_end_times, time)
+                # not all are for requested for flares
+                # check if current time stamp fall between the start/end time of a flare in the preload flare list
+                # if is_flare_data:
                 #    print('flare data:',flare_end_times, flare_end_times,T0)
 
-
                 if self.start_unix is None:
-                    self.start_unix=time
+                    self.start_unix = time
 
-                if time>self.end_time:
-                    self.end_unix=time
+                if time > self.end_time:
+                    self.end_unix = time
                 if time != last_time_bin:
                     self.num_time_bins += 1
                     last_time_bin = time
                     if group:
                         self.groups.append(group)
-                        group={}
+                        group = {}
 
-                #if self.extract_masks:
+                # if self.extract_masks:
                 if True:
-                    #only extract once
+                    # only extract once
                     self.pixel_mask = [
-                        e[1] for e in children[offset + 2][3] if 'NIXG' not in e[0]
+                        e[1] for e in children[offset + 2][3]
+                        if 'NIXG' not in e[0]
                     ]
                     self.detector_mask = children[offset + 3][1]
                     self.pixel_indexes = self.get_spectrum_pixel_indexes(
-                    self.detector_mask, self.pixel_mask)
-                    #self.extract_masks=False
+                        self.detector_mask, self.pixel_mask)
+                    # self.extract_masks=False
 
                 rcr = children[offset + 1][1]
                 integrations = children[offset + 4][1]
@@ -405,12 +423,12 @@ class StixBulkL1L2Analyzer(object):
                 samples = children[21 + offset][3]
 
                 counts = []
-                #print(num_samples)
-                for j in range(0, num_samples):#interate over time bins
+                # print(num_samples)
+                for j in range(0, num_samples):  # interate over time bins
                     k = j * 4
                     E1_low = samples[k + 1][1]
                     E2_high = samples[k + 2][1]
-                    
+
                     if (E1_low, E2_high) not in self.sci_ebins:
                         self.sci_ebins.append((E1_low, E2_high))
 
@@ -418,35 +436,35 @@ class StixBulkL1L2Analyzer(object):
                     for idx, e in enumerate(samples[k + 3][3]):
                         pixel_counts.append(e[counts_idx])
 
-
-                        self.spectrogram.fill(E1_low, E2_high, time, e[counts_idx])
-                        #fill spectrogram
+                        self.spectrogram.fill(E1_low, E2_high, time,
+                                              e[counts_idx])
+                        # fill spectrogram
                         self.pixel_total_counts[
                             self.pixel_indexes[idx]] += e[counts_idx]
-                        if is_flare_data and E1_low==E2_high:
-                            self.flare_peak_pixel_spectra[
-                                self.pixel_indexes[idx]][E1_low] += e[counts_idx]
-                            if E1_low<FLARE_SCI_EMAX:
+                        if is_flare_data and E1_low == E2_high:
+                            self.flare_peak_pixel_spectra[self.pixel_indexes[
+                                idx]][E1_low] += e[counts_idx]
+                            if E1_low < FLARE_SCI_EMAX:
                                 self.flare_pixel_counts[
                                     self.pixel_indexes[idx]] += e[counts_idx]
 
-                        if E1_low == E2_high: #only fill counts with Ebin=1  to spectra
-                            self.pixel_time_int_spectra[
-                                self.pixel_indexes[idx]][E1_low] += e[counts_idx]
+                        if E1_low == E2_high:  # only fill counts with Ebin=1  to spectra
+                            self.pixel_time_int_spectra[self.pixel_indexes[
+                                idx]][E1_low] += e[counts_idx]
                     counts.append(
-                            [E1_low, E2_high,
-                             sum(pixel_counts), pixel_counts])
+                        [E1_low, E2_high,
+                         sum(pixel_counts), pixel_counts])
                 if not group:
                     group = {
-                    'time': time+ float(integrations)*0.1/2,
-                    'rcr': rcr,
-                    'triggers': triggers,
-                    'integrations': float(integrations)*0.1,
-                    #'pixel_indexes': pixel_indexes,
-                    'counts': counts,
+                        'time': time + float(integrations) * 0.1 / 2,
+                        'rcr': rcr,
+                        'triggers': triggers,
+                        'integrations': float(integrations) * 0.1,
+                        # 'pixel_indexes': pixel_indexes,
+                        'counts': counts,
                     }
                 else:
-                    #truncated packet
+                    # truncated packet
                     group['counts'].extend(counts)
 
         if group:
@@ -456,6 +474,7 @@ class StixBulkL1L2Analyzer(object):
 
 
 class StixBulkL3Analyzer(object):
+
     def __init__(self):
         self.time = []
         self.rcr = []
@@ -469,8 +488,8 @@ class StixBulkL3Analyzer(object):
         self.request_id = -1
         self.packet_unix = 0
         self.groups = []
-        self.start_unix=None
-        self.end_unix=None
+        self.start_unix = None
+        self.end_unix = None
 
     def format_report(self):
         report = {
@@ -479,13 +498,13 @@ class StixBulkL3Analyzer(object):
             'groups': self.groups,
             'trig_skm': self.trig_SKM,
             'eacc_skm': self.eacc_SKM,
-            'start_unix':self.start_unix,
-            'end_unix':self.end_unix
+            'start_unix': self.start_unix,
+            'end_unix': self.end_unix
         }
         return report
 
     def process_packets(self, cursor):
-        hash_list=[]
+        hash_list = []
         for pkt in cursor:
             if pkt['hash'] in hash_list:
                 continue
@@ -512,8 +531,8 @@ class StixBulkL3Analyzer(object):
                 offset = i * 31
                 time = children[offset][1] * 0.1 + T0
                 if self.start_unix is None:
-                    self.start_unix=time
-                self.end_unix=time
+                    self.start_unix = time
+                self.end_unix = time
                 rcr = children[offset + 1][1]
                 integrations = children[offset + 2][1]
                 pixel_mask = [
@@ -570,8 +589,8 @@ class StixBulkL4Analyzer(object):
         self.lightcurves = []
         self.groups = []
         self.num_time_bins = 0
-        self.start_unix=None
-        self.end_unix=None
+        self.start_unix = None
+        self.end_unix = None
 
     def format_report(self):
         report = {
@@ -579,14 +598,14 @@ class StixBulkL4Analyzer(object):
             'packet_unix': self.packet_unix,
             'groups': self.groups,
             'num_time_bins': self.num_time_bins,
-            'start_unix':self.start_unix,
-            'end_unix':self.end_unix
+            'start_unix': self.start_unix,
+            'end_unix': self.end_unix
         }
         return report
 
     def process_packets(self, cursor):
-        last_timestamp=None
-        hash_list=[]
+        last_timestamp = None
+        hash_list = []
         self.num_time_bins = 0
         for pkt in cursor:
             if pkt['hash'] in hash_list:
@@ -612,7 +631,6 @@ class StixBulkL4Analyzer(object):
             if last_timestamp is None:
                 last_timestamp = T0
 
-
             for i in range(0, num_structures):
                 offset = i * 10
                 pixel_mask = children[offset + 1][1]
@@ -630,8 +648,8 @@ class StixBulkL4Analyzer(object):
                     k = j * 3
                     timestamp = samples[k + 0][1] * 0.1 + T0
                     if self.start_unix is None:
-                        self.start_unix=timestamp
-                    self.end_unix=timestamp
+                        self.start_unix = timestamp
+                    self.end_unix = timestamp
                     dT = timestamp - last_timestamp
 
                     if dT > 0:
@@ -658,9 +676,10 @@ class StixBulkL4Analyzer(object):
 
 
 class StixBulkAspectAnalyzer(object):
+
     def __init__(self):
-        self.start_unix=None
-        self.end_unix=None
+        self.start_unix = None
+        self.end_unix = None
         pass
 
     def process_packets(self, cursor):
@@ -668,38 +687,37 @@ class StixBulkAspectAnalyzer(object):
         read_time = []
         packet_utc = ''
         start_time = 0
-        hash_list=[]
+        hash_list = []
         for pkt in cursor:
             if pkt['hash'] in hash_list:
                 continue
             hash_list.append(pkt['hash'])
             packet = sdt.Packet(pkt)
             packet_utc = packet['UTC']
-            T0 = time_utils.scet2unix(
-                packet[1].raw) + packet[2].raw / 65536.
+            T0 = time_utils.scet2unix(packet[1].raw) + packet[2].raw / 65536.
             if self.start_unix is None:
-                self.start_unix=T0
+                self.start_unix = T0
 
             if start_time == 0:
                 start_time = T0
-            dt = packet[3].raw * packet[4].raw/1000.  # has to be fixed
+            dt = packet[3].raw * packet[4].raw / 1000.  # has to be fixed
             children = packet[5].children
             for i, param in enumerate(children):
                 readouts[i % 4].append(param[1])
                 if i % 4 == 0:
-                    ut=dt * int(i / 4) + T0
+                    ut = dt * int(i / 4) + T0
                     read_time.append(ut)
-                    self.end_unix=ut
+                    self.end_unix = ut
 
         return {
             'packet_utc': packet_utc,
             'readouts': readouts,
             'read_time': read_time,
             'start_time': start_time,
-            'start_unix':self.start_unix,
-            'end_unix':self.end_unix
-
+            'start_unix': self.start_unix,
+            'end_unix': self.end_unix
         }
+
 
 def process_one(file_id):
     try:
@@ -715,27 +733,21 @@ def process_packets_in_file(file_id, remove_existing=True):
         process_science_request_doc(doc)
 
 
-
-
-
 def process_science_request(_id):
-    bsd_doc= bsd_collection.find_one({'_id': _id})
+    bsd_doc = bsd_collection.find_one({'_id': _id})
     try:
         process_science_request_doc(bsd_doc)
     except Exception:
         pass
 
+
 def process_remaining_requests():
-    docs=bsd_collection.find({'level1':{'$exists':False}, 'SPID':54115}).sort('_id',-1)
-    for doc in docs:
-        print(f"Processing:{doc['_id']} ...")
-        try:
-            process_science_request_doc(doc)
-        except IndexError:
-            continue
-def process_requests_between(start_id:int, end_id:int):
-    docs=bsd_collection.find({'_id':{'$gte':start_id, 
-        '$lte':end_id}}).sort('_id',1)
+    docs = bsd_collection.find({
+        'level1': {
+            '$exists': False
+        },
+        'SPID': 54115
+    }).sort('_id', -1)
     for doc in docs:
         print(f"Processing:{doc['_id']} ...")
         try:
@@ -743,6 +755,20 @@ def process_requests_between(start_id:int, end_id:int):
         except IndexError:
             continue
 
+
+def process_requests_between(start_id: int, end_id: int):
+    docs = bsd_collection.find({
+        '_id': {
+            '$gte': start_id,
+            '$lte': end_id
+        }
+    }).sort('_id', 1)
+    for doc in docs:
+        print(f"Processing:{doc['_id']} ...")
+        try:
+            process_science_request_doc(doc)
+        except IndexError:
+            continue
 
 
 def process_science_request_doc(doc):
@@ -757,16 +783,15 @@ def process_science_request_doc(doc):
 
     logger.info(f'processing bsd id: {doc["_id"]}, spid:{spid}')
     if 'first_pkt' not in doc or 'last_pkt' not in doc:
-        #don't process incomplete packets
-        #wait until 
-        #complete report 
+        # don't process incomplete packets
+        # wait until
+        # complete report
         logger.info(f'Packets may be missing for {doc["_id"]}...')
         return
 
-
     cursor = mdb.get_packets_of_bsd_request(doc['_id'], header_only=False)
-    synopsis=None
-    data_type=sdt.SPID_MAP.get(spid,'UNKNOWN')
+    synopsis = None
+    data_type = sdt.SPID_MAP.get(spid, 'UNKNOWN')
     if not cursor:
         logger.info(f'No packets found for {doc["_id"]}...')
         return
@@ -789,26 +814,33 @@ def process_science_request_doc(doc):
         result = analyzer.process_packets(cursor)
 
     if result:
-        date_str=datetime.now().strftime("%y%m%d%H")
-        existing_fname=doc.get('level1','')
+        date_str = datetime.now().strftime("%y%m%d%H")
+        existing_fname = doc.get('level1', '')
         if existing_fname:
-            old_file= os.path.join(level1_products_path,existing_fname)
+            old_file = os.path.join(level1_products_path, existing_fname)
             try:
                 os.remove(old_file)
             except Exception:
                 pass
         json_filename = os.path.join(level1_products_path,
                                      f'L1_{doc["_id"]}_{date_str}.json')
-        start_unix=result.get('start_unix',0)
-        end_unix=result.get('end_unix',0)
-        result['data_type']=data_type
-        result['status']='OK'
-        with gzip.open(json_filename+'.gz', 'wt', encoding='utf-8') as zipfile:
+        start_unix = result.get('start_unix', 0)
+        end_unix = result.get('end_unix', 0)
+        result['data_type'] = data_type
+        result['status'] = 'OK'
+        with gzip.open(json_filename + '.gz', 'wt',
+                       encoding='utf-8') as zipfile:
             json.dump(result, zipfile)
             logger.info(f'data written to file {json_filename}.gz')
 
-        bsd_collection.update_one({'_id': doc['_id']}, {'$set':{'level1': json_filename, 
-            'start_unix':start_unix, 'end_unix':end_unix, 'synopsis':synopsis}})
+        bsd_collection.update_one({'_id': doc['_id']}, {
+            '$set': {
+                'level1': json_filename,
+                'start_unix': start_unix,
+                'end_unix': end_unix,
+                'synopsis': synopsis
+            }
+        })
 
 
 if __name__ == '__main__':
@@ -816,27 +848,28 @@ if __name__ == '__main__':
         print('process_sci_packets -file run_id')
         print('process_sci_packets -file run_id_start id_end')
         print('process_sci_packets -bsd <bsd_id>')
-        print('process_sci_packets -re all #process all science data without cache created')
+        print(
+            'process_sci_packets -re all #process all science data without cache created'
+        )
     else:
-        opt=sys.argv[1]
-        if opt=='-re':
+        opt = sys.argv[1]
+        if opt == '-re':
             process_remaining_requests()
-        if opt=='-all':
+        if opt == '-all':
             process_remaining_requests()
 
-        if len(sys.argv)==3:
-            if opt=='-file':
+        if len(sys.argv) == 3:
+            if opt == '-file':
                 process_one(int(sys.argv[2]))
-            elif opt=='-bsd':
-                start_id=int(sys.argv[2])
-                end_id=start_id
+            elif opt == '-bsd':
+                start_id = int(sys.argv[2])
+                end_id = start_id
                 process_requests_between(start_id, end_id)
 
-        elif len(sys.argv)==4:
-            for i in range(int(sys.argv[2]),int(sys.argv[3])+1):
-                print('process file:',i)
-                if opt=='-file':
+        elif len(sys.argv) == 4:
+            for i in range(int(sys.argv[2]), int(sys.argv[3]) + 1):
+                print('process file:', i)
+                if opt == '-file':
                     process_one(i)
-                elif opt=='-bsd':
+                elif opt == '-bsd':
                     process_science_request(i)
-

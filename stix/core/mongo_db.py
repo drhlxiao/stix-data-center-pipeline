@@ -114,10 +114,11 @@ class MongoDB(object):
     
     def find_att_in_time_ranges(self, start_unix, end_unix):
         """
-            find att inserted times
+            find att inserted time ranges in the given time frame
         """
-        docs = self.collection_events.find({'rcr':{'$exists':True}, 'start_unix': {'$gte':start_unix},
-            'end_unix': {'$lte':end_unix} }).sort('start_unix',1)
+        docs = self.collection_events.find({'rcr':{'$exists':True}, 
+            'start_unix': {'$gte':start_unix, '$lte':end_unix}}).sort('start_unix',1)
+        #
         time_ranges=[]
         inserted = False
         inserted_time = 0

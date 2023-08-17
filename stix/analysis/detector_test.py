@@ -14,6 +14,7 @@ SPIDs = [54131]
 
 
 class Plugin:
+
     def __init__(self, packets=[], current_row=0):
         self.packets = packets
         self.current_row = current_row

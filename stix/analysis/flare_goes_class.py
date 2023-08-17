@@ -13,6 +13,7 @@ from stix.core import config
 from stix.spice import solo
 from stix.core import logger
 from datetime import datetime
+
 threshold = 0
 
 logger = logger.get_logger()
@@ -20,7 +21,7 @@ mdb = db.MongoDB()
 flare_db = mdb.get_collection('flares')
 
 GOES_STIX_COEFFS = [-6.90, 0.07505,
-                    0.07064]  #must used with bkg subtracted counts
+                    0.07064]  # must used with bkg subtracted counts
 GOES_STIX_ERROR_LUT = {'bins': [(0, 10)], 'errors': [0.3]}
 """
 Erica's data
@@ -32,7 +33,8 @@ GOES_STIX_ERROR_LUT={'bins':[
 }
 """
 
-def save_config(config:dict):
+
+def save_config(config: dict):
     """
     save GOES STIX coefficients in mongodb
     Parameters
@@ -43,10 +45,12 @@ def save_config(config:dict):
         'error_bar_lut':{'bins': [(0, 10)], 'errors': [0.3]}
         }
     """
-    config['type']='GOES_STIX_COEFF'
-    config['date']=datetime.now()
-    sw_config_db=mdb.get_collection('sw_config')
+    config['type'] = 'GOES_STIX_COEFF'
+    config['date'] = datetime.now()
+    sw_config_db = mdb.get_collection('sw_config')
     sw_config_db.save(config)
+
+
 def read_latest_config():
     """
     Read the latest GOES STIX coefficients from Mongodb
@@ -57,17 +61,16 @@ def read_latest_config():
     Returns
     ---
     None if not found or a dictionary 
-        
+
     """
-    sw_config_db=mdb.get_collection('sw_config')
-    docs=list(sw_config_db.find({'type':'GOES_STIX_COEFF'}).sort('date',-1).limit(1))
+    sw_config_db = mdb.get_collection('sw_config')
+    docs = list(
+        sw_config_db.find({
+            'type': 'GOES_STIX_COEFF'
+        }).sort('date', -1).limit(1))
     if docs:
         return docs[0]
     return None
-
-
-
-
 
 
 def get_first_element(obj):
@@ -178,17 +181,17 @@ def estimate_goes_class(counts: float,
         return {'min': 'NA', 'center': 'NA', 'max': 'NA'}
     x = np.log10(cnts)
 
-    g = lambda y: sum([coeffs[i] * y**i for i in range(len(coeffs))])
-    f = lambda y: goes_flux_to_class(10**g(y), frac=False)
+    def g(y): return sum([coeffs[i] * y**i for i in range(len(coeffs))])
+    def f(y): return goes_flux_to_class(10**g(y), frac=False)
 
-    error = default_error  #default error
+    error = default_error  # default error
     try:
         bin_range = error_lut['bins']
         errors = error_lut['errors']
         for b, e in zip(bin_range, errors):
             if b[0] <= x <= b[1]:
                 error = e
-                #print(error)
+                # print(error)
                 break
     except (KeyError, IndexError, TypeError):
         pass
@@ -204,7 +207,19 @@ def estimate_goes_class(counts: float,
     }
     return result
 
-
+def compute_flare_goes_for_flares(id_start, id_end):
+    fdb = mdb.get_collection('flares')
+    flares = flare_db.find({'_id': {"$gte":id_start, "$lte":id_end}, 'hidden': False})
+    if not flares:
+        logger.error(f'Flare not found !')
+        return
+    goes_class_list = []
+    for doc in flares:
+        peak_utc, goes_class, goes_estimated = get_flare_goes_class(doc)
+        if peak_utc is None:
+            continue
+        goes_class_list.append((peak_utc, goes_class, goes_estimated))
+    return goes_class_list
 
 def get_flare_goes_class(doc):
     """
@@ -226,8 +241,10 @@ def get_flare_goes_class(doc):
     try:
         peak_counts = doc['LC_statistics']['lc0']['signal_max']
     except KeyError:
-        logger.warning(f'Failed to calculate flare goes class for flare {doc["_id"]}, due to insufficient information')
-        return None,None,None
+        logger.warning(
+            f'Failed to calculate flare goes class for flare {doc["_id"]}, due to insufficient information'
+        )
+        return None, None, None
 
     if peak_counts <= threshold:
         logger.info(f"Ignored flares {doc['_id']}, peak counts < {threshold}")
@@ -249,7 +266,7 @@ def get_flare_goes_class(doc):
                                           GOES_STIX_COEFFS,
                                           GOES_STIX_ERROR_LUT)
 
-    #is_ok = goes_class > estimated_class[
+    # is_ok = goes_class > estimated_class[
     #    'min'] and goes_class < estimated_class['max']
     updated_data = {
         'goes': {

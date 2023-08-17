@@ -234,11 +234,11 @@ def piepeline_parsing_and_basic_analysis(instrument, filename, notification_enab
 
     if task_list['correct_qlc_with_att']:
         logger.info('Correcting light curves for periods when ATT was inserted...')
+        #this has to run before flare detection, because flare detection requires corrected counts
         try:
             cql.process_new()
         except Exception as e:
             logger.error(str(e))
-
 
     if task_list['flare_detection']:
         logger.info('Detecting flares..')
@@ -251,6 +251,8 @@ def piepeline_parsing_and_basic_analysis(instrument, filename, notification_enab
             summary['num_flares']=num_flares
         except Exception as e:
             logger.error(str(e))
+
+
     if task_list['time_bins_simulation']:
         logger.info("Estimating time bins...")
         try:

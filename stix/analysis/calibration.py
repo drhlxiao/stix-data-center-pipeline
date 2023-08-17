@@ -22,7 +22,6 @@ from datetime import datetime
 from stix.core import datatypes as sdt
 from stix.core import mongo_db as db
 
-
 from ROOT import TGraph, TFile, TCanvas, TH1F, gROOT, TBrowser, gSystem, TH2F, gPad, TF1, TGraphErrors, gStyle, TSpectrum, gRandom, TPaveLabel, TPaveText
 
 from scipy.interpolate import interp1d
@@ -35,12 +34,12 @@ gErrorIgnoreLevel = kWarning;
 
 FIT_MIN_X = 252
 FIT_MAX_X = 448
-FIRST_PEAK_XMAX=350
-MAX_ALLOWED_SIGMA_ERROR = 20  #maximum allowed peak error
+FIRST_PEAK_XMAX = 350
+MAX_ALLOWED_SIGMA_ERROR = 20  # maximum allowed peak error
 MEAN_ENERGY_CONVERSION_FACTOR = 2.31
 MIN_COUNTS = 100
-#2.3 ADC/keV
-#Estimated energy conversion factor
+# 2.3 ADC/keV
+# Estimated energy conversion factor
 
 DEFAULT_OUTPUT_DIR = '/data/calibration/'
 MIN_COUNTS_PEAK_FIND = 50
@@ -49,7 +48,7 @@ ELUT_ENERGIES = [
     40, 45, 50, 56, 63, 70, 76, 84, 100, 120, 150
 ]
 
-#PHOTO_PEAKS_POS = [30.8, 35.2, 80.90] based spectral lines from olivier
+# PHOTO_PEAKS_POS = [30.8, 35.2, 80.90] based spectral lines from olivier
 PHOTO_PEAKS_POS = [30.85, 35.13, 81]
 
 PRINT_TO_PDF = True
@@ -64,7 +63,7 @@ def compute_elut(offset, slope):
         for pix in range(0, 12):
             p0 = offset[det][pix]
             p1 = slope[det][pix]
-            #print(det, pix, p0, p1)
+            # print(det, pix, p0, p1)
 
             if p0 > 0 and p1 > 0:
                 row = [det, pix, p0, p1]
@@ -72,9 +71,6 @@ def compute_elut(offset, slope):
                 row.extend(Elows)
                 elut.append(row)
     return elut
-
-
-
 
 
 def interp(xvals, yvals, xnew):
@@ -106,31 +102,31 @@ def create_graph(x, y, title="", xlabel="x", ylabel="y"):
 
 def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
     gStyle.SetOptFit(111)
-    num_points=spectrum.size
-    x_full=np.linspace(start, start+num_points*num_summed, 
-            num_points)+0.5*num_summed
-    sel=(x_full> FIT_MIN_X) & (x_full<FIT_MAX_X) 
+    num_points = spectrum.size
+    x_full = np.linspace(start, start + num_points * num_summed,
+                         num_points) + 0.5 * num_summed
+    sel = (x_full > FIT_MIN_X) & (x_full < FIT_MAX_X)
 
-    x,y = x_full[sel], spectrum[sel]
+    x, y = x_full[sel], spectrum[sel]
 
-    #spectrum in the predefined range
-    if x.size==0:
-        #print('Can not find sub spectrum of ERROR:', detector, pixel)
+    # spectrum in the predefined range
+    if x.size == 0:
+        # print('Can not find sub spectrum of ERROR:', detector, pixel)
         return None, None
 
     total_counts = np.sum(y)
     if total_counts < MIN_COUNTS:
-        #print('Too less counts:', detector, pixel)
+        # print('Too less counts:', detector, pixel)
         return None, None
 
     name = '{}_{}_{}'.format(detector, pixel, subspec)
     title = 'detector {} pixel {} subspec {}'.format(detector, pixel, subspec)
     g_full_spec = create_graph(x_full, spectrum,
-                         'Original spec - {}'.format(name), 'ADC channel',
-                         'Counts')
-    peak1_y = np.max(y[x<FIRST_PEAK_XMAX])
-    peak1_x = x[y==peak1_y][0]
-    #find the peak with highest counts in the range
+                               'Original spec - {}'.format(name),
+                               'ADC channel', 'Counts')
+    peak1_y = np.max(y[x < FIRST_PEAK_XMAX])
+    peak1_x = x[y == peak1_y][0]
+    # find the peak with highest counts in the range
 
     x_shift = MEAN_ENERGY_CONVERSION_FACTOR * (81 - 31)
 
@@ -138,37 +134,36 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
     fit_range_x_left = 5
     fit_range_x_right = 15
     fit_range_peak3_x_left = 10
-    fit_range_peak3_x_right= 20
+    fit_range_peak3_x_right = 20
 
-
-    peak3_sel = (x > peak1_x + 0.9 * x_shift) & (x<peak1_x + 1.1 * x_shift)
-    peak3_x=x[peak3_sel] 
-    peak3_y=y[peak3_sel] 
+    peak3_sel = (x > peak1_x + 0.9 * x_shift) & (x < peak1_x + 1.1 * x_shift)
+    peak3_x = x[peak3_sel]
+    peak3_y = y[peak3_sel]
     peak3_max_y = np.max(peak3_y)
-    peak3_max_x = peak3_x[peak3_y==peak3_max_y][0]
+    peak3_max_x = peak3_x[peak3_y == peak3_max_y][0]
 
     peak2_x = peak1_x + 4.2 * MEAN_ENERGY_CONVERSION_FACTOR
-
 
     fgaus1 = TF1(f'fgaus1_{name}', 'gaus', peak1_x - fit_range_x_left,
                  peak1_x + fit_range_x_right)
     fgaus2 = TF1(f'fgaus2_{name}', 'gaus', peak2_x - fit_range_x_left,
                  peak2_x + fit_range_x_right)
     fcrystalball = TF1(f'fcrystalball_{name}', 'crystalball',
-                 peak3_max_x - fit_range_peak3_x_left,
-                 peak3_max_x + fit_range_x_right)
+                       peak3_max_x - fit_range_peak3_x_left,
+                       peak3_max_x + fit_range_x_right)
 
-    fcrystalball.SetParNames('constant','mean','sigma','alpha','N')
+    fcrystalball.SetParNames('constant', 'mean', 'sigma', 'alpha', 'N')
     peak3_defaults = array('d', [peak3_max_y, peak3_max_x, 1.2, 0.24, 2.12])
     fcrystalball.SetParameters(peak3_defaults)
-    fcrystalball.SetParLimits(0, 0, 2*peak3_max_y)
-    fcrystalball.SetParLimits(1, peak3_max_x-fit_range_peak3_x_left, peak3_max_x+fit_range_peak3_x_right)
-    fcrystalball.SetParLimits(2, 0,10)
-    fcrystalball.SetParLimits(3, 0,10)
-    fcrystalball.SetParLimits(4, 0,10)
+    fcrystalball.SetParLimits(0, 0, 2 * peak3_max_y)
+    fcrystalball.SetParLimits(1, peak3_max_x - fit_range_peak3_x_left,
+                              peak3_max_x + fit_range_peak3_x_right)
+    fcrystalball.SetParLimits(2, 0, 10)
+    fcrystalball.SetParLimits(3, 0, 10)
+    fcrystalball.SetParLimits(4, 0, 10)
 
     gspec = create_graph(x, y, 'Spectrum - {}'.format(title), 'ADC channel',
-                   'Counts')
+                         'Counts')
 
     gspec.Fit(fgaus1, 'RQ')
     gspec.Fit(fgaus2, 'RQ+')
@@ -195,7 +190,7 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
         result['peaks'] = {
             'peak1': (param[0], param[1], param[2]),
             'peak2': (param[3], param[4], param[5]),
-            'peak3': [par3[0] for i in range(5)], #convert to list
+            'peak3': [par3[0] for i in range(5)],  # convert to list
             'peak1error': (param_errors[0], param_errors[1], param_errors[2]),
             'peak2error': (param_errors[3], param_errors[4], param_errors[5]),
             'peak3error': [par3_errors[i] for i in range(5)]
@@ -219,21 +214,22 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
         peak_y.append(param[4])
         peak_ey.append(param_errors[4])
 
-    if peak3_max_x-fit_range_peak3_x_left<=par3[1]<=peak3_max_x+fit_range_peak3_x_right:
+    if peak3_max_x - fit_range_peak3_x_left <= par3[
+            1] <= peak3_max_x + fit_range_peak3_x_right:
         peak_x.append(PHOTO_PEAKS_POS[2])
         peak_ex.append(0.125)
         peak_y.append(par3[1])
         peak_ey.append(par3_errors[1])
-    #peak_x=[30.8, 34.9, 81]
-    #peak_ex=[.0, 0., 0.]
+    # peak_x=[30.8, 34.9, 81]
+    # peak_ex=[.0, 0., 0.]
     gpeaks = None
     if len(peak_x) >= 2:
-        fpol1= TF1(f'fpol1_{name}', '[0]+[1]*x[0]', peak_x[0],peak_x[-1])
+        fpol1 = TF1(f'fpol1_{name}', '[0]+[1]*x[0]', peak_x[0], peak_x[-1])
         fpol1.SetParLimits(0, 200, 250)
         fpol1.SetParLimits(1, 2.2, 2.4)
 
         gpeaks = create_graph_errors(peak_x, peak_y, peak_ex, peak_ey, title,
-                              'Energy (keV)', 'Peak position (ADC)')
+                                     'Energy (keV)', 'Peak position (ADC)')
         gpeaks.Fit(fpol1, 'Q')
 
         gpeaks.GetYaxis().SetRangeUser(0.9 * peak_y[0], peak_y[-1] * 1.1)
@@ -253,12 +249,14 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
     return result, [g_full_spec, gspec, gpeaks, fgaus12, fcrystalball]
 
 
-def process_one_run(calibration_id, create_pdf=True, pdf_path=DEFAULT_OUTPUT_DIR):
+def process_one_run(calibration_id,
+                    create_pdf=True,
+                    pdf_path=DEFAULT_OUTPUT_DIR):
     runs = list(mdb.get_calibration_run_data(calibration_id))
     if not runs:
         print("Calibration run {} doesn't exist".format(calibration_id))
         return
-    data=runs[0]
+    data = runs[0]
 
     sbspec_formats = data['sbspec_formats']
     spectra = data['spectra']
@@ -305,7 +303,7 @@ def process_one_run(calibration_id, create_pdf=True, pdf_path=DEFAULT_OUTPUT_DIR
     canvas.Divide(3, 2)
     last_plots = None
     for spec in spectra:
-        #spectrum data from database
+        # spectrum data from database
         if sum(spec[5]) < MIN_COUNTS_PEAK_FIND:
             continue
         detector = spec[0]
@@ -316,7 +314,7 @@ def process_one_run(calibration_id, create_pdf=True, pdf_path=DEFAULT_OUTPUT_DIR
         end = start + num_summed * len(spec[5])
         spectrum = np.array(spec[5])
         if start > FIT_MAX_X or end < FIT_MIN_X:
-            #break
+            # break
             continue
         par, plots = find_peaks(detector, pixel, sbspec_id, start, num_summed,
                                 spectrum, f)
@@ -337,7 +335,7 @@ def process_one_run(calibration_id, create_pdf=True, pdf_path=DEFAULT_OUTPUT_DIR
                 plots[0].Draw("AL")
             canvas.cd(5)
             if plots[1]:
-                #plot[3].Draw()
+                # plot[3].Draw()
                 plots[1].Draw("AL")
             canvas.cd(6)
             if plots[2]:
@@ -364,7 +362,7 @@ def process_one_run(calibration_id, create_pdf=True, pdf_path=DEFAULT_OUTPUT_DIR
     slope_error_1d = slope_error.flatten()
     offset_error_1d = offset_error.flatten()
 
-    #do calibration
+    # do calibration
     sum_spectra = {}
     cc = TCanvas()
     xvals = []
@@ -377,37 +375,37 @@ def process_one_run(calibration_id, create_pdf=True, pdf_path=DEFAULT_OUTPUT_DIR
         spectrum = np.array(spec[5])
         num_points = spectrum.size
 
-        start = spec[3] #ADC channel start
+        start = spec[3]  # ADC channel start
 
         num_summed = spec[4]
 
-        end = start + num_summed * num_points #end ADC 
+        end = start + num_summed * num_points  # end ADC
 
-        #print(detector, pixel)
+        # print(detector, pixel)
         if slope[detector][pixel] > 0 and offset[detector][pixel] > 0:
-            energies = (np.linspace(start, end - num_summed, num_points) - offset[detector][pixel]) / slope[detector][pixel]
+            energies = (np.linspace(start, end - num_summed, num_points) -
+                        offset[detector][pixel]) / slope[detector][pixel]
             if sbspec_id not in sum_spectra:
                 min_energy = (start - offset[detector][pixel]
-                              ) / slope[detector][pixel] * 0.8 #20% margin
+                              ) / slope[detector][pixel] * 0.8  # 20% margin
                 max_energy = (end - offset[detector][pixel]
-                              ) / slope[detector][pixel] * 1.2 #20% margin
+                              ) / slope[detector][pixel] * 1.2  # 20% margin
                 xvals = np.linspace(min_energy, max_energy,
-                                    int((num_points + 1) * 1.4)) 
-                sum_spectra[sbspec_id] = [[], []] #sum spectrum x vs. y
+                                    int((num_points + 1) * 1.4))
+                sum_spectra[sbspec_id] = [[], []]  # sum spectrum x vs. y
                 sum_spectra[sbspec_id][0] = xvals
                 sum_spectra[sbspec_id][1] = np.zeros(len(xvals))
 
             yvals = interp(energies, spectrum / num_summed, xvals)
             sum_spectra[sbspec_id][1] += yvals
 
-       
     sub_sum_spec = {}
 
-    #points = 1150
+    # points = 1150
     energy_range = np.arange(-10, 450, 0.4)
-    points=energy_range.size
+    points = energy_range.size
     sbspec_sum = np.zeros(points)
-    for key, val in sum_spectra.items():  #mongodb doesn't support array
+    for key, val in sum_spectra.items():  # mongodb doesn't support array
         sub_sum_spec['sbspec - {}'.format(key)] = [
             v.tolist() for v in sum_spectra[key]
         ]
@@ -421,7 +419,7 @@ def process_one_run(calibration_id, create_pdf=True, pdf_path=DEFAULT_OUTPUT_DIR
     report['slope_error'] = slope_error_1d.tolist()
     report['offset_error'] = offset_error_1d.tolist()
     report['sum_spectra'] = sub_sum_spec
-    #calibrated sum spectra
+    # calibrated sum spectra
 
     mdb.update_calibration_analysis_report(calibration_id, report)
 
@@ -437,7 +435,7 @@ def process_one_run(calibration_id, create_pdf=True, pdf_path=DEFAULT_OUTPUT_DIR
         hist_offset.Fill(s)
     ids = np.arange(384)
     g_slope = create_graph(ids, slope1d, 'conversion factor', ' pixel #',
-                     'conversion factor')
+                           'conversion factor')
     g_offset = create_graph(ids, offset1d, 'baseline', ' pixel #', 'baseline')
     c2 = TCanvas()
     c2.Divide(2, 2)
@@ -463,16 +461,14 @@ def process_one_run(calibration_id, create_pdf=True, pdf_path=DEFAULT_OUTPUT_DIR
     f.Close()
 
 
-
-
 if __name__ == '__main__':
-    pdf_path= DEFAULT_OUTPUT_DIR
-    #output_dir='./'
+    pdf_path = DEFAULT_OUTPUT_DIR
+    # output_dir='./'
     if len(sys.argv) == 1:
         print("Usage ./calibration <run_id>")
     elif len(sys.argv) >= 2:
         start_id = int(sys.argv[1])
-        end_id=start_id
+        end_id = start_id
         if len(sys.argv) >= 3:
             end_id = int(sys.argv[2])
         for i in range(start_id, end_id + 1):
