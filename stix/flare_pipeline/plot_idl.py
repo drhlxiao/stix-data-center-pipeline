@@ -158,8 +158,39 @@ def plot_aspect_data(filename, start_unix, end_unix, flare_sun_x=0, flare_sun_y=
     logger.info(f'Writing aspect solution to :{filename}')
     fig.savefig(filename, dpi=DEFAULT_PLOT_DPI)
     
-
 def plot_flare_image(imap,
+                     fig,
+                     panel_grid=111,
+                     title='',
+                     descr='',
+                     draw_image=True,
+                     contour_levels=[],
+                     zoom_ratio=1,
+                     cmap=CMAP,
+                     color='w',
+                     grid_spacing=5* u.deg,
+                     text_xy=[0.02, 0.95],
+                     desc_xy=[0.95, 0.98],
+                     vmin=None):
+    try:
+        _plot_flare_image(imap,
+                     fig,
+                     panel_grid,
+                     title,
+                     descr,
+                     draw_image,
+                     contour_levels,
+                     zoom_ratio,
+                     cmap,
+                     color,
+                     grid_spacing,
+                     text_xy,
+                     desc_xy,
+                     vmin)
+    except Exception as e:
+        print(str(e))
+
+def _plot_flare_image(imap,
                      fig,
                      panel_grid=111,
                      title='',
@@ -549,8 +580,10 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
                                   contour_levels=[30,40, 50,60,70, 80,90],
                                   zoom_ratio=1,
                                   color='k')
-            ax.set_xlabel('solar_x [arcsec]')
-            ax.set_ylabel('solar_y [arcsec]')
+            if ax:
+                ax.set_xlabel('solar_x [arcsec]')
+                ax.set_ylabel('solar_y [arcsec]')
+
             pfig.suptitle(descr, fontsize=12)
             pfig.subplots_adjust(top=0.95, wspace=0.3)
             #pfig.tight_layout()

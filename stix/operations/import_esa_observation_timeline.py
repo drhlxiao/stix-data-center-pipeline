@@ -3,7 +3,7 @@ import sys
 import json
 from stix.spice import time_utils as sdt
 from pprint import pprint
-connect = pymongo.MongoClient()
+connect = pymongo.MongoClient(port=9123)
 db = connect['stix']['events']
 
 #ltp_id='LTP07_v1'
@@ -25,7 +25,7 @@ def create_report(_id, subject, start, end, descr, ltp_id):
     "hidden" : False
     }
     pprint(report)
-    db.save(report)
+    db.insert_one(report)
 
 name_map={
         'STIX_BASIC': 'STIX in nominal observation mode',

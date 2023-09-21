@@ -176,7 +176,18 @@ def read_fits_to_dict(fname, md5):
     now = datetime.now()
     keys = data.dtype.names
     for i in range(data.size):
-        row = {key: data[i][key] for key in keys}
+        row={}
+        is_bad=False
+        for key in keys:
+            val=data[i][key] 
+            if np.isnan(val):
+                is_bad=True
+                break
+
+            row[key]=val
+        if is_bad:
+            continue
+
         row['filename'] = os.path.basename(fname)
         row['md5'] = md5
         try:

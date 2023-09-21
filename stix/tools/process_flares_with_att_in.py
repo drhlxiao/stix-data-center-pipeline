@@ -6,7 +6,7 @@ Here is how the flares with ATT in is processed:
     4) corrected counts are recorded in another database "qlc_att
     5) this scripts delete flares closed to the periods with ATT inserted
     6) load longer LCs and reconstruct flares
-    7) estimate GOES class for the new inserted flares
+    7) estimate GOES class for the new inserted flares, you need to run it manually
     8) Web page updated
     9) You need to flag "data_requested" for flares in the database, otherwise,new data requests will be created
     
