@@ -78,7 +78,7 @@ def plot_idl(anydoc, create_stix_images=True, create_eui=True, create_aia=False)
         doc=anydoc
         doc_id=doc['_id']
     logger.info(f"Processing {doc_id}")
-    flare_image_db.update_one({'_id': doc_id}, {'$set': {'py_calls':1} })
+    flare_image_db.update_one({'_id': doc_id}, {'$set': {'py_calls':1, 'plotter':{'start': ut.now()  } }})
     #will not be called again
 
     if not doc:
@@ -87,7 +87,9 @@ def plot_idl(anydoc, create_stix_images=True, create_eui=True, create_aia=False)
     if create_stix_images:
         try:
             plot_imaging_and_ospex_results(doc)
+            flare_image_db.update_one({'_id': doc_id}, {'$set': {'plotter':{'end': ut.now()} }})
         except Exception as e:
+            flare_image_db.update_one({'_id': doc_id}, {'$set': {'plotter':{'end': ut.now(), 'error':str(e)  } }})
             logger.error(e)
     return
     #if create_eui:

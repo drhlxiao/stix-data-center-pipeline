@@ -180,9 +180,12 @@ def read_fits_to_dict(fname, md5):
         is_bad=False
         for key in keys:
             val=data[i][key] 
-            if np.isnan(val):
-                is_bad=True
-                break
+            try:
+                if np.isnan(val):
+                    is_bad=True
+                    break
+            except ValueError:
+                pass
 
             row[key]=val
         if is_bad:

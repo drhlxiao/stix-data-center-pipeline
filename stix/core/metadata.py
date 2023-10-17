@@ -341,9 +341,11 @@ class StixQuickLookPacketAnalyzer(object):
         #parameters=['NIX00283','NIX00284','NIXD0060','NIXD0061']
         for i in range(num_samples):
             offset=i*7
+            has_flare=samples[offset+2][1]
             locz=samples[offset+5][1]
             locy=samples[offset+6][1]
-            if locz==0 and locy==0:
+            if has_flare<2:
+                #only import new data
                 continue
             non_thermal_index=samples[offset+3][1]
             thermal_index=samples[offset+4][1]
