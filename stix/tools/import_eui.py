@@ -17,7 +17,7 @@ def read_eui_db(filename):
     sqlite_conn = sqlite3.connect(filename)
     sqlite_cursor = sqlite_conn.cursor()
 
-    db.deleteMany()
+    db.delete_many({})
 
     # we do a purge, it is much faster than insert many by one
     #if start_unix:
@@ -53,6 +53,7 @@ def read_eui_db(filename):
 
 def download_file(url, local_filename='/data/EUI/metadata.db'):
     # Check if the local file exists
+    has_new = True
     if os.path.exists(local_filename):
         # Get the last modified time of the local file
         local_file_time = os.path.getmtime(local_filename)
@@ -66,8 +67,9 @@ def download_file(url, local_filename='/data/EUI/metadata.db'):
 
             # Compare the last modified times
             if remote_file_datetime <= local_file_datetime:
+                has_new=False
                 print(f"The file '{local_filename}' is up to date. No need to download.")
-                return local_filename
+                return has_new, local_filename
             else:
                 print(f"The file '{local_filename}' is outdated. Downloading the updated file.")
         else:
@@ -80,7 +82,7 @@ def download_file(url, local_filename='/data/EUI/metadata.db'):
     response = requests.get(url)
     with open(local_filename, 'wb') as f:
         f.write(response.content)
-    return local_filename
+    return has_new, local_filename
     print(f"Downloaded and saved the file as '{local_filename}'.")
 
 
@@ -88,8 +90,9 @@ def main():
 
     url= "https://www.sidc.be/EUI/data/metadata.db"
     filename= "/mnt/nas05/stix/EUI/metadata.db"
-    fname=download_file(url, filename)
-    read_eui_db(fname)
+    has_new, fname=download_file(url, filename)
+    if has_new:
+        read_eui_db(fname)
 
 if __name__ == "__main__":
     main()
