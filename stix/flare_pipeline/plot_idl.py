@@ -445,33 +445,45 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
     #Full-disk image
 
 
-    logger.info("Loading full disk images...")
-
-    mbp_full = sunpy.map.Map(fits_filename['image_full_disk'])
-    mbp_full = rotate_map(mbp_full, recenter=True)
-    #bp
-    logger.info("Loading BP images...")
-    mbp = sunpy.map.Map(fits_filename['image_bp'])
-    mbp = rotate_map(mbp)
-
-    logger.info("Creating clean map...")
-    mclean = sunpy.map.Map(fits_filename['image_clean'])
-    #mclean=mclean[4]
-    mclean = rotate_map(mclean)
-    #MEM
-    logger.info("Creating em map...")
-    mem = sunpy.map.Map(fits_filename['image_em'])
-    mem = rotate_map(mem)
+    image_names={
+    'image_full_disk': 'Full-disk',
+    'image_bp': 'Back-projection',
+    'image_clean': 'CLEAN',
+    'image_em': 'MEM',
+    'image_fwdfit': 'VIS_FWDFIT'
+    }  
     try:
         flare_ephm=get_flare_ephemeris(mem)
     except Exception as e:
         flare_ephm={'error':str(e)}
+    try:
+        fwdshape = f"({task_doc['idl_config']['fwdfit_shape']})"
+    except (KeyError, TypeError):
+        fwdshape = ''
+
+    tiles={
+            'image_full_disk': 'Back-projection (Full disk)',
+            'image_bp': 'Back-projection',  # might want to edit this for composite maps
+            'image_clean':'CLEAN',
+            'image_em':'MEM GE',
+            'image_fwdfit':f'VIS_FWDFIT {fwdshape}'
+    }
+
+    valid_maps={}
+
+
+    for key,val in image_names.items():
+        recenter=True if key == 'image_full_disk' else False
+        if fname:=fits_filename.get(key, None):
+            print("Loading map:",val)
+            mb= sunpy.map.Map(fname)
+            mb= rotate_map(mb, recenter=recenter)
+            valid_maps[key]=mb
+ 
+
 
 
     # FWD-fit
-    logger.info("Creating fwdfit map...")
-    mfwd = sunpy.map.Map(fits_filename['image_fwdfit'])
-    mfwd = rotate_map(mfwd)
 
 
     aspect_info = 'Aspect corrected' if task_doc['aux'].get(
@@ -480,24 +492,9 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
     descr_full = f'STIX 4 – 10 keV image ({aspect_info})\n {start_utc} – {end_utc} UT '
     descr= f'STIX {energy_range_str} image ({aspect_info})\n {start_utc} – {end_utc} UT'
 
-    maps = [mbp_full, mbp, mclean, mem, mfwd]
-    map_names=['Full-disk', 'Back-projection', 'CLEAN', 'MEM', 'VIS_FWDFIT']
-    try:
-        fwdshape = f"({task_doc['idl_config']['fwdfit_shape']})"
-    except (KeyError, TypeError):
-        fwdshape = ''
-
-    titles = [
-        'Back-projection (Full disk)',
-        'Back-projection',  # might want to edit this for composite maps
-        'CLEAN',
-        'MEM GE',
-        f'VIS_FWDFIT {fwdshape}'
-    ]
-    
     logger.info("Plotting images...")
     panel_ids = [232, 233, 234, 235, 236]
-    for i, imap in enumerate(maps):
+    for i, imap in enumerate(valid_maps.values()):
         vmin = 0.4 if i == 0 else None
         logger.info(f"Creating image # {i}")
         plot_flare_image(imap,
@@ -558,17 +555,20 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
 
         levels = np.array([0.3, 0.5, 0.7, 0.9])
 
-        for i, imap in enumerate(maps):
+        i=0
+
+        for map_key, imap in valid_maps.items():
             if i == 0:
                 continue
             pfig = plt.figure(figsize=(13,7))
             
             logger.info(f'Creating flare image # {titles[i]}')
+            title=tiles.get(map_key,' ')
 
             plot_flare_image(imap,
                              pfig,
                              panel_grid=121,
-                             title=titles[i],
+                             title=title,
                              descr='',
                              draw_image=True,
                              contour_levels=[],
@@ -576,7 +576,7 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
             ax = plot_flare_image(imap,
                                   pfig,
                                   panel_grid=122,
-                                  title=titles[i],
+                                  title=title,
                                   descr='',
                                   draw_image=False,
                                   contour_levels=[30,40, 50,60,70, 80,90],
@@ -589,8 +589,9 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
             pfig.suptitle(descr, fontsize=12)
             pfig.subplots_adjust(top=0.95, wspace=0.3)
             #pfig.tight_layout()
+            image_name=image_names.get(map_key,'')
             img_filename = os.path.join(out_folder,
-                             f'{fout_prefix}_{map_names[i]}.png')
+                             f'{fout_prefix}_{image_name}.png')
             try:
                 logger.info(img_filename)
                 pfig.savefig(img_filename)
@@ -599,6 +600,7 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
             except IndexError:
                 logger.error("Index error when saving figures ")
             plt.close()
+            i+=1
 
         asp_filename = os.path.join(out_folder,
                          f'{fout_prefix}_aspect.png')

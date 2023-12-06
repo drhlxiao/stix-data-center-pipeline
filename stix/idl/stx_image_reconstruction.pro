@@ -63,11 +63,11 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 	xy_shift=[x_offset_arcsec, y_offset_arcsec]
 	err=''
 ;	
-	stx_map2fits, full_disk_bp_map, full_disk_bp_map_filename, path_sci_file, path_bkg_file=path_bkg_file, xy_shift=xy_shift 
-	stx_map2fits, bp_map, bp_map_filename, path_sci_file, path_bkg_file=path_bkg_file, xy_shift=xy_shift 
-	stx_map2fits, vis_fwdfit_pso_map, vis_fwdfit_map_filename, path_sci_file, path_bkg_file=path_bkg_file, xy_shift=xy_shift 
-	stx_map2fits, clean_map, clean_map_filename, path_sci_file, path_bkg_file=path_bkg_file, xy_shift=xy_shift 
-	stx_map2fits, em_map, em_map_filename, path_sci_file, path_bkg_file=path_bkg_file, xy_shift=xy_shift 
+	stx_map2fits_v5, full_disk_bp_map, full_disk_bp_map_filename, path_sci_file, path_bkg_file=path_bkg_file, xy_shift=xy_shift 
+	stx_map2fits_v5, bp_map, bp_map_filename, path_sci_file, path_bkg_file=path_bkg_file, xy_shift=xy_shift 
+	stx_map2fits_v5, vis_fwdfit_pso_map, vis_fwdfit_map_filename, path_sci_file, path_bkg_file=path_bkg_file, xy_shift=xy_shift 
+	stx_map2fits_v5, clean_map, clean_map_filename, path_sci_file, path_bkg_file=path_bkg_file, xy_shift=xy_shift 
+	stx_map2fits_v5, em_map, em_map_filename, path_sci_file, path_bkg_file=path_bkg_file, xy_shift=xy_shift 
 	
 	if (gui eq 1) then  begin
 		window,0,xsize=800,ysize=800

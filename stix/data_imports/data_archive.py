@@ -85,9 +85,15 @@ def read_data_archive_fits_meta(filename, file_info):
 
     if 'L1_stix-sci' in filename:
         #extract request id from filename
-        request_id = [
+        if 'aspect' in filename:
+            request_id = [
+            int(x) for x in re.findall(r"V\d\d_(\d+).fits", filename)
+            ]
+        else:
+
+            request_id = [
             int(x) for x in re.findall(r"V\d\d_(\d+)-\d+.fits", filename)
-        ]
+            ]
         if request_id:
             meta['request_id'] = request_id[0]
     return meta
@@ -221,6 +227,7 @@ def import_auxiliary(fname):
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
+        #default
         logger.info('read_and_import_aspect <filename')
         for folder in DATA_ARCHIVE_FITS_PATHS:
             import_data_archive_products_from_path(folder, max_age_days=7)

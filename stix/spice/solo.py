@@ -499,6 +499,8 @@ class SoloEphemeris(object):
                               obstime=date_flare,
                               observer=obs_coord,
                           frame='helioprojective')
+
+
         
         flare_hee = flare_skycoord.transform_to(HeliocentricEarthEcliptic(obstime=date_flare))
         v_flare_earth=earth_hee.cartesian-flare_hee.cartesian
