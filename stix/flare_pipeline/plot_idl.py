@@ -108,6 +108,11 @@ def rotate_map(m, recenter=False):
     """ rotate a map
     
     """
+    if isinstance(m, list):
+        print("[WARN] MAP  is a list, the last one is taken")
+        m=m[-1]
+
+
     if m.meta['crota2'] == 0:
         #do nothing
         return m
@@ -384,6 +389,7 @@ def update_ephemeris_all():
         
         mem = sunpy.map.Map(em_file)
         mem = rotate_map(mem)
+        
         try:
             flare_ephm=get_flare_ephemeris(mem)
         except Exception as e:
@@ -419,7 +425,7 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
 
     #create images
 
-    maps, map_names = [], []
+    #maps, map_names = [], []
     find_key = lambda x: [k for k in keys if x in k]
 
     bsd_id = task_doc['bsd_id']
@@ -494,18 +500,21 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
 
     logger.info("Plotting images...")
     panel_ids = [232, 233, 234, 235, 236]
-    for i, imap in enumerate(valid_maps.values()):
+    i=0
+    for key, imap in valid_maps.items():
         vmin = 0.4 if i == 0 else None
         logger.info(f"Creating image # {i}")
+        title=tiles[key]
         plot_flare_image(imap,
                          fig,
                          panel_grid=panel_ids[i],
-                         title=titles[i],
+                         title=title,
                          descr='',
                          draw_image=True,
                          contour_levels=[],
                          zoom_ratio=1,
                          vmin=vmin)
+        i+=1
 
     image_id_str = f'(#{task_doc["_id"]})'
 
@@ -559,11 +568,13 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
 
         for map_key, imap in valid_maps.items():
             if i == 0:
+                i+=1
                 continue
             pfig = plt.figure(figsize=(13,7))
             
-            logger.info(f'Creating flare image # {titles[i]}')
+            logger.info(f'Creating flare image # {map_key}')
             title=tiles.get(map_key,' ')
+            
 
             plot_flare_image(imap,
                              pfig,
@@ -595,7 +606,7 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
             try:
                 logger.info(img_filename)
                 pfig.savefig(img_filename)
-                report[f'B_image_{map_names[i]}']={'title':f'{map_names[i]} map',
+                report[f'B_image_{image_name}']={'title':f'{image_name} map',
                         'filename':img_filename} 
             except IndexError:
                 logger.error("Index error when saving figures ")
