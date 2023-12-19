@@ -567,9 +567,9 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
         i=0
 
         for map_key, imap in valid_maps.items():
-            if i == 0:
-                i+=1
-                continue
+            #if i == 0:
+            #    i+=1
+            #    continue
             pfig = plt.figure(figsize=(13,7))
             
             logger.info(f'Creating flare image # {map_key}')
@@ -618,7 +618,8 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
 
         logger.info("Creating aspect solution plot ...")
         try:
-            plot_aspect_data(asp_filename, task_doc['start_unix'], task_doc['end_unix'], task_doc['aux']['sun_center'][0], task_doc['aux']['sun_center'][1])
+            plot_aspect_data(asp_filename, task_doc['start_unix'], 
+                    task_doc['end_unix'], task_doc['aux']['sun_center'][0], task_doc['aux']['sun_center'][1])
             report['C_aspect']={'filename':asp_filename, 
                     'title':'STIX pointing information'}
         except Exception as e:

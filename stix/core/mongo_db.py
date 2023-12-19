@@ -219,9 +219,9 @@ class MongoDB(object):
             return self.collection_packets.find({'_id': {
                 '$in': packet_ids
             }}, {'header': 1})
-        #return self.collection_packets.find({'_id': {'$in': packet_ids}}).sort('header.unix_time',1)
+        packet_ids=[packet['_id'] for packet in  self.collection_packets.find({'_id': {'$in': packet_ids}},{'_id':1}).sort('header.unix_time',1)]
         #removed the line below to improve performance
-        packet_ids.sort()
+        #packet_ids.sort()
         for pid  in packet_ids:
             yield self.collection_packets.find_one({'_id':  pid})
 
