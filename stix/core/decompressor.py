@@ -4,6 +4,9 @@
 # @description:
 #               decompression of compressed parameters
 from stix.core import logger
+from stix.core import config
+from stix.spice import time_utils as sdt
+import numpy as np
 
 logger = logger.get_logger()
 
@@ -11,6 +14,9 @@ logger = logger.get_logger()
 
 MAX_STORED_INTEGER = 1e8
 #numbers greater than this value will be converted to float type
+
+DATA_REQUEST_REPORT_SPIDS = [54114, 54115, 54116, 54117, 54143]
+QL_REPORT_SPIDS = [54118, 54119, 54121, 54120, 54122]
 
 SKM_GROUPS = {
     'EACC': ("NIXD0007", "NIXD0008", "NIXD0009"),
@@ -21,7 +27,7 @@ SKM_GROUPS = {
     'TRIG': ("NIXD0112", "NIXD0113", "NIXD0114"),
     'SPEC': ("NIXD0115", "NIXD0116", "NIXD0117"),
     'VAR': ("NIXD0118", "NIXD0119", "NIXD0120"),
-    'CALI': ("NIXD0126", "NIXD0127", "NIXD0128")
+    'CALI': ("NIXD0126", "NIXD0127", "NIXD0128"), 
 }
 COMPRESSED_PACKET_SPIDS = [
     54112, 54113, 54114, 54115, 54116, 54117, 54118, 54119, 54120, 54121,
@@ -32,8 +38,7 @@ SCHEMAS = {
         'SKM_Groups':
         ['SPEC', 'TRIG'],  #tell the decompressor to  capture the parameters
         'parameters': {
-            'NIX00452':
-            SKM_GROUPS['SPEC'],  #the SKM parameters used to decompress it
+            'NIX00452': SKM_GROUPS['SPEC'],  #the SKM parameters used to decompress it
             'NIX00453': SKM_GROUPS['SPEC'],
             'NIX00454': SKM_GROUPS['SPEC'],
             'NIX00455': SKM_GROUPS['SPEC'],
@@ -287,6 +292,7 @@ SCHEMAS = {
 
     # 54143:{},
 }
+    
 
 def decompress(x, S, K, M):
     """
@@ -333,19 +339,45 @@ class StixDecompressor(object):
         self.SKM_values = dict()
         self.compressed_parameter_names = []
         self.schema = None
+        self.header = None
+        self.header_unix_time=None
+        self.unscale_config={'n_trig':1}
+        self.is_trig_scaled_packet=False
 
     def reset(self):
+        if self.is_trig_scaled_packet:
+            for key,val in self.unscale_config.items():
+                self.header[f'scaling_{key}']=val
         self.schema = None
         self.compressed = False
+        self.unscale_config={'n_trig':1}
+        self.header = None
+        self.is_trig_scaled_packet=False
 
     def is_compressed(self):
         return self.compressed
+        
+    
+        
 
-    def init(self, spid):
+
+
+    def init(self, header):
+        
+        self.header=header
+
+
         self.compressed = False
+        spid=header['SPID']
         self.spid = spid
         if self.spid not in COMPRESSED_PACKET_SPIDS:
             return
+
+        
+
+
+
+
         self.compressed = True
         self.SKM_parameters_names = []
         self.SKM_values = dict()
@@ -365,14 +397,34 @@ class StixDecompressor(object):
             self.compressed = False
             return
 
+        coarse = header['coarse_time']
+        fine = header['fine_time']
+        self.header_unix_time = sdt.scet2unix(coarse, fine)
+        which='ql' if self.spid in QL_REPORT_SPIDS else 'sci'
+        self.unscale_config['factor']=self.get_scaling_factors(self.header_unix_time)[which]
+
         SKM_Groups = self.schema['SKM_Groups']
         for grp_name in SKM_Groups:
             self.SKM_parameters_names.extend(SKM_GROUPS[grp_name])
+            
+            #list of compressed parameters
 
-    def set_SKM(self, param_name, raw):
+    def capture_config_parameter(self, param_name, raw):
+        """
+        if parameter is skm, then set skm
+        """
         if param_name in self.SKM_parameters_names:
+            #is skm, we capture skm value
             self.SKM_values[param_name] = raw
             return True
+        elif param_name == 'NIX00405':
+            self.unscale_config['n_int']= int(raw)+1  #number of integration in units of 0.1 sec
+            return True
+        elif param_name == 'NIX00407':
+            x=int(raw)
+            self.unscale_config['n_trig']= sum([(x>>i)&0x1 for i in range(32)])/2
+            return True
+
         return False
 
     def get_SKM(self, param_name):
@@ -390,8 +442,67 @@ class StixDecompressor(object):
 
         if not self.compressed:
             return None
-        if not self.set_SKM(param_name, raw):  #they are not  SKM
+
+        if not self.capture_config_parameter(param_name, raw):
             skm = self.get_SKM(param_name)  #compressed raw values
-            if skm:
-                return decompress(raw, skm[0], skm[1], skm[2])
+            if not skm:
+                #no need to decompress
+                return  None
+            if skm == (0,0,7):
+                try:
+                    return self.unscale_triggers(raw)
+                except Exception:
+                    return None
+            return decompress(raw, skm[0], skm[1], skm[2])
         return None
+
+
+
+    def get_scaling_factors(self, unix_time):
+        for entry in config.instrument_config['scale_factor_history']:
+            if unix_time >= entry['time_range'][0] and unix_time<=entry['time_range'][1]:
+                return entry['factors']
+
+        return None
+
+        
+
+
+
+    def unscale_triggers(self, scaled_triggers):
+        r"""
+        Unscale scaled trigger values.
+
+        Trigger values are scaled on board in compression mode 0,0,7 via the following relation
+
+        T_s = T / (factor * n_int * n_trig)
+
+        where `factor` is a configured parameter, `n_int` is the duration in units of 0.1s and
+        `n_trig_groups` number of active trigger groups being summed, which depends on the data
+        product given by the SSID.
+
+        Parameters
+        ----------
+        scaled_triggers : int
+            Scaled trigger
+        """
+
+
+
+        try:
+            n_group = self.unscale_config['n_trig']
+            n_int = self.unscale_config['n_int']
+            factor = self.unscale_config['factor']
+        except Exception:
+            raise ValueError(f'No enough information for unscaling triggers!')
+
+        self.is_trig_scaled_packet = True
+        # Scaled to ints onboard, bins have scaled width of 1, so error is 0.5 times the total factor
+        scaling_error = 0.5 * n_group  * n_int * factor if scaled_triggers >0 else 0
+        # The FSW essential floors the value so add 0.5 so trigger is the centre of range +/- error
+        unscaled_triggers = (scaled_triggers * n_group * n_int * factor) + scaling_error
+        #if n_group>1:
+        #    print(f"GROUP:{n_group=}, {n_int=}, {factor=}, {scaled_triggers=}, {unscaled_triggers=}, {self.spid=}")
+
+
+        return unscaled_triggers#, scaling_error**2

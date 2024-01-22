@@ -17,6 +17,7 @@ from datetime import datetime
 
 logger = logger.get_logger()
 DATA_REQUEST_REPORT_SPIDS = [54114, 54115, 54116, 54117, 54143, 54125]
+QL_REPORT_SPIDS = [54118, 54119, 54121, 54120, 54122]
 DATA_REQUEST_REPORT_NAME = {
     54114: 'L0',
     54115: 'L1',
@@ -25,7 +26,6 @@ DATA_REQUEST_REPORT_NAME = {
     54143: 'L4',
     54125: 'ASP'
 }
-QL_REPORT_SPIDS = [54118, 54119, 54121, 54120, 54122]
 
 
 class StixScienceReportAnalyzer(object):

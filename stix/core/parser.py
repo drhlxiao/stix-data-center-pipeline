@@ -233,6 +233,8 @@ class StixParameterParser(object):
             #convert SCET to UTC
             return sdt.scet2utc(int(raw_value))
 
+
+
         if tmtc == 'TC':
             if ref:
                 return STIX_IDB.tcparam_interpret(ref, raw_value)
@@ -1068,7 +1070,7 @@ class StixTCTMParser(StixParameterParser):
                         self.inc_counter('num_filtered')
                         continue
 
-                STIX_DECOMPRESSOR.init(spid)
+                STIX_DECOMPRESSOR.init(header)
 
                 parameters = None
                 if tpsd == -1:
@@ -1165,6 +1167,8 @@ class StixTCTMParser(StixParameterParser):
                         packet['header'][key] = val
                 else:
                     self.attach_timestamps(packet)
+
+                #trigger scaling introduced in Feb. 2024, after ASW186
 
                 if self.store_packet_enabled:
                     packets.append(packet)
@@ -1393,3 +1397,7 @@ class StixTCTMParser(StixParameterParser):
 
     def set_progress_bar_enabed(self, value):
         logger.set_progress_enabled(value)
+
+
+
+
