@@ -190,7 +190,7 @@ def read_fits_to_dict(fname, md5):
                 if np.isnan(val):
                     is_bad=True
                     break
-            except ValueError:
+            except (ValueError, TypeError):
                 pass
 
             row[key]=val

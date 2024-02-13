@@ -401,7 +401,12 @@ class StixDecompressor(object):
         fine = header['fine_time']
         self.header_unix_time = sdt.scet2unix(coarse, fine)
         which='ql' if self.spid in QL_REPORT_SPIDS else 'sci'
-        self.unscale_config['factor']=self.get_scaling_factors(self.header_unix_time)[which]
+        try:
+            self.unscale_config['factor']=self.get_scaling_factors(self.header_unix_time)[which]
+        except TypeError:
+            self.unscale_config['factor']=None
+
+
 
         SKM_Groups = self.schema['SKM_Groups']
         for grp_name in SKM_Groups:

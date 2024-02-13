@@ -134,14 +134,14 @@ def plot_aspect_data(filename, start_unix, end_unix, flare_sun_x=0, flare_sun_y=
         sun_x.append(x)
         sun_y.append(y)
     if timestamps:
-        axes[0].plot(timestamps, sun_x, '--o', label="sun_x", alpha=0.5)
-        axes[1].plot(timestamps, sun_y,'--o', label="sun_y", alpha=0.5)
+        axes[0].plot(timestamps, sun_x, '--o', label="Measured", alpha=0.5)
+        axes[1].plot(timestamps, sun_y,'--o', label="Measured", alpha=0.5)
     else:
         plt.suptitle('Aspect solution not available')
 
     flare_dt=[ut.unix2datetime(flare_unix_time)]
-    axes[0].plot(flare_dt, [flare_sun_x],'+',  label="x_offset used")
-    axes[1].plot(flare_dt, [flare_sun_y],'+',  label="y_offset used")
+    axes[0].plot(flare_dt, [flare_sun_x],'+',  label="Applied")
+    axes[1].plot(flare_dt, [flare_sun_y],'+',  label="Applied")
     #axes[0].set_xlabel('Time')
     axes[0].set_ylabel('X (arcsec)')
     axes[0].legend()
@@ -158,8 +158,10 @@ def plot_aspect_data(filename, start_unix, end_unix, flare_sun_x=0, flare_sun_y=
     formatter = mdates.ConciseDateFormatter(locator)
     axes[1].xaxis.set_major_locator(locator)
     axes[1].xaxis.set_major_formatter(formatter)
+    axes[0].set_title("X of the Sun Center")
+    axes[1].set_title("Y of the Sun Center")
 
-    fig.suptitle('STIX aspect solutions \nand the solution used for pointing correction')
+    #fig.suptitle('STIX aspect solutions \nand the solution used for pointing correction')
     #fig.autofmt_xdate()
     fig.tight_layout()
     logger.info(f'Writing aspect solution to :{filename}')
@@ -621,7 +623,9 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
             plot_aspect_data(asp_filename, task_doc['start_unix'], 
                     task_doc['end_unix'], task_doc['aux']['sun_center'][0], task_doc['aux']['sun_center'][1])
             report['C_aspect']={'filename':asp_filename, 
-                    'title':'STIX pointing information'}
+                    'title':'STIX pointing information', 'subtitle':
+                    "x and y of the sun's center in the STIX coord. frame calibrated by the STIX aspect system as well as x and y applied for correction"
+                    }
         except Exception as e:
             logger.error(str(e))
         logger.info("done ...")

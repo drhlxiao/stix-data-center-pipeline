@@ -7,6 +7,8 @@ class CustomEncoder(json.JSONEncoder):
             return int(obj)
         elif isinstance(obj, numpy.floating):
             return float(obj)
+        elif isinstance(obj, numpy.bool_):
+            return bool(obj)
         elif isinstance(obj, numpy.ndarray):
             return obj.tolist()
         elif isinstance(obj, datetime.datetime):

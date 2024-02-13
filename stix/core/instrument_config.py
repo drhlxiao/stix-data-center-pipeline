@@ -15,7 +15,8 @@ STIX_CONFIG_TC_NAMES = [
     'ZIX39019',
     'ZIX39004',
     'ZIX36605',  #ASIC register write, asic latency, and HV
-    'ZIX36605',
+     'ZIX37013',
+     'ZIX36605',
     'ZIX37018'
 ]
 '''
@@ -24,6 +25,7 @@ TC_GROUPS = {
     'detector': ['ZIX39019', 'ZIX39004',
                  'ZIX36605'],  #ASIC register write, asic latency, and HV
     'hv': ['ZIX36605'],
+     'rot': ['ZIX37013'],
     'asw': ['ZIX37018']
 }
 
@@ -105,6 +107,46 @@ def parse_config_telecommand(packet):
         }
         attach_timestamp(header, result)
         results.append(result)
+    elif header['name']=='ZIX37013':
+        result = {
+            'type': 'asw',
+            'parameter': 312,#rotating buffer
+            'value':int(parameters[0][1]),
+            'state': header['state'],
+            'sub_id': 0,
+            'category':'rotbuf:min_time_bin',
+            'comment':'Updated via ZIX37013'
+        }
+        #used by the data request command to estimated data
+        attach_timestamp(header, result)
+        results.append(result)
+
+        result = {
+            'type': 'asw',
+            'parameter': 313,#rotating buffer
+            'value':int(parameters[1][1]) ,
+            'sub_id': 0,
+            'state': header['state'],
+            'category':'rotbuf:max_time_bin',
+            'comment':'Updated via ZIX37013'
+        }
+        #used by the data request command to estimated data
+        attach_timestamp(header, result)
+        results.append(result)
+
+        result = {
+            'type': 'asw',
+            'parameter': 314,#rotating buffer
+            'value':int(parameters[2][1]) ,
+            'state': header['state'],
+            'sub_id': 0,
+            'category':'rotbuf:threshold',
+            'comment':'Updated via ZIX37013'
+        }
+        #used by the data request command to estimated data
+        attach_timestamp(header, result)
+        results.append(result)
+
 
     elif header['name'] == 'ZIX39004':
         result = {
@@ -112,6 +154,7 @@ def parse_config_telecommand(packet):
             'parameter': 'latency',
             'value': parameters[0][1],
             'sub_id': 0,
+            'category':'asic:latency',
             'state': header['state']
         }
         attach_timestamp(header, result)
@@ -124,6 +167,7 @@ def parse_config_telecommand(packet):
             'parameter': parameters[1][2],
             'value': parameters[2][1],
             'sub_id': 0,
+            'category':'hvps:',
             'state': header['state']
         }
         attach_timestamp(header, result)
@@ -189,6 +233,10 @@ def process_file(run_id):
     mdb = db.MongoDB()
     print('Processing file:', run_id)
     config_db = mdb.get_collection('config')
+
+    config_db.delete_many({'run_id':run_id})
+    #delete existing entries
+
     packets = mdb.get_telecommands_in_file(run_id)
 
     for packet in packets:
@@ -201,7 +249,7 @@ if __name__ == '__main__':
     import sys
     terminal = True
     if len(sys.argv) < 2:
-        print('usage: instrumment_config  <file_id>')
+        print('usage: instrumment_config  <file_id> [<file_id_end>]')
     elif len(sys.argv) == 2:
         process_file(int(sys.argv[1]))
     else:

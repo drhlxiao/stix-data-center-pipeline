@@ -24,27 +24,63 @@ logger = logger.get_logger()
 
 mdb = db.MongoDB()
 
+default_rot_tmin=0.5
+default_rot_tmax=20
+default_rot_threshold=1800
+#rotation buffer configuration
 
-def get_rotating_buffer_config(ut):
-    conf = {'min_tbin': 1, 'max_tbin': 20, 'threshold': 1800}
-    db_pkt = mdb.get_collection('packets')
-    conf_pkt = list(
-        db_pkt.find({
-            'header.name': 'ZIX37013',
-            'header.unix_time': {
-                '$lt': ut
-            }
-        }).sort('header.unix_time', -1))
-    if not conf_pkt:
-        print(
-            'Using default configuration because no rotation buffer configuration TC for time: ',
-            ut, ' was found!')
-    else:
-        parameters = conf_pkt[0]['parameters']
-        conf['min_tbin'] = (int(parameters[0][1]) + 1) * 0.1
-        conf['max_tbin'] = (int(parameters[1][1]) + 1) * 0.1
-        conf['threshold'] = parameters[2][1]
-    return conf
+
+def get_rotating_buffer_config(max_time, min_time=None):
+    rot_config={312: [], 313: [], 314:[]}
+    config_db= mdb.get_collection('config')
+
+    if not min_time:
+        min_time=max_time
+
+
+
+    for _id in rot_config.keys():
+        # First Query
+        query1 = {
+            'type': 'asw',
+            'parameter': _id,
+            'execution_unix': { '$lte': min_time }
+        }
+
+        result1 = config_db.find(query1).sort('execution_unix', -1).limit(1)
+
+        # Second Query
+        query2 = {
+            'type': 'asw',
+            'parameter': _id,
+            'execution_unix': { '$gte': min_time, '$lte': max_time }
+        }
+
+        result2 = config_db.find(query2)
+
+        # Combine Results
+        rows= list(result1) + list(result2)
+        for row in rows:
+            rot_config[_id].append( {'time': row['execution_unix'], 'value': row['value']})
+    return rot_config
+
+def get_rot_config(configs, unix_time):
+    tmin=default_rot_tmin
+    tmax=default_rot_tmax
+    thr=default_rot_threshold
+    
+
+    for row in configs[312]:
+        if unix_time > row['time']:
+            tmin=0.1*(int(row['value'])+1)
+    for row in configs[313]:
+        if unix_time > row['time']:
+            tmax=0.1*(int(row['value'])+1)
+    for row in configs[314]:
+        if unix_time > row['time']:
+            thr=row['value']
+
+    return tmin, tmax, thr
 
 
 def process_file(file_id):
@@ -56,14 +92,14 @@ def process_file(file_id):
     if data is None:
         return
     unix_time = data['time']  # set to the center of a bin
+    configs = get_rotating_buffer_config(unix_time[-1], unix_time[0])
+
     lightcurve = data['lcs'][0] + data['lcs'][1]  # 4-15 keV
-    conf = get_rotating_buffer_config(unix_time[0])
-    res = {'t': [], 'tbin': [], 'counts': [], 'config': conf, 'num_tbins': []}
+    res = {'t': [], 'tbin': [], 'counts': [],  'num_tbins': []}
     s = 0
     last_time = 0
-    thr = conf['threshold']
-    max_tbin = conf['max_tbin']
-    min_tbin = conf['min_tbin']
+
+    
 
     for t, c in zip(unix_time, lightcurve):
         t = int(t)
@@ -71,8 +107,13 @@ def process_file(file_id):
         if last_time == 0:
             last_time = t
             continue
+
+        min_tbin, max_tbin, thr=get_rot_config(configs, t)
+        print("Final settings:", min_tbin,max_tbin,thr)
+
+
         if s > 0 and (s >= thr or t - last_time >= max_tbin
-                      or c >= thr):  # close the opening time bin anyway
+                or c >= thr):  # close the opening time bin anyway
             # close last time bin
             tbin = round(min([max_tbin, t - last_time]), 1)
             res['tbin'].append(tbin)

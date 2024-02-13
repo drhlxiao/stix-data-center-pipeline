@@ -10,7 +10,7 @@ from dateutil import parser as dtparser
 from stix.core import logger
 logger = logger.get_logger()
 
-ASW_VERSION = 184
+ASW_VERSION = 183
 HTTP_PREFIX = 'https://pub023.cs.technik.fhnw.ch'
 parser_config = {
         "pipeline": {
@@ -45,7 +45,7 @@ parser_config = {
                 "goes_lc_path": "/data/goes/",
                 "flare_pipeline_path":"/data/flare_pipeline"
                 },
-            "asw_version": 184
+            "asw_version": ASW_VERSION
             },
         "ASW": {
             "179": {
