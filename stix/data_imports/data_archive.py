@@ -226,7 +226,10 @@ def import_auxiliary(fname):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
+    if len(sys.argv) == 1:
+        pass
+
+    elif len(sys.argv) != 2:
         #default
         logger.info('read_and_import_aspect <filename')
         for folder in DATA_ARCHIVE_FITS_PATHS:

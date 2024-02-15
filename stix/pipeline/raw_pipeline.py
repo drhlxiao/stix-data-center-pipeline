@@ -45,7 +45,7 @@ logger = logger.get_logger()
 
 
 task_list={'calibration':True,
-        'fits_creation':True,
+        'fits_creation':False,
         'flare_detection':True,
         'time_bins_simulation':True,
         'bsd_report_merging':True,
@@ -291,10 +291,11 @@ async def pipeline_fits_creation_packets_merging_multiple(file_ids):
 
 def pipeline_fits_creation_packets_merging(file_id):
     logger.info('Creating fits files...')
-    try:
-        fits_creator.create_fits(file_id, daemon_config['fits_path'])
-    except Exception as e:
-        logger.error(str(e))
+    if task_list['fits_creation']:
+        try:
+            fits_creator.create_fits(file_id, daemon_config['fits_path'])
+        except Exception as e:
+            logger.error(str(e))
     logger.info(
             'Merging bulk science data and preparing json files for data browsers...')
     try:

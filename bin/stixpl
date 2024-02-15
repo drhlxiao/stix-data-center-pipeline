@@ -20,6 +20,7 @@ def start_pipeline():
     logger.info('Starting pipeline')
     while True:
         pd.main()
+        logger.info('Waiting for next check...')
         time.sleep(300)
 
 

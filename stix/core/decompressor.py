@@ -423,7 +423,7 @@ class StixDecompressor(object):
             self.SKM_values[param_name] = raw
             return True
         elif param_name == 'NIX00405':
-            self.unscale_config['n_int']= int(raw)+1  #number of integration in units of 0.1 sec
+            self.unscale_config['n_int']= int(raw)  #number of integration in units of 0.1 sec
             return True
         elif param_name == 'NIX00407':
             x=int(raw)
@@ -495,18 +495,29 @@ class StixDecompressor(object):
 
 
         try:
-            n_group = self.unscale_config['n_trig']
+            n_group_from_mask = self.unscale_config['n_trig']
             n_int = self.unscale_config['n_int']
             factor = self.unscale_config['factor']
         except Exception:
+            n_group_from_mask=1
             raise ValueError(f'No enough information for unscaling triggers!')
+
+        if self.spid in [54115, 54114, 54116,54117]:
+            #for level0, 1, 2,3, and the group is already 1
+            n_group=1
+        else:
+            n_group=n_group_from_mask
+        self.unscale_config['n_trig']=n_group
+
+        #print("Trigger  schme")
+        #print(n_group,n_int, factor)
 
         self.is_trig_scaled_packet = True
         # Scaled to ints onboard, bins have scaled width of 1, so error is 0.5 times the total factor
         scaling_error = 0.5 * n_group  * n_int * factor if scaled_triggers >0 else 0
         # The FSW essential floors the value so add 0.5 so trigger is the centre of range +/- error
         unscaled_triggers = (scaled_triggers * n_group * n_int * factor) + scaling_error
-        #if n_group>1:
+        #if n_group>=1:
         #    print(f"GROUP:{n_group=}, {n_int=}, {factor=}, {scaled_triggers=}, {unscaled_triggers=}, {self.spid=}")
 
 

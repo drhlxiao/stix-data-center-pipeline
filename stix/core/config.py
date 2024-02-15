@@ -63,7 +63,7 @@ parser_config = {
                 "version": "2.26.36",
                 "validityPeriod": ["2021-12-10T14:00:00", "2024-02-05:00:00"]
                 },
-            "184":{
+            "186":{
                 "filename": "/data/pub/data/idb/idb_v2.26.37.sqlite",
                 "version": "2.26.37",
                 "validityPeriod": ["2024-02-05T00:00:00", "2030-02-07:00:00"]

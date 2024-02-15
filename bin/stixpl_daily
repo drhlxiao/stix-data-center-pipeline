@@ -20,14 +20,15 @@ from stix.fits import fits_creator
 from stix.core import logger
 from stix.core import config
 from stix.flare_pipeline import imaging_task_manager as itm
-from stix.fits import find_no_fits_bsd as fdnf
+#from stix.fits import find_no_fits_bsd as fdnf
 from stix.fits import fits_creator as fc
-from stix.data_imports import data_archive as da
+#from stix.data_imports import data_archive as da
 
 logger = logger.get_logger()
 
 goes=gd.GOES()
-async def daily_task_runner():
+"""
+def daily_task_runner():
     task=asyncio.create_task(daily_tasks())
     try:
         await asyncio.wait_for(task, timeout=3600*4)
@@ -35,15 +36,16 @@ async def daily_task_runner():
         logger.error("daily tasks timeout , kill it")
         task.cancel()
 
+"""
 
-async def daily_tasks():
+def daily_tasks():
     """ create daily tasks"""
     #lower priority
     daemon_config = config.get_config('pipeline.daemon')
     lc_output_dir=daemon_config['flare_lc_snapshot_path']
     logger.info("Starting LL fits creator loop..")
     try:
-        fits_creator.create_daily_low_latency_fits_for_all()
+        #fits_creator.create_daily_low_latency_fits_for_all()
         logger.info("Starting flare detection loop..")
         flare_detection.find_flares_in_recent_LC(lc_path=lc_output_dir)
         logger.info("Downloading goes..")
@@ -52,13 +54,14 @@ async def daily_tasks():
         #da.import_data_archive_products()
         #moved to daemon
         logger.info("creating fits files ..")
-        fdnf.main()
+        #fdnf.main()
         logger.info("Recreating fits ..")
-        fc.recreate_fits_for_science_data(14,13)
+        #fc.recreate_fits_for_science_data(14,13)
         logger.info("Registering imaging tasks..")
         #itm.register_imaging_tasks_for_last_flares()
     except Exception as e:
         logger.error(str(e))
+    #time.sleep(12*3600)
 
 
 
@@ -66,7 +69,8 @@ async def daily_tasks():
 
 def main():
     while True:
-        asyncio.run(daily_task_runner())
+        #asyncio.run(daily_task_runner())
+        daily_tasks()
         time.sleep(24*3600)
 
     

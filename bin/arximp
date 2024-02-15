@@ -3,4 +3,4 @@ import sys
 sys.path.append('/opt/stix/pystix')
 from stix.data_imports import data_archive as da
 if  __name__ == '__main__':
-    da.import_data_archive_products(max_age_days=7)
+    da.import_data_archive_products(max_age_days=2)
