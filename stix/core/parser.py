@@ -1167,7 +1167,7 @@ class StixTCTMParser(StixParameterParser):
                         packet['header'][key] = val
                 else:
                     self.attach_timestamps(packet)
-
+                STIX_DECOMPRESSOR.add_meta_to_header()
                 #trigger scaling introduced in Feb. 2024, after ASW186
 
                 if self.store_packet_enabled:

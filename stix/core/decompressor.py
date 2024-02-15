@@ -339,28 +339,25 @@ class StixDecompressor(object):
         self.SKM_values = dict()
         self.compressed_parameter_names = []
         self.schema = None
-        self.header = None
+        self.header = {}
         self.header_unix_time=None
         self.unscale_config={'n_trig':1}
         self.is_trig_scaled_packet=False
 
     def reset(self):
-        if self.is_trig_scaled_packet:
-            for key,val in self.unscale_config.items():
-                self.header[f'scaling_{key}']=val
+
         self.schema = None
         self.compressed = False
         self.unscale_config={'n_trig':1}
-        self.header = None
+        self.header = {}
         self.is_trig_scaled_packet=False
 
     def is_compressed(self):
         return self.compressed
         
-    
-        
-
-
+    def add_meta_to_header(self):
+        if self.is_trig_scaled_packet and self.header:
+            self.header['scaling_factor']=self.unscale_config.get('factor',None)
 
     def init(self, header):
         
