@@ -20,9 +20,10 @@ from stix.core import logger
 from stix.core import metadata as meta
 from stix.spice import spice_manager as spm
 from stix.core import instrument_config as stc
+from stix.core import mongo_db as mdb
 
 logger = logger.get_logger()
-MONGODB_CONFIG = config.get_config()['pipeline']['mongodb']
+#MONGODB_CONFIG = config.get_config()['pipeline']['mongodb']
 
 
 class StixPacketWriter(object):
@@ -129,12 +130,7 @@ class StixBinaryWriter(StixPacketWriter):
 
 class StixMongoDB(StixPacketWriter):
     """write data to   MongoDB"""
-    def __init__(self,
-                 server=MONGODB_CONFIG['host'],
-                 port=MONGODB_CONFIG['port'],
-                 username=MONGODB_CONFIG['user'],
-                 password=MONGODB_CONFIG['password']):
-        super(StixMongoDB, self).__init__()
+    def __init__(self, mdb):
 
         self.ipacket = 0
         self.packets = []
@@ -153,19 +149,18 @@ class StixMongoDB(StixPacketWriter):
         self.start = -1
         self.end = -1
         self.run_info = None
+        self.mdb=mdb
+
         try:
-            self.connect = pymongo.MongoClient(server,
-                                               port,
-                                               username=username,
-                                               password=password)
-            self.db = self.connect["stix"]
-            self.collection_packets = self.db['packets']
-            self.collection_raw_files = self.db['raw_files']
-            self.config_db=self.db['config']
+            
+            self.db = self.mdb.get_collection("stix")
+            self.collection_packets = self.mdb.get_collection('packets')
+            self.collection_raw_files = self.mdb.get_collection('raw_files')
+            self.config_db=self.mdb.get_collection('config')
         except Exception as e:
             logger.error(str(e))
 
-        self.science_report_analyzer = meta.StixScienceReportAnalyzer(self.db)
+        self.science_report_analyzer = meta.StixScienceReportAnalyzer(self.mdb)
 
     def is_processed(self, in_filename):
         filename = os.path.basename(in_filename)

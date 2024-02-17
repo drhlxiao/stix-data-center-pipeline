@@ -1359,18 +1359,14 @@ class StixTCTMParser(StixParameterParser):
             self.packet_io.set_summary(summary)
         return packets
 
-    def config_mongodb(self,
-                           server,
-                           port,
-                           username,
-                           password,
-                           comment='',
+    def config_mongodb(self, mdb,
                            raw_filename='',
-                           instrument=''):
+                           instrument='', 
+                           comment=''):
         #instrument: GU or PFM
         #server, port, username and password are required by MongoDB
-        self.packet_io = io.StixMongoDB(
-            server, port, username, password)
+        self.packet_io = io.StixMongoDB(mdb)
+        STIX_DECOMPRESSOR.set_mongo_db(mdb)
         idb_version = STIX_IDB.get_idb_version()
         self.raw_filename = raw_filename
         self.packet_io.register_run(raw_filename, self.in_filesize,

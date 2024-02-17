@@ -89,6 +89,7 @@ class MongoDB(object):
         except IndexError:
             return 0
 
+    
 
     def get_group_users(self,group):
         return list(self.col_user_groups.find({'group': group}))
@@ -655,6 +656,10 @@ class MongoDB(object):
         cursor = self.collection_packets.find(query_string).sort('_id', 1)
         return cursor
         return []
+    def get_sci_trig_scaling_factor(self,uid):
+        row=self.collection_data_requests.find_one({'unique_id':uid})
+        return row['scaling_factor']
+
 
 
 #if __name__ == '__main__':

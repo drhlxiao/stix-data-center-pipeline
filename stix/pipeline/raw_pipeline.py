@@ -201,10 +201,8 @@ def piepeline_parsing_and_basic_analysis(instrument, filename, notification_enab
     if debugging:
         logger.enable_debugging()
     parser = stp.StixTCTMParser()
-    parser.config_mongodb(mongodb_config['host'], mongodb_config['port'],
-                              mongodb_config['user'],
-                              mongodb_config['password'], '', filename,
-                              instrument)
+    parser.config_mongodb(MDB, filename,
+                              instrument, comment='')
     logger.info('{}, processing {} ...'.format(get_now(), filename))
     #if S20_EXCLUDED:
     parser.exclude_S20()

@@ -5,6 +5,7 @@
 #               decompression of compressed parameters
 from stix.core import logger
 from stix.core import config
+from stix.core import mongo_db
 from stix.spice import time_utils as sdt
 import numpy as np
 
@@ -333,38 +334,42 @@ def decompress(x, S, K, M):
 
 class StixDecompressor(object):
     def __init__(self):
-        self.compressed = False
+        self.is_compressed_packet = False
         self.spid = None
         self.SKM_parameters_names = []
         self.SKM_values = dict()
-        self.compressed_parameter_names = []
+        self.is_compressed_packet_parameter_names = []
         self.schema = None
         self.header = {}
         self.header_unix_time=None
-        self.unscale_config={'n_trig':1}
+        self.unscale_config={'n_trig':1, 'factor':None}
         self.is_trig_scaled_packet=False
+        self.mdb= None
 
+    def set_mongo_db(self, mdb):
+        self.mdb=mdb
     def reset(self):
 
         self.schema = None
-        self.compressed = False
-        self.unscale_config={'n_trig':1}
+        self.is_compressed_packet = False
+        self.unscale_config={'n_trig':1, 'factor':None}
         self.header = {}
         self.is_trig_scaled_packet=False
 
     def is_compressed(self):
-        return self.compressed
+        return self.is_compressed_packet
         
     def add_meta_to_header(self):
         if self.is_trig_scaled_packet and self.header:
-            self.header['scaling_factor']=self.unscale_config.get('factor',None)
+            self.header['tsf']=self.unscale_config.get('factor',None)
+            self.header['tsfs']=self.unscale_config.get('scaling_factor_source',None)
 
     def init(self, header):
         
         self.header=header
 
 
-        self.compressed = False
+        self.is_compressed_packet = False
         spid=header['SPID']
         self.spid = spid
         if self.spid not in COMPRESSED_PACKET_SPIDS:
@@ -375,33 +380,32 @@ class StixDecompressor(object):
 
 
 
-        self.compressed = True
+        self.is_compressed_packet = True
         self.SKM_parameters_names = []
         self.SKM_values = dict()
-        self.compressed_parameter_names = []
+        self.is_compressed_packet_parameter_names = []
         if spid not in SCHEMAS:
-            self.compressed = False
+            self.is_compressed_packet = False
             logger.warning(
-                'A compressed packet (SPID {}) is not decompressed'.format(
+                'No schema to decompress packet (SPID {})'.format(
                     spid))
             return
         try:
             self.schema = SCHEMAS[spid]
         except KeyError:
             logger.warning(
-                'A compressed packet (SPID {}) is not decompressed'.format(
+                'Failed to decompress packet (SPID {}) due to missing schema'.format(
                     spid))
-            self.compressed = False
+            self.is_compressed_packet = False
             return
 
         coarse = header['coarse_time']
         fine = header['fine_time']
         self.header_unix_time = sdt.scet2unix(coarse, fine)
-        which='ql' if self.spid in QL_REPORT_SPIDS else 'sci'
-        try:
-            self.unscale_config['factor']=self.get_scaling_factors(self.header_unix_time)[which]
-        except TypeError:
-            self.unscale_config['factor']=None
+
+
+        if self.spid in QL_REPORT_SPIDS:
+            self.set_quicklook_scaling_factor(self.header_unix_time)
 
 
 
@@ -426,8 +430,31 @@ class StixDecompressor(object):
             x=int(raw)
             self.unscale_config['n_trig']= sum([(x>>i)&0x1 for i in range(32)])/2
             return True
+        elif param_name=='NIX00037':
+            uid= int(raw)  #unique id
+            self.unscale_config['unique_id'] = uid  #unique id
+            if self.mdb:
+                #load the factor from mdb
+                try:
+                    self.unscale_config['factor']= int(self.mdb.get_sci_trig_scaling_factor(uid))
+                    self.unscale_config['scaling_factor_source']= 1 #found
+                except (TypeError, KeyError, ValueError):
+                    self.unscale_config['scaling_factor_source']= -1
+                    self.unscale_config['factor']= None
+
+            else:
+                try:
+                    self.unscale_config['factor']= int(config.instrument_config['sci_trig_default_scale_factor'])
+                    self.unscale_config['scaling_factor_source']= 2
+                except (KeyError, TypeError, ValueError):
+                    self.unscale_config['scaling_factor_source']= -2
+
+            return True
+
 
         return False
+
+
 
     def get_SKM(self, param_name):
         if param_name not in self.schema['parameters']:
@@ -442,7 +469,7 @@ class StixDecompressor(object):
 
     def decompress_raw(self, param_name, raw):
 
-        if not self.compressed:
+        if not self.is_compressed_packet:
             return None
 
         if not self.capture_config_parameter(param_name, raw):
@@ -460,12 +487,13 @@ class StixDecompressor(object):
 
 
 
-    def get_scaling_factors(self, unix_time):
-        for entry in config.instrument_config['scale_factor_history']:
-            if unix_time >= entry['time_range'][0] and unix_time<=entry['time_range'][1]:
-                return entry['factors']
-
-        return None
+    def set_quicklook_scaling_factor(self, unix_time):
+        if self.spid in QL_REPORT_SPIDS:
+            self.unscale_config['factor']=config.instrument_config['ql_trig_default_scale_factor']
+            self.unscale_config['scaling_factor_source']='default'
+            #for entry in config.instrument_config['ql_default_scale_factor']:
+            #    if unix_time >= entry['time_range'][0] and unix_time<=entry['time_range'][1]:
+            #        self.unscale_config['factor']=entry['factors']['ql']
 
         
 

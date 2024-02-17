@@ -29,11 +29,11 @@ DATA_REQUEST_REPORT_NAME = {
 
 
 class StixScienceReportAnalyzer(object):
-    def __init__(self, db):
-        self.calibration_analyzer = StixCalibrationPacketAnalyzer(
-            db['calibration_runs'])
-        self.ql_analyzer = StixQuickLookPacketAnalyzer(db)
-        self.user_request_analyzer = StixSciencePacketAnalyzer(db)
+    def __init__(self, mdb):
+        self.calibration_analyzer = StixCalibrationPacketAnalyzer(mdb)
+            
+        self.ql_analyzer = StixQuickLookPacketAnalyzer(mdb)
+        self.user_request_analyzer = StixSciencePacketAnalyzer(mdb)
 
     def start(self, run_id, packet_id, packet):
         self.calibration_analyzer.capture(run_id, packet_id, packet)
@@ -51,13 +51,13 @@ class StixCalibrationPacketAnalyzer(object):
       Capture calibration reports and fill calibration information into MongoDB 
 
     """
-    def __init__(self, collection):
+    def __init__(self, mdb):
         self.report = None
         self.sbspec_counts = np.zeros((8, 12 * 32), dtype=np.int32)
         self.packet_index = np.zeros((8, 12 * 32), dtype=np.int32)
         self.db_collection = None
         self.current_calibration_run_id = 0
-        self.db_collection = collection
+        self.db_collection = mdb.get_collection('calibration_runs')
         self.calibration_run_ids = []
         self.spectra = []
         #self.background_spectra=[[] for x in range(0,12*32)]
@@ -430,9 +430,9 @@ class StixQuickLookPacketAnalyzer(object):
 
 
 class StixSciencePacketAnalyzer(object):
-    def __init__(self, db):
-        self.bsd_db = db['bsd']
-        self.db_bsd_forms = db['data_requests']
+    def __init__(self, mdb):
+        self.bsd_db = mdb.get_collection('bsd')
+        self.db_bsd_forms = mdb.get_collection('data_requests')
         self.last_unique_id = -1
         self.last_request_spid = -1
         self.packet_ids = []

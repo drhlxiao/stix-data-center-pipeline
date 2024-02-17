@@ -13,6 +13,7 @@ import argparse
 from stix.core import config
 from stix.core import logger
 from stix.core import parser as stx_parser
+from stix.core import mongo_db 
 
 logger = logger.get_logger()
 MONGODB_CONFIG = config.get_config('pipeline.mongodb')
@@ -135,6 +136,7 @@ def main():
                         args['source'])
 
 
+
 def process_single_file(filename, filetype, output_filename, selected_spids,
                         selected_services, comment, s20_excluded, wdb, db_host,
                         db_port, db_user, db_pwd, source):
@@ -152,8 +154,8 @@ def process_single_file(filename, filetype, output_filename, selected_spids,
     if wdb:
         parser.set_store_binary_enabled(False)
         parser.set_packet_buffer_enabled(False)
-        parser.config_mongodb(db_host, db_port, db_user, db_pwd, comment,
-                              filename)
+        mdb=mongo_db.MongoDB(db_host, db_port, db_user, db_pwd)                  
+        parser.config_mongodb(mdb, filename,'PFM', comment)
     parser.parse_file(filename, filetype)
     parser.done()
 

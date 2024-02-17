@@ -10,7 +10,7 @@ from dateutil import parser as dtparser
 from stix.core import logger
 logger = logger.get_logger()
 
-ASW_VERSION = 183
+ASW_VERSION = 186
 HTTP_PREFIX = 'https://pub023.cs.technik.fhnw.ch'
 parser_config = {
         "pipeline": {
@@ -99,19 +99,9 @@ instrument_config={
                             10.5, 11, 12, 13, 15, 18, 21, 25, 28, 32, 36, 43, 50, 59, 70, 84, 110, 150, np.inf]
         }
     ],
-        'scale_factor_history':[
-            {
-                'time_range': [1707865200, 2023484400],  # 2024-02-14T00:00:00 to 2034-02-14
-                'factors':{ 'ql':30, 'sci':30}
+        'ql_trig_default_scale_factor':30,
+        'sci_trig_default_scale_factor':30,
 
-
-            },
-            {
-                'time_range': [0, 1707865200 - 6*365*86400],  # before 2019
-                'factors':{ 'ql':30, 'sci':30} #Ground unit test
-            }
-
-            ],
         }
 
 
