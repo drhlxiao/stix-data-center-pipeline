@@ -127,7 +127,7 @@ def create_imaging_tasks_for_flare(flare_entry_id,
                         min_counts=MIN_COUNTS,
                         duration=60,
                         energy_bands=[[4, 10], [16, 28]],
-                        bkg_max_day_off=BKG_FILE_MAX_DAY_OFFSET, overwritten=False):
+                        bkg_max_day_off=BKG_FILE_MAX_DAY_OFFSET, overwritten=True):
     """
     This function only register imaging tasks
     Parameters
@@ -157,8 +157,8 @@ def create_imaging_tasks_for_flare(flare_entry_id,
     if peak_time is None:
         logger.info(f'No peak time found for {flare_entry_id}!, ignore this time')
         return
-    query={'data_start_unix':{'$lte':peak_time + duration},
-        'data_end_unix': {'$gte':peak_time - duration},
+    query={'data_start_unix':{'$lte':peak_time - duration+10},
+        'data_end_unix': {'$gte':peak_time + duration-10},
         'product_type':'xray-cpd',
         'level':DATA_LEVEL_FOR_IMAGING
         }
@@ -167,6 +167,8 @@ def create_imaging_tasks_for_flare(flare_entry_id,
     if not fits_files:
         logger.warning(f'No signal FITS file found for flare # {flare_id}')
         print(query)
+        print("start time < :", stu.unix2utc(peak_time - duration))
+        print("duration ",  duration)
         return
     fits_doc=fits_files[0]
 
@@ -207,7 +209,8 @@ def create_imaging_tasks_for_flare(flare_entry_id,
                                emin=box_emin_sci,
                                emax=box_emax_sci, level=DATA_LEVEL_FOR_IMAGING)
     #find background data acquired within bkg_max_day_off days
-    bkg_fits_doc = last_bkg_fits_doc if not bkg_fits_doc else bkg_fits_doc
+    global last_bkg_fits_doc
+    bkg_fits_doc = last_bkg_fits_doc or bkg_fits_doc
     if not bkg_fits_doc:
         logger.warning(
             f'No background data found for BSD {flare_id}')
