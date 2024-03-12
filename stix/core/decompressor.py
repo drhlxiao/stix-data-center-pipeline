@@ -433,21 +433,33 @@ class StixDecompressor(object):
         elif param_name=='NIX00037':
             uid= int(raw)  #unique id
             self.unscale_config['unique_id'] = uid  #unique id
+            factor = None
+            source = None
             if self.mdb:
                 #load the factor from mdb
+                factor=self.mdb.get_sci_trig_scaling_factor(uid)
+                source =1 if factor is not None else -1
                 try:
-                    self.unscale_config['factor']= int(self.mdb.get_sci_trig_scaling_factor(uid))
-                    self.unscale_config['scaling_factor_source']= 1 #found
-                except (TypeError, KeyError, ValueError):
-                    self.unscale_config['scaling_factor_source']= -1
-                    self.unscale_config['factor']= None
+                    factor = int(factor) 
+                except TypeError:
+                    pass
 
             else:
                 try:
-                    self.unscale_config['factor']= int(config.instrument_config['sci_trig_default_scale_factor'])
-                    self.unscale_config['scaling_factor_source']= 2
+                    factor = int(config.instrument_config['sci_trig_default_scale_factor'])
+                    source =2
                 except (KeyError, TypeError, ValueError):
-                    self.unscale_config['scaling_factor_source']= -2
+                    source = -2
+
+
+            self.unscale_config['scaling_factor_source']= source
+            self.unscale_config['factor']= factor
+
+
+            logger.info(f"Found scaling factor for {uid}: {factor} {source}")
+
+            if factor==0:
+                factor = None
 
             return True
 

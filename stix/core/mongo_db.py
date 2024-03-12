@@ -605,33 +605,55 @@ class MongoDB(object):
         return self.collection_fits.find({
                 'request_id': request_id
             }).sort('_id', -1).limit(max_num_fits)
-    def find_L1_background(self, unix_time, max_days_off=14, emin=3, emax=17, level='L1A'):
-        start_unix=unix_time-max_days_off*86400
+
+    def find_best_background_fits(self, unix_time, max_days_off=60, emin=3, emax=17, level='L1'):
+        """
+        query data request forms and fits file database to find the best data for background subtraction
+        """
+        min_unix=unix_time-max_days_off*86400./2
+        max_unix=unix_time+max_days_off*86400./2
         query=[{
-                '$match': {'request_type':'L1','purpose':'Background','detector_mask':'0xFFFFFFFF', 
-                'emax':{'$gte':str(emax)},
-                'emin':{'$lte':str(emin)},
-                'request_type':level,
-                'start_unix':{'$gt':start_unix, '$lt':unix_time}
-            }},
-            {
-                '$lookup': {
-                    'from': 'fits',
-                    'localField': 'unique_ids.0',
-                    'foreignField': 'request_id',
-                    'as': 'merg'
-                }
-            },  {
-                '$match': {
-                    'merg.request_id': {
-                        '$exists': True
-                    }
-                }
-                },
-              {'$sort':{'start_unix':-1}
-            }
-            ]
-        return self.collection_data_requests.aggregate(query)
+			'$match': {'request_type':'L1','purpose':'Background','detector_mask':'0xFFFFFFFF', 
+				'start_unix':{'$gt':min_unix, '$lt':max_unix},
+				'ior_id':{'$gt':0}
+			}},
+
+		{'$project':{'start_unix':1, 'start_utc':1,'unique_ids':1}},
+		{ '$addFields': {
+			'timeDifference': { '$abs': { '$subtract': ["$start_unix", unix_time] } }
+						}
+		},
+		{
+			'$sort': { 'timeDifference': 1 }
+		},
+		{'$limit':10},
+		{
+			"$lookup": {
+				"from": "fits",
+				"let": { "unique_id": { "$arrayElemAt": ["$unique_ids", 0] } },
+				"pipeline": [
+				{
+					"$match": {
+						"$expr": {
+							"$and": [
+							{ "$eq": ["$request_id", "$$unique_id"] },
+							{ "$eq": ["$level", level] }
+							]
+						}
+					},
+				},
+                {'$project':{'_id':1, 'path':1,'filename':1, 'request_id':1}
+				}
+				],
+				"as": "merg"
+			}
+		},
+		{'$sort':{'timeDifference':1}},
+		{'$limit':1}]
+        docs=self.collection_data_requests.aggregate(query)
+        for doc in docs:
+            return doc
+        return None
        
     def get_packets_by_ids(self,id_list, sort='header.unix_time'):
         if sort:
@@ -657,8 +679,12 @@ class MongoDB(object):
         return cursor
         return []
     def get_sci_trig_scaling_factor(self,uid):
-        row=self.collection_data_requests.find_one({'unique_id':uid})
-        return row['scaling_factor']
+        query={'unique_ids':uid}
+        row=self.collection_data_requests.find_one(query)
+        #print(row)
+        if row:
+            return row.get('scaling_factor',None)
+        return None
 
 
 

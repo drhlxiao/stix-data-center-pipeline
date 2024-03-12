@@ -64,13 +64,13 @@
   ; If this is the case, then store only the CLEAN map and discard all other maps
   ; added by hualin
 
-  if size(myVariable, /N_DIMENSIONS) gt 0 then begin
-	  this_id = map[0].id
-	  if this_id.Contains('CLEAN') eq 1 and not keyword_set(all_clean) then begin
-		map = map[0]
-	 endif
-
-  endif
+  ;if size(myVariable, /N_DIMENSIONS) gt 0 then begin
+;	  this_id = map[0].id
+;	  if this_id.Contains('CLEAN') eq 1 and not keyword_set(all_clean) then begin
+;		map = map[0]
+;	 endif
+;
+;  endif
 
 
    if ~valid_map(map) || is_blank(file) then begin

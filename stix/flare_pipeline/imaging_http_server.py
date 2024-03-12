@@ -50,6 +50,7 @@ def update_request():
     db = mdb.get_collection('flare_images')
     fields={}
     fits = {}
+    vis={}
     idl_status=data.get('idl_status','')
     error=data.get('error',None)
     idl_message='' if error is None else error
@@ -58,10 +59,15 @@ def update_request():
         if key in ['_id', 'idl_status', 'error'] or not value:
             continue
         if os.path.exists(value):
-            fits[key] = value
+            if key == 'vis':
+                vis['sav_filename'] = value
+            else:
+                fits[key] = value
+
     fields={
             'py_calls':0,
             'fits': fits,
+            'vis':vis,
             'processing_date': datetime.now(),
             'num_idl_calls': 1,
             'idl_status': idl_status,

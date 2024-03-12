@@ -92,6 +92,7 @@ WHILE (1 ne 0) DO BEGIN
 		vis_fwdfit_fname=outfile_prefix + "_vis_fwdfit_map.fits" 
 		em_fname=outfile_prefix + "_em_map.fits"
 		clean_fname=outfile_prefix + "_clean_map.fits"
+		vis_fname=outfile_prefix + "_vis.sav"
 
 		print, bp_fname+','+full_disk_bp_fname
 
@@ -103,10 +104,10 @@ WHILE (1 ne 0) DO BEGIN
 			bp_fname, $
 			vis_fwdfit_fname, vis_fwdfit_source_type, $
 			em_fname, $
-			clean_fname,  $
+			clean_fname,  vis_fname,  $
 			L0, B0, RSUN, roll_angle, dsun, $
 			x_offset_arcsec, y_offset_arcsec, 0
-		resp+="&image_bp="+bp_fname+"&image_fwdfit="+vis_fwdfit_fname+"&image_em="+em_fname+"&image_clean="+clean_fname+"&image_full_disk="+full_disk_bp_fname
+		resp+="&image_bp="+bp_fname+"&image_fwdfit="+vis_fwdfit_fname+"&image_em="+em_fname+"&image_clean="+clean_fname+"&image_full_disk="+full_disk_bp_fname +"&vis="+vis_fname
 	endif
 
 	print, "Performing spectral fitting..."

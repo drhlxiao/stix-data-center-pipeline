@@ -5,7 +5,7 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 	full_disk_bp_map_filename,    $
 	bp_map_filename, $
 	vis_fwdfit_map_filename, vis_fwdfit_configuration, $
-	em_map_filename, clean_map_filename, $
+	em_map_filename, clean_map_filename, vis_filename, $
 	L0, B0, RSUN, roll_angle, dsun, $
 	x_offset_arcsec, y_offset_arcsec, gui
 
@@ -44,6 +44,8 @@ PRO stx_image_reconstruct, path_bkg_file, path_sci_file, $
 	vis=stx_construct_calibrated_visibility(path_sci_file, time_range, energy_range, mapcenter, subc_index=subc_index, $
 	                                        path_bkg_file=path_bkg_file, xy_flare=xy_flare, /silent)
 	                                        
+	save, vis, filename = vis_filename 
+	
 	;;******* Compute the Back Projection map (around the flare location)
 	bp_map = stx_bproj(vis,map_size,pixel_size,aux_data)
 

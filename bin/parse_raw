@@ -76,10 +76,12 @@ def main():
                           dest='db_user',
                           default=MONGODB_CONFIG['user'],
                           help='MongoDB username.')
+
     optional.add_argument("--db-pwd",
                           dest='db_pwd',
                           default=MONGODB_CONFIG['password'],
                           help='MongoDB password.')
+
     optional.add_argument("-m",
                           default='',
                           dest='comment',

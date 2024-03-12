@@ -208,7 +208,7 @@ class StixQuickLookPacketAnalyzer(object):
          detect if rcr status changed, if so record them in event db
 
         """
-        logger.info('Checking changes of crc')
+        logger.info('Checking changes of rcr')
         if not times or not rcrs:
             return
         times=np.array(times).flatten().tolist()

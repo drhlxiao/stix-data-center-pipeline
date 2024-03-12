@@ -127,15 +127,17 @@ def process_file(file_id):
         if c < thr:
             s += c
         else:
+            #estimated sub-time bins
             num_tbins = math.ceil(c / thr)
             max_bins = math.ceil(4. / min_tbin)
-            num_tbins = 1 if num_tbins < 1 else num_tbins
-            num_tbins = max_bins if num_tbins > max_bins else num_tbins
+            num_tbins = max(num_tbins,1)
+            num_tbins = min(max_bins, num_tbins) #can not greater than the maximum time bins
             tbin = round(4. / num_tbins, 1)  # time step 0.1s
+
             res['tbin'].append(tbin)
-            res['num_tbins'].append(num_tbins)
-            res['t'].append([t - 4, t])
-            res['counts'].append(c / num_tbins)
+            res['num_tbins'].append(num_tbins) #number of timebins in 4 sec
+            res['t'].append([t - 4, t])  #start time and end time
+            res['counts'].append(c / num_tbins)  #average counts
             # print(last_time, t, t-last_time, c, tbin, c/num_tbins)
             s = 0
             last_time = t
