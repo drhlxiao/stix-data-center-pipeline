@@ -204,28 +204,11 @@ def create_imaging_tasks_for_flare(flare_entry_id,
     box_emin_sci, box_emax_sci = StixEnergyBins.keV2sci(boxes_energy_low,
                                             boxes_energy_high, flare_start_unix)
     #energy range
-    bkg_fits_doc= mdb.find_best_background_fits(peak_time,
-                               bkg_max_day_off,
-                               emin=box_emin_sci,
-                               emax=box_emax_sci, level=DATA_LEVEL_FOR_IMAGING)
-    #find background data acquired within bkg_max_day_off days
-    global last_bkg_fits_doc
-    bkg_fits_doc = last_bkg_fits_doc or bkg_fits_doc
-    if not bkg_fits_doc:
+    bkg_data_meta= find_background(flare_start_unix, bkg_max_day_off=15)
+    if not bkg_data_meta:
         logger.warning(
             f'No background data found for BSD {flare_id}')
         return
-
-       
-
-    bkg_fname = os.path.join(bkg_fits_doc['merg'][0]['path'],
-                             bkg_fits_doc['merg'][0]['filename'])
-    if not os.path.isfile(bkg_fname):
-        logger.warning(
-            f'No background data found for BSD {flare_id}')
-        return
-    print(bkg_fits_doc)
-    last_bkg_fits_doc = bkg_fits_doc
 
     try:
         signal_utc = stu.unix2utc(peak_time)
@@ -234,9 +217,6 @@ def create_imaging_tasks_for_flare(flare_entry_id,
     except Exception as e:
         logger.warning(f'No ephemeris data found for {bsd_id} (uid {uid}), error: {str(e)}')
         return
-    #sun_center=ephem['sun_center']
-
-    #find flares in the time frame
 
 
     flare_time_ranges = [{
@@ -309,12 +289,7 @@ def create_imaging_tasks_for_flare(flare_entry_id,
                 'solo_sun_r': solo_sun_r.to(u.au).value,
                 'solo_hee': solo_hee.to(u.km).value
             },
-            'background': {
-                'filename': bkg_fname,
-                'req_form_id': bkg_fits_doc['_id'],
-                'fits_id': bkg_fits_doc['merg'][0]['_id'],
-                'unique_id': bkg_fits_doc['merg'][0]['request_id'],
-            },
+            'background': bkg_data_meta,
             'start_unix': box['unix_time_range'][0],
             'end_unix': box['unix_time_range'][1],
             'duration': box['unix_time_range'][1] - box['unix_time_range'][0],
@@ -370,7 +345,7 @@ def create_imaging_tasks_for_flares_between(start_id, end_id, overwritten=False)
         create_imaging_tasks_for_flare(i)
 
 
-def register_imaging_tasks_for_last_flares(max_age= 180 ):
+def register_imaging_tasks_for_last_flares(max_age= 18000 ):
     """
     called by L1 data processing pipeline
     imaging requests are submitted to database  after parsing the raw TM
@@ -381,6 +356,35 @@ def register_imaging_tasks_for_last_flares(max_age= 180 ):
     for _id in [d['_id'] for d in  flare_db.find({'start_unix': {'$gte':min_unix},
         'flare_image_ids.0':{'$exists':False} }, {'_id':1}).sort('_id', 1)]:
         create_imaging_tasks_for_flare(_id)
+
+
+def find_background(peak_time, bkg_max_day_off=15):
+    bkg_fits_doc= mdb.find_best_background_fits(peak_time,
+                           bkg_max_day_off,
+                           level=DATA_LEVEL_FOR_IMAGING)
+    if not bkg_fits_doc:
+        print("Not found for :",stu.unix2utc(peak_time))
+        return None
+
+    bkg_fname = os.path.join(bkg_fits_doc['merg'][0]['path'],
+                         bkg_fits_doc['merg'][0]['filename'])
+    if not os.path.isfile(bkg_fname):
+        logger.warning(
+            f'{bkg_fname} not exists!')
+        return None
+    background = {
+                'filename': bkg_fname,
+                'req_form_id': bkg_fits_doc['_id'],
+                'fits_id': bkg_fits_doc['merg'][0]['_id'],
+                'unique_id': bkg_fits_doc['merg'][0]['request_id'],
+            }
+    print("> Found for :",stu.unix2utc(peak_time))
+    print(">>", bkg_fname)
+
+    print(background)
+    return background
+
+
 
 
 
@@ -396,8 +400,7 @@ def update_auxiliary_data():
         db_flare_images.update_one({'_id': doc['_id']}, {'$set': doc})
 
 
-if __name__ == '__main__':
-    #update_auxiliary_data()
+def main():
     if len(sys.argv) == 1:
         print('Usage:')
         print('imaging_take_manager ')
@@ -410,3 +413,5 @@ if __name__ == '__main__':
                 int(sys.argv[2]) )
     #else:
     #update_ephmeris()
+if __name__ == '__main__':
+    main()

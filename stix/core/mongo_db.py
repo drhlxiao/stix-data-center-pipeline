@@ -606,7 +606,7 @@ class MongoDB(object):
                 'request_id': request_id
             }).sort('_id', -1).limit(max_num_fits)
 
-    def find_best_background_fits(self, unix_time, max_days_off=60, emin=3, emax=17, level='L1'):
+    def find_best_background_fits(self, unix_time, max_days_off=60,  level='L1'):
         """
         query data request forms and fits file database to find the best data for background subtraction
         """
