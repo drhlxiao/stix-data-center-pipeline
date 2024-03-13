@@ -157,8 +157,8 @@ def create_imaging_tasks_for_flare(flare_entry_id,
     if peak_time is None:
         logger.info(f'No peak time found for {flare_entry_id}!, ignore this time')
         return
-    query={'data_start_unix':{'$lte':peak_time - duration+10},
-        'data_end_unix': {'$gte':peak_time + duration-10},
+    query={'data_start_unix':{'$lte':peak_time },
+        'data_end_unix': {'$gte':peak_time},
         'product_type':'xray-cpd',
         'level':DATA_LEVEL_FOR_IMAGING
         }
@@ -204,7 +204,7 @@ def create_imaging_tasks_for_flare(flare_entry_id,
     box_emin_sci, box_emax_sci = StixEnergyBins.keV2sci(boxes_energy_low,
                                             boxes_energy_high, flare_start_unix)
     #energy range
-    bkg_data_meta= find_background(flare_start_unix, bkg_max_day_off=15)
+    bkg_data_meta= find_background(flare_start_unix, bkg_max_day_off=30)
     if not bkg_data_meta:
         logger.warning(
             f'No background data found for BSD {flare_id}')
