@@ -18,47 +18,18 @@ connect = pymongo.MongoClient()
 db = connect["stix"]
 col_bsd=db['bsd']
 col_fits=db['fits']
-pipeline = [
-    {
-        "$lookup": {
-            "from": "fits",
-            "let": {"bsdUniqueId": "$unique_id"},
-            "pipeline": [
-                {
-                    "$match": {
-                        "$expr": {
-                            "$and": [
-                                {"$eq": ["$request_id", "$$bsdUniqueId"]},
-                                {"$eq": ["$level", "xray-cpd"]}
-                            ]
-                        }
-                    }
-                }
-            ],
-            "as": "fits"
-        }
-    },
-    {
-        "$match": {
-            "fits": {"$size": 0}
-        }
-    },
-    {
-        "$project": {
-            "_id": 1,  # Exclude _id field
-            "unique_id": 1,  # Include unique_id field
-            "start_unix_time":1
-        }
-    },
-    {"$sort": {"_id": -1}}
-]
 
 # Execute the aggregation pipeline
-docs = col_bsd.aggregate(pipeline)
+docs = col_bsd.find({})
 f=open('L1_missing.csv','w')
 f.write("Unique_ID,BSD_DB_Entry_ID, Data Start UTC\n")
 num=0
 for doc in docs:
+    if 'unique_id' not in doc:
+        continue
+    fdoc=col_fits.find_one({'request_id':doc['unique_id'],'level':'L1'},{'_id':1})
+    if fdoc:
+        continue
     line=f'{doc["unique_id"]},{doc["_id"]},{sdt.unix2utc(doc["start_unix_time"])}\n'
     print(line)
     num+=1
