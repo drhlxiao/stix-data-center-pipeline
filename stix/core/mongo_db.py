@@ -685,6 +685,100 @@ class MongoDB(object):
         if row:
             return row.get('scaling_factor',None)
         return None
+    def find_bsd_for_imaging(self, _id, exclude_imaging_existing=False):
+        bsd_fits_doc=self.find_L1fits_for_bsd(_id)
+        if not bsd_fits_doc:
+            return None, 'FITS not found!'
+        if bsd_fits_doc.get('image_ids',[]) and exclude_imaging_existing:
+            return None, "Images exist"
+        try:
+            fits_start_unix, fits_end_unix=bsd_fits_doc['fits']['data_start_unix'], bsd_fits_doc['fits']['data_end_unix']
+        except:
+            return  None, 'FITS key Error'
+
+        flare_docs=self.collection_flares.find({'start_unix': {'$lte': fits_end_unix}, 'end_unix':{'$gte': fits_start_unix }})
+        docs=[]
+
+        for fdoc in flare_docs:
+            docs.append({
+                'bsd_fits':bsd_fits_doc,
+                'flare': fdoc
+                })
+        msg='OK' if docs else 'No flare found'
+        return docs, msg
+
+
+
+    def find_L1fits_for_bsd(self, _id):
+        docs=self.collection_science_data.aggregate([
+            {
+                "$match": {
+                    "_id": _id,
+                    "SPID": 54115
+                }
+            },
+            {
+                "$lookup": {
+                    "from": 'fits',
+                    "localField": 'unique_id',
+                    "foreignField": 'request_id',
+                    "as": 'fits'
+                }
+            },
+            {
+                "$unwind": '$fits'
+            },
+                  {
+            "$match": {
+                "fits": {"$exists": True, "$ne": []},
+                "fits.level":'L1'
+            }
+            },
+                  {
+                      '$limit':1
+                      }
+        ])
+        for doc in docs:
+            return doc
+        return None
+
+    def find_L1fits_for_flare(self, flare_id):
+        docs=self.collection_data_requests.aggregate([
+            {
+                "$match": {
+                    "flare_id": flare_id,
+                    "request_type": 'L1'
+                    #"ior_id": {"$gt": 0}
+                }
+            },
+            {
+                "$lookup": {
+                    "from": 'fits',
+                    "localField": 'unique_ids',
+                    "foreignField": 'request_id',
+                    "as": 'fits'
+                }
+            },
+            {
+                "$unwind": '$fits'
+            },
+                  {
+            "$match": {
+                "fits": {"$exists": True, "$ne": []},
+                "fits.level":'L1'
+            }
+            },
+                  {
+                      '$limit':1
+                      }
+        ])
+        for doc in docs:
+            return doc['fits']
+        return None
+
+
+
+
 
 
 

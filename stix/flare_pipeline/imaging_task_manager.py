@@ -51,6 +51,7 @@ BKG_FILE_MAX_DAY_OFFSET=180
 ASPECT_TIME_TOR = 300  #time tolerance for looking for aspect solution
 
 last_bkg_fits_doc = None
+TIME_MARGIN=4
 
 
 
@@ -123,11 +124,11 @@ def attach_aspect_solutions(start_unix, end_unix, config):
 
 
 
-def create_imaging_tasks_for_flare(flare_entry_id, 
+def create_imaging_tasks_for_BSD(bsd_id, 
                         min_counts=MIN_COUNTS,
                         duration=60,
                         energy_bands=[[4, 10], [16, 28]],
-                        bkg_max_day_off=BKG_FILE_MAX_DAY_OFFSET, overwritten=True):
+                        bkg_max_day_off=BKG_FILE_MAX_DAY_OFFSET, overwritten=False):
     """
     This function only register imaging tasks
     Parameters
@@ -139,79 +140,89 @@ def create_imaging_tasks_for_flare(flare_entry_id,
         duration: float
             integration time in units of seconds
     """
-    query={'_id':flare_entry_id}
-    flare_doc=flare_db.find_one(query)
-    logger.info(f'\n\n\nImaging request for flare # {flare_entry_id}')
-    if not flare_doc:
-        logger.warning(f'No flare Entry # {flare_entry_id} found')
+    logger.info(f'\n\n\nCreating imaging tasks for BSD # {bsd_id}')
+    exclude_imaging_existing= not overwritten
+
+    docs,msg =mdb.find_bsd_for_imaging(bsd_id, exclude_imaging_existing)
+    if not docs :
+        logger.warning(f'No BSD doc or FITS found for BSD # {bsd_id}, due to   {msg} ')
         return
-    if not overwritten:
-        if flare_doc.get('flare_image_ids', []) :
-            logger.info(f'Image exists for Flare Entry # {flare_entry_id}!, ignore this time')
-            return
+    for doc in docs:
+        _create_imaging_tasks_for_BSD(doc, 
+                        min_counts,
+                        duration,
+                        energy_bands,
+                        bkg_max_day_off, overwritten)
+
+def _create_imaging_tasks_for_BSD(doc, 
+                        min_counts=MIN_COUNTS,
+                        duration=60,
+                        energy_bands=[[4, 10], [16, 28]],
+                        bkg_max_day_off=BKG_FILE_MAX_DAY_OFFSET, overwritten=True):
 
 
-    peak_time=flare_doc.get('peak_unix_time',0)
-    flare_id=flare_doc.get('flare_id',None)
-
-    if peak_time is None:
-        logger.info(f'No peak time found for {flare_entry_id}!, ignore this time')
-        return
-    query={'data_start_unix':{'$lte':peak_time },
-        'data_end_unix': {'$gte':peak_time},
-        'product_type':'xray-cpd',
-        'level':DATA_LEVEL_FOR_IMAGING
-        }
-    fits_files=list(fits_db.find(query).sort('file_size', -1).limit(1) )
-    #find the best fits for for imaging
-    if not fits_files:
-        logger.warning(f'No signal FITS file found for flare # {flare_id}')
-        print(query)
-        print("start time < :", stu.unix2utc(peak_time - duration))
-        print("duration ",  duration)
-        return
-    fits_doc=fits_files[0]
-
-    uid = int(fits_doc.get('request_id', -1))
-    try:
-        bsd_doc = bsd_db.find_one({'unique_id': uid})
-        bsd_id=bsd_doc['_id']
-    except:
-        bsd_doc=None
-        bsd_id= -1 
+    fits_doc=doc['bsd_fits']['fits']
+    bsd_id=doc['bsd_fits']['_id']
 
 
     try:
         fname = os.path.join(fits_doc['path'], fits_doc['filename'])
     except (IndexError, KeyError):
         logger.warning(
-            f'No signal data found for flare {flare_id} ')
+            f'No signal data found for bsd {bsd_id} ')
         return
     if not os.path.isfile(fname):
         logger.warning(
-            f'No background data found for BSD {flare_id}')
+            f'No signal data found for BSD {bsd_id}')
         return
 
+    flare_doc=doc['flare']
 
+    flare_id=flare_doc['flare_id']
+    uid=doc['bsd_fits']['unique_id']
 
     flare_image_id = mdb.get_next_flare_image_id()
 
-    flare_start_unix = flare_doc['start_unix']
-    flare_end_unix = flare_doc['end_unix']
+    
+    flare_start_unix=max(flare_doc['start_unix'], fits_doc['data_start_unix']+1)
+    flare_end_unix=min(flare_doc['end_unix'], fits_doc['data_end_unix']-1)
 
-    boxes_energy_low = np.min(np.array(energy_bands))
-    boxes_energy_high = np.max(np.array(energy_bands))
-    box_emin_sci, box_emax_sci = StixEnergyBins.keV2sci(boxes_energy_low,
-                                            boxes_energy_high, flare_start_unix)
-    #energy range
-    bkg_data_meta= find_background(flare_start_unix, bkg_max_day_off=30)
-    if not bkg_data_meta:
-        logger.warning(
-            f'No background data found for BSD {flare_id}')
-        return
+    logger.info(f"Flare time: {stu.unix2utc(flare_start_unix)}, duration {flare_end_unix-flare_start_unix}")
+    
+
 
     try:
-        signal_utc = stu.unix2utc(peak_time)
+
+        bkg_meta= find_background(flare_start_unix, bkg_max_day_off=30)
+    except IndexError:
+        bkg_meta = None
+    if not bkg_meta:
+        logger.warning(
+            f'No background data found for BSD {bsd_id}')
+        return
+
+    
+    if flare_doc['peak_counts']> 3000:
+        start, end= flare_doc['peak_unix_time']-30, flare_doc['peak_unix_time']+30
+    else:
+        start, end= fits_doc['data_start_unix']+TIME_MARGIN, fits_doc['data_end_unix']-TIME_MARGIN
+
+    energies =[[4,10]] 
+
+    try:
+        if flare_doc['LC_statistics']['upper_ilc'] >1:
+            energies.append([16,28])
+    except (KeyError, TypeError):
+        pass
+
+
+
+    start=max(start, fits_doc['data_start_unix']+TIME_MARGIN)
+    end=min(end, fits_doc['data_end_unix']-TIME_MARGIN)
+
+
+    try:
+        signal_utc = stu.unix2utc( (start+end)*0.5 )
         B0, L0, roll, rsun, dsun, solo_hee, solo_sun_r, sun_center = solo.SoloEphemeris.get_ephemeris_for_imaging(
             signal_utc)
     except Exception as e:
@@ -219,34 +230,12 @@ def create_imaging_tasks_for_flare(flare_entry_id,
         return
 
 
-    flare_time_ranges = [{
-        'start':flare_doc['start_unix'],
-        'peak_counts': flare_doc['peak_counts'],
-        'peak_unix_time': flare_doc['peak_unix_time'],
-        'end': flare_doc['end_unix']
-    } ]
-
-
-    if flare_doc['peak_counts']> 3000:
-        start, end= flare_doc['peak_unix_time']-30, flare_doc['peak_unix_time']+30
-    else:
-        start, end= fits_doc['data_start_unix'], fits_doc['data_end_unix']
-    energies =[[4,10]] 
-    try:
-        if flare_doc['LC_statistics']['upper_ilc'] >1:
-            energies.append([16,28])
-
-    except (KeyError, TypeError):
-        pass
-
-
     boxes=[{'total_counts':  0,
                     'pixel_counts':  0,
-                    #'energy_range_sci': sci_range,
                     'energy_range_keV': erange,
                     'unix_time_range': [start,  end],
                     'utc_range': [stu.unix2utc(start),  stu.unix2utc(end)]}
-                    for erange in energies]
+                    for erange in energies ]
 
     num_images = 0
     flare_image_ids = []
@@ -268,7 +257,6 @@ def create_imaging_tasks_for_flare(flare_entry_id,
         config = {
             'filename': fname,
             'bsd_id': bsd_id,
-            #'raw_file_id': doc['run_id'],
             'flare_id':flare_id,
             'unique_id': uid,
             'task_id': task_id,
@@ -289,7 +277,7 @@ def create_imaging_tasks_for_flare(flare_entry_id,
                 'solo_sun_r': solo_sun_r.to(u.au).value,
                 'solo_hee': solo_hee.to(u.km).value
             },
-            'background': bkg_data_meta,
+            'background': bkg_meta,
             'start_unix': box['unix_time_range'][0],
             'end_unix': box['unix_time_range'][1],
             'duration': box['unix_time_range'][1] - box['unix_time_range'][0],
@@ -308,10 +296,6 @@ def create_imaging_tasks_for_flare(flare_entry_id,
             'figs': {}, #placeholder
         }
         
-        #if config['aux']['solo_sun_r'] > 0.75:
-        #    config['aux']['comments']=f'''The aspect solution is unreliable due to the SolO-Sun distance exceeding 0.75 AU. 
-        #    The pointing offsets were calculated using the SPICE kernel.'''
-        #else:
         attach_aspect_solutions(box['unix_time_range'][0] - ASPECT_TIME_TOR,
                                 box['unix_time_range'][1] + ASPECT_TIME_TOR,
                                 config)
@@ -331,21 +315,26 @@ def create_imaging_tasks_for_flare(flare_entry_id,
         if bsd_id >= 0:
             bsd_db.update_one({'_id': bsd_id},
                           {'$set': {
-                              'flare_image_ids': flare_image_ids
+                              'image_ids': flare_image_ids
                           }},
                           upsert=False)
         flare_db.update_one({'_id': flare_doc['_id']},
                           {'$set': {
-                              'flare_image_ids': flare_image_ids
+                              'image_ids': flare_image_ids
                           }})
         #push
 
-def create_imaging_tasks_for_flares_between(start_id, end_id, overwritten=False):
+def create_imaging_tasks_for_BSDs_between(start_id, end_id, overwritten=False):
     for i in range(start_id, end_id+1):
-        create_imaging_tasks_for_flare(i)
+        create_imaging_tasks_for_BSD(i)
+
+def create_imaging_tasks_for_bsd(start_id, end_id):
+    for i in range(start_id, end_id+1):
+        create_imaging_tasks_for_bsd(i)
 
 
-def register_imaging_tasks_for_last_flares(max_age= 18000 ):
+
+def register_imaging_tasks_for_last_bsd(max_age= 18000 ):
     """
     called by L1 data processing pipeline
     imaging requests are submitted to database  after parsing the raw TM
@@ -353,9 +342,9 @@ def register_imaging_tasks_for_last_flares(max_age= 18000 ):
     """
     min_unix=stu.get_now()-max_age * 86400
     logger.info(f"registering imaging tasks for flares detected since{stu.unix2utc(min_unix)}")
-    for _id in [d['_id'] for d in  flare_db.find({'start_unix': {'$gte':min_unix},
-        'flare_image_ids.0':{'$exists':False} }, {'_id':1}).sort('_id', 1)]:
-        create_imaging_tasks_for_flare(_id)
+    for _id in [d['_id'] for d in  bsd_db.find({'start_unix_time': {'$gte':min_unix},
+        'image_ids.0':{'$exists':False} }, {'_id':1}).sort('_id', 1)]:
+        create_imaging_tasks_for_BSD(_id)
 
 
 def find_background(peak_time, bkg_max_day_off=15):
@@ -378,10 +367,7 @@ def find_background(peak_time, bkg_max_day_off=15):
                 'fits_id': bkg_fits_doc['merg'][0]['_id'],
                 'unique_id': bkg_fits_doc['merg'][0]['request_id'],
             }
-    print("> Found for :",stu.unix2utc(peak_time))
-    print(">>", bkg_fname)
 
-    print(background)
     return background
 
 
@@ -404,12 +390,12 @@ def main():
     if len(sys.argv) == 1:
         print('Usage:')
         print('imaging_take_manager ')
-        register_imaging_tasks_for_last_flares()
+        register_imaging_tasks_for_last_bsd()
 
     elif len(sys.argv)==2:
-        create_imaging_tasks_for_flare(int(sys.argv[1]) )
+        create_imaging_tasks_for_BSD(int(sys.argv[1]) )
     elif len(sys.argv)==3:
-        create_imaging_tasks_for_flares_between(int(sys.argv[1]), 
+        create_imaging_tasks_for_BSDs_between(int(sys.argv[1]), 
                 int(sys.argv[2]) )
     #else:
     #update_ephmeris()
