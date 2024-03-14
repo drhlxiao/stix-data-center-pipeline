@@ -235,14 +235,15 @@ def _create_imaging_tasks_for_BSD(doc,
         end=min(end, fits_doc['data_end_unix']-TIME_MARGIN)
         boxes.append(create_box(4,10,start,end))
 
-    if 'LC_statistics' in flare_doc:
-        lcs=flare_doc['LC_statistics']
+    lcs=flare_doc.get('LC_statistics', [])
+    if lcs:
         upper_ilc=lcs['upper_ilc']
+        print("Upper:",upper_ilc)
         for ilc in range(1, upper_ilc+1):
-            lc=flare_doc['LC_statistics'][f'lc{ilc}']
+            lc=lcs[f'lc{ilc}']
             erange=QL_EBANDS[ilc]
-
-            if erange[0] >= min_energy :
+            if erange[0] > max_energy :
+                print("No counts for energy range :", max_energy)
                 break #data not available
 
             start=lc['peak_unix_time'] - lc['num_above_3sigma']*4/2
@@ -254,7 +255,11 @@ def _create_imaging_tasks_for_BSD(doc,
             start=max(start, fits_doc['data_start_unix']+TIME_MARGIN)
             end=min(end, fits_doc['data_end_unix']-TIME_MARGIN)
 
+            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Nonthermal:")
+
             boxes.append(create_box(emin,emax,start,end))
+        else:
+            print("Flare stat not exists")
 
 
     try:
