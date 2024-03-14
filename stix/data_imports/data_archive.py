@@ -50,6 +50,7 @@ DATA_ARCHIVE_FILE_INFO = {
 }
 
 
+
 def read_data_archive_fits_meta(filename, file_info):
     meta = {}
     try:
@@ -67,6 +68,8 @@ def read_data_archive_fits_meta(filename, file_info):
     creation_time = hdu[0].header.get('DATE', None)
     creation_time = sdt.utc2datetime(
         creation_time) if creation_time is not None else datetime.now()
+
+
     meta = {
         '_id': mdb.get_next_fits_id(),
         #'filename': os.path.basename(filename),
@@ -82,8 +85,29 @@ def read_data_archive_fits_meta(filename, file_info):
         'data_start_unix': sdt.utc2unix(date_range[0]),
         'data_end_unix': sdt.utc2unix(date_range[1]),
     }
+    try:
+        meta['energies']=hdu['ENERGIES'].data.tolist()
+    except :
+        pass
 
-    if 'L1_stix-sci' in filename:
+    try:
+        meta['compression_scheme_triggers_skm']=hdu['CONTROL'].data['compression_scheme_triggers_skm'].tolist()
+    except:
+        pass
+
+    try:
+        meta['compression_scheme_counts_skm']=hdu['CONTROL'].data['compression_scheme_counts_skm'].tolist()
+    except pass:
+        pass
+    try:
+        request_id=hdu['CONTROL'].data['request_id'].tolist()[0]
+        meta['request_id'] = request_id
+
+    except:
+        request_id=None
+        pass
+
+    if 'L1_stix-sci' in filename and not request_id:
         #extract request id from filename
         if 'aspect' in filename:
             request_id = [
@@ -172,7 +196,7 @@ def import_all_aspect_solutions(path_patten=DEFAULT_ASP_PATH_PATTEN):
             #reduce checking of database
 
 
-def read_fits_to_dict(fname, md5):
+def read_aux_fits_to_dict(fname, md5):
     """
     read fits file and convert data to dict
     """
@@ -217,7 +241,7 @@ def import_auxiliary(fname):
         return
     asp_db.delete_many({'filename': fname})
     #delete the only entries
-    rows = read_fits_to_dict(fname, md5checksum)
+    rows = read_aux_fits_to_dict(fname, md5checksum)
     if rows:
         num = asp_db.insert_many(rows)
         logger.info(f"Inserted entries {len(rows)}, File: {fname}")

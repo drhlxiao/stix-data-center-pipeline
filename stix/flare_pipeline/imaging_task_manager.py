@@ -27,7 +27,6 @@ from stix.analysis.science_l1 import ScienceL1
 
 from stix.core import logger
 from stix.spice import solo
-from stix.core.energy_bins import StixEnergyBins
 from stix.utils import bson
 from stix.spice import time_utils as stu
 from stix.spice import spice_manager as spm
@@ -53,6 +52,7 @@ ASPECT_TIME_TOR = 300  #time tolerance for looking for aspect solution
 last_bkg_fits_doc = None
 TIME_MARGIN=4
 
+QL_EBANDS=[[4,10],[10,15],[15,25],[25,50],[50,84]]
 
 
 def get_sun_center_from_aspect(y_srf, z_srf):
@@ -154,6 +154,15 @@ def create_imaging_tasks_for_BSD(bsd_id,
                         energy_bands,
                         bkg_max_day_off, overwritten)
 
+def create_box(emin, emax, tstart, tend):
+    meta={'total_counts':  0,
+                    'pixel_counts':  0,
+                    'energy_range_keV': [emin,emax],
+                    'unix_time_range': [tstart,  tend],
+                    'utc_range': [stu.unix2utc(tstart),  stu.unix2utc(tend)]}
+    print(meta)
+    return meta
+
 def _create_imaging_tasks_for_BSD(doc, 
                         min_counts=MIN_COUNTS,
                         duration=60,
@@ -162,6 +171,16 @@ def _create_imaging_tasks_for_BSD(doc,
 
 
     fits_doc=doc['bsd_fits']['fits']
+
+    energy_bins = fits_doc.get('energies',[])
+    if energy_bins:
+        min_energy, max_energy =energy_bins[0][1], energy_bins[-1][2]
+    else:
+        min_energy, max_energy = 4, 150
+
+
+
+
     bsd_id=doc['bsd_fits']['_id']
 
 
@@ -201,24 +220,41 @@ def _create_imaging_tasks_for_BSD(doc,
             f'No background data found for BSD {bsd_id}')
         return
 
-    
-    if flare_doc['peak_counts']> 3000:
-        start, end= flare_doc['peak_unix_time']-30, flare_doc['peak_unix_time']+30
-    else:
-        start, end= fits_doc['data_start_unix']+TIME_MARGIN, fits_doc['data_end_unix']-TIME_MARGIN
-
     energies =[[4,10]] 
 
-    try:
-        if flare_doc['LC_statistics']['upper_ilc'] >1:
-            energies.append([16,28])
-    except (KeyError, TypeError):
-        pass
+    boxes=[]
 
+    if flare_doc['peak_counts']> 3000:
+        start, end= flare_doc['peak_unix_time']-30, flare_doc['peak_unix_time']+30
+        start=max(start, fits_doc['data_start_unix']+TIME_MARGIN)
+        end=min(end, fits_doc['data_end_unix']-TIME_MARGIN)
+        boxes.append(create_box(4,10,start,end))
+    else:
+        start, end= flare_doc['start_unix'], flare_doc['end_unix']
+        start=max(start, fits_doc['data_start_unix']+TIME_MARGIN)
+        end=min(end, fits_doc['data_end_unix']-TIME_MARGIN)
+        boxes.append(create_box(4,10,start,end))
 
+    if 'LC_statistics' in flare_doc:
+        lcs=flare_doc['LC_statistics']
+        upper_ilc=lcs['upper_ilc']
+        for ilc in range(1, upper_ilc+1):
+            lc=flare_doc['LC_statistics'][f'lc{ilc}']
+            erange=QL_EBANDS[ilc]
 
-    start=max(start, fits_doc['data_start_unix']+TIME_MARGIN)
-    end=min(end, fits_doc['data_end_unix']-TIME_MARGIN)
+            if erange[0] >= min_energy :
+                break #data not available
+
+            start=lc['peak_unix_time'] - lc['num_above_3sigma']*4/2
+            end = lc['peak_unix_time'] + lc['num_above_3sigma']*4/2
+
+            emin=erange[0]
+            emax=min(max_energy, erange[1])
+
+            start=max(start, fits_doc['data_start_unix']+TIME_MARGIN)
+            end=min(end, fits_doc['data_end_unix']-TIME_MARGIN)
+
+            boxes.append(create_box(emin,emax,start,end))
 
 
     try:
@@ -230,12 +266,6 @@ def _create_imaging_tasks_for_BSD(doc,
         return
 
 
-    boxes=[{'total_counts':  0,
-                    'pixel_counts':  0,
-                    'energy_range_keV': erange,
-                    'unix_time_range': [start,  end],
-                    'utc_range': [stu.unix2utc(start),  stu.unix2utc(end)]}
-                    for erange in energies ]
 
     num_images = 0
     flare_image_ids = []
@@ -334,7 +364,7 @@ def create_imaging_tasks_for_bsd(start_id, end_id):
 
 
 
-def register_imaging_tasks_for_last_bsd(max_age= 18000 ):
+def register_imaging_tasks_for_last_bsd(max_age= 18000 , overwritten=True):
     """
     called by L1 data processing pipeline
     imaging requests are submitted to database  after parsing the raw TM
@@ -342,9 +372,12 @@ def register_imaging_tasks_for_last_bsd(max_age= 18000 ):
     """
     min_unix=stu.get_now()-max_age * 86400
     logger.info(f"registering imaging tasks for flares detected since{stu.unix2utc(min_unix)}")
-    for _id in [d['_id'] for d in  bsd_db.find({'start_unix_time': {'$gte':min_unix},
-        'image_ids.0':{'$exists':False} }, {'_id':1}).sort('_id', 1)]:
-        create_imaging_tasks_for_BSD(_id)
+    query={'start_unix_time': {'$gte':min_unix}}
+    if not overwritten:
+        query['image_ids.0']={'$exists':False} 
+
+    for _id in [d['_id'] for d in  bsd_db.find(query, {'_id':1}).sort('_id', 1)]:
+        create_imaging_tasks_for_BSD(_id, overwritten=overwritten)
 
 
 def find_background(peak_time, bkg_max_day_off=15):
