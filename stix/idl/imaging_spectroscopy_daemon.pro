@@ -104,7 +104,7 @@ WHILE (1 ne 0) DO BEGIN
 		vis_fname=outfile_prefix + "_vis.sav"
 		aux_fname=outfile_prefix + "_aux.sav"
 
-		print, bp_fname+','+full_disk_bp_fname
+		;print, bp_fname+','+full_disk_bp_fname
 
 		stx_image_reconstruction, path_bkg_file, path_sci_file, $
 		  start_utc, end_utc, $
