@@ -5,15 +5,15 @@
 
 
 
-.run /opt/stix/parser/stix/idl/stix_imaging_v20240325/stx_bproj_imaging_pipeline.pro
-.run /opt/stix/parser/stix/idl/stix_imaging_v20240325/stx_em_imaging_pipeline.pro
-.run /opt/stix/parser/stix/idl/stix_imaging_v20240325/stx_estimate_flare_location_imaging_pipeline.pro
-.run /opt/stix/parser/stix/idl/stix_imaging_v20240325/stx_make_map_imaging_pipeline.pro
-.run /opt/stix/parser/stix/idl/stix_imaging_v20240325/stx_map2fits_v5.pro
-.run /opt/stix/parser/stix/idl/stix_imaging_v20240325/stx_mem_ge_imaging_pipeline.pro
-.run /opt/stix/parser/stix/idl/stix_imaging_v20240325/stx_vis_clean_imaging_pipeline.pro
-.run /opt/stix/parser/stix/idl/stix_imaging_v20240325/stx_vis_fwdfit_pso_imaging_pipeline.pro
-.run /opt/stix/parser/stix/idl/stix_imaging_v20240325/stx_image_reconstruction.pro
+.run /opt/stix/parser/stix/idl/stx_bproj_imaging_pipeline.pro
+.run /opt/stix/parser/stix/idl/stx_em_imaging_pipeline.pro
+.run /opt/stix/parser/stix/idl/stx_estimate_flare_location_imaging_pipeline.pro
+.run /opt/stix/parser/stix/idl/stx_make_map_imaging_pipeline.pro
+.run /opt/stix/parser/stix/idl/stx_map2fits_v5.pro
+.run /opt/stix/parser/stix/idl/stx_mem_ge_imaging_pipeline.pro
+.run /opt/stix/parser/stix/idl/stx_vis_clean_imaging_pipeline.pro
+.run /opt/stix/parser/stix/idl/stx_vis_fwdfit_pso_imaging_pipeline.pro
+.run /opt/stix/parser/stix/idl/stx_image_reconstruction.pro
 
 
 .run /opt/stix/parser/stix/idl/spex__save_autofit_fits.pro
