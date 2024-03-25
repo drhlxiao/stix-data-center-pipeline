@@ -88,17 +88,17 @@ WHILE (1 ne 0) DO BEGIN
 			vis_fwdfit_source_type= ['circle','circle']
 		endif
 
-	full_hpc_filename = outfile_prefix + '_full_hpc.fits'
-	bp_hpc_filename = outfile_prefix + '_bp_hpc.fits'
-	vis_hpc_filename = outfile_prefix + '_vff_hpc.fits'
-	em_hpc_filename = outfile_prefix + '_em_hpc.fits'
-	clean_hpc_filename = outfile_prefix + '_clean_hpc.fits'
-	mem_hpc_filename = outfile_prefix + '_mem_hpc.fits'
-	bp_stx_filename = outfile_prefix + '_bp_stx.fits'
-	vis_stx_filename = outfile_prefix + '_vff_stx.fits'
-	em_stx_filename = outfile_prefix + '_em_stx.fits'
-	clean_stx_filename = outfile_prefix + '_clean_stx.fits'
-	mem_stx_filename = outfile_prefix + '_mem_stx.fits'
+		full_hpc_filename = outfile_prefix + '_full_hpc.fits'
+		bp_hpc_filename = outfile_prefix + '_bp_hpc.fits'
+		vis_hpc_filename = outfile_prefix + '_vff_hpc.fits'
+		em_hpc_filename = outfile_prefix + '_em_hpc.fits'
+		clean_hpc_filename = outfile_prefix + '_clean_hpc.fits'
+		mem_hpc_filename = outfile_prefix + '_mem_hpc.fits'
+		bp_stx_filename = outfile_prefix + '_bp_stx.fits'
+		vis_stx_filename = outfile_prefix + '_vff_stx.fits'
+		em_stx_filename = outfile_prefix + '_em_stx.fits'
+		clean_stx_filename = outfile_prefix + '_clean_stx.fits'
+		mem_stx_filename = outfile_prefix + '_mem_stx.fits'
 
 
 		vis_fname=outfile_prefix + "_vis.sav"
@@ -130,7 +130,7 @@ WHILE (1 ne 0) DO BEGIN
 	endif
 
 	print, "Performing spectral fitting..."
-	spectral_fitting_results_filename=outfile_prefix+"_ospex_results.fits"
+	spectral_fitting_results_filename=outfile_prefix+"_spec_fitting.fits"
 	result=stx_ospex_pipeline_wrapper(path_sci_file,  path_bkg_file, start_utc,  end_utc, require_nonthermal,thermal_only, spectral_fitting_results_filename)
 
 	print, "writing meta data to database"
