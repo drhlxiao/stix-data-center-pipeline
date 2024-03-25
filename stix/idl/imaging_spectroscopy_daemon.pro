@@ -87,30 +87,46 @@ WHILE (1 ne 0) DO BEGIN
 		if vis_fwdfit_source_type eq 'multi' then begin
 			vis_fwdfit_source_type= ['circle','circle']
 		endif
-		bp_fname=outfile_prefix + "_bp_map.fits" 
-		full_disk_bp_fname=outfile_prefix + "_full_disk_bp_map.fits" 
-		vis_fwdfit_fname=outfile_prefix + "_vis_fwdfit_map.fits" 
-		em_fname=outfile_prefix + "_em_map.fits"
-		clean_fname=outfile_prefix + "_clean_map.fits"
+
+	full_hpc_filename = outfile_prefix + '_full_hpc.fits'
+	bp_hpc_filename = outfile_prefix + '_bp_hpc.fits'
+	vis_hpc_filename = outfile_prefix + '_vff_hpc.fits'
+	em_hpc_filename = outfile_prefix + '_em_hpc.fits'
+	clean_hpc_filename = outfile_prefix + '_clean_hpc.fits'
+	mem_hpc_filename = outfile_prefix + '_mem_hpc.fits'
+	bp_stx_filename = outfile_prefix + '_bp_stx.fits'
+	vis_stx_filename = outfile_prefix + '_vff_stx.fits'
+	em_stx_filename = outfile_prefix + '_em_stx.fits'
+	clean_stx_filename = outfile_prefix + '_clean_stx.fits'
+	mem_stx_filename = outfile_prefix + '_mem_stx.fits'
+
+
 		vis_fname=outfile_prefix + "_vis.sav"
+		aux_fname=outfile_prefix + "_aux.sav"
 
 		print, bp_fname+','+full_disk_bp_fname
 
-		stx_image_reconstruct, path_bkg_file, path_sci_file, $
-			start_utc, end_utc, $
-			elow, ehigh, $
-			bp_elow, bp_ehigh, $
-			full_disk_bp_fname,  $
-			bp_fname, $
-			vis_fwdfit_fname, vis_fwdfit_source_type, $
-			em_fname, $
-			clean_fname,  vis_fname,  $
-			L0, B0, RSUN, roll_angle, dsun, $
-			x_offset_arcsec, y_offset_arcsec, 0
+		stx_image_reconstruction, path_bkg_file, path_sci_file, $
+		  start_utc, end_utc, $
+		  elow, ehigh, $
+		  bp_elow, bp_ehigh, $
+		  vis_fwdfit_source_type, $
+		  full_hpc_filename,$
+		  bp_hpc_filename, $
+		  vis_hpc_filename, $
+		  em_hpc_filename, clean_hpc_filename, $
+		  mem_hpc_filename, $
+		  bp_stx_filename, $
+		  vis_stx_filename, $
+		  em_stx_filename, clean_stx_filename, $
+		  mem_stx_filename, $
+		  vis_fname, aux_fname, L0, B0, RSUN, roll_angle, $
+		  x_offset_arcsec, y_offset_arcsec, 0
 
 
-
-		resp+="&image_bp="+bp_fname+"&image_fwdfit="+vis_fwdfit_fname+"&image_em="+em_fname+"&image_clean="+clean_fname+"&image_full_disk="+full_disk_bp_fname +"&vis="+vis_fname
+		resp+="&image_bp="+bp_hpc_filename+"&image_fwdfit="+vis_hpc_filename+"&image_em="+mem_hpc_filename+"&image_clean="+clean_hpc_filename+"&image_full_disk="+full_hpc_filename
+		resp+="&image_stix_bp="+bp_stx_filename+"&image_stix_fwdfit="+vis_stx_filename+"&image_stix_em="+mem_stx_filename+"&image_stix_clean="+clean_stx_filename
+		resp+="&aux="+aux_fname +"&vis="+vis_fname
 	endif
 
 	print, "Performing spectral fitting..."
