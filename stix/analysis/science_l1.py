@@ -275,8 +275,11 @@ class ScienceL1(ScienceData):
         ax.set_yticklabels(
             self.energy_bin_names[self.min_ebin:self.max_ebin:2])
         fig = plt.gcf()
-        cbar = fig.colorbar(im, ax=ax)
-        cbar.set_label('Counts')
+        try:
+            cbar = fig.colorbar(im, ax=ax)
+            cbar.set_label('Counts')
+        except:
+            pass
         ax.set_title('Count rate spectrogram')
         ax.set_ylabel('Energy range (keV')
 

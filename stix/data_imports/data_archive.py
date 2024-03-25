@@ -97,7 +97,7 @@ def read_data_archive_fits_meta(filename, file_info):
 
     try:
         meta['compression_scheme_counts_skm']=hdu['CONTROL'].data['compression_scheme_counts_skm'].tolist()
-    except pass:
+    except :
         pass
     try:
         request_id=hdu['CONTROL'].data['request_id'].tolist()[0]
@@ -251,8 +251,7 @@ def import_auxiliary(fname):
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
-        pass
-
+        import_data_archive_products(max_age_days=10)
     elif len(sys.argv) != 2:
         #default
         logger.info('read_and_import_aspect <filename')

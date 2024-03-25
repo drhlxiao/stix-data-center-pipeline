@@ -46,6 +46,8 @@ req_db = mdb.get_collection('data_requests')
 MIN_COUNTS = 10000
 DATA_LEVEL_FOR_IMAGING='L1'
 BKG_FILE_MAX_DAY_OFFSET=180
+MIN_IMAGING_COUNTS=3000
+MIN_IMAGING_DURATION=60
 
 ASPECT_TIME_TOR = 300  #time tolerance for looking for aspect solution
 
@@ -224,16 +226,20 @@ def _create_imaging_tasks_for_BSD(doc,
 
     boxes=[]
 
-    if flare_doc['peak_counts']> 3000:
+    if flare_doc['peak_counts']> MIN_IMAGING_COUNTS:
         start, end= flare_doc['peak_unix_time']-30, flare_doc['peak_unix_time']+30
         start=max(start, fits_doc['data_start_unix']+TIME_MARGIN)
         end=min(end, fits_doc['data_end_unix']-TIME_MARGIN)
-        boxes.append(create_box(4,10,start,end))
+
+        if end-start>MIN_IMAGING_DURATION:
+            boxes.append(create_box(4,10,start,end))
     else:
         start, end= flare_doc['start_unix'], flare_doc['end_unix']
         start=max(start, fits_doc['data_start_unix']+TIME_MARGIN)
         end=min(end, fits_doc['data_end_unix']-TIME_MARGIN)
-        boxes.append(create_box(4,10,start,end))
+        if end-start>=MIN_IMAGING_DURATION:
+
+            boxes.append(create_box(4,10,start,end))
 
     lcs=flare_doc.get('LC_statistics', [])
     if lcs:
@@ -245,16 +251,26 @@ def _create_imaging_tasks_for_BSD(doc,
             if erange[0] > max_energy :
                 print("No counts for energy range :", max_energy)
                 break #data not available
+            if lc['num_above_3sigma'] * (lc['signal_max'] - lc['bkg_median'] ) < MIN_IMAGING_COUNTS:
+                continue
+            #less than two 2 min, too less counts 
 
-            start=lc['peak_unix_time'] - lc['num_above_3sigma']*4/2
-            end = lc['peak_unix_time'] + lc['num_above_3sigma']*4/2
+
+            duration=max(lc['num_above_3sigma']*4/2, 30)
+
+            start=lc['peak_unix_time'] - duration
+            end = lc['peak_unix_time'] + duration
 
             emin=erange[0]
-            emax=min(max_energy, erange[1])
+            emax=min([150, max_energy, erange[1]])
+
 
             start=max(start, fits_doc['data_start_unix']+TIME_MARGIN)
             end=min(end, fits_doc['data_end_unix']-TIME_MARGIN)
 
+            if end-start<MIN_IMAGING_DURATION:
+                #occured when a FITS file doesn't cover the full time range of the flare
+                continue
             print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Nonthermal:")
 
             boxes.append(create_box(emin,emax,start,end))

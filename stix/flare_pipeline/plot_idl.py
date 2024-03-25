@@ -311,19 +311,21 @@ def plot_imaging_and_ospex_results(doc):
     except Exception as e:
         logger.error("Error occurred when creating spectral fitting result..")
 
-    img_fname, im_report, ephemeris=plot_images(doc, ospex_fig_obj)
-    if img_fname is not None:
-        figs.append({'images': img_fname})
     report={}
     if ospex_fig_obj:
         if 'output' in ospex_fig_obj:
             report['ospex']={'filename':ospex_fig_obj['output'], 
                 'title':'Spectral fitting result'}
+
+    img_fname, im_report, ephemeris=plot_images(doc, ospex_fig_obj)
+    if img_fname is not None:
+        figs.append({'images': img_fname})
     if isinstance(im_report, dict):
         report.update(im_report)
 
     new_values['report']=report
-    new_values['flare_ephemeris']=ephemeris
+    if ephemeris:
+        new_values['flare_ephemeris']=ephemeris
 
 
 
@@ -406,15 +408,15 @@ def update_ephemeris_all():
 def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_report=True):
     if task_doc.get('signal_data_type', None) != 'PixelData':
         logger.warning('Images can not only created for PixelData!')
-        return None, None
+        return None, None, None
     try:
         fits_filename = task_doc['fits']
     except (KeyError, TypeError):
         logger.error('No fits information found in the database')
-        return None,None
+        return None,None, None
     if not fits_filename:
         logger.error('No fits file information in the database')
-        return None,None
+        return None,None, None
     # key should be like "image_xxx" 
     for _, fname in fits_filename.items():
         fix_map_fits_header(fname)
@@ -555,13 +557,19 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
 
         plt.subplots_adjust(top=0.95, wspace=0.3, hspace=0.2)
 
-        lc_and_spec_fname = os.path.join(out_folder,
-                                 f'{fout_prefix}_lc_and_spec.png')
 
-        plt.savefig(lc_and_spec_fname, dpi=DEFAULT_PLOT_DPI)
-        report['A_lc_and_spec']=      {'filename':lc_and_spec_fname, 
-                    'title':'Light curves and spectrogram'
+        try:
+            lc_and_spec_fname = os.path.join(out_folder,
+                                 f'{fout_prefix}_lc_and_spec.png')
+            plt.savefig(lc_and_spec_fname, dpi=DEFAULT_PLOT_DPI)
+            report['A_lc_and_spec']=      {'filename':lc_and_spec_fname, 
+                        'title':'Light curves and spectrogram'
                     }
+        except ValueError:
+            #raised when the fits file only contains one time bin
+            pass
+
+
         #the prefix is used for sorting 
 
         levels = np.array([0.3, 0.5, 0.7, 0.9])
