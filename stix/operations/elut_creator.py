@@ -65,7 +65,7 @@ def create_elut(ecc_fname, energy_edges=DEFAULT_EBIN_EDGES):
         idet = pix // 12  # Detector number
         # Generate ELUT data for SSW and OPS
         pix_elut_ssw = [offset, gain, ipx, idet] + [to_adc(x) for x in energy_edges[1:-1]]
-        pix_elut_ops = [idet, ipx, 0] + [to_adc(x) for x in energy_edges[1:-1]] + [4095]
+        pix_elut_ops = [idet, ipx] + [to_adc(x) for x in energy_edges[1:-1]]
         # Append ELUT data to lists
         elut_ssw.append(pix_elut_ssw)
         elut_ops.append(pix_elut_ops)
