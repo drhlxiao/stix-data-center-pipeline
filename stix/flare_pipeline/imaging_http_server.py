@@ -51,9 +51,11 @@ def update_request():
     fields={}
     fits = {}
     vis={}
+    images_stix_frame={}
     idl_status=data.get('idl_status','')
     error=data.get('error',None)
     idl_message='' if error is None else error
+    aux_sav_fname =None
     for key, value in data.items():
         value = value.strip()
         if key in ['_id', 'idl_status', 'error'] or not value:
@@ -61,12 +63,18 @@ def update_request():
         if os.path.exists(value):
             if key == 'vis':
                 vis['sav_filename'] = value
+            elif 'image_stix' in key:
+                images_stix_frame[key]= value
+            elif key=='aux':
+                aux_sav_fname = value
             else:
                 fits[key] = value
 
     fields={
             'py_calls':0,
             'fits': fits,
+            'image_fits_stix_frame': images_stix_frame,
+            'aux_sav': aux_sav_fname,
             'vis':vis,
             'processing_date': datetime.now(),
             'num_idl_calls': 1,

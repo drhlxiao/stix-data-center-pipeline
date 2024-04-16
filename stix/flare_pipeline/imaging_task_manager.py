@@ -291,13 +291,18 @@ def _create_imaging_tasks_for_BSD(doc,
     num_images = 0
     flare_image_ids = []
     for box in boxes:
-        energy_range_str = f'{box["energy_range_keV"][0]}-{box["energy_range_keV"][1]}'
+        energy_range_str = f'{box["energy_range_keV"][0]}-{box["energy_range_keV"][1]}keV'
         logger.info(f'box: {box["energy_range_keV"]}')
         start_utc_str = stu.utc2filename(box['utc_range'][0])
-        fits_prefix = f'stix_sci_preview_{bsd_id}_{flare_id}_uid_{uid}_{energy_range_str}keV_{start_utc_str}_{flare_image_id}'
-        folder = os.path.join(quicklook_path, str(uid))
-        if not os.path.exists(folder):
-            os.makedirs(folder)
+        end_utc_str = stu.utc2filename(box['utc_range'][1])
+        time_str=f'{start_utc_str}-{end_utc_str}'
+
+        filepath = stu.utc2filepath(box['utc_range'][0])
+        fits_prefix = f'stix_L3A_quicklook_{time_str}_{energy_range_str}_{uid}_{flare_image_id}'
+
+        folder = os.path.join(quicklook_path, filepath)
+
+        os.makedirs(folder, exist_ok=True)
         num_images += 1
         task_id = uuid.uuid4().hex[0:10]
         spectral_model = 'auto'
@@ -310,6 +315,7 @@ def _create_imaging_tasks_for_BSD(doc,
             'bsd_id': bsd_id,
             'flare_id':flare_id,
             'unique_id': uid,
+            'work_dir':filepath,
             'task_id': task_id,
             'author': 'bot',
             'hidden': False,

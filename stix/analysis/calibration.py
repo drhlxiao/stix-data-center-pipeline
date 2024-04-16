@@ -35,6 +35,8 @@ gErrorIgnoreLevel = kWarning;
 FIT_MIN_X = 252
 FIT_MAX_X = 448
 FIRST_PEAK_XMAX = 350
+FIRST_PEAK_XMIN = 270
+
 MAX_ALLOWED_SIGMA_ERROR = 20  # maximum allowed peak error
 MEAN_ENERGY_CONVERSION_FACTOR = 2.31
 MIN_COUNTS = 100
@@ -124,7 +126,8 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
     g_full_spec = create_graph(x_full, spectrum,
                                'Original spec - {}'.format(name),
                                'ADC channel', 'Counts')
-    peak1_y = np.max(y[x < FIRST_PEAK_XMAX])
+    peak1_sel=np.where((x>FIRST_PEAK_XMIN)&(x<FIRST_PEAK_XMAX))
+    peak1_y = np.max(y[peak1_sel])
     peak1_x = x[y == peak1_y][0]
     # find the peak with highest counts in the range
 
@@ -176,7 +179,17 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
     fgaus12 = TF1('fgaus12_{}'.format(name), 'gaus(0)+gaus(3)', par1[1] - 2,
                   par2[1] + 3, 6)
     par = array('d', [par1[0], par1[1], par1[2], par2[0], par2[1], par2[2]])
+
     fgaus12.SetParameters(par)
+    fgaus12.SetParLimits(0, 0.5*par1[0], 1.5*par1[0])
+    fgaus12.SetParLimits(1, par1[1]-fit_range_x_left, par1[1]+fit_range_x_right)
+    fgaus12.SetParLimits(2, 0.5*par1[2], 1.5*par1[2])
+
+    fgaus12.SetParLimits(3, 0.5*par2[0], 1.5*par2[0])
+    fgaus12.SetParLimits(4, par2[1]-fit_range_x_left, par2[1]+fit_range_x_right)
+    fgaus12.SetParLimits(5, 0.5*par2[2], 1.5*par2[2])
+
+
     gspec.Fit(fgaus12, 'RQ+')
     param = fgaus12.GetParameters()
     param_errors = fgaus12.GetParErrors()
@@ -294,7 +307,7 @@ def process_one_run(calibration_id,
     t2ptxt = TPaveText(.1, .3, .9, .58)
     t2ptxt.SetTextAlign(12)
     t2ptxt.SetTextFont(52)
-    now = f'Created at {datetime.now().isoformat()}'
+    now = f'Created by pystix at STIX Data Center at {datetime.now().isoformat()} '
     t2ptxt.AddText(now)
     t2ptxt.Draw()
     if PRINT_TO_PDF:
@@ -316,8 +329,11 @@ def process_one_run(calibration_id,
         if start > FIT_MAX_X or end < FIT_MIN_X:
             # break
             continue
-        par, plots = find_peaks(detector, pixel, sbspec_id, start, num_summed,
+        try:
+            par, plots = find_peaks(detector, pixel, sbspec_id, start, num_summed,
                                 spectrum, f)
+        except ValueError:
+            continue
         if not par and not plots:
             continue
         if last_plots:

@@ -125,6 +125,10 @@ def utc2filename(utc):
     dt=utc2datetime(utc)
     return dt.strftime("%Y%m%dT%H%M%S")
 
+def utc2filepath(utc):
+    dt=utc2datetime(utc)
+    return dt.strftime("%Y/%m/%d/%H")
+
 def scet2datetime(coarse, fine=0):
     unixtimestamp = scet2unix(coarse, fine)
     return datetime.utcfromtimestamp(unixtimestamp)

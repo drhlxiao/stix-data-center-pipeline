@@ -39,11 +39,11 @@ WHILE (1 ne 0) DO BEGIN
 	outfile_prefix=data.idl_config.folder+"/"+data.idl_config.prefix
 	if ~file_exist(data_folder) then file_mkdir, data_folder
 
-	log_file=outfile_prefix+"_log.txt"
-	openw,lun,log_file,/get_lun
-	printf,lun, json
-	close, lun
-	free_lun, lun
+	;log_file=outfile_prefix+"_log.txt"
+	;openw,lun,log_file,/get_lun
+	;printf,lun, json
+	;close, lun
+	;free_lun, lun
 
 	sig_fname=data.filename
 	bkg_fname=data.background.filename

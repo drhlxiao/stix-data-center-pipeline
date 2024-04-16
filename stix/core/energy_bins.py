@@ -45,6 +45,14 @@ class StixEnergyBins:
         ebins_high=np.array(ebins)[1:]
         return ebins_low[elow_sci], ebins_high[ehigh_sci]
 
+    @staticmethod
+    def get_elut_edge(offset, gain, energy):
+        """
+        compute elut edge 
+        """
+        return round(offset+ energy/gain)
+
+
     
     @staticmethod
     def get_emask_energy_bins(emask,unix_time):

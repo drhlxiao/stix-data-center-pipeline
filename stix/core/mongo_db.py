@@ -776,6 +776,9 @@ class MongoDB(object):
             return doc['fits']
         return None
 
+    def get_last_raw_file_meta(self):
+        return self.collection_raw_files.find({}).sort("_id",-1).limit(1)
+
 
 
 

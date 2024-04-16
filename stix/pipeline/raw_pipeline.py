@@ -73,9 +73,25 @@ def get_now():
 class _Notification(object):
     def __init__(self):
         self.messages=[]
+        self.last_email_time = datetime.now()
+
     def push(self, msg):
         self.messages.append(msg)
+
+
+
     def send(self):
+
+        current_time = datetime.now()
+        dt=current_time - self.last_email_time
+
+        if dt.total_seconds() < 12*3600:
+            logger.info("Not send this time, too short time since last notification")
+            return
+
+
+
+
         groups =MDB.get_group_users('operations') 
         if not groups:
             logger.error('can not find emails for operations team ')
@@ -87,6 +103,7 @@ class _Notification(object):
         logger.info('sending message..')
         logger.info(content)
         mailer.send_email(receivers, title, content)
+        self.last_email_time =current_time
         self.messages=[]
         #empty list
     

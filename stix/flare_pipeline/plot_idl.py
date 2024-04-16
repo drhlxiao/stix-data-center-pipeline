@@ -463,10 +463,6 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
     'image_fwdfit': 'VIS_FWDFIT'
     }  
     try:
-        flare_ephm=get_flare_ephemeris(mem)
-    except Exception as e:
-        flare_ephm={'error':str(e)}
-    try:
         fwdshape = f"({task_doc['idl_config']['fwdfit_shape']})"
     except (KeyError, TypeError):
         fwdshape = ''
@@ -483,6 +479,10 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
 
 
     for key,val in image_names.items():
+        if key =='image_full_disk':
+            continue
+            #don't make full disk images
+        
         recenter=True if key == 'image_full_disk' else False
         if fname:=fits_filename.get(key, None):
             print("Loading map:",val)
@@ -490,6 +490,10 @@ def plot_images(task_doc,  ospex_fig_obj=None, dpi=DEFAULT_PLOT_DPI, create_repo
             mb= rotate_map(mb, recenter=recenter)
             valid_maps[key]=mb
  
+    try:
+        flare_ephm=get_flare_ephemeris(valid_maps['image_em'])
+    except Exception as e:
+        flare_ephm={'error':str(e)}
 
 
 
