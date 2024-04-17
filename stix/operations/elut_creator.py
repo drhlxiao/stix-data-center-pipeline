@@ -1,12 +1,11 @@
 """
 ELUT Creator
 
-This script generates Energy Look-Up Tables (ELUT) from a FITS file containing data.
-It creates two CSV files, one for the SSW (Solar SoftWare) and another for OPS (Optical Products Service).
+This script generates Energy Look-Up Tables (ELUT) from a FITS file containing ECC results.
+It creates two CSV files, one for the SSW (Solar SoftWare) and another for creating IORs.
 
 Usage:
     python elut_creator.py <ECC_filename>
-
     - <ECC_filename>: The filename of the FITS file containing data.
 
 Example:
