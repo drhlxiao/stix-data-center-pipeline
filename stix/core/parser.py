@@ -43,6 +43,7 @@ PARMETERS_CALIBRATION_ENABLED.extend(SCET_PARAMETERS)
 
 STIX_IDB = idb.idb()
 STIX_DECOMPRESSOR = decompressor.StixDecompressor()
+#only create one instance for it
 logger = logger.get_logger()
 
 
@@ -351,20 +352,19 @@ class StixParameterParser(object):
         if calibration_enabled:
             eng_value = self.raw_to_eng(name, cal_ref, raw_value, tmtc)
 
-        if raw_value != '':
-            #try to decompress raw value
-            raw_int = raw_value
-            try:
-                raw_int = int(raw_int)
-                result = STIX_DECOMPRESSOR.decompress_raw(name, raw_int)
-                if result is not None:
-                    eng_value = result
-            except (TypeError, ValueError):
-                pass
+        #if raw_value != '':
+        #    #decompress raw values if they are decompressed
+        #    raw_int = raw_value
+        #    try:
+        #        raw_int = int(raw_int)
+        #        result = STIX_DECOMPRESSOR.decompress_raw(name, raw_int)
+        #        if result is not None:
+        #            eng_value = result
+        #    except (TypeError, ValueError):
+        #        pass
+        #only decompress when the whole packet is parsed
 
-        #param = Parameter(
-        return (name, raw_value, eng_value, [])
-        #return param['param']
+        return [name, raw_value, eng_value, []]
 
 
 class StixVariableTelemetryPacketParser(StixParameterParser):
@@ -485,7 +485,6 @@ class StixVariableTelemetryPacketParser(StixParameterParser):
                 if not pnode or self.current_offset > len(self.buffer):
                     return
                 ret = self.parse_node(pnode)
-                #param = Parameter(ret)
                 param = ret
                 if pnode['children']:
                     #num_children = param.raw_int
@@ -1029,7 +1028,7 @@ class StixTCTMParser(StixParameterParser):
         raw_binary = b''
         while i < length and not self.stop_parsing:
             packet = None
-            STIX_DECOMPRESSOR.reset()
+            #STIX_DECOMPRESSOR.reset()
             if buf[i] in stxhd.TM_HEADER_FIRST_BYTE:
                 status, i, header_raw = get_from_bytearray(buf, i, 16)
                 if status == const.EOF:
@@ -1070,7 +1069,7 @@ class StixTCTMParser(StixParameterParser):
                         self.inc_counter('num_filtered')
                         continue
 
-                STIX_DECOMPRESSOR.init(header)
+                #STIX_DECOMPRESSOR.set_header(header)
 
                 parameters = None
                 if tpsd == -1:
@@ -1167,7 +1166,11 @@ class StixTCTMParser(StixParameterParser):
                         packet['header'][key] = val
                 else:
                     self.attach_timestamps(packet)
-                STIX_DECOMPRESSOR.add_meta_to_header()
+
+                STIX_DECOMPRESSOR.decompress_packet(packet)#:
+                #    packet = STIX_DECOMPRESSOR.get_packet()
+                #STIX_DECOMPRESSOR.add_meta_to_header()
+
                 #trigger scaling introduced in Feb. 2024, after ASW186
 
                 if self.store_packet_enabled:
@@ -1225,10 +1228,6 @@ class StixTCTMParser(StixParameterParser):
 
         pkt_header['UTC'] = ''
         pkt_header['unix_time'] = 0
-        #if self.is_live_hex_stream:
-        #    pkt_header['unix_time'] = datetime.get_now('unix')
-        #    pkt_header['UTC'] = datetime.get_now('utc')
-        #    return
         use_receipt_time = False
         if self.receipt_utc:
             #GU data

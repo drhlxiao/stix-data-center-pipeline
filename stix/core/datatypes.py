@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 # -*- encoding: utf-8 -*-
 # @title        : datatypes.py
 # @date         : Oct. 28, 2019
@@ -228,6 +229,13 @@ class Packet(object):
             return self.get_raw_length()
         else:
             return self.get_nodes(attr)
+
+    def walk_parameters(self, func):
+        """
+        walk parameters, and apply function to it
+        """
+        pass
+
 
     def get_nodes(self, pattern, parameters=None):
         if pattern.startswith('/'):

@@ -6,6 +6,7 @@
 from stix.core import logger
 from stix.core import config
 from stix.core import mongo_db
+from stix.core import datatypes
 from stix.spice import time_utils as sdt
 import numpy as np
 
@@ -334,58 +335,58 @@ def decompress(x, S, K, M):
 
 class StixDecompressor(object):
     def __init__(self):
-        self.is_compressed_packet = False
+        self.is_a_compressed_packet = False
         self.spid = None
         self.SKM_parameters_names = []
         self.SKM_values = dict()
-        self.is_compressed_packet_parameter_names = []
+        self.is_a_compressed_packet_parameter_names = []
         self.schema = None
         self.header = {}
         self.header_unix_time=None
         self.unscale_config={'n_trig':1, 'factor':None}
         self.is_trig_scaled_packet=False
         self.mdb= None
+        self.packet={}
+        self.current_timestamp=None
 
     def set_mongo_db(self, mdb):
         self.mdb=mdb
     def reset(self):
-
+        self.packet={}
         self.schema = None
-        self.is_compressed_packet = False
+        self.is_a_compressed_packet = False
         self.unscale_config={'n_trig':1, 'factor':None}
         self.header = {}
+        self.parameters={}
         self.is_trig_scaled_packet=False
+        self.current_timestamp=None
 
     def is_compressed(self):
-        return self.is_compressed_packet
+        return self.is_a_compressed_packet
         
     def add_meta_to_header(self):
         if self.is_trig_scaled_packet and self.header:
             self.header['tsf']=self.unscale_config.get('factor',None)
             self.header['tsfs']=self.unscale_config.get('scaling_factor_source',None)
 
-    def init(self, header):
+    def init_decompressor(self):
         
-        self.header=header
+        #self.header=header
 
-
-        self.is_compressed_packet = False
-        spid=header['SPID']
+        self.is_a_compressed_packet = False
+        spid=self.header['SPID']
         self.spid = spid
+
         if self.spid not in COMPRESSED_PACKET_SPIDS:
             return
 
-        
+        self.is_a_compressed_packet = True
 
-
-
-
-        self.is_compressed_packet = True
         self.SKM_parameters_names = []
         self.SKM_values = dict()
-        self.is_compressed_packet_parameter_names = []
+        self.is_a_compressed_packet_parameter_names = []
         if spid not in SCHEMAS:
-            self.is_compressed_packet = False
+            self.is_a_compressed_packet = False
             logger.warning(
                 'No schema to decompress packet (SPID {})'.format(
                     spid))
@@ -396,24 +397,24 @@ class StixDecompressor(object):
             logger.warning(
                 'Failed to decompress packet (SPID {}) due to missing schema'.format(
                     spid))
-            self.is_compressed_packet = False
+            self.is_a_compressed_packet = False
             return
 
-        coarse = header['coarse_time']
-        fine = header['fine_time']
+        coarse = self.header['coarse_time']
+        fine = self.header['fine_time']
         self.header_unix_time = sdt.scet2unix(coarse, fine)
 
 
         if self.spid in QL_REPORT_SPIDS:
             self.set_quicklook_scaling_factor(self.header_unix_time)
 
-
-
         SKM_Groups = self.schema['SKM_Groups']
         for grp_name in SKM_Groups:
             self.SKM_parameters_names.extend(SKM_GROUPS[grp_name])
-            
             #list of compressed parameters
+    #def get_delta_time(self):
+    #    pass
+
 
     def capture_config_parameter(self, param_name, raw):
         """
@@ -424,12 +425,17 @@ class StixDecompressor(object):
             self.SKM_values[param_name] = raw
             return True
         elif param_name == 'NIX00405':
+            #only applicable to L1, L2, and L3, for L4 data, no integration time
             self.unscale_config['n_int']= int(raw)  #number of integration in units of 0.1 sec
             return True
         elif param_name == 'NIX00407':
             x=int(raw)
             self.unscale_config['n_trig']= sum([(x>>i)&0x1 for i in range(32)])/2
             return True
+        elif param_name == 'NIX00404':
+            self.current_timestamp=int(raw)
+            return True
+
         elif param_name=='NIX00037':
             uid= int(raw)  #unique id
             self.unscale_config['unique_id'] = uid  #unique id
@@ -443,8 +449,7 @@ class StixDecompressor(object):
                     factor = int(factor) 
                 except TypeError:
                     pass
-
-            else:
+            if factor is None:
                 try:
                     factor = int(config.instrument_config['sci_trig_default_scale_factor'])
                     source =2
@@ -465,37 +470,6 @@ class StixDecompressor(object):
 
 
         return False
-
-
-
-    def get_SKM(self, param_name):
-        if param_name not in self.schema['parameters']:
-            return None
-        try:
-            SKM_parameter_names = self.schema['parameters'][param_name]
-            return (self.SKM_values[SKM_parameter_names[0]],
-                    self.SKM_values[SKM_parameter_names[1]],
-                    self.SKM_values[SKM_parameter_names[2]])
-        except KeyError:
-            return None
-
-    def decompress_raw(self, param_name, raw):
-
-        if not self.is_compressed_packet:
-            return None
-
-        if not self.capture_config_parameter(param_name, raw):
-            skm = self.get_SKM(param_name)  #compressed raw values
-            if not skm:
-                #no need to decompress
-                return  None
-            if skm == (0,0,7):
-                try:
-                    return self.unscale_triggers(raw)
-                except Exception:
-                    return None
-            return decompress(raw, skm[0], skm[1], skm[2])
-        return None
 
 
 
@@ -533,12 +507,15 @@ class StixDecompressor(object):
 
         try:
             n_group_from_mask = self.unscale_config['n_trig']
-            n_int = self.unscale_config['n_int']
             factor = self.unscale_config['factor']
         except Exception:
             n_group_from_mask=1
+            print(self.unscale_config)
             raise ValueError(f'No enough information for unscaling triggers!')
 
+        if self.spid!=54143:
+            n_int = self.unscale_config['n_int']
+            
         if self.spid in [54115, 54114, 54116,54117]:
             #for level0, 1, 2,3, and the group is already 1
             n_group=1
@@ -546,8 +523,6 @@ class StixDecompressor(object):
             n_group=n_group_from_mask
         self.unscale_config['n_trig']=n_group
 
-        #print("Trigger  schme")
-        #print(n_group,n_int, factor)
 
         self.is_trig_scaled_packet = True
         # Scaled to ints onboard, bins have scaled width of 1, so error is 0.5 times the total factor
@@ -555,7 +530,72 @@ class StixDecompressor(object):
         # The FSW essential floors the value so add 0.5 so trigger is the centre of range +/- error
         unscaled_triggers = (scaled_triggers * n_group * n_int * factor) + scaling_error
         #if n_group>=1:
-        #    print(f"GROUP:{n_group=}, {n_int=}, {factor=}, {scaled_triggers=}, {unscaled_triggers=}, {self.spid=}")
 
 
         return unscaled_triggers#, scaling_error**2
+
+    def get_SKM(self, param_name):
+        sch=self.schema['parameters']
+        if param_name not in sch:
+            return None
+        try:
+            SKM_parameter_names = sch[param_name]
+            return (self.SKM_values[SKM_parameter_names[0]],
+                    self.SKM_values[SKM_parameter_names[1]],
+                    self.SKM_values[SKM_parameter_names[2]])
+        except KeyError:
+            return None
+
+
+
+    def decompress_raw(self, param_name, raw):
+        if not self.capture_config_parameter(param_name, raw):
+            #if they are not the parameters to be captured, then
+            skm = self.get_SKM(param_name)  #compressed raw values
+            if not skm:
+                return  None
+            if skm == (0,0,7):
+                try:
+                    decom=self.unscale_triggers(raw)
+                    print('decompressed:',raw, decom)
+                    return decom 
+                except Exception as e:
+                    return ""
+            return decompress(raw, skm[0], skm[1], skm[2])
+
+        return ""
+
+
+    def decompress_packet(self, packet):
+        self.reset()
+        if not packet:
+            return None
+        self.packet=packet
+        self.header, self.parameters=self.packet.get('header',{}), self.packet.get('parameters',[])
+        self.init_decompressor()
+
+        if not self.is_a_compressed_packet:
+            return None
+        for param in self.parameters:
+            self.walk(param)
+        self.add_meta_to_header()
+        return True
+
+    def get_packet(self):
+        return {'header':self.header, 'parameters':self.parameters}
+
+    def walk(self, node):
+        eng = self.decompress_raw(node[0], node[1])
+        if eng:
+            #don't modify it
+            node[2] = eng
+        children=node[3]
+        #continue
+        for child in children:
+            self.walk(child)
+            
+
+
+
+
+
