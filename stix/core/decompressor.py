@@ -326,7 +326,7 @@ def decompress(x, S, K, M):
     low = mantissa2 << exponent  #minimal possible value
     high = low | ((1 << exponent) - 1)  #maximal possible value
     mean = (low + high) >> 1  #mean value
-    error=np.sqrt((high-low)**2/12)
+    error=round(np.sqrt((high-low)**2/12),1)
 
     if mean > MAX_STORED_INTEGER:
         return float(mean),error
@@ -552,7 +552,7 @@ class StixDecompressor(object):
         #if n_group>=1:
 
 
-        return unscaled_triggers, scaling_error
+        return round(unscaled_triggers,1), round(scaling_error,1)
 
     def get_SKM(self, param_name):
         sch=self.schema['parameters']
@@ -580,7 +580,7 @@ class StixDecompressor(object):
             #if they are not the parameters to be captured, then
             skm = self.get_SKM(param_name)  #compressed raw values
             if not skm:
-                return  None
+                return  None,""
             if skm == (0,0,7):
                 try:
                     trig, error=self.unscale_triggers(param_name, raw, ilevels)
@@ -636,9 +636,6 @@ class StixDecompressor(object):
         for i, child in enumerate(children):
             new_levels=ilevels[:]+[i] #copy 
             self.walk(child,ilevels=new_levels)
-
-        
-        
 
     def get_spectrogram_integration_time(self, ilevels=[]):
         """

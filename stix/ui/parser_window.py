@@ -1036,7 +1036,17 @@ class Ui(mainwindow.Ui_MainWindow):
             except:
                 pass
             unit=STIX_IDB.get_parameter_unit(param_name)
-            eng=str(param['eng'])
+            try:
+                eng=int(param['eng'])
+            except (TypeError, ValueError):
+                eng=''
+            try:
+                error=int(param['error'])
+                eng=f'{eng} \u00B1 {error}'
+            except (TypeError, ValueError):
+                pass
+
+
             root.setText(3, eng)
             root.setText(4, unit)
             if 'NIXG' in param_name:

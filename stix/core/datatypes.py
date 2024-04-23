@@ -93,20 +93,25 @@ class Parameter(object):
         self._name = ''
         self._raw = ''
         self._eng = ''
+        self._error = ''
         self._children = []
         if isinstance(parameter, (tuple, list)):
-            try:
+            if len(parameter) ==4:
                 self._name, self._raw, self._eng, self._children = parameter
-            except ValueError:
+            elif len(parameter) == 5:
+                self._name, self._raw, self._eng, self._children, self._error = parameter
+                #add one parameter to keep errors in 202404
+            else:
                 logger.warn(
                         "Invalid parameter type, parameter value:{}".format(
                             str(parameter)))
 
-    def copy(self, name, raw, eng, children):
+    def copy(self, name, raw, eng, children, error=None):
         self._name = name
         self._raw = raw
         self._eng = eng
         self._children = children
+        self._error=error
 
     def get_raw_int(self):
         try:
@@ -147,6 +152,8 @@ class Parameter(object):
             self._eng = value
         elif key == 'children':
             self._children = value
+        elif key == 'error':
+            self._error= value
         else:
             raise KeyError(key)
 
@@ -168,6 +175,8 @@ class Parameter(object):
             return STIX_IDB.get_parameter_description(self._name)
         elif key == 'param':
             return self.as_tuple()
+        elif key == 'error':
+            return self._error
         else:
             raise KeyError(key)
 
