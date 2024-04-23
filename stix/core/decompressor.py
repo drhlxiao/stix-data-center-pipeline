@@ -464,7 +464,7 @@ class StixDecompressor(object):
             self.unscale_config['factor']= factor
 
 
-            logger.info(f"Found scaling factor for {uid}: {factor} {source}")
+            #logger.info(f"Found scaling factor for {uid}: {factor} {source}")
 
             if factor==0:
                 factor = None
