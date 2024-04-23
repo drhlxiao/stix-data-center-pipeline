@@ -578,16 +578,16 @@ class StixDecompressor(object):
             #if they are not the parameters to be captured, then
             skm = self.get_SKM(param_name)  #compressed raw values
             if not skm:
-                return  None,""
+                return  None,None
             if skm == (0,0,7):
                 try:
                     trig, error=self.unscale_triggers(param_name, raw )
                     return trig,error
                 except Exception as e:
-                    return "",""
+                    return None,None
             return decompress(raw, skm[0], skm[1], skm[2])
 
-        return "",""
+        return None,None
 
 
     def decompress_packet(self, packet):
@@ -631,13 +631,17 @@ class StixDecompressor(object):
             None
         """
         eng, error = self.decompress_raw(node)
-        if eng:
+        print("Eng, error:", eng, error,node[0])
+
+
+        if eng is not None:
             #don't modify the value
             node[2] = eng
-            if len(node)==4:
-                node.append(error)
-            elif len(node)==5:
-                node[4]=error
+            if error is not None:
+                if len(node)==4:
+                    node.append(error)
+                elif len(node)==5:
+                    node[4]=error
 
         children=node[3]
         #continue
