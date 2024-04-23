@@ -646,20 +646,33 @@ class StixBulkL4Analyzer(object):
 
                 for j in range(0, num_samples):
                     k = j * 3
-                    timestamp = samples[k + 0][1] * 0.1 + T0
+
+                
+
+
+                    timestamp = samples[k][1] * 0.1 + T0
                     if self.start_unix is None:
                         self.start_unix = timestamp
                     self.end_unix = timestamp
-                    dT = timestamp - last_timestamp
+
+                    if len(samples[k])==5:
+                        # the last value keeps the dt, introduced in 20240423, 
+                        # dt filled by decompression.py
+                        dT=samples[k][4]
+                        #name, raw, eng, children[], aux_data, error
+                    else:
+                        #this is wrong for ASW 138
+                        dT = timestamp - last_timestamp
+                        #still old convention
 
                     if dT > 0:
                         self.num_time_bins += 1
-
                     last_timestamp = timestamp
                     triggers = samples[k + 1][trig_idx]
                     num_energies = samples[k + 2][1]
                     energy_children = samples[k + 2][3]
                     lcs = [m[counts_idx] for m in energy_children]
+                    #counts
                     subgroups.append((timestamp, triggers, lcs, dT))
 
                 group = {

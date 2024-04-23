@@ -93,13 +93,13 @@ class Parameter(object):
         self._name = ''
         self._raw = ''
         self._eng = ''
-        self._error = ''
+        self._aux = ''
         self._children = []
         if isinstance(parameter, (tuple, list)):
             if len(parameter) ==4:
                 self._name, self._raw, self._eng, self._children = parameter
             elif len(parameter) == 5:
-                self._name, self._raw, self._eng, self._children, self._error = parameter
+                self._name, self._raw, self._eng, self._children, self._aux = parameter
                 #add one parameter to keep errors in 202404
             else:
                 logger.warn(
@@ -111,7 +111,7 @@ class Parameter(object):
         self._raw = raw
         self._eng = eng
         self._children = children
-        self._error=error
+        self._aux=error
 
     def get_raw_int(self):
         try:
@@ -152,8 +152,8 @@ class Parameter(object):
             self._eng = value
         elif key == 'children':
             self._children = value
-        elif key == 'error':
-            self._error= value
+        elif key in ['error','aux']:
+            self._aux= value
         else:
             raise KeyError(key)
 
@@ -175,8 +175,8 @@ class Parameter(object):
             return STIX_IDB.get_parameter_description(self._name)
         elif key == 'param':
             return self.as_tuple()
-        elif key == 'error':
-            return self._error
+        elif key in ['error','aux']:
+            return self._aux
         else:
             raise KeyError(key)
 

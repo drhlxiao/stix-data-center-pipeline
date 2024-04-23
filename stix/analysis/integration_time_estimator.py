@@ -109,7 +109,7 @@ def process_file(file_id):
             continue
 
         min_tbin, max_tbin, thr=get_rot_config(configs, t)
-        print("Final settings:", min_tbin,max_tbin,thr)
+        #print("Final settings:", min_tbin,max_tbin,thr)
 
 
         if s > 0 and (s >= thr or t - last_time >= max_tbin

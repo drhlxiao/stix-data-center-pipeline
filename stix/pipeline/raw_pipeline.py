@@ -9,6 +9,7 @@
 
 import os
 import sys
+sys.path.append('.')
 import glob
 import argparse
 import asyncio

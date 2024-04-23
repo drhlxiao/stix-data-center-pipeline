@@ -5,6 +5,7 @@
 #               decompression of compressed parameters
 from stix.core import logger
 from stix.core import config
+from matplotlib import cbook
 from stix.core import mongo_db
 from stix.core import datatypes
 from stix.spice import time_utils as sdt
@@ -349,6 +350,7 @@ class StixDecompressor(object):
         self.is_trig_scaled_packet=False
         self.mdb= None
         self.packet={}
+        self.dt=None
         self.current_timestamp=None
 
     def set_mongo_db(self, mdb):
@@ -418,10 +420,11 @@ class StixDecompressor(object):
     #    pass
 
 
-    def capture_config_parameter(self, param_name, raw):
+    def capture_config_parameter(self, node):
         """
         if parameter is skm, then set skm
         """
+        param_name, raw=node[0],node[1]
         if param_name in self.SKM_parameters_names:
             #is skm, we capture skm value
             self.SKM_values[param_name] = raw
@@ -435,9 +438,20 @@ class StixDecompressor(object):
             self.unscale_config['n_trig']= sum([(x>>i)&0x1 for i in range(32)])/2
             return True
         elif param_name == 'NIX00404':
-            self.current_timestamp=int(raw)
-            #spectrogram last timestamp
-            return True
+
+            if self.dt:
+                timebin =self.dt[0]
+                self.dt=self.dt[1:] #pop up the first one
+                self.unscale_config['n_int'] = timebin  #number of integration in units of 0.1 sec
+                timebin_sec =round(timebin*0.1,3)
+                if len(node)==4:
+                    node.append(timebin_sec)
+                elif len(node)==5:
+                    node[4]= timebin_sec
+                return True
+
+            return False
+
 
         elif param_name=='NIX00037':
             uid= int(raw)  #unique id
@@ -480,15 +494,12 @@ class StixDecompressor(object):
         if self.spid in QL_REPORT_SPIDS:
             self.unscale_config['factor']=config.instrument_config['ql_trig_default_scale_factor']
             self.unscale_config['scaling_factor_source']='default'
-            #for entry in config.instrument_config['ql_default_scale_factor']:
-            #    if unix_time >= entry['time_range'][0] and unix_time<=entry['time_range'][1]:
-            #        self.unscale_config['factor']=entry['factors']['ql']
 
         
 
 
 
-    def unscale_triggers(self, parameter_name,  scaled_triggers,  ilevels=[]):
+    def unscale_triggers(self, parameter_name,  scaled_triggers ): 
         r"""
         Unscale scaled trigger values.
 
@@ -520,22 +531,8 @@ class StixDecompressor(object):
             n_group_from_mask=1
             raise ValueError(f'No enough information for unscaling triggers!')
 
-        if self.spid!=54143:
-            n_int = self.unscale_config['n_int']
-            #use captured the parameters
-
-        if parameter_name == 'NIX00267':
-            if len(ilevels)!=3:
-                raise ValueError("Invalid spectrogram package")
-            n_int = self.get_spectrogram_integration_time(ilevels)
-            #except Exception as e:
-            #    print(e)
-            #print("n_int", n_int)
-
-
-
-            
-
+        n_int = self.unscale_config['n_int']
+        #use captured the parameters
         if self.spid in [54115, 54114, 54116,54117]:
             #for level0, 1, 2,3, and the group is already 1
             n_group=1
@@ -568,7 +565,7 @@ class StixDecompressor(object):
 
 
 
-    def decompress_raw(self, param_name, raw, ilevels=[]):
+    def decompress_raw(self, node):
         """
             decompress a raw parameter
             param_name: parameter name
@@ -576,14 +573,15 @@ class StixDecompressor(object):
             inode: the index of node
             parent: the parent of the node
         """
-        if not self.capture_config_parameter(param_name, raw):
+        param_name, raw=node[0],node[1]
+        if not self.capture_config_parameter(node):
             #if they are not the parameters to be captured, then
             skm = self.get_SKM(param_name)  #compressed raw values
             if not skm:
                 return  None,""
             if skm == (0,0,7):
                 try:
-                    trig, error=self.unscale_triggers(param_name, raw, ilevels)
+                    trig, error=self.unscale_triggers(param_name, raw )
                     return trig,error
                 except Exception as e:
                     return "",""
@@ -602,13 +600,20 @@ class StixDecompressor(object):
             return None
         self.packet=packet
         self.header, self.parameters=self.packet.get('header',{}), self.packet.get('parameters',[])
-        self.init_decompressor()
 
+
+        self.init_decompressor()
         if not self.is_a_compressed_packet:
             return None
-        for i, param in enumerate(self.parameters):
-            self.walk(param, [i])
+
+        #self.dt = 
+        self.scan_time_bins()
+            
+
+        for param in self.parameters:
+            self.walk(param)
         self.add_meta_to_header()
+
         return True
 
     def get_packet(self):
@@ -617,55 +622,50 @@ class StixDecompressor(object):
         """
         return {'header':self.header, 'parameters':self.parameters}
 
-    def walk(self, node, ilevels=[]):
+    def walk(self, node):
         """"
         Compress each parameter
             node: this node
-            ilevels: the index of current node
             parent: parent node
         Returns:
             None
         """
-        eng, error = self.decompress_raw(node[0], node[1], ilevels)
+        eng, error = self.decompress_raw(node)
         if eng:
             #don't modify the value
             node[2] = eng
-            node.append(error)
+            if len(node)==4:
+                node.append(error)
+            elif len(node)==5:
+                node[4]=error
+
         children=node[3]
         #continue
         for i, child in enumerate(children):
-            new_levels=ilevels[:]+[i] #copy 
-            self.walk(child,ilevels=new_levels)
+            self.walk(child)
 
-    def get_spectrogram_integration_time(self, ilevels=[]):
+
+    def scan_time_bins(self):
         """
-        get the timestamp of next timestamp, it is needed to calculate the delta T
+        scan packets to get timestamps
         """
-        parent = self.parameters[ilevels[0]][3][ilevels[1]]
-        children = parent[3]
-        inode = ilevels[2]
-        # the index of last insert
-        num = len(children)
-        dt = None
-        i_next_timestamp = ilevels[2] + 2
+        self.dt = None
+        if self.spid == 54143:
+            pkt= datatypes.Packet(self.packet)
+            try:
+                timestamps  = np.array(list(cbook.flatten(pkt.get("NIX00403/NIX00089/NIX00404.raw"))))
+            except ValueError:
+                print(pkt.get("NIX00403/NIX00089/NIX00404.raw"))
+                raise
+            dt = timestamps[1:]-timestamps[:-1]
+            last_dt =  self.parameters[-1][3][-1][1]
+            self.dt = np.round(np.append(dt, last_dt), 2).tolist()
+            #in units of 0.1
 
 
-        if i_next_timestamp < num:
-            node = children[i_next_timestamp]
-            if node[0] == 'NIX00404':
-                dt = (int(node[1]) - self.current_timestamp) * 0.1
-                return dt
 
-        # take the last node
-        try:
-            closing_node = self.parameters[ilevels[0]][3][ilevels[1] + 1]
-        except IndexError:
-            raise ValueError("Invalid spectrogram package, package not closed")
-        
-        if closing_node[0] == 'NIX00269':
-            dt = 0.1 * int(closing_node[1])
 
-        return dt
+
 
 
 
