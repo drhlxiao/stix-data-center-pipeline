@@ -332,7 +332,6 @@ def decompress(x, S, K, M):
     if mean > MAX_STORED_INTEGER:
         return float(mean),error
 
-
     return sign * mean, error
 
 
@@ -478,7 +477,6 @@ class StixDecompressor(object):
             self.unscale_config['factor']= factor
 
 
-            #logger.info(f"Found scaling factor for {uid}: {factor} {source}")
 
             if factor==0:
                 factor = None
@@ -565,7 +563,7 @@ class StixDecompressor(object):
 
 
 
-    def decompress_raw(self, node):
+    def decompress_node(self, node):
         """
             decompress a raw parameter
             param_name: parameter name
@@ -630,8 +628,8 @@ class StixDecompressor(object):
         Returns:
             None
         """
-        eng, error = self.decompress_raw(node)
-        print("Eng, error:", eng, error,node[0])
+        eng, error = self.decompress_node(node)
+        #print("Eng, error:", eng, error,node[0])
 
 
         if eng is not None:

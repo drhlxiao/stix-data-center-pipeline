@@ -28,6 +28,7 @@ from stix.analysis import sci_packets_analyzer
 from stix.analysis import integration_time_estimator
 from stix.analysis import flare_goes_class as fgc
 from stix.analysis import goes_downloader as gdl
+from stix.analysis import service_5_analyzer  as  ser5a
 from stix.analysis import correct_qlc_with_att as cql
 from stix.flare_pipeline import imaging_task_manager as itm
 from stix.pipeline import task_manager 
@@ -120,7 +121,7 @@ class _Notification(object):
 
 
 
-    def append_pipeline_message(self, raw_filename, service_5_headers, summary, num_flares, goes_class_list):
+    def append_pipeline_message(self, raw_filename, service_5_packets, summary, num_flares, goes_class_list):
         file_id = summary['_id']
         start = sdt.unix2utc(summary['data_start_unix_time'])
         end = sdt.unix2utc(summary['data_stop_unix_time'])
@@ -139,9 +140,10 @@ class _Notification(object):
                 content += f'\nScience data: {HOST}/view/list/bsd/file/{file_id}\n'
         except Exception as e:
             logger.error(e)
-        if service_5_headers:
+        if service_5_packets:
             content += '\nSTIX Service 5 packets:\n'
-            for header in service_5_headers:
+            for packet in service_5_packets:
+                header=packet['header']
                 content += '\tAt {}, TM({},{}) {}\n'.format(
                     header['UTC'], header['service_type'],
                     header['service_subtype'], header['descr'])
@@ -226,12 +228,12 @@ def piepeline_parsing_and_basic_analysis(instrument, filename, notification_enab
     parser.exclude_S20()
     #parser.set_store_binary_enabled(False)
     parser.set_packet_buffer_enabled(False)
-    service_5_headers = None
+    service_5_packets= None
     goes_class_list=None
 
     try:
         parser.parse_file(filename)
-        service_5_headers = parser.get_alerts()
+        service_5_packets= parser.get_alerts()
     except Exception as e:
         logger.error(str(e))
         return  None
@@ -240,6 +242,11 @@ def piepeline_parsing_and_basic_analysis(instrument, filename, notification_enab
         return None
 
     file_id = summary['_id']
+
+    if service_5_packets:
+        ser5a.analyze(MDB, service_5_packets)
+        # monitor rejected TCs, data requests
+
 
     if task_list['bkg_estimation']:
         logger.info('Extracting background information from non-flaring times ..')
@@ -284,7 +291,7 @@ def piepeline_parsing_and_basic_analysis(instrument, filename, notification_enab
 
     try:
         logger.info("Send email to the operations team...")
-        Notification.append_pipeline_message(base, service_5_headers, summary,
+        Notification.append_pipeline_message(base, service_5_packets, summary,
                                        num_flares, goes_class_list)
     except Exception as e:
         logger.error(str(e))

@@ -1085,12 +1085,14 @@ class StixTCTMParser(StixParameterParser):
                             ' Packet (SPID {}) data field size: {}B, actual read: {}B'
                             .format(spid, data_field_length, num_read))
 
+
+                packet = {'header': header, 'parameters': parameters}
+
                 if header['service_type'] == 5 or (
                         header['service_type'] == 1
                         and header['service_subtype'] in [2, 8]):
-                    self.alerts.append(header)
+                    self.alerts.append(packet)
 
-                packet = {'header': header, 'parameters': parameters}
                 self.inc_counter('num_tm_parsed')
                 raw_binary = header_raw + data_field_raw
                 #if self.store_binary:

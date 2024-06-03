@@ -778,6 +778,9 @@ class MongoDB(object):
 
     def get_last_raw_file_meta(self):
         return self.collection_raw_files.find({}).sort("_id",-1).limit(1)
+    def set_sci_request_failed(self, uid, packet_id):
+        self.collection_data_requests.update_many({'unique_ids': int(uid)},{'$set':{'tc_status':{'failed': {'packet_id': packet_id}} }})
+
 
 
 

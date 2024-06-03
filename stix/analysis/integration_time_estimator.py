@@ -10,9 +10,11 @@
 
 import os
 import sys
+sys.path.append('.')
 from scipy import signal
-import numpy as np
 import math
+import numpy as np
+from stix.utils import bson
 from matplotlib import pyplot as plt
 from stix.core import mongo_db as db
 from stix.spice import time_utils
@@ -93,17 +95,23 @@ def process_file(file_id):
         return
     unix_time = data['time']  # set to the center of a bin
     configs = get_rotating_buffer_config(unix_time[-1], unix_time[0])
+    #print(data['lcs'])
+    lightcurve =np.sum([v for k,v in data['lcs'].items()] ,axis=0)
+    #sum counts of all energy bands
+    triggers=data['triggers']
 
-    lightcurve = data['lcs'][0] + data['lcs'][1]  # 4-15 keV
-    res = {'t': [], 'tbin': [], 'counts': [],  'num_tbins': []}
+    res = {'t': [], 'tbin': [], 'counts': [],  'num_tbins': [], 'time_bin_trig_sum':[]}
     s = 0
     last_time = 0
 
+    trig_sum=0
+    #used to store summed triggers of the time bin print(triggers)
     
 
-    for t, c in zip(unix_time, lightcurve):
+    for t, c, tr in zip(unix_time, lightcurve,triggers ):
         t = int(t)
         c = int(c)
+        trig_sum=tr
         if last_time == 0:
             last_time = t
             continue
@@ -111,6 +119,7 @@ def process_file(file_id):
         min_tbin, max_tbin, thr=get_rot_config(configs, t)
         #print("Final settings:", min_tbin,max_tbin,thr)
 
+        
 
         if s > 0 and (s >= thr or t - last_time >= max_tbin
                 or c >= thr):  # close the opening time bin anyway
@@ -120,12 +129,15 @@ def process_file(file_id):
             res['num_tbins'].append(1)
             res['t'].append([last_time, t])
             res['counts'].append(s)
+            res['time_bin_trig_sum'].append(trig_sum)
+            trig_sum=0
             # print(last_time, t,t-last_time,  c, tbin, s)
             s = 0
             last_time = t
 
         if c < thr:
             s += c
+            trig_sum+=tr
         else:
             #estimated sub-time bins
             num_tbins = math.ceil(c / thr)
@@ -138,6 +150,8 @@ def process_file(file_id):
             res['num_tbins'].append(num_tbins) #number of timebins in 4 sec
             res['t'].append([t - 4, t])  #start time and end time
             res['counts'].append(c / num_tbins)  #average counts
+            res['time_bin_trig_sum'].append(trig_sum/num_tbins)
+            trig_sum=0
             # print(last_time, t, t-last_time, c, tbin, c/num_tbins)
             s = 0
             last_time = t
@@ -147,11 +161,12 @@ def process_file(file_id):
     res['start_utc'] = time_utils.unix2utc(res['t'][0][0])
     res['end_utc'] = time_utils.unix2utc(res['t'][-1][1])
     res['file_id'] = file_id
+    res = bson.dict_to_json(res)
     mdb.insert_time_bins(res, delete_existing=True)
 
 
+
 if __name__ == '__main__':
-    import sys
     if len(sys.argv) < 2:
         print('estimate_integration_times file_id_start, file_id_end')
     elif len(sys.argv) >= 2:

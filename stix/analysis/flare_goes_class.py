@@ -176,9 +176,11 @@ def estimate_goes_class(counts: float,
         predicted GOES class and limits
     """
 
+    invalid_result={'min': 'None', 'center': 'None', 'max': 'None'}
     cnts = counts * dsun**2
     if cnts <= 0:
-        return {'min': 'NA', 'center': 'NA', 'max': 'NA'}
+        return invalid_result, invalid_result
+
     x = np.log10(cnts)
 
     def g(y): return sum([coeffs[i] * y**i for i in range(len(coeffs))])
@@ -196,7 +198,7 @@ def estimate_goes_class(counts: float,
     except (KeyError, IndexError, TypeError):
         pass
 
-    result = {
+    goes_class = {
         'min': f(x - error),
         'center': f(x),
         'max': f(x + error),
@@ -205,7 +207,12 @@ def estimate_goes_class(counts: float,
             'error': error
         }
     }
-    return result
+    goes_flux = {
+        'min': g(x - error),
+        'center': g(x),
+        'max': g(x + error),
+    }
+    return goes_class, goes_flux
 
 def compute_flare_goes_for_flares(id_start, id_end):
     fdb = mdb.get_collection('flares')
@@ -262,7 +269,7 @@ def get_flare_goes_class(doc):
         start_unix + delta_lt, end_unix + delta_lt)
     bkg_subtracted_counts = peak_counts - doc['LC_statistics']['lc0'][
         'bkg_median']
-    estimated_class = estimate_goes_class(bkg_subtracted_counts, dsun,
+    estimated_class, estimated_flux = estimate_goes_class(bkg_subtracted_counts, dsun,
                                           GOES_STIX_COEFFS,
                                           GOES_STIX_ERROR_LUT)
 
@@ -283,6 +290,7 @@ def get_flare_goes_class(doc):
             },
             'class': goes_class,
             'estimated_class': estimated_class,
+            'estimated_flux': estimated_flux,
         },
         'ephemeris': eph,
     }

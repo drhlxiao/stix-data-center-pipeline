@@ -534,14 +534,13 @@ def find_flares_in_data(data,
                                 unix_time[H50_res[3].astype(int)])).T
     # calculate peak width at 50% of the maximum count
 
-    att_in = np.any(np.array(data['rcr']) > 0)
 
     doc = {
         'num_peaks': xpeaks.size,
         'peak_unix_time': peak_unix_times.tolist(),
         'peak_counts': peak_values.tolist(),
         'peak_utc': peaks_utc,
-        'att_in': bool(att_in),
+        'att_in': bool(att_in_times),
         'flare_id': flare_ids,
         'baseline': baseline,
         'threshold': threshold,
