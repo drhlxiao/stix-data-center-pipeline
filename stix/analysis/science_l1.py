@@ -59,6 +59,7 @@ class ScienceData():
         self.counts = self.data['counts']
         # timebin: detector,pixel, energies
 
+
         self.light_time_del = self.hdul['PRIMARY'].header['EAR_TDEL']
         self.light_time_corrected = light_time_correction
 
@@ -106,8 +107,14 @@ class ScienceData():
             ["energy_bin_mask", 'energy_bin_edge_mask'])
 
         ebin_nz_idx = self.energy_bin_mask.nonzero()
+        if len(ebin_nz_idx)==2:
+            ebin_nz_idx=ebin_nz_idx[1]
+
+        self.num_count_ebins=self.counts.shape[3]
+
         self.max_ebin = np.max(ebin_nz_idx)  # indices of the non-zero elements
-        self.min_ebin = np.min(ebin_nz_idx)
+        self.min_ebin =min(np.min(ebin_nz_idx), self.num_count_ebins)
+        print("EBIN IDX:", ebin_nz_idx)
 
         self.ebins_mid = [
             (a + b) / 2.
@@ -265,15 +272,23 @@ class ScienceL1(ScienceData):
     def plot_spectrogram(self, ax=None, selection_box=None):
         if not ax:
             _, ax = plt.subplots()
+        idx=np.arange(0,self.num_count_ebins)
         X, Y = np.meshgrid(self.datetime,
-                           np.arange(self.min_ebin, self.max_ebin))
+                           idx)
+        print("IDX2:",idx)
+
+        print("EBINS:", self.min_ebin, self.max_ebin)
+        num_ebins = self.count_rate_spectrogram.shape[1]
+
         Z = np.transpose(
-            self.count_rate_spectrogram[:, self.min_ebin:self.max_ebin])
-        im = ax.pcolormesh(X, Y, Z, norm=colors.LogNorm(),
-                           shading='auto')  # pixel summed energy spectrum
-        ax.set_yticks(self.energies['channel'][self.min_ebin:self.max_ebin:2])
+                self.count_rate_spectrogram)
+        #print(self.count_rate_spectrogram.shape)
+        #print("shape:", X.shape, Y.shape, Z.shape)
+        im = ax.pcolormesh(X, Y, Z, norm=colors.LogNorm(),shading='auto'
+                           )  # pixel summed energy spectrum
+        ax.set_yticks(self.energies['channel'][::2])
         ax.set_yticklabels(
-            self.energy_bin_names[self.min_ebin:self.max_ebin:2])
+                self.energy_bin_names[::2])
         fig = plt.gcf()
         try:
             cbar = fig.colorbar(im, ax=ax)
@@ -386,3 +401,4 @@ class ScienceL1(ScienceData):
                         print(f'toot less counts:{total_counts}')
 
         return boxes
+

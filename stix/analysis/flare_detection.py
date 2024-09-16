@@ -31,6 +31,11 @@ logger = logger.get_logger()
 mdb = db.MongoDB()
 debug = True
 
+NUM_SIGMA = 2
+# changed to 1.414 on July 8, 2024 to take into account the non-thermal emission only last part of the selected time interval
+# original value was 2 
+UPPER_BIN_NUM_SIGMA = 4
+
 PEAK_MIN_NUM_POINTS = 7  # peak duration must be greater than 28 seconds, used to determine energy range upper limit,
 niter = 900
 # matplotlib.use('qtagg' if debug else 'agg')
@@ -377,9 +382,9 @@ def find_flares_in_data(data,
         )
         if stat['std'][0] < 2 * math.sqrt(
                 stat['median'][0]):  # valid background
-            height = stat['median'][0] + 2 * stat['std'][0]
+            height = stat['median'][0] + NUM_SIGMA * stat['std'][0]
             baseline = stat['median'][0]
-            prominence = 2 * stat['std'][0]
+            prominence = NUM_SIGMA * stat['std'][0]
             noise_rms = stat['std'][0]
             conf_set = True
     else:
@@ -389,8 +394,8 @@ def find_flares_in_data(data,
             'Use the estimated background to estimate the threshold ')
         med = np.median(lc_baseline)
         baseline = np.min(lc_baseline)
-        height = baseline + 2 * np.sqrt(baseline)  # statistic
-        prominence = 2 * np.sqrt(baseline)
+        height = baseline + NUM_SIGMA * np.sqrt(baseline)  # statistic
+        prominence = NUM_SIGMA * np.sqrt(baseline)
         noise_rms = np.sqrt(baseline)
         baseline = baseline
         conf_set = True
@@ -473,16 +478,22 @@ def find_flares_in_data(data,
                 num_3sigma = int(
                     np.sum(
                         lc_cnts > stat['median'][ilc] + 3 * stat['std'][ilc]))
-                if num_2sigma > PEAK_MIN_NUM_POINTS:  # longer than half minutes
+
+                signal_max= int(np.max(lc_cnts))
+                signal_min = int(np.min(lc_cnts))
+                #stat['median'][ilc] + UPPER_BIN_NUM_SIGMA * stat['std'][ilc] :   #
+                if signal_max >  signal_min + UPPER_BIN_NUM_SIGMA * np.sqrt(signal_max + signal_min) :
                     upper_bin = ilc
+
+
                 flare_stat = {
                     'bkg_median': stat['median'][ilc],
                     'bkg_sigma': stat['std'][ilc],
                     'signal_median': int(np.median(lc_cnts)),
-                    'signal_max': int(np.max(lc_cnts)),
+                    'signal_max': signal_max,
                     'peak_unix_time': float(peak_time),
                     'peak_utc': st.unix2datetime(peak_time),
-                    'signal_min': int(np.min(lc_cnts)),
+                    'signal_min': signal_min,
                     'num_above_2sigma': num_2sigma,
                     'num_above_3sigma': num_3sigma
                 }

@@ -8,7 +8,7 @@ import binascii
 from io import BytesIO
 import xmltodict
 from core import idb
-from core import global
+#from core import global
 from core import writer_sqlite as stw
 from core import logger
 from core import telemetry_parser as tm_parser

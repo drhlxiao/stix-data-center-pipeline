@@ -607,6 +607,8 @@ class StixDecompressor(object):
         #self.dt = 
         self.scan_time_bins()
             
+        if not self.parameters:
+            return
 
         for param in self.parameters:
             self.walk(param)
@@ -656,12 +658,17 @@ class StixDecompressor(object):
             pkt= datatypes.Packet(self.packet)
             try:
                 timestamps  = np.array(list(cbook.flatten(pkt.get("NIX00403/NIX00089/NIX00404.raw"))))
-            except ValueError:
-                print(pkt.get("NIX00403/NIX00089/NIX00404.raw"))
-                raise
+            except (ValueError, TypeError):
+                print("Failed to get: NIX00403/NIX00089/NIX00404.raw")
+                return
+                #raise
+            
             dt = timestamps[1:]-timestamps[:-1]
-            last_dt =  self.parameters[-1][3][-1][1]
-            self.dt = np.round(np.append(dt, last_dt), 2).tolist()
+            try:
+                last_dt =  self.parameters[-1][3][-1][1]
+                self.dt = np.round(np.append(dt, last_dt), 2).tolist()
+            except TypeError:
+                print("Failed to get time bins")
             #in units of 0.1
 
 

@@ -103,6 +103,7 @@ class StixLogger(object):
         self.write(('[INFO {}] : {}'.format(self.get_now(), msg)), CRITICAL)
 
     def error(self, msg):
+        
         self.write(('[ERROR {}] : {}'.format(self.get_now(), msg)), ERROR)
     def warn(self,msg):
         self.warning(msg)

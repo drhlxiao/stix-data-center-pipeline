@@ -585,12 +585,14 @@ class StixBulkL4Analyzer(object):
         self.trig_SKM = ()
         self.request_id = -1
         self.packet_unix = 0
+        self.seq=0
         self.groups = []
         self.lightcurves = []
         self.groups = []
         self.num_time_bins = 0
         self.start_unix = None
         self.end_unix = None
+        self.packet_missing_before = []
 
     def format_report(self):
         report = {
@@ -598,6 +600,7 @@ class StixBulkL4Analyzer(object):
             'packet_unix': self.packet_unix,
             'groups': self.groups,
             'num_time_bins': self.num_time_bins,
+            'packet_missing_before':self.packet_missing_before,
             'start_unix': self.start_unix,
             'end_unix': self.end_unix
         }
@@ -607,6 +610,11 @@ class StixBulkL4Analyzer(object):
         last_timestamp = None
         hash_list = []
         self.num_time_bins = 0
+
+        last_seq = 0
+
+        self.packet_missing_before = []
+        
         for pkt in cursor:
             if pkt['hash'] in hash_list:
                 continue
@@ -615,7 +623,13 @@ class StixBulkL4Analyzer(object):
             packet = sdt.Packet(pkt)
             self.request_id = packet[3].raw
             self.packet_unix = packet['unix_time']
+            seq = packet['seq_count']
+
             T0 = time_utils.scet2unix(packet[12].raw)
+            if last_seq >0 and seq-last_seq != 1:
+                self.packet_missing_before.append(T0)
+            last_seq = seq
+
             num_structures = packet[13].raw
             self.eacc_SKM = (packet[5].raw, packet[6].raw, packet[7].raw)
             self.trig_SKM = (packet[9].raw, packet[10].raw, packet[11].raw)
@@ -631,7 +645,7 @@ class StixBulkL4Analyzer(object):
             if last_timestamp is None:
                 last_timestamp = T0
 
-            for i in range(0, num_structures):
+            for i in range(0, num_structures): #most cases, num_structures == 1
                 offset = i * 10
                 pixel_mask = children[offset + 1][1]
                 detector_mask = children[offset + 2][1]
@@ -639,42 +653,40 @@ class StixBulkL4Analyzer(object):
                 E1 = children[offset + 5][1]
                 E2 = children[offset + 6][1]
                 Eunit = children[offset + 7][1]
+                closing_time_off= children[offset + 9][1]*0.1
 
+                time_delta = []
+                
                 num_samples = children[8 + offset][1]
                 samples = children[8 + offset][3]
                 subgroups = []
+                dT = 0
 
                 for j in range(0, num_samples):
                     k = j * 3
-
-                
-
-
                     timestamp = samples[k][1] * 0.1 + T0
                     if self.start_unix is None:
                         self.start_unix = timestamp
                     self.end_unix = timestamp
 
-                    if len(samples[k])==5:
-                        # the last value keeps the dt, introduced in 20240423, 
-                        # dt filled by decompression.py
-                        dT=samples[k][4]
-                        #name, raw, eng, children[], aux_data, error
-                    else:
-                        #this is wrong for ASW 138
+                    #this is wrong for ASW 138
+                    if j>0:
                         dT = timestamp - last_timestamp
+                        time_delta.append(dT)
                         #still old convention
-
+                    last_timestamp = timestamp
                     if dT > 0:
                         self.num_time_bins += 1
-                    last_timestamp = timestamp
+
+
                     triggers = samples[k + 1][trig_idx]
                     num_energies = samples[k + 2][1]
                     energy_children = samples[k + 2][3]
                     lcs = [m[counts_idx] for m in energy_children]
                     #counts
-                    subgroups.append((timestamp, triggers, lcs, dT))
+                    subgroups.append([timestamp, triggers, lcs])
 
+                time_delta.append(closing_time_off)
                 group = {
                     'rcr': rcr,
                     'pixel_mask': pixel_mask,
@@ -683,8 +695,11 @@ class StixBulkL4Analyzer(object):
                     'E2': E2,
                     'Eunit': Eunit,
                     'subgroups': subgroups,
+                    'time_delta': time_delta
                 }
+                #one packet has one group
                 self.groups.append(group)
+
         return self.format_report()
 
 
@@ -783,6 +798,18 @@ def process_requests_between(start_id: int, end_id: int):
         except IndexError:
             continue
 
+def reprocess_all_spectrograms():
+    docs = bsd_collection.find({
+        'SPID':54143 
+    }).sort('_id', -1)
+    for doc in docs:
+        print(f"Processing:{doc['_id']} ...")
+        try:
+            process_science_request_doc(doc)
+        except Exception as e:
+            print(e)
+            continue
+
 
 def process_science_request_doc(doc):
     """
@@ -856,7 +883,7 @@ def process_science_request_doc(doc):
         })
 
 
-if __name__ == '__main__':
+def main():
     if len(sys.argv) < 3:
         print('process_sci_packets -file run_id')
         print('process_sci_packets -file run_id_start id_end')
@@ -868,8 +895,8 @@ if __name__ == '__main__':
         opt = sys.argv[1]
         if opt == '-re':
             process_remaining_requests()
-        if opt == '-all':
-            process_remaining_requests()
+        if opt == '-allspec':
+            reprocess_all_spectrograms()
 
         if len(sys.argv) == 3:
             if opt == '-file':
@@ -886,3 +913,5 @@ if __name__ == '__main__':
                     process_one(i)
                 elif opt == '-bsd':
                     process_science_request(i)
+if __name__ == '__main__':
+    main()

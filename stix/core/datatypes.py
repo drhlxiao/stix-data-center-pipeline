@@ -315,7 +315,11 @@ class Packet(object):
             field = fields.pop(0)
         except IndexError:
             return []
+        if not parameters:
+            return []
         for e in parameters:
+            if not e:
+                continue
             param = Parameter(e)
             if param['name'] in field or '*' in field:
                 if fields:

@@ -303,6 +303,14 @@ if __name__ == '__main__':
     file_ids = []
     if len(sys.argv) < 2:
         print('flare_processing file_number')
+
+    if sys.argv[1]=='flareid' and len(sys.argv)==4:
+        flare_id_start=int(sys.argv[2])
+        flare_id_end=int(sys.argv[3])
+        compute_flare_goes_for_flares(flare_id_start, flare_id_end)
+
+
+
     elif len(sys.argv) == 2:
         file_ids.append(int(sys.argv[1]))
     else:

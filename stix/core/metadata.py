@@ -210,6 +210,7 @@ class StixQuickLookPacketAnalyzer(object):
         """
         logger.info('Checking changes of rcr')
         if not times or not rcrs:
+            logger.info('No time bins or rcrs, ignored!')
             return
         times=np.array(times).flatten().tolist()
         rcrs=np.array(rcrs).flatten().tolist()

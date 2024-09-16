@@ -36,7 +36,7 @@ from sunpy.coordinates.frames import HeliocentricEarthEcliptic, HeliographicSton
 
 from stix.flare_pipeline import lightcurves
 from stix.flare_pipeline import ospex
-from stix.flare_pipeline import sdo_aia
+#from stix.flare_pipeline import sdo_aia
 from stix.flare_pipeline import solo_eui 
 from stix.flare_pipeline import imaging_task_manager as itm
 from stix.core import mongo_db as db
@@ -92,16 +92,6 @@ def plot_idl(anydoc, create_stix_images=True, create_eui=True, create_aia=False)
             flare_image_db.update_one({'_id': doc_id}, {'$set': {'plotter':{'end': ut.now(), 'error':str(e)  } }})
             logger.error(e)
     return
-    #if create_eui:
-    #    try:
-    #        solo_eui.process_one(doc_id)
-    #    except Exception as e:
-    #        logger.error(e)
-    #if create_aia:
-    #    try:
-    #        plot_aia(doc_id)
-    #    except Exception as e:
-    #        logger.error(e)
 
 
 def rotate_map(m, recenter=False):
@@ -197,6 +187,7 @@ def plot_flare_image(imap,
                      desc_xy,
                      vmin)
     except Exception as e:
+
         print(str(e))
 
 def _plot_flare_image(imap,
@@ -261,7 +252,11 @@ def fix_map_fits_header(image_filename):
             try:
                 hdu.header['DATE-OBS']=ut.utc2isoformat(hdu.header['DATE_OBS'])
             except KeyError:
-                hdu.header['DATE-OBS']=ut.utc2isoformat(hdu.header['DATE_AVG'])
+                try:
+                    hdu.header['DATE-OBS']=ut.utc2isoformat(hdu.header['DATE_AVG'])
+                except KeyError:
+                    hdu.header['DATE-OBS']='1970-01-01T00:00:00'
+                    
 
         hduls.writeto(image_filename, overwrite=True, checksum=True)
     except Exception as e:

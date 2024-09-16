@@ -340,7 +340,7 @@ def create_aia_image_as_seen_by_STIX( stix_map,  wavelength=1600):
     time_end = Time(earth_time)+15*u.s
     # Download and calibrate AIA
 
-    series=24*u.second if wavelength = 1600 else 12 *u.second
+    #series=24*u.second if wavelength = 1600 else 12 *u.second
 
 
         
@@ -349,7 +349,7 @@ def create_aia_image_as_seen_by_STIX( stix_map,  wavelength=1600):
     query = Fido.search(
                     a.Time(time_start, time_end), a.Instrument.aia,
                     #a.Physobs.intensity,
-                    a.Sample(series),
+                    #a.Sample(series),
                     a.Wavelength(wavelength*u.angstrom)
 
     )

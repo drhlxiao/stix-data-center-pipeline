@@ -10,7 +10,7 @@ from __future__ import (absolute_import, unicode_literals)
 import argparse
 import pprint
 from core import idb
-from core import global
+#from core import global
 from core import parser
 
 _telmetry_parser = parser.StixTCTMParser()
@@ -36,10 +36,10 @@ def packet_filter(in_filename, out_filename, selected_spid):
             header_raw = result['header_raw']
             app_raw = result['app_raw']
             num_bytes_read = result['num_read']
-            if status == global._next_packet:
-                continue
-            if status == global._eof:
-                break
+            #if status == global._next_packet:
+            #    continue
+            #if status == global._eof:
+            #    break
             spid = header['SPID']
             num_total_packets += 1
             if spid == selected_spid:

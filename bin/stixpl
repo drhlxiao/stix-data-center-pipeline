@@ -1,31 +1,7 @@
-#!/usr/bin/env python3
-# @author       : Hualin Xiao
-# @date         : May. 11, 2021
+#!/bin/bash
+source /opt/root/bin/thisroot.sh
 
-import os
-import sys
-import time
-
-
-currentdir = os.path.dirname(os.path.realpath(__file__))
-parentdir = os.path.dirname(currentdir)
-sys.path.append(parentdir)
-from stix.pipeline import raw_pipeline as pd
-from stix.core import logger
-logger = logger.get_logger()
-
-
-
-def start_pipeline():
-    logger.info('Starting pipeline')
-    while True:
-        pd.main()
-        logger.info('Waiting for next check...')
-        time.sleep(300)
-
-
-
-# Start the thread
-if __name__ == '__main__':
-    start_pipeline()
+export PYTHONPATH=$PYTHONPATH:/opt/root/lib:/opt/stix/parser
+cd /opt/stix/parser
+/usr/bin/python3 ./bin/stixpl.py
 
