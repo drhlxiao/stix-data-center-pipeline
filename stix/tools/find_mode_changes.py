@@ -49,9 +49,9 @@ def request_hk_packets(start_utc, end_utc):
 
 
         raw_mode = NIX00012[str(parameters[3][1])]
-
-        if this_time - last_time > 300:
-            fcsv.write(f'{dt.unix2utc(last_time)}, {dt.unix2utc(this_time)},"NO_HK","{this_time - last_time}"\n')
+        tgap = this_time - last_time
+        if tgap > 300:
+            fcsv.write(f'{dt.unix2utc(last_time)}, {dt.unix2utc(this_time)}, {tgap}, "NO_HK",""\n')
             print(f'{dt.unix2utc(last_time)}, {dt.unix2utc(this_time)},"NO_HK","{this_time - last_time}"\n')
 
         last_time = this_time
@@ -59,7 +59,7 @@ def request_hk_packets(start_utc, end_utc):
         if raw_mode == last_mode:
             continue
         else:
-            fcsv.write(f'{dt.unix2utc(last_time)}, {dt.unix2utc(this_time)}, {last_mode}, {raw_mode}\n')
+            fcsv.write(f'{dt.unix2utc(last_time)}, {dt.unix2utc(this_time)},{tgap},  {last_mode}, {raw_mode}\n')
             print(f'{dt.unix2utc(last_time)}, {dt.unix2utc(this_time)}, {last_mode}, {raw_mode}\n')
 
 
