@@ -74,6 +74,7 @@ class MongoDB(object):
             #self.collection_sw_config=self.db['sw_config']
             self.collection_flare_images= self.db['flare_images']
             self.collection_aspect= self.db['aspect']
+            self.collection_hk_monitor= self.db['hk_monitor']
 
             self.col_user_groups=self.db['user_groups']
         except Exception as e:
@@ -165,7 +166,7 @@ class MongoDB(object):
         return  self.col_goes.find(query_string).sort('unix_time', 1)
 
     def get_houskeeping_packets_of_file(self,file_id):
-        return self.collection_packets.find({'_id':file_id, 'header.SPID':54102})
+        return self.collection_packets.find({'run_id':file_id, 'header.SPID':54102})
 
     def get_LC_pkt_by_tw(self, start_unix_time, span):
         if self.collection_ql is None:
@@ -780,6 +781,9 @@ class MongoDB(object):
         return self.collection_raw_files.find({}).sort("_id",-1).limit(1)
     def set_sci_request_failed(self, uid, packet_id):
         self.collection_data_requests.update_many({'unique_ids': int(uid)},{'$set':{'tc_status':{'failed': {'packet_id': packet_id}} }})
+
+    def update_hk_events(self, doc):
+        self.collection_hk_monitor.update_one({'unix_time': doc['unix_time']}, {'$set':doc}, upsert=True)
 
 
 

@@ -16,9 +16,8 @@ NIX00012={
         }
 
 def request_hk_packets(start_utc, end_utc):
-    names = HK.keys()
-    start_unix = datetime.utc2unix(start_utc)
-    end_unix = datetime.utc2unix(end_utc)
+    start_unix = dt.utc2unix(start_utc)
+    end_unix = dt.utc2unix(end_utc)
     cur = db.find({
         'header.SPID': 54102,
         'header.unix_time': {
@@ -26,7 +25,6 @@ def request_hk_packets(start_utc, end_utc):
             '$lt': end_unix
         }
     }).sort('header.unix_time', 1)
-    print(f'Number of packets:{cur.count()}')
     last_time = 0
     csv_filename = f'hk_{start_utc}_{end_utc}.csv'
     csv_filename = csv_filename.replace(':', '')
